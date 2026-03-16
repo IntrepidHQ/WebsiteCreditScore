@@ -1,0 +1,34 @@
+import { describe, expect, it } from "vitest";
+
+import {
+  formatDomainTitle,
+  inferProfileType,
+  normalizeUrl,
+  slugFromUrl,
+} from "@/lib/utils/url";
+
+describe("url utilities", () => {
+  it("normalizes a URL and adds https", () => {
+    expect(normalizeUrl("Example.com/")).toBe("https://example.com");
+  });
+
+  it("formats the domain into a presentation title", () => {
+    expect(formatDomainTitle("https://northshore-roofing.com")).toBe(
+      "Northshore Roofing",
+    );
+  });
+
+  it("creates a stable slug", () => {
+    expect(slugFromUrl("https://northshore-roofing.com")).toBe(
+      "northshore-roofing-com",
+    );
+  });
+
+  it("infers healthcare from domain keywords", () => {
+    expect(inferProfileType("https://rivercareclinic.com")).toBe("healthcare");
+  });
+
+  it("treats short single-word brand domains as polished product sites by default", () => {
+    expect(inferProfileType("https://apple.com")).toBe("saas");
+  });
+});

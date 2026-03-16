@@ -1,0 +1,383 @@
+"use client";
+
+import { useId, useMemo } from "react";
+import { Download, RefreshCcw, Shuffle, Sparkles } from "lucide-react";
+
+import { SectionHeading } from "@/components/common/section-heading";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { Slider } from "@/components/ui/slider";
+import { Switch } from "@/components/ui/switch";
+import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { getContrastChecks } from "@/lib/utils/theme";
+import { useThemeStore } from "@/store/theme-store";
+
+function SettingRow({
+  titleId,
+  label,
+  description,
+  children,
+}: {
+  titleId: string;
+  label: string;
+  description: string;
+  children: React.ReactNode;
+}) {
+  return (
+    <div className="grid gap-4 rounded-[calc(var(--theme-radius))] border border-border/70 bg-panel/60 p-4 lg:grid-cols-[minmax(0,0.8fr)_minmax(0,1.2fr)]">
+      <div>
+        <p className="font-semibold text-foreground" id={titleId}>
+          {label}
+        </p>
+        <p className="mt-1 text-sm leading-6 text-muted">{description}</p>
+      </div>
+      <div>{children}</div>
+    </div>
+  );
+}
+
+function BrandingField({
+  label,
+  children,
+}: {
+  label: string;
+  children: React.ReactNode;
+}) {
+  return (
+    <label className="flex flex-col gap-2">
+      <span className="text-sm font-semibold text-foreground">{label}</span>
+      {children}
+    </label>
+  );
+}
+
+export function SettingsPanel() {
+  const modeLabelId = useId();
+  const accentLabelId = useId();
+  const fontScaleLabelId = useId();
+  const radiusLabelId = useId();
+  const shadowLabelId = useId();
+  const spacingLabelId = useId();
+  const motionLabelId = useId();
+  const tokens = useThemeStore((state) => state.tokens);
+  const branding = useThemeStore((state) => state.branding);
+  const motionPreference = useThemeStore((state) => state.motionPreference);
+  const setMode = useThemeStore((state) => state.setMode);
+  const setAccentColor = useThemeStore((state) => state.setAccentColor);
+  const setFontScale = useThemeStore((state) => state.setFontScale);
+  const setRadius = useThemeStore((state) => state.setRadius);
+  const setShadowIntensity = useThemeStore((state) => state.setShadowIntensity);
+  const setSpacingDensity = useThemeStore((state) => state.setSpacingDensity);
+  const setMotionPreference = useThemeStore((state) => state.setMotionPreference);
+  const updateBranding = useThemeStore((state) => state.updateBranding);
+  const randomizeTheme = useThemeStore((state) => state.randomizeTheme);
+  const restoreDefaults = useThemeStore((state) => state.restoreDefaults);
+  const exportThemeJson = useThemeStore((state) => state.exportThemeJson);
+
+  const contrastChecks = useMemo(() => getContrastChecks(tokens), [tokens]);
+
+  function downloadTheme() {
+    const blob = new Blob([exportThemeJson()], { type: "application/json" });
+    const url = URL.createObjectURL(blob);
+    const anchor = document.createElement("a");
+    anchor.href = url;
+    anchor.download = "premium-audit-theme.json";
+    anchor.click();
+    URL.revokeObjectURL(url);
+  }
+
+  return (
+    <main className="presentation-section" id="main-content">
+      <div className="mx-auto grid w-full max-w-7xl gap-8 px-4 sm:px-6 lg:grid-cols-[minmax(0,1fr)_24rem] lg:px-8">
+        <div className="space-y-8">
+          <SectionHeading
+            eyebrow="Studio settings"
+            title="Tune the packet before it goes out"
+            description="Adjust the visual system and agency details so outreach, packet previews, and internal review all stay consistent."
+          />
+
+          <Card>
+            <CardHeader>
+              <div className="flex flex-wrap items-center justify-between gap-3">
+                <div>
+                  <Badge variant="accent">Theme controls</Badge>
+                  <CardTitle className="mt-3 text-3xl">Visual system</CardTitle>
+                </div>
+                <div className="flex flex-wrap gap-2">
+                  <Button onClick={randomizeTheme} variant="secondary">
+                    <Shuffle className="size-4" />
+                    Random theme
+                  </Button>
+                  <Button onClick={restoreDefaults} variant="secondary">
+                    <RefreshCcw className="size-4" />
+                    Restore defaults
+                  </Button>
+                  <Button onClick={downloadTheme}>
+                    <Download className="size-4" />
+                    Export JSON
+                  </Button>
+                </div>
+              </div>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <SettingRow
+                titleId={modeLabelId}
+                label="Theme mode"
+                description="Switch between light and dark while preserving the same semantic token structure."
+              >
+                <Tabs
+                  aria-labelledby={modeLabelId}
+                  onValueChange={(value) => setMode(value === "light" ? "light" : "dark")}
+                  value={tokens.mode}
+                >
+                  <TabsList>
+                    <TabsTrigger value="dark">Dark</TabsTrigger>
+                    <TabsTrigger value="light">Light</TabsTrigger>
+                  </TabsList>
+                </Tabs>
+              </SettingRow>
+
+              <SettingRow
+                titleId={accentLabelId}
+                label="Accent color"
+                description="Use a controlled accent to shift the deck’s personality without breaking contrast."
+              >
+                <div className="flex items-center gap-3">
+                  <Input
+                    aria-labelledby={accentLabelId}
+                    className="max-w-44"
+                    type="color"
+                    value={tokens.accentColor}
+                    onChange={(event) => setAccentColor(event.target.value)}
+                  />
+                  <span className="text-sm text-muted">{tokens.accentColor}</span>
+                </div>
+              </SettingRow>
+
+              <SettingRow
+                titleId={fontScaleLabelId}
+                label="Font scale"
+                description="Adjust overall density for larger presentations or smaller screens."
+              >
+                <Slider
+                  aria-labelledby={fontScaleLabelId}
+                  max={1.15}
+                  min={0.9}
+                  onValueChange={(value) => setFontScale(value[0] ?? 1)}
+                  step={0.01}
+                  value={[tokens.fontScale]}
+                />
+                <p className="mt-2 text-sm text-muted">Current value: {tokens.fontScale.toFixed(2)}</p>
+              </SettingRow>
+
+              <SettingRow
+                titleId={radiusLabelId}
+                label="Border radius"
+                description="Move from sharper editorial cards to softer luxury surfaces."
+              >
+                <Slider
+                  aria-labelledby={radiusLabelId}
+                  max={16}
+                  min={6}
+                  onValueChange={(value) => setRadius(value[0] ?? 12)}
+                  step={1}
+                  value={[tokens.radius]}
+                />
+                <p className="mt-2 text-sm text-muted">Current value: {tokens.radius}px</p>
+              </SettingRow>
+
+              <SettingRow
+                titleId={shadowLabelId}
+                label="Shadow intensity"
+                description="Control how much depth and stage lighting the presentation uses."
+              >
+                <Slider
+                  aria-labelledby={shadowLabelId}
+                  max={1.2}
+                  min={0.3}
+                  onValueChange={(value) => setShadowIntensity(value[0] ?? 0.8)}
+                  step={0.01}
+                  value={[tokens.shadowIntensity]}
+                />
+                <p className="mt-2 text-sm text-muted">
+                  Current value: {tokens.shadowIntensity.toFixed(2)}
+                </p>
+              </SettingRow>
+
+              <SettingRow
+                titleId={spacingLabelId}
+                label="Spacing density"
+                description="Widen or tighten layout rhythm across cards, grids, and sections."
+              >
+                <Slider
+                  aria-labelledby={spacingLabelId}
+                  max={1.18}
+                  min={0.82}
+                  onValueChange={(value) => setSpacingDensity(value[0] ?? 1)}
+                  step={0.01}
+                  value={[tokens.spacingDensity]}
+                />
+                <p className="mt-2 text-sm text-muted">
+                  Current value: {tokens.spacingDensity.toFixed(2)}
+                </p>
+              </SettingRow>
+
+              <SettingRow
+                titleId={motionLabelId}
+                label="Reduce motion"
+                description="Use a calmer presentation style when you want less motion in reviews or exported previews."
+              >
+                <div className="flex items-center justify-between rounded-[calc(var(--theme-radius))] border border-border/70 bg-background-alt/70 px-4 py-3">
+                  <div>
+                    <p className="text-sm font-semibold text-foreground">Motion setting</p>
+                    <p className="text-xs text-muted">
+                      Current mode: {motionPreference === "reduced" ? "Reduced" : "System"}
+                    </p>
+                  </div>
+                  <Switch
+                    aria-labelledby={motionLabelId}
+                    checked={motionPreference === "reduced"}
+                    onCheckedChange={(checked) =>
+                      setMotionPreference(checked ? "reduced" : "system")
+                    }
+                  />
+                </div>
+              </SettingRow>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader>
+              <Badge variant="accent">Agency branding mode</Badge>
+              <CardTitle className="mt-3 text-3xl">Proposal identity</CardTitle>
+            </CardHeader>
+            <CardContent className="grid gap-4">
+              <div className="grid gap-4 sm:grid-cols-2">
+                <BrandingField label="Agency name">
+                  <Input
+                    autoComplete="organization"
+                    value={branding.agencyName}
+                    onChange={(event) => updateBranding({ agencyName: event.target.value })}
+                  />
+                </BrandingField>
+                <BrandingField label="Logo mark">
+                  <Input
+                    value={branding.logoMark}
+                    onChange={(event) => updateBranding({ logoMark: event.target.value.slice(0, 3) })}
+                  />
+                </BrandingField>
+                <BrandingField label="Contact name">
+                  <Input
+                    autoComplete="name"
+                    value={branding.contactName}
+                    onChange={(event) => updateBranding({ contactName: event.target.value })}
+                  />
+                </BrandingField>
+                <BrandingField label="Contact title">
+                  <Input
+                    value={branding.contactTitle}
+                    onChange={(event) => updateBranding({ contactTitle: event.target.value })}
+                  />
+                </BrandingField>
+                <BrandingField label="Contact email">
+                  <Input
+                    autoComplete="email"
+                    type="email"
+                    value={branding.contactEmail}
+                    onChange={(event) => updateBranding({ contactEmail: event.target.value })}
+                  />
+                </BrandingField>
+                <BrandingField label="Contact phone">
+                  <Input
+                    autoComplete="tel"
+                    value={branding.contactPhone}
+                    onChange={(event) => updateBranding({ contactPhone: event.target.value })}
+                  />
+                </BrandingField>
+              </div>
+              <div className="grid gap-4 sm:grid-cols-2">
+                <BrandingField label="Headshot URL">
+                  <Input
+                    type="url"
+                    value={branding.headshot}
+                    onChange={(event) => updateBranding({ headshot: event.target.value })}
+                  />
+                </BrandingField>
+                <BrandingField label="Accent override">
+                  <Input
+                    type="color"
+                    value={branding.accentOverride || tokens.accentColor}
+                    onChange={(event) => updateBranding({ accentOverride: event.target.value })}
+                  />
+                </BrandingField>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+
+        <aside className="lg:sticky lg:top-28 lg:h-fit">
+          <Card className="overflow-hidden">
+            <CardHeader>
+              <div className="flex items-center gap-2 text-accent">
+                <Sparkles className="size-4" />
+                Live preview
+              </div>
+              <CardTitle className="text-3xl">Packet styling preview</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="rounded-[calc(var(--theme-radius-lg))] border border-accent/20 bg-accent/8 p-5">
+                <div className="flex items-center gap-3">
+                  <div className="flex size-12 items-center justify-center rounded-2xl border border-accent/30 bg-panel/75 font-display font-semibold text-accent">
+                    {branding.logoMark}
+                  </div>
+                  <div>
+                    <p className="font-semibold text-foreground">{branding.agencyName}</p>
+                    <p className="text-xs uppercase tracking-[0.18em] text-muted">
+                      client packet preview
+                    </p>
+                  </div>
+                </div>
+                <h3 className="mt-5 font-display text-3xl font-semibold tracking-[-0.03em] text-foreground">
+                  The redesign can feel clearer, more credible, and easier to buy.
+                </h3>
+                <p className="mt-3 text-sm leading-6 text-muted">
+                  Preview the header, tone, and contrast balance before you send the
+                  packet or copy the outreach email.
+                </p>
+              </div>
+
+              <div className="grid gap-3">
+                <div className="rounded-[calc(var(--theme-radius))] border border-border/70 bg-background-alt/70 p-4">
+                  <p className="text-xs uppercase tracking-[0.18em] text-muted">
+                    Contrast guard
+                  </p>
+                  <p className="mt-2 text-sm text-foreground">
+                    Foreground/background: {contrastChecks.foregroundOnBackground}
+                  </p>
+                  <p className="text-sm text-foreground">
+                    Accent/foreground: {contrastChecks.accentOnAccentForeground}
+                  </p>
+                </div>
+                <div className="rounded-[calc(var(--theme-radius))] border border-border/70 bg-panel/60 p-4">
+                  <p className="text-xs uppercase tracking-[0.18em] text-muted">Token snapshot</p>
+                  <div className="mt-3 grid gap-2 sm:grid-cols-2">
+                    <Badge variant="neutral">Font scale {tokens.fontScale.toFixed(2)}</Badge>
+                    <Badge variant="neutral">Radius {tokens.radius}px</Badge>
+                    <Badge variant="neutral">
+                      Shadow {tokens.shadowIntensity.toFixed(2)}
+                    </Badge>
+                    <Badge variant="neutral">
+                      Spacing {tokens.spacingDensity.toFixed(2)}
+                    </Badge>
+                  </div>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        </aside>
+      </div>
+    </main>
+  );
+}
