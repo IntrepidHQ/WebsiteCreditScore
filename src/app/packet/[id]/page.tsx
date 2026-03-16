@@ -117,9 +117,11 @@ export default async function PacketPage({
     printColorAdjust: "exact",
   } as CSSProperties;
   const packetSheetClass =
-    "rounded-[8px] border border-transparent bg-white p-4 shadow-[0_24px_60px_rgba(0,0,0,0.18)] print:rounded-none print:border-0 print:p-3 print:shadow-none";
+    "rounded-[8px] border border-border bg-panel p-4 text-foreground shadow-[0_24px_60px_rgba(0,0,0,0.18)] print:rounded-none print:border-0 print:bg-white print:p-3 print:text-slate-950 print:shadow-none";
   const packetCardClass =
-    "print-avoid-break rounded-[6px] border border-slate-200 bg-slate-50 p-3 print:rounded-[4px] print:p-[10px]";
+    "print-avoid-break rounded-[6px] border border-border bg-elevated p-3 text-foreground print:rounded-[4px] print:border-slate-200 print:bg-slate-50 print:p-[10px] print:text-slate-950";
+  const packetInsetClass =
+    "rounded-[4px] border border-border bg-panel text-foreground print:border-slate-200 print:bg-white print:text-slate-950";
 
   return (
     <main
@@ -149,11 +151,11 @@ export default async function PacketPage({
               <h1 className="font-display text-5xl font-semibold tracking-[-0.05em] print:text-[2.8rem]">
                 {report.title}
               </h1>
-              <p className="max-w-3xl text-lg leading-8 text-slate-600 print:text-[15px] print:leading-7">
+              <p className="max-w-3xl text-lg leading-8 text-muted print:text-[15px] print:leading-7 print:text-slate-600">
                 A concise review of the current site, the strongest friction points, and the most sensible way to improve first impression, trust, and response quality.
               </p>
-              <div className="overflow-hidden rounded-[6px] border border-slate-200 bg-slate-50">
-                <div className="relative aspect-[16/8] overflow-hidden bg-slate-100 print:aspect-[16/6.4]">
+              <div className="overflow-hidden rounded-[6px] border border-border bg-elevated print:border-slate-200 print:bg-slate-50">
+                <div className="relative aspect-[16/8] overflow-hidden bg-background-alt print:aspect-[16/6.4] print:bg-slate-100">
                   <Image
                     alt={`${report.title} current site preview`}
                     className="object-cover object-top"
@@ -163,25 +165,25 @@ export default async function PacketPage({
                     unoptimized
                   />
                 </div>
-                <div className="grid gap-3 border-t border-slate-200 p-4 print:gap-2 print:p-3 md:grid-cols-[minmax(0,1fr)_auto] md:items-start">
+                <div className="grid gap-3 border-t border-border p-4 print:gap-2 print:border-slate-200 print:p-3 md:grid-cols-[minmax(0,1fr)_auto] md:items-start">
                   <div>
-                    <p className="text-xs uppercase tracking-[0.18em] text-slate-500">Executive summary</p>
-                    <p className="mt-2 text-[15px] leading-7 text-slate-700 print:text-[13px] print:leading-5">{report.executiveSummary}</p>
+                    <p className="text-xs uppercase tracking-[0.18em] text-muted print:text-slate-500">Executive summary</p>
+                    <p className="mt-2 text-[15px] leading-7 text-foreground print:text-[13px] print:leading-5 print:text-slate-700">{report.executiveSummary}</p>
                   </div>
                   {verifiedFacts.length ? (
                     <div className="grid gap-2 md:min-w-[15rem]">
                       {verifiedFacts.map((fact) => (
                         <div
-                          className="print-avoid-break rounded-[4px] border border-slate-200 bg-white px-3 py-2"
+                          className={`print-avoid-break px-3 py-2 ${packetInsetClass}`}
                           key={fact.id}
                         >
                           <div className="flex items-center justify-between gap-3">
-                            <p className="text-[11px] uppercase tracking-[0.18em] text-slate-500">{fact.label}</p>
+                            <p className="text-[11px] uppercase tracking-[0.18em] text-muted print:text-slate-500">{fact.label}</p>
                             <span className="text-[11px] font-semibold uppercase tracking-[0.16em] text-[var(--packet-accent)]">
                               {fact.confidence}
                             </span>
                           </div>
-                          <p className="mt-1 text-sm leading-6 text-slate-700 print:text-[13px] print:leading-5">{fact.value}</p>
+                          <p className="mt-1 text-sm leading-6 text-foreground print:text-[13px] print:leading-5 print:text-slate-700">{fact.value}</p>
                         </div>
                       ))}
                     </div>
@@ -189,41 +191,41 @@ export default async function PacketPage({
                 </div>
               </div>
             </div>
-            <div className="print-avoid-break rounded-[6px] border border-slate-200 bg-slate-50 p-4 print:p-3">
-              <div className="grid gap-2 sm:grid-cols-3">
-                <div className="rounded-[4px] border border-slate-200 bg-white px-3 py-3 print:px-3 print:py-2">
-                  <p className="text-xs uppercase tracking-[0.18em] text-slate-500">Current score</p>
-                  <p className="mt-2 font-display text-4xl font-semibold text-slate-950 print:text-[2rem]">
+            <div className="print-avoid-break rounded-[6px] border border-border bg-elevated p-4 print:border-slate-200 print:bg-slate-50 print:p-3">
+              <div className="grid gap-2">
+                <div className={`${packetInsetClass} flex flex-col gap-2 px-3 py-3 print:px-3 print:py-2`}>
+                  <p className="text-xs uppercase tracking-[0.18em] text-muted print:text-slate-500">Current score</p>
+                  <p className="font-display text-4xl font-semibold text-foreground print:text-[2rem] print:text-slate-950">
                     {report.overallScore}
-                    <span className="text-lg text-slate-500"> / 10</span>
+                    <span className="text-lg text-muted print:text-slate-500"> / 10</span>
                   </p>
-                  <p className="mt-1 text-sm leading-5 text-slate-600">{describeScore(report.overallScore)}</p>
+                  <p className="text-sm leading-5 text-muted print:text-slate-600">{describeScore(report.overallScore)}</p>
                 </div>
-                <div className="rounded-[4px] border border-slate-200 bg-white px-3 py-3 print:px-3 print:py-2">
-                  <p className="text-xs uppercase tracking-[0.18em] text-slate-500">Projected</p>
-                  <p className="mt-2 font-display text-4xl font-semibold text-slate-950 print:text-[2rem]">
+                <div className={`${packetInsetClass} flex flex-col gap-2 px-3 py-3 print:px-3 print:py-2`}>
+                  <p className="text-xs uppercase tracking-[0.18em] text-muted print:text-slate-500">Projected</p>
+                  <p className="font-display text-4xl font-semibold text-foreground print:text-[2rem] print:text-slate-950">
                     {projectedScore}
-                    <span className="text-lg text-slate-500"> / 10</span>
+                    <span className="text-lg text-muted print:text-slate-500"> / 10</span>
                   </p>
-                  <p className="mt-1 text-sm leading-5 text-slate-600">Based on the recommended scope below.</p>
+                  <p className="text-sm leading-5 text-muted print:text-slate-600">Based on the recommended scope below.</p>
                 </div>
-                <div className="rounded-[4px] border border-slate-200 bg-white px-3 py-3 print:px-3 print:py-2">
-                  <p className="text-xs uppercase tracking-[0.18em] text-slate-500">Reference range</p>
-                  <p className="mt-2 font-display text-3xl font-semibold text-slate-950 print:text-[1.8rem]">
+                <div className={`${packetInsetClass} flex flex-col gap-2 px-3 py-3 print:px-3 print:py-2`}>
+                  <p className="text-xs uppercase tracking-[0.18em] text-muted print:text-slate-500">Reference range</p>
+                  <p className="font-display text-3xl font-semibold text-foreground print:text-[1.8rem] print:text-slate-950">
                     {referenceFloor.toFixed(1)} to {referenceCeiling.toFixed(1)}
                   </p>
                   {referenceNames.length ? (
-                    <p className="mt-1 text-sm leading-5 text-slate-600">{referenceNames.join(", ")}</p>
+                    <p className="text-sm leading-5 text-muted print:text-slate-600">{referenceNames.join(", ")}</p>
                   ) : null}
                 </div>
               </div>
-              <div className="mt-3 grid gap-x-3 gap-y-2 sm:grid-cols-2">
+              <div className="mt-3 grid gap-2">
                 {report.categoryScores.map((item) => (
                   <div
-                    className="flex items-center justify-between rounded-[4px] border border-slate-200 bg-white px-3 py-2 text-sm print:text-[12.5px]"
+                    className={`${packetInsetClass} flex flex-col items-start gap-1 px-3 py-2 text-sm print:text-[12.5px]`}
                     key={item.key}
                   >
-                    <span className="text-slate-700">{item.label}</span>
+                    <span className="text-foreground print:text-slate-700">{item.label}</span>
                     <span className={`font-semibold ${getScoreTone(item.score) === "danger" ? "text-[var(--packet-danger)]" : getScoreTone(item.score) === "warning" ? "text-[var(--packet-warning)]" : "text-[var(--packet-success)]"}`}>
                       {item.score}
                     </span>
@@ -233,7 +235,7 @@ export default async function PacketPage({
               <div className="mt-3 flex flex-wrap gap-2">
                 {priorityCategories.map((item) => (
                   <span
-                    className="rounded-full border border-slate-200 bg-white px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.16em] text-slate-700"
+                    className="rounded-full border border-border bg-panel px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.16em] text-foreground print:border-slate-200 print:bg-white print:text-slate-700"
                     key={item.key}
                   >
                     {item.label}
@@ -247,12 +249,12 @@ export default async function PacketPage({
         <section className={packetSheetClass}>
           <div className="grid gap-5 print:gap-4 lg:grid-cols-[minmax(0,0.82fr)_minmax(0,1.18fr)]">
             <div className="space-y-4">
-              <p className="text-xs uppercase tracking-[0.24em] text-slate-500">What is already working</p>
+              <p className="text-xs uppercase tracking-[0.24em] text-muted print:text-slate-500">What is already working</p>
               <div className="grid gap-3">
                 {packetPositives.map((finding) => (
                   <div key={finding.id} className={packetCardClass}>
                     <h2 className="font-display text-2xl font-semibold print:text-[1.55rem]">{finding.title}</h2>
-                    <p className="mt-2 text-sm leading-6 text-slate-700 print:text-[13px] print:leading-5">{finding.summary}</p>
+                    <p className="mt-2 text-sm leading-6 text-foreground print:text-[13px] print:leading-5 print:text-slate-700">{finding.summary}</p>
                   </div>
                 ))}
               </div>
@@ -263,7 +265,7 @@ export default async function PacketPage({
                 {packetIssues.map((finding) => (
                   <div key={finding.id} className={packetCardClass}>
                     <div className="flex items-center justify-between gap-3">
-                      <p className="text-[11px] uppercase tracking-[0.18em] text-slate-500">
+                      <p className="text-[11px] uppercase tracking-[0.18em] text-muted print:text-slate-500">
                         {finding.confidenceLevel === "detected" ? "Observed" : "Priority area"}
                       </p>
                       <span className="text-[11px] font-semibold uppercase tracking-[0.16em] text-[var(--packet-accent)]">
@@ -271,13 +273,13 @@ export default async function PacketPage({
                       </span>
                     </div>
                     <h2 className="mt-2 font-display text-3xl font-semibold print:text-[1.8rem]">{finding.title}</h2>
-                    <p className="mt-2 text-base leading-7 text-slate-700 print:text-[14px] print:leading-6">{finding.summary}</p>
-                    <p className="mt-3 text-sm leading-6 text-slate-600 print:text-[13px] print:leading-5">
-                      <span className="font-semibold text-slate-950">Why it matters:</span>{" "}
+                    <p className="mt-2 text-base leading-7 text-foreground print:text-[14px] print:leading-6 print:text-slate-700">{finding.summary}</p>
+                    <p className="mt-3 text-sm leading-6 text-muted print:text-[13px] print:leading-5 print:text-slate-600">
+                      <span className="font-semibold text-foreground print:text-slate-950">Why it matters:</span>{" "}
                       {finding.businessImpact}
                     </p>
-                    <p className="mt-2 text-sm leading-6 text-slate-700 print:text-[13px] print:leading-5">
-                      <span className="font-semibold text-slate-950">What to change:</span>{" "}
+                    <p className="mt-2 text-sm leading-6 text-foreground print:text-[13px] print:leading-5 print:text-slate-700">
+                      <span className="font-semibold text-foreground print:text-slate-950">What to change:</span>{" "}
                       {finding.recommendation}
                     </p>
                   </div>
@@ -288,7 +290,7 @@ export default async function PacketPage({
         </section>
 
         <section className={packetSheetClass}>
-          <p className="text-xs uppercase tracking-[0.24em] text-slate-500">Recommended direction</p>
+          <p className="text-xs uppercase tracking-[0.24em] text-muted print:text-slate-500">Recommended direction</p>
           <div className="mt-4 grid gap-3 print:mt-3 md:grid-cols-2">
             {directionCards.map((opportunity) => (
               <div key={opportunity.id} className={packetCardClass}>
@@ -296,33 +298,33 @@ export default async function PacketPage({
                   {opportunity.impactLabel}
                 </p>
                 <h2 className="mt-2 font-display text-2xl font-semibold print:text-[1.5rem]">{opportunity.title}</h2>
-                <p className="mt-2 text-sm leading-6 text-slate-700 print:text-[13px] print:leading-5">{opportunity.futureState}</p>
+                <p className="mt-2 text-sm leading-6 text-foreground print:text-[13px] print:leading-5 print:text-slate-700">{opportunity.futureState}</p>
               </div>
             ))}
           </div>
-          <div className="mt-5 rounded-[6px] border border-slate-200 bg-slate-50 p-4 print:mt-4 print:p-3">
+          <div className="mt-5 rounded-[6px] border border-border bg-elevated p-4 print:mt-4 print:border-slate-200 print:bg-slate-50 print:p-3">
             <div className="grid gap-4 print:gap-3 lg:grid-cols-[minmax(0,1fr)_15rem]">
               <div>
-                <p className="text-xs uppercase tracking-[0.18em] text-slate-500">Suggested delivery path</p>
+                <p className="text-xs uppercase tracking-[0.18em] text-muted print:text-slate-500">Suggested delivery path</p>
                 <div className="mt-3 grid gap-3 md:grid-cols-2">
                   {report.rebuildPhases.slice(0, 2).map((phase) => (
-                    <div key={phase.id} className="print-avoid-break rounded-[4px] border border-slate-200 bg-white p-3">
-                      <p className="text-xs uppercase tracking-[0.18em] text-slate-500">{phase.timeline}</p>
-                      <p className="mt-2 font-semibold text-slate-950">{phase.title}</p>
-                      <p className="mt-1 text-sm leading-6 text-slate-600 print:text-[13px] print:leading-5">{phase.summary}</p>
+                    <div key={phase.id} className={`print-avoid-break p-3 ${packetInsetClass}`}>
+                      <p className="text-xs uppercase tracking-[0.18em] text-muted print:text-slate-500">{phase.timeline}</p>
+                      <p className="mt-2 font-semibold text-foreground print:text-slate-950">{phase.title}</p>
+                      <p className="mt-1 text-sm leading-6 text-muted print:text-[13px] print:leading-5 print:text-slate-600">{phase.summary}</p>
                     </div>
                   ))}
                 </div>
               </div>
-              <div className="print-avoid-break rounded-[4px] border border-slate-200 bg-white p-3">
-                <p className="text-xs uppercase tracking-[0.18em] text-slate-500">
+              <div className={`print-avoid-break p-3 ${packetInsetClass}`}>
+                <p className="text-xs uppercase tracking-[0.18em] text-muted print:text-slate-500">
                   What stronger sites do better
                 </p>
-                <p className="mt-2 text-sm leading-6 text-slate-700 print:text-[13px] print:leading-5">
+                <p className="mt-2 text-sm leading-6 text-foreground print:text-[13px] print:leading-5 print:text-slate-700">
                   They make the offer clearer, place proof before the ask, and keep the next step obvious on every screen.
                 </p>
                 {referenceNames.length ? (
-                  <p className="mt-3 text-xs leading-5 text-slate-500">
+                  <p className="mt-3 text-xs leading-5 text-muted print:text-slate-500">
                     Examples used for reference: {referenceNames.join(", ")}
                   </p>
                 ) : null}
@@ -332,52 +334,52 @@ export default async function PacketPage({
         </section>
 
         <section className={packetSheetClass}>
-          <p className="text-xs uppercase tracking-[0.24em] text-slate-500">Scope and next step</p>
+          <p className="text-xs uppercase tracking-[0.24em] text-muted print:text-slate-500">Scope and next step</p>
           <div className="mt-4 grid gap-5 print:gap-4 lg:grid-cols-[minmax(0,1fr)_18rem]">
             <div className="space-y-4">
-              <div className="print-avoid-break rounded-[6px] border border-slate-200 bg-slate-50 p-4 print:p-3">
-                <p className="text-xs uppercase tracking-[0.18em] text-slate-500">Recommended starting scope</p>
-                <p className="mt-2 font-display text-5xl font-semibold text-slate-950 print:text-4xl">
+              <div className="print-avoid-break rounded-[6px] border border-border bg-elevated p-4 print:border-slate-200 print:bg-slate-50 print:p-3">
+                <p className="text-xs uppercase tracking-[0.18em] text-muted print:text-slate-500">Recommended starting scope</p>
+                <p className="mt-2 font-display text-5xl font-semibold text-foreground print:text-4xl print:text-slate-950">
                   ${summary.total.toLocaleString()}
                 </p>
-                <p className="mt-2 text-base leading-7 text-slate-700 print:text-[14px] print:leading-6">
+                <p className="mt-2 text-base leading-7 text-foreground print:text-[14px] print:leading-6 print:text-slate-700">
                   This range assumes the base rebuild plus the strategic additions most likely to improve clarity, trust, and response quality for this specific site.
                 </p>
               </div>
               <div className="grid gap-3 md:grid-cols-2">
                 {packetScopeItems.map((item) => (
-                  <div key={item.id} className="print-avoid-break rounded-[6px] border border-slate-200 bg-slate-50 p-3">
+                  <div key={item.id} className="print-avoid-break rounded-[6px] border border-border bg-elevated p-3 print:border-slate-200 print:bg-slate-50">
                     <div className="flex items-center justify-between gap-4">
-                      <p className="font-semibold text-slate-950">{item.title}</p>
-                      <span className="text-sm font-semibold text-slate-950">
+                      <p className="font-semibold text-foreground print:text-slate-950">{item.title}</p>
+                      <span className="text-sm font-semibold text-foreground print:text-slate-950">
                         ${item.price.toLocaleString()}
                       </span>
                     </div>
-                    <p className="mt-1 text-sm leading-6 text-slate-600 print:text-[13px] print:leading-5">{item.estimatedLiftLabel}</p>
+                    <p className="mt-1 text-sm leading-6 text-muted print:text-[13px] print:leading-5 print:text-slate-600">{item.estimatedLiftLabel}</p>
                   </div>
                 ))}
               </div>
               {hiddenScopeItemCount ? (
-                <p className="text-xs leading-5 text-slate-500">
+                <p className="text-xs leading-5 text-muted print:text-slate-500">
                   Plus {hiddenScopeItemCount} supporting workstream{hiddenScopeItemCount > 1 ? "s" : ""} covered in the full scope.
                 </p>
               ) : null}
             </div>
-            <div className="print-avoid-break rounded-[6px] border border-slate-200 bg-slate-50 p-4 print:p-3">
-              <p className="text-xs uppercase tracking-[0.18em] text-slate-500">Next step</p>
-              <p className="mt-2 text-base leading-7 text-slate-700 print:text-[14px] print:leading-6">
+            <div className="print-avoid-break rounded-[6px] border border-border bg-elevated p-4 print:border-slate-200 print:bg-slate-50 print:p-3">
+              <p className="text-xs uppercase tracking-[0.18em] text-muted print:text-slate-500">Next step</p>
+              <p className="mt-2 text-base leading-7 text-foreground print:text-[14px] print:leading-6 print:text-slate-700">
                 If the direction feels relevant, the next step is a short call to align on goals, priorities, timeline, and scope.
               </p>
-              <div className="mt-4 rounded-[4px] border border-slate-200 bg-white px-3 py-3 print:mt-3 print:px-3 print:py-2">
-                <p className="text-xs uppercase tracking-[0.18em] text-slate-500">Score movement</p>
-                <p className="mt-2 font-display text-3xl font-semibold text-slate-950">
+              <div className={`mt-4 px-3 py-3 print:mt-3 print:px-3 print:py-2 ${packetInsetClass}`}>
+                <p className="text-xs uppercase tracking-[0.18em] text-muted print:text-slate-500">Score movement</p>
+                <p className="mt-2 font-display text-3xl font-semibold text-foreground print:text-slate-950">
                   {report.overallScore} to {projectedScore}
                 </p>
-                <p className="mt-1 text-sm leading-6 text-slate-600 print:text-[13px] print:leading-5">
+                <p className="mt-1 text-sm leading-6 text-muted print:text-[13px] print:leading-5 print:text-slate-600">
                   This shows the expected quality lift from the recommended scope, not a guaranteed business result.
                 </p>
               </div>
-              <div className="mt-4 space-y-2 text-sm leading-6 text-slate-700 print:mt-3 print:space-y-1.5 print:text-[13px] print:leading-5">
+              <div className="mt-4 space-y-2 text-sm leading-6 text-foreground print:mt-3 print:space-y-1.5 print:text-[13px] print:leading-5 print:text-slate-700">
                 <p>1. Review the packet.</p>
                 <p>2. Confirm business goals and launch priorities.</p>
                 <p>3. Approve scope and move into design.</p>
