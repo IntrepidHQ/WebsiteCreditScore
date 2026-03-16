@@ -73,6 +73,7 @@ export function DevicePreview({
           treatment === "future" && "scale-[1.02] saturate-[1.06]",
         )}
         loadingLabel={device === "mobile" ? "Capturing mobile screenshot" : "Capturing desktop screenshot"}
+        scrollable
         src={image}
       >
         <TreatmentOverlay treatment={treatment} />

@@ -23,6 +23,16 @@ export function PacketToolbar({
     let printed = false;
     const images = Array.from(document.images);
     let fallbackTimeout = 0;
+    let closeTimeout = 0;
+
+    const handleAfterPrint = () => {
+      window.clearTimeout(closeTimeout);
+      closeTimeout = window.setTimeout(() => {
+        if (!cancelled) {
+          window.close();
+        }
+      }, 120);
+    };
 
     const openPrintDialog = () => {
       if (cancelled || printed) {
@@ -37,6 +47,8 @@ export function PacketToolbar({
         }
       }, 120);
     };
+
+    window.addEventListener("afterprint", handleAfterPrint);
 
     const pendingImages = images.filter((image) => !image.complete);
 
@@ -71,12 +83,14 @@ export function PacketToolbar({
     return () => {
       cancelled = true;
       window.clearTimeout(fallbackTimeout);
+      window.clearTimeout(closeTimeout);
+      window.removeEventListener("afterprint", handleAfterPrint);
       cleanupFns.forEach((cleanup) => cleanup());
     };
   }, [autoPrint]);
 
   return (
-    <div className="mx-auto flex w-full max-w-5xl items-center justify-between gap-4 pb-6 print:hidden">
+    <div className="flex items-center gap-3 print:hidden">
       <Button asChild variant="secondary">
         <a href={`mailto:?subject=${encodeURIComponent(emailSubject)}&body=${encodeURIComponent(emailBody)}`}>
           <Mail className="size-4" />

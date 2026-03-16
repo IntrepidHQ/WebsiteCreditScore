@@ -129,24 +129,24 @@ export default async function PacketPage({
       id="main-content"
       style={packetStyle}
     >
-      <div className="mx-auto flex w-full max-w-6xl items-center justify-between gap-4 pb-4 print:hidden">
+      <div className="mx-auto flex w-full max-w-6xl flex-wrap items-center justify-between gap-3 pb-4 print:hidden">
         <Button asChild variant="secondary">
           <Link href={`/audit/${report.id}?url=${encodeURIComponent(report.normalizedUrl)}`}>
             <ArrowLeft className="size-4" />
             Back to workspace
           </Link>
         </Button>
+        <PacketToolbar
+          autoPrint={print === "1"}
+          emailBody={report.outreachEmail.body}
+          emailSubject={report.outreachEmail.subject}
+        />
       </div>
-      <PacketToolbar
-        autoPrint={print === "1"}
-        emailBody={report.outreachEmail.body}
-        emailSubject={report.outreachEmail.subject}
-      />
 
       <div className="mx-auto w-full max-w-6xl space-y-4 print:max-w-none print:space-y-1.5">
         <section className={`print:break-after-page ${packetSheetClass}`}>
           <p className="text-xs uppercase tracking-[0.24em] text-[var(--packet-accent)]">Website review and redesign direction</p>
-          <div className="mt-4 grid gap-5 print:gap-4 lg:grid-cols-[minmax(0,1fr)_16rem]">
+          <div className="mt-4 grid gap-5 print:grid-cols-[minmax(0,1fr)_14rem] print:gap-4 lg:grid-cols-[minmax(0,1fr)_16rem]">
             <div className="space-y-3 print:space-y-2">
               <h1 className="font-display text-5xl font-semibold tracking-[-0.05em] print:text-[2.8rem]">
                 {report.title}
@@ -165,7 +165,7 @@ export default async function PacketPage({
                     unoptimized
                   />
                 </div>
-                <div className="grid gap-3 border-t border-border p-4 print:gap-2 print:border-slate-200 print:p-3 md:grid-cols-[minmax(0,1fr)_auto] md:items-start">
+                <div className="grid gap-3 border-t border-border p-4 print:grid-cols-[minmax(0,1fr)_13rem] print:gap-2 print:border-slate-200 print:p-3 md:grid-cols-[minmax(0,1fr)_auto] md:items-start">
                   <div>
                     <p className="text-xs uppercase tracking-[0.18em] text-muted print:text-slate-500">Executive summary</p>
                     <p className="mt-2 text-[15px] leading-7 text-foreground print:text-[13px] print:leading-5 print:text-slate-700">{report.executiveSummary}</p>
@@ -247,7 +247,7 @@ export default async function PacketPage({
         </section>
 
         <section className={packetSheetClass}>
-          <div className="grid gap-5 print:gap-4 lg:grid-cols-[minmax(0,0.82fr)_minmax(0,1.18fr)]">
+          <div className="grid gap-5 print:grid-cols-2 print:gap-4 lg:grid-cols-[minmax(0,0.82fr)_minmax(0,1.18fr)]">
             <div className="space-y-4">
               <p className="text-xs uppercase tracking-[0.24em] text-muted print:text-slate-500">What is already working</p>
               <div className="grid gap-3">
@@ -291,7 +291,7 @@ export default async function PacketPage({
 
         <section className={packetSheetClass}>
           <p className="text-xs uppercase tracking-[0.24em] text-muted print:text-slate-500">Recommended direction</p>
-          <div className="mt-4 grid gap-3 print:mt-3 md:grid-cols-2">
+          <div className="mt-4 grid gap-3 print:mt-3 print:grid-cols-2 md:grid-cols-2">
             {directionCards.map((opportunity) => (
               <div key={opportunity.id} className={packetCardClass}>
                 <p className="text-xs uppercase tracking-[0.18em] text-[var(--packet-accent)]">
@@ -306,7 +306,7 @@ export default async function PacketPage({
             <div className="grid gap-4 print:gap-3 lg:grid-cols-[minmax(0,1fr)_15rem]">
               <div>
                 <p className="text-xs uppercase tracking-[0.18em] text-muted print:text-slate-500">Suggested delivery path</p>
-                <div className="mt-3 grid gap-3 md:grid-cols-2">
+                <div className="mt-3 grid gap-3 print:grid-cols-2 md:grid-cols-2">
                   {report.rebuildPhases.slice(0, 2).map((phase) => (
                     <div key={phase.id} className={`print-avoid-break p-3 ${packetInsetClass}`}>
                       <p className="text-xs uppercase tracking-[0.18em] text-muted print:text-slate-500">{phase.timeline}</p>
@@ -335,7 +335,7 @@ export default async function PacketPage({
 
         <section className={packetSheetClass}>
           <p className="text-xs uppercase tracking-[0.24em] text-muted print:text-slate-500">Scope and next step</p>
-          <div className="mt-4 grid gap-5 print:gap-4 lg:grid-cols-[minmax(0,1fr)_18rem]">
+          <div className="mt-4 grid gap-5 print:grid-cols-[minmax(0,1fr)_14rem] print:gap-4 lg:grid-cols-[minmax(0,1fr)_18rem]">
             <div className="space-y-4">
               <div className="print-avoid-break rounded-[6px] border border-border bg-elevated p-4 print:border-slate-200 print:bg-slate-50 print:p-3">
                 <p className="text-xs uppercase tracking-[0.18em] text-muted print:text-slate-500">Recommended starting scope</p>
@@ -346,7 +346,7 @@ export default async function PacketPage({
                   This range assumes the base rebuild plus the strategic additions most likely to improve clarity, trust, and response quality for this specific site.
                 </p>
               </div>
-              <div className="grid gap-3 md:grid-cols-2">
+              <div className="grid gap-3 print:grid-cols-2 md:grid-cols-2">
                 {packetScopeItems.map((item) => (
                   <div key={item.id} className="print-avoid-break rounded-[6px] border border-border bg-elevated p-3 print:border-slate-200 print:bg-slate-50">
                     <div className="flex items-center justify-between gap-4">

@@ -5,9 +5,12 @@ import {
   Calculator,
   CheckCircle2,
   CircleDashed,
+  Layers3,
   Minus,
   Plus,
+  ShieldCheck,
   TrendingUp,
+  WalletCards,
 } from "lucide-react";
 
 import { SectionHeading } from "@/components/common/section-heading";
@@ -167,6 +170,26 @@ export function PricingConfigurator({ report }: { report: AuditReport }) {
   const summary = calculatePricingSummary(report.pricingBundle, selections);
   const roiScenario = calculateRoiScenario(summary.total, roi);
   const projectedScore = calculateProjectedScore(report.overallScore, summary.selectedPackageItems);
+  const objectionCards = [
+    {
+      title: "Patching preserves the same drag",
+      subtitle: "Why quick fixes rarely move the score enough",
+      icon: ShieldCheck,
+      body: report.objectionHandling[0],
+    },
+    {
+      title: "A phased rebuild lowers risk",
+      subtitle: "Why strategy and validation beat guesswork",
+      icon: Layers3,
+      body: report.objectionHandling[1],
+    },
+    {
+      title: "Scope should scale with ambition",
+      subtitle: "Why the estimate stays flexible without losing the core gain",
+      icon: WalletCards,
+      body: report.objectionHandling[2],
+    },
+  ];
 
   return (
     <section className="presentation-section" id="pricing">
@@ -216,12 +239,19 @@ export function PricingConfigurator({ report }: { report: AuditReport }) {
                 <CardTitle className="text-3xl">Objection handling inside the estimate</CardTitle>
               </CardHeader>
               <CardContent className="grid gap-3 md:grid-cols-3">
-                {report.objectionHandling.map((point) => (
+                {objectionCards.map((item) => (
                   <div
                     className="rounded-[calc(var(--theme-radius)-4px)] border border-border/70 bg-background-alt/70 px-4 py-4 text-sm leading-6 text-muted"
-                    key={point}
+                    key={item.title}
                   >
-                    {point}
+                    <div className="flex items-center gap-2 text-accent">
+                      <item.icon className="size-4" />
+                      <p className="font-semibold text-foreground">{item.title}</p>
+                    </div>
+                    <p className="mt-2 text-xs uppercase tracking-[0.18em] text-muted">
+                      {item.subtitle}
+                    </p>
+                    <p className="mt-3">{item.body}</p>
                   </div>
                 ))}
               </CardContent>

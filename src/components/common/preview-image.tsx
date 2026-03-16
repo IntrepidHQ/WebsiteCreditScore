@@ -14,6 +14,7 @@ export function PreviewImage({
   fallbackSrc,
   className,
   imageClassName,
+  scrollable = false,
   loadingLabel = "Capturing preview",
   fallbackLabel = "Using site image",
   errorLabel = "Preview unavailable",
@@ -24,6 +25,7 @@ export function PreviewImage({
   fallbackSrc?: string;
   className?: string;
   imageClassName?: string;
+  scrollable?: boolean;
   loadingLabel?: string;
   fallbackLabel?: string;
   errorLabel?: string;
@@ -39,6 +41,7 @@ export function PreviewImage({
       imageClassName={imageClassName}
       key={`${src}::${fallbackSrc ?? ""}`}
       loadingLabel={loadingLabel}
+      scrollable={scrollable}
       src={src}
     >
       {children}
@@ -52,6 +55,7 @@ function PreviewImageInner({
   fallbackSrc,
   className,
   imageClassName,
+  scrollable = false,
   loadingLabel = "Capturing preview",
   fallbackLabel = "Using site image",
   errorLabel = "Preview unavailable",
@@ -62,6 +66,7 @@ function PreviewImageInner({
   fallbackSrc?: string;
   className?: string;
   imageClassName?: string;
+  scrollable?: boolean;
   loadingLabel?: string;
   fallbackLabel?: string;
   errorLabel?: string;
@@ -72,7 +77,13 @@ function PreviewImageInner({
   const [usingFallback, setUsingFallback] = useState(false);
 
   return (
-    <div className={cn("relative overflow-hidden bg-background-alt", className)}>
+    <div
+      className={cn(
+        "relative bg-background-alt",
+        scrollable ? "overflow-y-auto overscroll-y-contain" : "overflow-hidden",
+        className,
+      )}
+    >
       {phase === "error" ? (
         <div className="absolute inset-0 grid place-items-center bg-background-alt px-6 text-center">
           <p className="text-sm leading-6 text-muted">{errorLabel}</p>
@@ -80,7 +91,12 @@ function PreviewImageInner({
       ) : (
         <img
           alt={alt}
-          className={cn("absolute inset-0 h-full w-full object-cover object-top", imageClassName)}
+          className={cn(
+            scrollable
+              ? "block h-auto min-h-full w-full object-contain object-top"
+              : "absolute inset-0 h-full w-full object-cover object-top",
+            imageClassName,
+          )}
           onError={() => {
             if (fallbackSrc && currentSrc !== fallbackSrc) {
               setCurrentSrc(fallbackSrc);

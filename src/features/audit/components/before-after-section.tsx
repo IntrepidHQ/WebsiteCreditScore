@@ -103,7 +103,7 @@ export function BeforeAfterSection({ report }: { report: AuditReport }) {
                 </CardHeader>
                 <CardContent className="space-y-4">
                   <p className="text-sm leading-6 text-muted">{opportunity.summary}</p>
-                  <div className="grid gap-3 sm:grid-cols-2">
+                  <div className="grid gap-3">
                     <div className="rounded-[calc(var(--theme-radius))] border border-border/70 bg-background-alt/75 p-4">
                       <p className="text-xs uppercase tracking-[0.18em] text-muted">Before</p>
                       <p className="mt-2 text-sm leading-6 text-foreground">

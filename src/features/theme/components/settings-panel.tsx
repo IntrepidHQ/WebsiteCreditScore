@@ -1,6 +1,6 @@
 "use client";
 
-import { useId, useMemo } from "react";
+import { useId } from "react";
 import { Download, RefreshCcw, Shuffle, Sparkles } from "lucide-react";
 
 import { SectionHeading } from "@/components/common/section-heading";
@@ -11,7 +11,6 @@ import { Input } from "@/components/ui/input";
 import { Slider } from "@/components/ui/slider";
 import { Switch } from "@/components/ui/switch";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { getContrastChecks } from "@/lib/utils/theme";
 import { useThemeStore } from "@/store/theme-store";
 
 function SettingRow({
@@ -75,8 +74,6 @@ export function SettingsPanel() {
   const randomizeTheme = useThemeStore((state) => state.randomizeTheme);
   const restoreDefaults = useThemeStore((state) => state.restoreDefaults);
   const exportThemeJson = useThemeStore((state) => state.exportThemeJson);
-
-  const contrastChecks = useMemo(() => getContrastChecks(tokens), [tokens]);
 
   function downloadTheme() {
     const blob = new Blob([exportThemeJson()], { type: "application/json" });
@@ -327,50 +324,77 @@ export function SettingsPanel() {
               <CardTitle className="text-3xl">Packet styling preview</CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
-              <div className="rounded-[calc(var(--theme-radius-lg))] border border-accent/20 bg-accent/8 p-5">
-                <div className="flex items-center gap-3">
-                  <div className="flex size-12 items-center justify-center rounded-2xl border border-accent/30 bg-panel/75 font-display font-semibold text-accent">
-                    {branding.logoMark}
+              <div className="rounded-[calc(var(--theme-radius-lg))] border border-border/70 bg-panel/70 p-5 shadow-[var(--theme-shadow)]">
+                <div className="rounded-[calc(var(--theme-radius))] border border-accent/20 bg-accent/8 p-4">
+                  <div className="flex items-center gap-3">
+                    <div className="flex size-12 items-center justify-center rounded-[calc(var(--theme-radius)-2px)] border border-accent/30 bg-panel/75 font-display font-semibold text-accent">
+                      {branding.logoMark}
+                    </div>
+                    <div>
+                      <p className="font-semibold text-foreground">{branding.agencyName}</p>
+                      <p className="text-xs uppercase tracking-[0.18em] text-muted">
+                        packet preview
+                      </p>
+                    </div>
                   </div>
-                  <div>
-                    <p className="font-semibold text-foreground">{branding.agencyName}</p>
-                    <p className="text-xs uppercase tracking-[0.18em] text-muted">
-                      client packet preview
-                    </p>
-                  </div>
+                  <h3 className="mt-4 font-display text-3xl font-semibold tracking-[-0.03em] text-foreground">
+                    Clearer offer. Stronger proof. Lower-friction next step.
+                  </h3>
+                  <p className="mt-2 text-sm leading-6 text-muted">
+                    Judge hierarchy, density, and tone before the packet goes out.
+                  </p>
                 </div>
-                <h3 className="mt-5 font-display text-3xl font-semibold tracking-[-0.03em] text-foreground">
-                  The redesign can feel clearer, more credible, and easier to buy.
-                </h3>
-                <p className="mt-3 text-sm leading-6 text-muted">
-                  Preview the header, tone, and contrast balance before you send the
-                  packet or copy the outreach email.
-                </p>
-              </div>
 
-              <div className="grid gap-3">
-                <div className="rounded-[calc(var(--theme-radius))] border border-border/70 bg-background-alt/70 p-4">
-                  <p className="text-xs uppercase tracking-[0.18em] text-muted">
-                    Contrast guard
-                  </p>
-                  <p className="mt-2 text-sm text-foreground">
-                    Foreground/background: {contrastChecks.foregroundOnBackground}
-                  </p>
-                  <p className="text-sm text-foreground">
-                    Accent/foreground: {contrastChecks.accentOnAccentForeground}
-                  </p>
+                <div className="mt-4 grid gap-3 sm:grid-cols-2">
+                  <div className="rounded-[calc(var(--theme-radius))] border border-border/70 bg-elevated/80 p-4">
+                    <p className="text-xs uppercase tracking-[0.18em] text-muted">
+                      Mini packet header
+                    </p>
+                    <div className="mt-3 space-y-2">
+                      <div className="h-2.5 w-28 rounded-full bg-accent/70" />
+                      <div className="h-4 w-full rounded-full bg-foreground/14" />
+                      <div className="h-4 w-3/4 rounded-full bg-foreground/10" />
+                    </div>
+                  </div>
+                  <div className="rounded-[calc(var(--theme-radius))] border border-border/70 bg-elevated/80 p-4">
+                    <p className="text-xs uppercase tracking-[0.18em] text-muted">
+                      Score stack
+                    </p>
+                    <div className="mt-3 grid gap-2">
+                      <div className="rounded-[calc(var(--theme-radius)-4px)] border border-border/70 bg-panel px-3 py-2">
+                        <p className="text-[11px] uppercase tracking-[0.16em] text-muted">
+                          Current score
+                        </p>
+                        <p className="mt-1 font-display text-2xl font-semibold text-foreground">
+                          4.2 / 10
+                        </p>
+                      </div>
+                      <div className="rounded-[calc(var(--theme-radius)-4px)] border border-border/70 bg-panel px-3 py-2">
+                        <p className="text-[11px] uppercase tracking-[0.16em] text-muted">
+                          Projected score
+                        </p>
+                        <p className="mt-1 font-display text-2xl font-semibold text-foreground">
+                          8.9 / 10
+                        </p>
+                      </div>
+                    </div>
+                  </div>
                 </div>
-                <div className="rounded-[calc(var(--theme-radius))] border border-border/70 bg-panel/60 p-4">
-                  <p className="text-xs uppercase tracking-[0.18em] text-muted">Token snapshot</p>
-                  <div className="mt-3 grid gap-2 sm:grid-cols-2">
-                    <Badge variant="neutral">Font scale {tokens.fontScale.toFixed(2)}</Badge>
-                    <Badge variant="neutral">Radius {tokens.radius}px</Badge>
-                    <Badge variant="neutral">
-                      Shadow {tokens.shadowIntensity.toFixed(2)}
-                    </Badge>
-                    <Badge variant="neutral">
-                      Spacing {tokens.spacingDensity.toFixed(2)}
-                    </Badge>
+
+                <div className="mt-4 rounded-[calc(var(--theme-radius))] border border-border/70 bg-background-alt/70 p-4">
+                  <p className="text-xs uppercase tracking-[0.18em] text-muted">
+                    Surface rhythm
+                  </p>
+                  <div className="mt-3 grid gap-2 sm:grid-cols-3">
+                    <div className="rounded-[calc(var(--theme-radius)-4px)] border border-border/70 bg-panel px-3 py-3 text-sm text-foreground">
+                      Executive summary
+                    </div>
+                    <div className="rounded-[calc(var(--theme-radius)-4px)] border border-border/70 bg-elevated px-3 py-3 text-sm text-foreground">
+                      Scope line items
+                    </div>
+                    <div className="rounded-[calc(var(--theme-radius)-4px)] border border-accent/25 bg-accent/8 px-3 py-3 text-sm text-foreground">
+                      Primary CTA
+                    </div>
                   </div>
                 </div>
               </div>

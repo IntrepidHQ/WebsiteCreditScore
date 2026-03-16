@@ -149,7 +149,7 @@ async function captureScreenshot(url: string, device: PreviewDevice) {
 
     const buffer = await page.screenshot({
       type: "png",
-      fullPage: false,
+      fullPage: true,
       animations: "disabled",
     });
 

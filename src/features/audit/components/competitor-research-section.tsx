@@ -57,6 +57,7 @@ function getLargestLift(
       return {
         label: metric.label,
         diff: currentMetric ? metric.value - currentMetric.value : metric.value,
+        format: metric.format,
       };
     })
     .sort((left, right) => right.diff - left.diff)[0];
@@ -83,9 +84,11 @@ function CompetitorCard({
         src={reference.previewImage}
       />
       <CardHeader className="space-y-3">
-        <div className="flex items-center justify-between gap-3">
-          <Badge variant="accent">Target {reference.targetScore}</Badge>
-          <span className="text-[11px] uppercase tracking-[0.18em] text-muted">
+        <div className="space-y-2">
+          <Badge className="whitespace-nowrap" variant="accent">
+            Target {reference.targetScore}
+          </Badge>
+          <span className="block text-[11px] uppercase tracking-[0.18em] text-muted">
             {reference.sourceLabel}
           </span>
         </div>
@@ -93,7 +96,7 @@ function CompetitorCard({
         <p className="text-sm leading-6 text-muted">{reference.note}</p>
       </CardHeader>
       <CardContent className="space-y-4">
-        <div className="grid gap-3 sm:grid-cols-2">
+        <div className="grid gap-3">
           <div className="rounded-[calc(var(--theme-radius)-4px)] border border-border/70 bg-background-alt/70 px-4 py-3">
             <p className="text-xs uppercase tracking-[0.18em] text-muted">Best for</p>
             <p className="mt-2 text-sm leading-6 text-foreground">{reference.bestFor}</p>
@@ -101,7 +104,9 @@ function CompetitorCard({
           <div className="rounded-[calc(var(--theme-radius)-4px)] border border-border/70 bg-background-alt/70 px-4 py-3">
             <p className="text-xs uppercase tracking-[0.18em] text-muted">Largest visible lift</p>
             <p className="mt-2 text-sm leading-6 text-foreground">
-              {lift ? `${lift.label} +${lift.diff}` : "High-scoring benchmark"}
+              {lift
+                ? `${lift.label} +${lift.format === "score" ? lift.diff.toFixed(1) : Math.round(lift.diff)}${lift.format === "percent" ? " pts" : ""}`
+                : "High-scoring benchmark"}
             </p>
           </div>
         </div>

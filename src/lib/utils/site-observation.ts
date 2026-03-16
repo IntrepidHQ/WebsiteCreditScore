@@ -21,10 +21,25 @@ function decodeHtml(input: string) {
   return input
     .replace(/&nbsp;/gi, " ")
     .replace(/&amp;/gi, "&")
+    .replace(/&mdash;/gi, "-")
+    .replace(/&ndash;/gi, "-")
+    .replace(/&hellip;/gi, "...")
+    .replace(/&rsquo;/gi, "'")
+    .replace(/&lsquo;/gi, "'")
     .replace(/&quot;/gi, '"')
+    .replace(/&apos;/gi, "'")
     .replace(/&#39;/gi, "'")
     .replace(/&lt;/gi, "<")
     .replace(/&gt;/gi, ">")
+    .replace(/\s+/g, " ")
+    .trim();
+}
+
+function normalizeObservationText(input: string) {
+  return input
+    .replace(/\bskip to content\b/gi, " ")
+    .replace(/^\d+\s+/, "")
+    .replace(/\bopen\b$/i, "")
     .replace(/\s+/g, " ")
     .trim();
 }
@@ -34,7 +49,42 @@ function cleanText(input?: string | null) {
     return "";
   }
 
-  return decodeHtml(stripTags(input));
+  return normalizeObservationText(decodeHtml(stripTags(input)));
+}
+
+function isLikelyNavigationNoise(input: string) {
+  const cleaned = cleanText(input).toLowerCase();
+
+  if (!cleaned) {
+    return true;
+  }
+
+  const navigationTerms = [
+    "skip to content",
+    "home",
+    "about",
+    "services",
+    "design process",
+    "gallery",
+    "contact us",
+    "contact",
+    "work with us",
+    "kitchen",
+    "bathroom",
+    "outdoor",
+    "portfolio",
+    "faq",
+    "blog",
+  ];
+
+  const matches = navigationTerms.filter((term) => cleaned.includes(term)).length;
+  const punctuationCount = (cleaned.match(/[.!?]/g) ?? []).length;
+
+  return (
+    /skip to content|main menu|menu|navigation/.test(cleaned) ||
+    (matches >= 4 && punctuationCount === 0) ||
+    (matches >= 3 && cleaned.includes("/") && punctuationCount === 0)
+  );
 }
 
 function uniqueTexts(values: string[], limit = values.length) {
@@ -177,13 +227,26 @@ function extractEmail(text: string) {
 }
 
 function selectAboutSnippet(paragraphs: string[], metaDescription: string) {
-  const candidate = paragraphs.find((paragraph) =>
+  const cleanParagraphs = paragraphs
+    .map((paragraph) => cleanText(paragraph))
+    .filter(Boolean)
+    .filter((paragraph) => !isLikelyNavigationNoise(paragraph));
+  const candidate = cleanParagraphs.find((paragraph) =>
     /(about|family|owner|team|mission|practice|clinic|craft|locally|years|experience|board-certified|serving|specializ)/i.test(
       paragraph,
     ),
   );
+  const safeMetaDescription = cleanText(metaDescription);
 
-  return trimToSentenceBoundary(candidate ?? metaDescription);
+  if (candidate) {
+    return trimToSentenceBoundary(candidate);
+  }
+
+  if (safeMetaDescription && !isLikelyNavigationNoise(safeMetaDescription)) {
+    return trimToSentenceBoundary(safeMetaDescription);
+  }
+
+  return "";
 }
 
 function parseJsonLdBlocks(html: string) {
@@ -468,6 +531,7 @@ function derivePrimaryCtas(html: string) {
   return uniqueTexts(
     extractLinks(html)
       .map((item) => item.text)
+      .filter((text) => !isLikelyNavigationNoise(text))
       .filter((text) => ctaMatcher.test(text))
       .map((text) => text.slice(0, 64)),
     5,
