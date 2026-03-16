@@ -73,11 +73,11 @@ export default async function PacketPage({
 
   return (
     <main
-      className="min-h-screen bg-slate-100 px-4 py-6 text-slate-950 print:bg-white print:px-0"
+      className="min-h-screen bg-white px-2 py-4 text-slate-950 print:bg-white print:px-0"
       id="main-content"
       style={packetStyle}
     >
-      <div className="mx-auto flex w-full max-w-5xl items-center justify-between gap-4 pb-6 print:hidden">
+      <div className="mx-auto flex w-full max-w-6xl items-center justify-between gap-4 pb-4 print:hidden">
         <Button asChild variant="secondary">
           <Link href={`/audit/${report.id}?url=${encodeURIComponent(report.normalizedUrl)}`}>
             <ArrowLeft className="size-4" />
@@ -91,8 +91,8 @@ export default async function PacketPage({
         emailSubject={report.outreachEmail.subject}
       />
 
-      <div className="mx-auto w-full max-w-5xl space-y-6">
-        <section className="break-after-page rounded-[32px] border border-slate-200 bg-white p-10 shadow-xl print:rounded-none print:shadow-none">
+      <div className="mx-auto w-full max-w-6xl space-y-4">
+        <section className="break-after-page rounded-[18px] border border-slate-200 bg-white p-8 shadow-lg print:rounded-none print:shadow-none">
           <p className="text-xs uppercase tracking-[0.24em] text-[var(--packet-accent)]">Website opportunity packet</p>
           <div className="mt-6 grid gap-8 lg:grid-cols-[minmax(0,1fr)_18rem]">
             <div className="space-y-5">
@@ -102,12 +102,12 @@ export default async function PacketPage({
               <p className="max-w-2xl text-lg leading-8 text-slate-600">
                 A short website review focused on clarity, conversion, trust, and where a redesign could produce a stronger first impression.
               </p>
-              <div className="rounded-[28px] border border-slate-200 bg-slate-50 p-5">
+              <div className="rounded-[16px] border border-slate-200 bg-slate-50 p-5">
                 <p className="text-xs uppercase tracking-[0.18em] text-slate-500">Executive summary</p>
                 <p className="mt-3 text-base leading-7 text-slate-700">{report.executiveSummary}</p>
               </div>
             </div>
-            <div className="rounded-[28px] border border-slate-200 bg-slate-50 p-6">
+            <div className="rounded-[16px] border border-slate-200 bg-slate-50 p-5">
               <p className="text-xs uppercase tracking-[0.18em] text-slate-500">Overall score</p>
               <p className="mt-3 font-display text-6xl font-semibold text-slate-950">
                 {report.overallScore}
@@ -137,11 +137,11 @@ export default async function PacketPage({
           </div>
         </section>
 
-        <section className="break-after-page rounded-[32px] border border-slate-200 bg-white p-10 shadow-xl print:rounded-none print:shadow-none">
+        <section className="break-after-page rounded-[18px] border border-slate-200 bg-white p-8 shadow-lg print:rounded-none print:shadow-none">
           <p className="text-xs uppercase tracking-[0.24em] text-slate-500">What stood out</p>
           <div className="mt-6 grid gap-4">
             {topFindings.map((finding) => (
-              <div key={finding.id} className="rounded-[24px] border border-slate-200 bg-slate-50 p-5">
+              <div key={finding.id} className="rounded-[14px] border border-slate-200 bg-slate-50 p-5">
                 <p className="text-xs uppercase tracking-[0.18em] text-slate-500">
                   {finding.confidenceLevel}
                 </p>
@@ -156,11 +156,11 @@ export default async function PacketPage({
           </div>
         </section>
 
-        <section className="break-after-page rounded-[32px] border border-slate-200 bg-white p-10 shadow-xl print:rounded-none print:shadow-none">
+        <section className="break-after-page rounded-[18px] border border-slate-200 bg-white p-8 shadow-lg print:rounded-none print:shadow-none">
           <p className="text-xs uppercase tracking-[0.24em] text-slate-500">Recommended direction</p>
           <div className="mt-6 grid gap-4 md:grid-cols-2">
             {report.opportunities.map((opportunity) => (
-              <div key={opportunity.id} className="rounded-[24px] border border-slate-200 bg-slate-50 p-5">
+              <div key={opportunity.id} className="rounded-[14px] border border-slate-200 bg-slate-50 p-5">
                 <p className="text-xs uppercase tracking-[0.18em] text-slate-500">
                   {opportunity.impactLabel}
                 </p>
@@ -169,11 +169,11 @@ export default async function PacketPage({
               </div>
             ))}
           </div>
-          <div className="mt-8 rounded-[28px] border border-slate-200 bg-slate-50 p-6">
+          <div className="mt-8 rounded-[16px] border border-slate-200 bg-slate-50 p-5">
             <p className="text-xs uppercase tracking-[0.18em] text-slate-500">Suggested delivery path</p>
             <div className="mt-4 grid gap-3 md:grid-cols-3">
               {report.rebuildPhases.slice(0, 3).map((phase) => (
-                <div key={phase.id} className="rounded-[22px] border border-slate-200 bg-white p-4">
+                <div key={phase.id} className="rounded-[14px] border border-slate-200 bg-white p-4">
                   <p className="text-xs uppercase tracking-[0.18em] text-slate-500">{phase.timeline}</p>
                   <p className="mt-2 font-semibold text-slate-950">{phase.title}</p>
                   <p className="mt-2 text-sm leading-6 text-slate-600">{phase.summary}</p>
@@ -183,11 +183,11 @@ export default async function PacketPage({
           </div>
         </section>
 
-        <section className="rounded-[32px] border border-slate-200 bg-white p-10 shadow-xl print:rounded-none print:shadow-none">
+        <section className="rounded-[18px] border border-slate-200 bg-white p-8 shadow-lg print:rounded-none print:shadow-none">
           <p className="text-xs uppercase tracking-[0.24em] text-slate-500">Scope and next step</p>
           <div className="mt-6 grid gap-8 lg:grid-cols-[minmax(0,1fr)_20rem]">
             <div className="space-y-5">
-              <div className="rounded-[28px] border border-slate-200 bg-slate-50 p-6">
+              <div className="rounded-[16px] border border-slate-200 bg-slate-50 p-5">
                 <p className="text-xs uppercase tracking-[0.18em] text-slate-500">Recommended starting scope</p>
                 <p className="mt-3 font-display text-5xl font-semibold text-slate-950">
                   ${summary.total.toLocaleString()}
@@ -198,14 +198,14 @@ export default async function PacketPage({
               </div>
               <div className="grid gap-3 md:grid-cols-2">
                 {summary.selectedAddOns.map((item) => (
-                  <div key={item.id} className="rounded-[22px] border border-slate-200 bg-slate-50 p-4">
+                  <div key={item.id} className="rounded-[14px] border border-slate-200 bg-slate-50 p-4">
                     <p className="font-semibold text-slate-950">{item.title}</p>
                     <p className="mt-2 text-sm leading-6 text-slate-600">{item.estimatedLiftLabel}</p>
                   </div>
                 ))}
               </div>
             </div>
-            <div className="rounded-[28px] border border-slate-200 bg-slate-50 p-6">
+            <div className="rounded-[16px] border border-slate-200 bg-slate-50 p-5">
               <p className="text-xs uppercase tracking-[0.18em] text-slate-500">Next step</p>
               <p className="mt-3 text-base leading-7 text-slate-700">
                 If the direction feels relevant, the next step is a short discovery call

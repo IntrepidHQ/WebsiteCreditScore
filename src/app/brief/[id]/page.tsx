@@ -1,5 +1,6 @@
 import { notFound } from "next/navigation";
 
+import { WorkspaceThemeFrame } from "@/components/common/workspace-theme-frame";
 import { ReportEmptyState } from "@/features/audit/components/report-empty-state";
 import { BriefBuilder } from "@/features/brief/components/brief-builder";
 import {
@@ -38,5 +39,9 @@ export default async function BriefPage({
     notFound();
   }
 
-  return <BriefBuilder report={report} />;
+  return (
+    <WorkspaceThemeFrame>
+      <BriefBuilder report={report} />
+    </WorkspaceThemeFrame>
+  );
 }

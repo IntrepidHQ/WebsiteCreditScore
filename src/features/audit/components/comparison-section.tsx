@@ -1,9 +1,8 @@
-/* eslint-disable @next/next/no-img-element */
 "use client";
 
-import { useEffect, useState } from "react";
 import { BarChart3 } from "lucide-react";
 
+import { PreviewImage } from "@/components/common/preview-image";
 import { SectionHeading } from "@/components/common/section-heading";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -25,26 +24,16 @@ function ComparisonPreview({
   image: string;
   fallbackImage: string;
 }) {
-  const [src, setSrc] = useState(image);
-
-  useEffect(() => {
-    setSrc(image);
-  }, [image]);
-
   return (
-    <div className="relative aspect-[16/10] overflow-hidden border-b border-border/70 bg-background-alt">
-      <img
-        alt={alt}
-        className="h-full w-full object-cover object-top"
-        onError={() => {
-          if (src !== fallbackImage) {
-            setSrc(fallbackImage);
-          }
-        }}
-        src={src}
-      />
+    <PreviewImage
+      alt={alt}
+      className="aspect-[16/10] border-b border-border/70"
+      fallbackSrc={fallbackImage}
+      loadingLabel="Capturing desktop screenshot"
+      src={image}
+    >
       <div className="pointer-events-none absolute inset-x-0 top-0 h-24 bg-gradient-to-b from-background/40 via-transparent to-transparent" />
-    </div>
+    </PreviewImage>
   );
 }
 
@@ -65,7 +54,7 @@ export function ComparisonSection({ report }: { report: AuditReport }) {
             <Card key={snapshot.id} className="min-w-[20rem] overflow-hidden">
               <ComparisonPreview
                 alt={`${snapshot.name} preview`}
-                fallbackImage={report.previewSet.fallbackCurrent}
+                fallbackImage={report.previewSet.fallbackCurrent.desktop}
                 image={snapshot.previewImage}
               />
               <CardHeader className="space-y-3">

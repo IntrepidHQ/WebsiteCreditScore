@@ -5,7 +5,8 @@ import {
   Calculator,
   CheckCircle2,
   CircleDashed,
-  CopyPlus,
+  Minus,
+  Plus,
   TrendingUp,
 } from "lucide-react";
 
@@ -58,7 +59,7 @@ function PricingRow({
 
   return (
     <div
-      className="grid gap-4 border-t border-border/70 px-4 py-5 md:grid-cols-[minmax(0,1.35fr)_0.8fr_0.85fr_0.65fr_auto] md:items-start"
+      className="grid gap-4 border-t border-border/70 px-4 py-5 md:grid-cols-[minmax(0,1.55fr)_11rem_minmax(0,0.95fr)_8rem_3.25rem] md:items-start"
       role="row"
     >
       <div className="space-y-3" role="cell">
@@ -101,7 +102,6 @@ function PricingRow({
       </div>
 
       <div className="space-y-2" role="cell">
-        <p className="text-[11px] uppercase tracking-[0.18em] text-muted">Lift</p>
         <p className="font-display text-3xl font-semibold text-accent">
           +{item.estimatedScoreLift.toFixed(1)}
         </p>
@@ -112,28 +112,29 @@ function PricingRow({
       </div>
 
       <div className="space-y-2" role="cell">
-        <p className="text-[11px] uppercase tracking-[0.18em] text-muted">Benchmark</p>
         <p className="text-sm font-semibold text-foreground">{item.sourceLabel}</p>
         <p className="text-sm leading-6 text-muted" id={benchmarkId}>
           {item.benchmarkNote}
         </p>
       </div>
 
-      <div className="space-y-2" role="cell">
-        <p className="text-[11px] uppercase tracking-[0.18em] text-muted">Price</p>
+      <div className="space-y-2 md:text-right" role="cell">
         <p className="font-display text-3xl font-semibold text-accent">
           ${item.price.toLocaleString()}
         </p>
       </div>
 
-      <div className="md:justify-self-end" role="cell">
+      <div className="md:justify-self-end md:self-start" role="cell">
         <Button
           aria-describedby={`${descriptionId} ${benchmarkId}`}
+          aria-label={selected ? `Remove ${item.title}` : `Add ${item.title}`}
           aria-pressed={selected}
+          className="size-11 px-0"
           onClick={onToggle}
+          size="icon"
           variant={selected ? "secondary" : "default"}
         >
-          {selected ? "Remove" : "Add"}
+          {selected ? <Minus className="size-4" /> : <Plus className="size-4" />}
         </Button>
       </div>
     </div>
@@ -165,7 +166,7 @@ export function PricingConfigurator({ report }: { report: AuditReport }) {
 
   const summary = calculatePricingSummary(report.pricingBundle, selections);
   const roiScenario = calculateRoiScenario(summary.total, roi);
-  const projectedScore = calculateProjectedScore(report.overallScore, summary.selectedAddOns);
+  const projectedScore = calculateProjectedScore(report.overallScore, summary.selectedPackageItems);
 
   return (
     <section className="presentation-section" id="pricing">
@@ -183,6 +184,9 @@ export function PricingConfigurator({ report }: { report: AuditReport }) {
                   <div>
                     <Badge variant="accent">Base package</Badge>
                     <CardTitle className="mt-3 text-3xl">{report.pricingBundle.baseItem.title}</CardTitle>
+                    <p className="mt-2 text-sm text-muted">
+                      +{report.pricingBundle.baseItem.estimatedScoreLift.toFixed(1)} score when the core rebuild is completed well.
+                    </p>
                   </div>
                   <p className="font-display text-4xl font-semibold text-accent">
                     ${report.pricingBundle.baseItem.price.toLocaleString()}
@@ -243,7 +247,7 @@ export function PricingConfigurator({ report }: { report: AuditReport }) {
                       variant="outline"
                       onClick={() => setSelections(report.id, baseOnlySelections)}
                     >
-                      Remove all
+                      Clear
                     </Button>
                   </div>
                 </div>
@@ -251,7 +255,7 @@ export function PricingConfigurator({ report }: { report: AuditReport }) {
               <CardContent className="p-0">
                 <div aria-label="Optional proposal upgrades" role="table">
                   <div
-                    className="hidden md:grid md:grid-cols-[minmax(0,1.35fr)_0.8fr_0.85fr_0.65fr_auto] md:gap-4 md:px-4 md:pb-2"
+                    className="hidden md:grid md:grid-cols-[minmax(0,1.55fr)_11rem_minmax(0,0.95fr)_8rem_3.25rem] md:gap-4 md:px-4 md:pb-2"
                     role="row"
                   >
                     <div role="columnheader">Scope item</div>
@@ -409,7 +413,7 @@ export function PricingConfigurator({ report }: { report: AuditReport }) {
                         {projectedScore}
                       </p>
                       <p className="text-xs leading-5 text-muted">
-                        Includes +{summary.projectedScoreLift.toFixed(1)} potential lift from selected add-ons.
+                        Includes +{summary.projectedScoreLift.toFixed(1)} potential lift from the selected package.
                       </p>
                     </div>
                   </div>
@@ -438,7 +442,7 @@ export function PricingConfigurator({ report }: { report: AuditReport }) {
                       key={item.id}
                     >
                       <div className="flex items-start gap-3">
-                        <CopyPlus className="mt-0.5 size-4 shrink-0 text-accent" />
+                        <Plus className="mt-0.5 size-4 shrink-0 text-accent" />
                         <div>
                           <p className="text-sm font-semibold text-foreground">{item.title}</p>
                           <p className="text-xs leading-5 text-muted">
@@ -450,11 +454,12 @@ export function PricingConfigurator({ report }: { report: AuditReport }) {
                         </div>
                       </div>
                       <Button
+                        aria-label={`Remove ${item.title}`}
                         size="sm"
                         variant="ghost"
                         onClick={() => toggleItem(report.id, item.id)}
                       >
-                        Remove
+                        <Minus className="size-4" />
                       </Button>
                     </div>
                   ))}

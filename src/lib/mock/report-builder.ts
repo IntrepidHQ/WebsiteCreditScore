@@ -1019,7 +1019,7 @@ function createCatalog(profile: ReportProfileType): PricingBundle {
     benchmarkNote:
       "This anchors the redesign around clarity, trust, and premium execution.",
     estimatedLiftLabel: "Foundation for conversion and brand perception gains",
-    estimatedScoreLift: 0.8,
+    estimatedScoreLift: 2.8,
     liftFocus: ["visual-design", "ux-conversion", "trust-credibility"],
   };
 
@@ -1316,7 +1316,7 @@ function buildOpportunities(
       synergy: ["copywriting", "homepage-redesign"],
       currentState: "Current layout asks visitors to decode the message before they feel momentum.",
       futureState: "Proposed layout makes the value and next step obvious in under a few seconds.",
-      previewImage: previewSet.future,
+      previewImage: previewSet.future.desktop,
     },
     {
       id: "before-after-2",
@@ -1332,7 +1332,7 @@ function buildOpportunities(
       synergy: ["booking-funnel", "analytics"],
       currentState: "Calls to action compete with one another or ask for too much context too soon.",
       futureState: "Each section naturally earns the next step and keeps momentum intact.",
-      previewImage: previewSet.future,
+      previewImage: previewSet.future.desktop,
     },
     {
       id: "before-after-3",
@@ -1348,7 +1348,7 @@ function buildOpportunities(
       synergy: ["technical-seo", "local-seo-pages", "full-site"],
       currentState: "Important details are present, but spread too thinly or buried too deep.",
       futureState: "High-intent pages become clearer, easier to navigate, and more obviously valuable.",
-      previewImage: previewSet.future,
+      previewImage: previewSet.future.desktop,
     },
     {
       id: "before-after-4",
@@ -1364,7 +1364,7 @@ function buildOpportunities(
       synergy: ["design-system", "full-site", "accessibility"],
       currentState: "The current interface works, but it does not fully communicate premium confidence.",
       futureState: "The redesign feels custom, modern, and aligned with the quality of the offer.",
-      previewImage: previewSet.future,
+      previewImage: previewSet.future.desktop,
     },
   ];
 }
@@ -1476,10 +1476,22 @@ function getPreviewSet(profile: ReportProfileType): AuditReport["previewSet"] {
 
   if (profile === "healthcare") {
     return {
-      current: currentFallback,
-      future: futureFallback,
-      fallbackCurrent: currentFallback,
-      fallbackFuture: futureFallback,
+      current: {
+        desktop: currentFallback,
+        mobile: currentFallback,
+      },
+      future: {
+        desktop: futureFallback,
+        mobile: futureFallback,
+      },
+      fallbackCurrent: {
+        desktop: "",
+        mobile: "",
+      },
+      fallbackFuture: {
+        desktop: futureFallback,
+        mobile: futureFallback,
+      },
       mobileLabel: "Mobile",
       desktopLabel: "Desktop",
     };
@@ -1487,20 +1499,44 @@ function getPreviewSet(profile: ReportProfileType): AuditReport["previewSet"] {
 
   if (profile === "local-service") {
     return {
-      current: currentFallback,
-      future: futureFallback,
-      fallbackCurrent: currentFallback,
-      fallbackFuture: futureFallback,
+      current: {
+        desktop: currentFallback,
+        mobile: currentFallback,
+      },
+      future: {
+        desktop: futureFallback,
+        mobile: futureFallback,
+      },
+      fallbackCurrent: {
+        desktop: "",
+        mobile: "",
+      },
+      fallbackFuture: {
+        desktop: futureFallback,
+        mobile: futureFallback,
+      },
       mobileLabel: "Mobile",
       desktopLabel: "Desktop",
     };
   }
 
   return {
-    current: currentFallback,
-    future: futureFallback,
-    fallbackCurrent: currentFallback,
-    fallbackFuture: futureFallback,
+    current: {
+      desktop: currentFallback,
+      mobile: currentFallback,
+    },
+    future: {
+      desktop: futureFallback,
+      mobile: futureFallback,
+    },
+    fallbackCurrent: {
+      desktop: "",
+      mobile: "",
+    },
+    fallbackFuture: {
+      desktop: futureFallback,
+      mobile: futureFallback,
+    },
     mobileLabel: "Mobile",
     desktopLabel: "Desktop",
   };
@@ -1551,12 +1587,23 @@ function buildAuditReport(
   const title = deriveReportTitle(normalizedUrl, sample, observation);
   const previewSet = getPreviewSet(profile);
   const previewUrl = sample?.previewUrl ?? rawUrl;
-  const screenshotUrl = observation.screenshotUrl || createWebsiteScreenshotUrl(previewUrl);
+  const livePreviewDesktop = createWebsiteScreenshotUrl(previewUrl, "desktop");
+  const livePreviewMobile = createWebsiteScreenshotUrl(previewUrl, "mobile");
+  const currentPreviewImage =
+    observation.fetchSucceeded || !sample?.previewImage
+      ? livePreviewDesktop
+      : sample.previewImage;
   const livePreviewSet = {
     ...previewSet,
-    current: screenshotUrl,
+    current: {
+      desktop: currentPreviewImage,
+      mobile: observation.fetchSucceeded ? livePreviewMobile : livePreviewDesktop,
+    },
     future: previewSet.future,
-    fallbackCurrent: sample?.previewImage ?? observation.ogImage ?? previewSet.fallbackCurrent,
+    fallbackCurrent: {
+      desktop: observation.ogImage ?? sample?.fallbackPreviewImage ?? previewSet.fallbackCurrent.desktop,
+      mobile: observation.ogImage ?? sample?.fallbackPreviewImage ?? previewSet.fallbackCurrent.mobile,
+    },
     fallbackFuture: previewSet.fallbackFuture,
   };
   const categoryScores = observation.fetchSucceeded
@@ -1567,8 +1614,8 @@ function buildAuditReport(
   const overallScore = aggregateOverallScore(categoryScores);
   const benchmarkReferences = buildBenchmarkReferences(profile);
   const findings = observation.fetchSucceeded
-    ? buildObservedFindings(profile, title, observation, categoryScores, livePreviewSet.current)
-    : buildFindings(profile, title, livePreviewSet.current);
+    ? buildObservedFindings(profile, title, observation, categoryScores, livePreviewSet.current.desktop)
+    : buildFindings(profile, title, livePreviewSet.current.desktop);
   const opportunities = buildOpportunities(profile, livePreviewSet);
   const rebuildPhases = buildRebuildPhases(profile);
   const pricingBundle = createCatalog(profile);
@@ -1576,7 +1623,7 @@ function buildAuditReport(
     {
       name: title,
       url: previewUrl,
-      previewImage: screenshotUrl,
+      previewImage: currentPreviewImage,
       note:
         sample?.summary ??
         (observation.aboutSnippet
@@ -1640,7 +1687,11 @@ function buildAuditReport(
 }
 
 export function getSampleAuditCards() {
-  return sampleAudits;
+  return sampleAudits.map((sample) => ({
+    ...sample,
+    previewImage: createWebsiteScreenshotUrl(sample.previewUrl ?? sample.url, "desktop"),
+    score: buildAuditReport(sample.url, sample).overallScore,
+  }));
 }
 
 export function buildAuditReportById(id: string) {

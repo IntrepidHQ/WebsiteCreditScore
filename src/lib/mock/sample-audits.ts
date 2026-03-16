@@ -1,4 +1,5 @@
 import type { SampleAuditCard } from "@/lib/types/audit";
+import { createWebsiteScreenshotUrl } from "@/lib/utils/url";
 
 export const sampleAudits: SampleAuditCard[] = [
   {
@@ -8,8 +9,8 @@ export const sampleAudits: SampleAuditCard[] = [
     previewUrl: "https://markdeford.dr-leonardo.com",
     profile: "healthcare",
     summary:
-      "Visible physician metadata, specialty, phone, and location are present, but the page still reads like a stock provider template.",
-    previewImage: "/previews/healthcare-current.svg",
+      "Provider details are present, but the page still feels like a stock medical profile.",
+    previewImage: createWebsiteScreenshotUrl("https://markdeford.dr-leonardo.com", "desktop"),
     executiveSummary:
       "This example is based on the live Mark Deford M.D. profile page. The site includes real provider metadata and health-information depth, but the templated presentation weakens trust at first glance.",
     highlights: [
@@ -34,8 +35,8 @@ export const sampleAudits: SampleAuditCard[] = [
     previewUrl: "https://www.saunderswoodworkllc.com/about",
     profile: "local-service",
     summary:
-      "The About page carries real craft authority and contact details, but it leans on long narrative blocks and a generic Squarespace CTA structure.",
-    previewImage: "/previews/service-current.svg",
+      "The story is credible, but the page still makes visitors read too much before acting.",
+    previewImage: createWebsiteScreenshotUrl("https://www.saunderswoodworkllc.com/about", "desktop"),
     executiveSummary:
       "This example is based on the live Saunder's Woodworks About page. The business story is credible and detailed, but the page asks visitors to read a lot before it creates a clear next step.",
     highlights: [
@@ -60,8 +61,8 @@ export const sampleAudits: SampleAuditCard[] = [
     previewUrl: "https://provider-pages.com",
     profile: "saas",
     summary:
-      "The homepage clearly promises provider pages, reviews, scheduling, and telehealth, but it is dense and claim-heavy before the offer becomes simple.",
-    previewImage: "/previews/saas-current.svg",
+      "The offer is visible, but the page still feels denser than it needs to.",
+    previewImage: createWebsiteScreenshotUrl("https://provider-pages.com", "desktop"),
     executiveSummary:
       "This example is based on the live Provider Pages homepage. The offer is specific, but the page leans hard on ranking language and dense explanation before clarifying package choice.",
     highlights: [

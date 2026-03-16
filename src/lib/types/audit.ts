@@ -35,6 +35,16 @@ export type BenchmarkType =
   | "recommendation";
 
 export type ThemeMode = "light" | "dark";
+export type PreviewDevice = "desktop" | "mobile";
+export type ObservationFactType = "about" | "phone" | "email" | "address";
+export type ObservationFactSource =
+  | "tel-link"
+  | "mailto-link"
+  | "schema"
+  | "contact-block"
+  | "meta-description"
+  | "paragraph";
+export type ObservationFactConfidence = "verified" | "observed";
 
 export type PricingImpactLevel = "core" | "high" | "transformative";
 
@@ -248,6 +258,15 @@ export interface BenchmarkReference {
   strengths: AuditCategoryKey[];
 }
 
+export interface ObservationFact {
+  id: string;
+  type: ObservationFactType;
+  label: string;
+  value: string;
+  source: ObservationFactSource;
+  confidence: ObservationFactConfidence;
+}
+
 export interface SiteObservation {
   fetchedAt: string;
   finalUrl: string;
@@ -255,6 +274,7 @@ export interface SiteObservation {
   metaDescription: string;
   heroHeading: string;
   aboutSnippet: string;
+  verifiedFacts: ObservationFact[];
   primaryCtas: string[];
   trustSignals: string[];
   seoSignals: string[];
@@ -281,11 +301,16 @@ export interface RoiScenarioDefaults {
   averageClientValue: number;
 }
 
+export interface AuditPreviewAsset {
+  desktop: string;
+  mobile: string;
+}
+
 export interface AuditPreviewSet {
-  current: string;
-  future: string;
-  fallbackCurrent: string;
-  fallbackFuture: string;
+  current: AuditPreviewAsset;
+  future: AuditPreviewAsset;
+  fallbackCurrent: AuditPreviewAsset;
+  fallbackFuture: AuditPreviewAsset;
   mobileLabel: string;
   desktopLabel: string;
 }
@@ -327,6 +352,8 @@ export interface SampleAuditCard {
   profile: ReportProfileType;
   summary: string;
   previewImage: string;
+  fallbackPreviewImage?: string;
+  score?: number;
   executiveSummary?: string;
   highlights?: string[];
   scoreOverrides?: Partial<Record<AuditCategoryKey, number>>;

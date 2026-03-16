@@ -1,9 +1,7 @@
-/* eslint-disable @next/next/no-img-element */
 "use client";
 
-import { useEffect, useState } from "react";
-
 import { Badge } from "@/components/ui/badge";
+import { PreviewImage } from "@/components/common/preview-image";
 import { cn } from "@/lib/utils/cn";
 
 type PreviewTreatment = "current" | "future";
@@ -46,16 +44,10 @@ export function DevicePreview({
   highlight?: boolean;
   treatment?: PreviewTreatment;
 }) {
-  const [src, setSrc] = useState(image);
-
-  useEffect(() => {
-    setSrc(image);
-  }, [image]);
-
   return (
     <div
       className={cn(
-        "relative overflow-hidden rounded-[10px] border border-border bg-elevated/78 p-3 shadow-[var(--theme-shadow)]",
+        "relative overflow-hidden rounded-[10px] border border-border/70 bg-panel/75 p-3 shadow-[var(--theme-shadow)] backdrop-blur-sm",
         highlight && "ring-1 ring-accent/30",
         device === "mobile" && "mx-auto max-w-[18rem]",
       )}
@@ -68,27 +60,23 @@ export function DevicePreview({
           <span className="size-2 rounded-full bg-success/80" />
         </div>
       </div>
-      <div
+      <PreviewImage
+        alt={alt}
         className={cn(
-          "relative overflow-hidden rounded-[6px] border border-white/8 bg-background-alt",
+          "rounded-[6px] border border-border/70",
           device === "desktop" ? "aspect-[16/10]" : "aspect-[9/18]",
         )}
+        fallbackLabel="Using site image"
+        fallbackSrc={fallbackImage}
+        imageClassName={cn(
+          "transition duration-700",
+          treatment === "future" && "scale-[1.02] saturate-[1.06]",
+        )}
+        loadingLabel={device === "mobile" ? "Capturing mobile screenshot" : "Capturing desktop screenshot"}
+        src={image}
       >
-        <img
-          alt={alt}
-          className={cn(
-            "absolute inset-0 h-full w-full object-cover object-top transition duration-700",
-            treatment === "future" && "scale-[1.02] saturate-[1.06]",
-          )}
-          onError={() => {
-            if (fallbackImage && src !== fallbackImage) {
-              setSrc(fallbackImage);
-            }
-          }}
-          src={src}
-        />
         <TreatmentOverlay treatment={treatment} />
-      </div>
+      </PreviewImage>
     </div>
   );
 }

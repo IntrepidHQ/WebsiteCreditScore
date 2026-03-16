@@ -39,7 +39,7 @@ describe("PricingConfigurator", () => {
 
     render(<PricingConfigurator report={report} />);
 
-    await user.click(screen.getAllByRole("button", { name: /^add$/i })[0]);
+    await user.click(screen.getAllByRole("button", { name: /^add /i })[0]);
 
     await waitFor(() =>
       expect(screen.queryAllByText(`$${startingTotal.toLocaleString()}`)).toHaveLength(0),

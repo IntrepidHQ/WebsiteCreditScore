@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 
 import {
+  createWebsiteScreenshotUrl,
   formatDomainTitle,
   inferProfileType,
   normalizeUrl,
@@ -30,5 +31,10 @@ describe("url utilities", () => {
 
   it("treats short single-word brand domains as polished product sites by default", () => {
     expect(inferProfileType("https://apple.com")).toBe("saas");
+  });
+
+  it("creates device-specific preview routes", () => {
+    expect(createWebsiteScreenshotUrl("https://apple.com")).toContain("device=desktop");
+    expect(createWebsiteScreenshotUrl("https://apple.com", "mobile")).toContain("device=mobile");
   });
 });

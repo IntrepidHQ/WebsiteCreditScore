@@ -66,16 +66,16 @@ export function BeforeAfterSection({ report }: { report: AuditReport }) {
             <DevicePreview
               alt={`${report.title} current site`}
               device="desktop"
-              fallbackImage={report.previewSet.fallbackCurrent}
-              image={report.previewSet.current}
+              fallbackImage={report.previewSet.fallbackCurrent.desktop}
+              image={report.previewSet.current.desktop}
               label="Current capture"
             />
             <DevicePreview
               alt={`${report.title} upgraded concept`}
               device="desktop"
-              fallbackImage={report.previewSet.fallbackFuture}
+              fallbackImage={report.previewSet.fallbackFuture.desktop}
               highlight
-              image={report.previewSet.future}
+              image={report.previewSet.future.desktop}
               label="Design direction"
               treatment="future"
             />

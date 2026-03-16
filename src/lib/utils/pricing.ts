@@ -3,6 +3,7 @@ import type { PricingBundle, PricingItem, RoiScenarioDefaults } from "@/lib/type
 export interface PricingSummary {
   baseItem: PricingItem;
   selectedAddOns: PricingItem[];
+  selectedPackageItems: PricingItem[];
   addOnsTotal: number;
   total: number;
   selectedIds: string[];
@@ -98,17 +99,19 @@ export function calculatePricingSummary(
   );
 
   const addOnsTotal = selectedAddOns.reduce((sum, item) => sum + item.price, 0);
+  const selectedPackageItems = [baseItem, ...selectedAddOns];
 
   return {
     baseItem,
     selectedAddOns,
+    selectedPackageItems,
     addOnsTotal,
     total: baseItem.price + addOnsTotal,
     selectedIds: normalizedSelectedIds,
     synergyNotes: collectSynergyNotes(bundle.addOns, normalizedSelectedIds),
     recommendedUpsells: getRecommendedUpsells(bundle, normalizedSelectedIds),
     projectedScoreLift: Number(
-      selectedAddOns.reduce((sum, item) => sum + item.estimatedScoreLift, 0).toFixed(1),
+      selectedPackageItems.reduce((sum, item) => sum + item.estimatedScoreLift, 0).toFixed(1),
     ),
   };
 }
@@ -117,14 +120,30 @@ export function calculateProjectedScore(
   currentScore: number,
   selectedItems: PricingItem[],
 ) {
-  const projected = [...selectedItems]
-    .sort((left, right) => right.estimatedScoreLift - left.estimatedScoreLift)
-    .reduce((score, item) => {
-      const remainingGap = Math.max(0, 10 - score);
-      const appliedLift = item.estimatedScoreLift * Math.max(0.38, remainingGap / 10);
+  const orderedItems = [...selectedItems].sort((left, right) => {
+    if (left.category === "base") {
+      return -1;
+    }
 
-      return Math.min(9.8, score + appliedLift);
-    }, currentScore);
+    if (right.category === "base") {
+      return 1;
+    }
+
+    return right.estimatedScoreLift - left.estimatedScoreLift;
+  });
+
+  const projected = orderedItems.reduce((score, item, index) => {
+    if (item.category === "base" || index === 0) {
+      const baseFactor = currentScore < 5.5 ? 1 : currentScore < 7 ? 0.85 : 0.55;
+
+      return Math.min(9.8, score + item.estimatedScoreLift * baseFactor);
+    }
+
+    const remainingGap = Math.max(0, 10 - score);
+    const appliedLift = item.estimatedScoreLift * Math.max(0.42, remainingGap / 8.5);
+
+    return Math.min(9.8, score + appliedLift);
+  }, currentScore);
 
   return Number(projected.toFixed(1));
 }

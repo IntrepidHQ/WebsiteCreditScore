@@ -218,11 +218,27 @@ export function AuditHeroSection({ report }: { report: AuditReport }) {
               <p className="text-xs uppercase tracking-[0.18em] text-muted">Observed on page</p>
               <div className="mt-3 space-y-4">
                 <p className="text-sm leading-6 text-foreground">
-                  {report.siteObservation.aboutSnippet || "Live page details could not be extracted cleanly, so this report is leaning more heavily on the visible interface and URL structure."}
+                  {report.siteObservation.aboutSnippet || "No high-confidence business summary was detected, so the audit is leaning more heavily on the visible interface and navigation structure."}
                 </p>
                 <div className="grid gap-3 sm:grid-cols-2">
+                  {(report.siteObservation.verifiedFacts.filter((fact) => fact.type !== "about").length
+                    ? report.siteObservation.verifiedFacts.filter((fact) => fact.type !== "about")
+                    : []).slice(0, 4).map((fact) => (
+                    <div className="rounded-[calc(var(--theme-radius)-2px)] border border-border/70 bg-background-alt/70 px-4 py-3" key={fact.id}>
+                      <div className="flex items-center justify-between gap-3">
+                        <p className="text-xs uppercase tracking-[0.18em] text-muted">{fact.label}</p>
+                        <Badge variant={fact.confidence === "verified" ? "accent" : "neutral"}>
+                          {fact.confidence}
+                        </Badge>
+                      </div>
+                      <p className="mt-2 text-sm leading-6 text-foreground">{fact.value}</p>
+                      <p className="mt-2 text-[11px] uppercase tracking-[0.18em] text-muted">
+                        {fact.source.replace(/-/g, " ")}
+                      </p>
+                    </div>
+                  ))}
                   <div className="rounded-[calc(var(--theme-radius)-2px)] border border-border/70 bg-background-alt/70 px-4 py-3">
-                    <p className="text-xs uppercase tracking-[0.18em] text-muted">Primary CTA set</p>
+                    <p className="text-xs uppercase tracking-[0.18em] text-muted">Actions seen</p>
                     <div className="mt-2 flex flex-wrap gap-2">
                       {(report.siteObservation.primaryCtas.length
                         ? report.siteObservation.primaryCtas
@@ -230,17 +246,6 @@ export function AuditHeroSection({ report }: { report: AuditReport }) {
                         <Badge className="normal-case tracking-normal" key={cta} variant="neutral">
                           {cta}
                         </Badge>
-                      ))}
-                    </div>
-                  </div>
-                  <div className="rounded-[calc(var(--theme-radius)-2px)] border border-border/70 bg-background-alt/70 px-4 py-3">
-                    <p className="text-xs uppercase tracking-[0.18em] text-muted">Notable details</p>
-                    <div className="mt-2 space-y-2 text-sm leading-6 text-foreground">
-                      {(report.siteObservation.notableDetails.length
-                        ? report.siteObservation.notableDetails
-                        : report.siteObservation.trustSignals.slice(0, 2)
-                      ).map((detail) => (
-                        <p key={detail}>{detail}</p>
                       ))}
                     </div>
                   </div>
@@ -332,9 +337,9 @@ export function AuditHeroSection({ report }: { report: AuditReport }) {
           <DevicePreview
             alt={`${report.title} preview`}
             device={previewDevice}
-            fallbackImage={report.previewSet.fallbackCurrent}
+            fallbackImage={report.previewSet.fallbackCurrent[previewDevice]}
             highlight
-            image={report.previewSet.current}
+            image={report.previewSet.current[previewDevice]}
             label={
               previewDevice === "mobile"
                 ? report.previewSet.mobileLabel

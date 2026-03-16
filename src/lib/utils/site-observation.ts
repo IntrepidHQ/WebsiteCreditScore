@@ -1,4 +1,9 @@
-import type { SiteObservation } from "@/lib/types/audit";
+import type {
+  ObservationFact,
+  ObservationFactConfidence,
+  ObservationFactSource,
+  SiteObservation,
+} from "@/lib/types/audit";
 import { createWebsiteScreenshotUrl, normalizeUrl } from "@/lib/utils/url";
 
 const observationCache = new Map<string, Promise<SiteObservation>>();
@@ -34,6 +39,77 @@ function cleanText(input?: string | null) {
 
 function uniqueTexts(values: string[], limit = values.length) {
   return [...new Set(values.map((value) => value.trim()).filter(Boolean))].slice(0, limit);
+}
+
+function trimToWordBoundary(input: string, maxLength: number) {
+  if (input.length <= maxLength) {
+    return input;
+  }
+
+  const trimmed = input.slice(0, maxLength).replace(/\s+\S*$/, "").trim();
+
+  return trimmed || input.slice(0, maxLength).trim();
+}
+
+export function trimToSentenceBoundary(
+  input: string,
+  maxLength = 180,
+  maxSentences = 2,
+) {
+  const cleaned = cleanText(input);
+
+  if (!cleaned) {
+    return "";
+  }
+
+  const abbreviations = [
+    ["M.D.", "__MD__"],
+    ["D.O.", "__DO__"],
+    ["Ph.D.", "__PHD__"],
+    ["Dr.", "__DR__"],
+    ["Mr.", "__MR__"],
+    ["Mrs.", "__MRS__"],
+    ["Ms.", "__MS__"],
+  ] as const;
+  const protectedText = abbreviations.reduce(
+    (value, [needle, replacement]) => value.replaceAll(needle, replacement),
+    cleaned,
+  );
+  const sentences =
+    protectedText
+      .split(/(?<=[.!?])\s+(?=[A-Z])/)
+      .map((sentence) => sentence.trim())
+      .filter(Boolean)
+      .map((sentence) =>
+        abbreviations.reduce(
+          (value, [needle, replacement]) => value.replaceAll(replacement, needle),
+          sentence,
+        ),
+      ) ?? [];
+
+  if (!sentences.length) {
+    return trimToWordBoundary(cleaned, maxLength);
+  }
+
+  let result = "";
+  let sentenceCount = 0;
+
+  for (const sentence of sentences) {
+    const next = result ? `${result} ${sentence}` : sentence;
+
+    if (next.length > maxLength) {
+      break;
+    }
+
+    result = next;
+    sentenceCount += 1;
+
+    if (sentenceCount >= maxSentences) {
+      break;
+    }
+  }
+
+  return result || trimToWordBoundary(cleaned, maxLength);
 }
 
 function extractTagTexts(html: string, tagName: string, limit = 12) {
@@ -94,14 +170,6 @@ function extractSchemaKinds(html: string) {
   return uniqueTexts(kinds, 8);
 }
 
-function extractPhoneNumber(text: string) {
-  const match = text.match(
-    /(?:\+?1[\s.-]?)?(?:\(?\d{3}\)?[\s.-]?)\d{3}[\s.-]?\d{4}/,
-  );
-
-  return match?.[0] ?? "";
-}
-
 function extractEmail(text: string) {
   const match = text.match(/[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}/i);
 
@@ -115,22 +183,265 @@ function selectAboutSnippet(paragraphs: string[], metaDescription: string) {
     ),
   );
 
-  return candidate ?? metaDescription;
+  return trimToSentenceBoundary(candidate ?? metaDescription);
 }
 
-function extractNotableDetails(text: string, paragraphs: string[]) {
-  const notable: string[] = [];
-  const phoneNumber = extractPhoneNumber(text);
-  const email = extractEmail(text);
+function parseJsonLdBlocks(html: string) {
+  const blocks = [
+    ...html.matchAll(/<script[^>]*type=["']application\/ld\+json["'][^>]*>([\s\S]*?)<\/script>/gi),
+  ].map((match) => match[1]);
 
-  if (phoneNumber) {
-    notable.push(`Phone listed: ${phoneNumber}`);
+  return blocks.flatMap((block) => {
+    try {
+      const parsed = JSON.parse(block.trim());
+
+      return Array.isArray(parsed) ? parsed : [parsed];
+    } catch {
+      return [];
+    }
+  });
+}
+
+function walkJsonValue(value: unknown, visitor: (item: Record<string, unknown>) => void) {
+  if (Array.isArray(value)) {
+    value.forEach((entry) => walkJsonValue(entry, visitor));
+    return;
   }
+
+  if (!value || typeof value !== "object") {
+    return;
+  }
+
+  visitor(value as Record<string, unknown>);
+
+  for (const nested of Object.values(value as Record<string, unknown>)) {
+    walkJsonValue(nested, visitor);
+  }
+}
+
+function collectSchemaStrings(data: unknown[], keys: string[]) {
+  const results: string[] = [];
+
+  for (const item of data) {
+    walkJsonValue(item, (entry) => {
+      for (const key of keys) {
+        const value = entry[key];
+
+        if (typeof value === "string") {
+          const cleaned = cleanText(value);
+
+          if (cleaned) {
+            results.push(cleaned);
+          }
+        }
+      }
+    });
+  }
+
+  return uniqueTexts(results, 8);
+}
+
+function formatUsPhoneNumber(input: string) {
+  const digits = input.replace(/\D/g, "");
+  const normalized = digits.length === 11 && digits.startsWith("1") ? digits.slice(1) : digits;
+
+  if (normalized.length !== 10) {
+    return "";
+  }
+
+  return `(${normalized.slice(0, 3)}) ${normalized.slice(3, 6)}-${normalized.slice(6)}`;
+}
+
+function createObservationFact(
+  type: ObservationFact["type"],
+  label: string,
+  value: string,
+  source: ObservationFactSource,
+  confidence: ObservationFactConfidence,
+): ObservationFact {
+  return {
+    id: `${type}-${source}-${value.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "")}`,
+    type,
+    label,
+    value,
+    source,
+    confidence,
+  };
+}
+
+function extractSchemaAddress(data: unknown[]) {
+  for (const item of data) {
+    let address = "";
+
+    walkJsonValue(item, (entry) => {
+      if (address) {
+        return;
+      }
+
+      const addressValue = entry.address;
+
+      if (!addressValue || typeof addressValue !== "object" || Array.isArray(addressValue)) {
+        return;
+      }
+
+      const addressRecord = addressValue as Record<string, unknown>;
+      const parts = [
+        cleanText(typeof addressRecord.streetAddress === "string" ? addressRecord.streetAddress : ""),
+        cleanText(typeof addressRecord.addressLocality === "string" ? addressRecord.addressLocality : ""),
+        cleanText(typeof addressRecord.addressRegion === "string" ? addressRecord.addressRegion : ""),
+        cleanText(typeof addressRecord.postalCode === "string" ? addressRecord.postalCode : ""),
+      ].filter(Boolean);
+
+      if (!parts.length) {
+        return;
+      }
+
+      if (parts.length >= 4) {
+        address = `${parts[0]}, ${parts[1]}, ${parts[2]} ${parts[3]}`.trim();
+      } else {
+        address = parts.join(", ");
+      }
+    });
+
+    if (address) {
+      return trimToSentenceBoundary(address, 140, 1);
+    }
+  }
+
+  return "";
+}
+
+function extractLabeledPhone(paragraphs: string[]) {
+  const phoneRegex = /(\(?\d{3}\)?[\s.-]\d{3}[\s.-]\d{4})/;
+
+  const match = paragraphs.find((paragraph) =>
+    /(phone|call|office|appointments?|tel)/i.test(paragraph) && phoneRegex.test(paragraph),
+  );
+
+  if (!match) {
+    return "";
+  }
+
+  return formatUsPhoneNumber(match.match(phoneRegex)?.[1] ?? "");
+}
+
+function extractLabeledEmail(paragraphs: string[]) {
+  const match = paragraphs.find((paragraph) =>
+    /(email|contact)/i.test(paragraph) && /[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}/i.test(paragraph),
+  );
+
+  return match ? extractEmail(match) : "";
+}
+
+function extractLabeledAddress(paragraphs: string[]) {
+  const addressRegex =
+    /\b\d{1,6}\s+[A-Za-z0-9.'#-]+(?:\s+[A-Za-z0-9.'#-]+)*,\s*[A-Za-z .'-]+,\s*[A-Z]{2}\s+\d{5}(?:-\d{4})?\b/;
+
+  const match = paragraphs.find((paragraph) =>
+    /(address|location|office|visit|located)/i.test(paragraph) && addressRegex.test(paragraph),
+  );
+
+  return match ? trimToSentenceBoundary(match.match(addressRegex)?.[0] ?? "", 140, 1) : "";
+}
+
+export function extractVerifiedFacts(
+  html: string,
+  paragraphs: string[],
+  metaDescription: string,
+) {
+  const facts: ObservationFact[] = [];
+  const links = extractLinks(html);
+  const schemaData = parseJsonLdBlocks(html);
+
+  const telLink = links.find((item) => /^tel:/i.test(item.href));
+  const mailtoLink = links.find((item) => /^mailto:/i.test(item.href));
+  const schemaPhone = collectSchemaStrings(schemaData, ["telephone", "phone"])[0] ?? "";
+  const schemaEmail = collectSchemaStrings(schemaData, ["email"])[0] ?? "";
+  const schemaDescription = collectSchemaStrings(schemaData, ["description"])[0] ?? "";
+  const labeledPhone = extractLabeledPhone(paragraphs);
+  const labeledEmail = extractLabeledEmail(paragraphs);
+  const schemaAddress = extractSchemaAddress(schemaData);
+  const labeledAddress = extractLabeledAddress([
+    ...extractTagTexts(html, "address", 6),
+    ...paragraphs,
+  ]);
+
+  const phone = formatUsPhoneNumber(
+    telLink?.href.replace(/^tel:/i, "") || schemaPhone || labeledPhone,
+  );
+
+  if (phone) {
+    facts.push(
+      createObservationFact(
+        "phone",
+        "Phone",
+        phone,
+        telLink ? "tel-link" : schemaPhone ? "schema" : "contact-block",
+        telLink || schemaPhone ? "verified" : "observed",
+      ),
+    );
+  }
+
+  const email = cleanText(
+    mailtoLink?.href.replace(/^mailto:/i, "") || schemaEmail || labeledEmail,
+  );
 
   if (email) {
-    notable.push(`Email listed: ${email}`);
+    facts.push(
+      createObservationFact(
+        "email",
+        "Email",
+        email,
+        mailtoLink ? "mailto-link" : schemaEmail ? "schema" : "contact-block",
+        mailtoLink || schemaEmail ? "verified" : "observed",
+      ),
+    );
   }
 
+  const address = schemaAddress || labeledAddress;
+
+  if (address) {
+    facts.push(
+      createObservationFact(
+        "address",
+        "Address",
+        address,
+        schemaAddress ? "schema" : "contact-block",
+        schemaAddress ? "verified" : "observed",
+      ),
+    );
+  }
+
+  const aboutValue = trimToSentenceBoundary(
+    schemaDescription || selectAboutSnippet(paragraphs, metaDescription),
+    180,
+    2,
+  );
+
+  if (aboutValue) {
+    facts.push(
+      createObservationFact(
+        "about",
+        "About",
+        aboutValue,
+        schemaDescription
+          ? "schema"
+          : metaDescription && aboutValue === trimToSentenceBoundary(metaDescription, 180, 2)
+            ? "meta-description"
+            : "paragraph",
+        schemaDescription ? "verified" : "observed",
+      ),
+    );
+  }
+
+  return facts;
+}
+
+function extractNotableDetails(text: string, paragraphs: string[], verifiedFacts: ObservationFact[]) {
+  const notable = verifiedFacts
+    .filter((fact) => fact.type !== "about")
+    .slice(0, 3)
+    .map((fact) => `${fact.label}: ${fact.value}`);
   const yearMatch = text.match(/\b(\d{1,2}\+?\s+years?|since\s+\d{4})\b/i);
 
   if (yearMatch) {
@@ -143,8 +454,8 @@ function extractNotableDetails(text: string, paragraphs: string[]) {
     ),
   );
 
-  if (locationMatch) {
-    notable.push(locationMatch.slice(0, 120));
+  if (locationMatch && !verifiedFacts.some((fact) => fact.type === "address")) {
+    notable.push(trimToSentenceBoundary(locationMatch, 120, 1));
   }
 
   return uniqueTexts(notable, 4);
@@ -163,7 +474,12 @@ function derivePrimaryCtas(html: string) {
   );
 }
 
-function deriveTrustSignals(text: string, paragraphs: string[], schemaKinds: string[]) {
+function deriveTrustSignals(
+  text: string,
+  paragraphs: string[],
+  schemaKinds: string[],
+  verifiedFacts: ObservationFact[],
+) {
   const signals: string[] = [];
 
   if (/testimonial|review|rating|five-star|5-star/i.test(text)) {
@@ -178,12 +494,16 @@ function deriveTrustSignals(text: string, paragraphs: string[], schemaKinds: str
     signals.push("Tenure or local ownership language is visible.");
   }
 
-  if (extractPhoneNumber(text)) {
-    signals.push("Direct phone contact is published.");
+  if (verifiedFacts.some((fact) => fact.type === "phone")) {
+    signals.push("Verified phone contact is published.");
   }
 
-  if (extractEmail(text)) {
-    signals.push("Direct email contact is published.");
+  if (verifiedFacts.some((fact) => fact.type === "email")) {
+    signals.push("Verified email contact is published.");
+  }
+
+  if (verifiedFacts.some((fact) => fact.type === "address")) {
+    signals.push("Verified location details are visible.");
   }
 
   if (paragraphs.some((paragraph) => /hours|monday|tuesday|friday|open/i.test(paragraph))) {
@@ -282,6 +602,7 @@ export function createFallbackObservation(rawUrl: string): SiteObservation {
     metaDescription: "",
     heroHeading: "",
     aboutSnippet: "",
+    verifiedFacts: [],
     primaryCtas: [],
     trustSignals: [],
     seoSignals: [],
@@ -289,7 +610,7 @@ export function createFallbackObservation(rawUrl: string): SiteObservation {
     technicalSignals: [],
     notableDetails: [],
     templateSignals: [],
-    screenshotUrl: createWebsiteScreenshotUrl(normalizedUrl),
+    screenshotUrl: createWebsiteScreenshotUrl(normalizedUrl, "desktop"),
     ogImage: undefined,
     formCount: 0,
     internalLinkCount: 0,
@@ -334,6 +655,9 @@ async function fetchObservation(normalizedUrl: string): Promise<SiteObservation>
     const links = extractLinks(html);
     const ctas = derivePrimaryCtas(html);
     const schemaKinds = extractSchemaKinds(html);
+    const verifiedFacts = extractVerifiedFacts(html, paragraphs, metaDescription);
+    const aboutSnippet =
+      verifiedFacts.find((fact) => fact.type === "about")?.value ?? "";
     const hostname = new URL(finalUrl).hostname.replace(/^www\./, "");
     const ogImage =
       extractMetaContent(html, "property", "og:image") ||
@@ -346,7 +670,7 @@ async function fetchObservation(normalizedUrl: string): Promise<SiteObservation>
     const formCount = [...html.matchAll(/<form\b/gi)].length;
     const missingAltRatio = computeMissingAltRatio(html);
     const templateSignals = deriveTemplateSignals(text);
-    const trustSignals = deriveTrustSignals(text, paragraphs, schemaKinds);
+    const trustSignals = deriveTrustSignals(text, paragraphs, schemaKinds, verifiedFacts);
     const securitySignals = deriveSecuritySignals(response.headers);
     const seoSignals = uniqueTexts(
       [
@@ -377,15 +701,16 @@ async function fetchObservation(normalizedUrl: string): Promise<SiteObservation>
       pageTitle,
       metaDescription,
       heroHeading,
-      aboutSnippet: selectAboutSnippet(paragraphs, metaDescription),
+      aboutSnippet,
+      verifiedFacts,
       primaryCtas: ctas,
       trustSignals,
       seoSignals,
       securitySignals,
       technicalSignals,
-      notableDetails: extractNotableDetails(text, paragraphs),
+      notableDetails: extractNotableDetails(text, paragraphs, verifiedFacts),
       templateSignals,
-      screenshotUrl: createWebsiteScreenshotUrl(finalUrl),
+      screenshotUrl: createWebsiteScreenshotUrl(finalUrl, "desktop"),
       ogImage: ogImage
         ? new URL(ogImage, finalUrl).toString()
         : undefined,

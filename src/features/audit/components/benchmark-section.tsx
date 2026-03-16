@@ -1,9 +1,8 @@
-/* eslint-disable @next/next/no-img-element */
 "use client";
 
-import { useEffect, useState } from "react";
 import { Target } from "lucide-react";
 
+import { PreviewImage } from "@/components/common/preview-image";
 import { SectionHeading } from "@/components/common/section-heading";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -19,26 +18,16 @@ function BenchmarkPreview({
   fallbackImage: string;
   alt: string;
 }) {
-  const [src, setSrc] = useState(image);
-
-  useEffect(() => {
-    setSrc(image);
-  }, [image]);
-
   return (
-    <div className="relative aspect-[16/10] overflow-hidden border-b border-border/70 bg-background-alt">
-      <img
-        alt={alt}
-        className="h-full w-full object-cover object-top"
-        onError={() => {
-          if (src !== fallbackImage) {
-            setSrc(fallbackImage);
-          }
-        }}
-        src={src}
-      />
+    <PreviewImage
+      alt={alt}
+      className="aspect-[16/10] border-b border-border/70"
+      fallbackSrc={fallbackImage}
+      loadingLabel="Capturing desktop screenshot"
+      src={image}
+    >
       <div className="pointer-events-none absolute inset-x-0 top-0 h-24 bg-gradient-to-b from-background/45 via-transparent to-transparent" />
-    </div>
+    </PreviewImage>
   );
 }
 
@@ -80,7 +69,7 @@ export function BenchmarkSection({ report }: { report: AuditReport }) {
               <Card className="min-w-[21rem] overflow-hidden" key={reference.id}>
                 <BenchmarkPreview
                   alt={`${reference.name} benchmark preview`}
-                  fallbackImage={report.previewSet.fallbackCurrent}
+                  fallbackImage={report.previewSet.fallbackCurrent.desktop}
                   image={reference.previewImage}
                 />
                 <CardHeader className="space-y-3">

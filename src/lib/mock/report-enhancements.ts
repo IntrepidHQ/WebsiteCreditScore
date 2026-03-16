@@ -139,6 +139,10 @@ export function buildObservedCategoryScores(
   observation: SiteObservation,
   scoreOverrides?: Partial<Record<AuditCategoryKey, number>>,
 ) {
+  const verifiedContactCount = observation.verifiedFacts.filter((fact) =>
+    fact.type === "phone" || fact.type === "email" || fact.type === "address",
+  ).length;
+  const verifiedAbout = observation.verifiedFacts.find((fact) => fact.type === "about");
   const computedScores: Record<AuditCategoryKey, number> = {
     "visual-design": clampScore(
       5.6 +
@@ -151,7 +155,8 @@ export function buildObservedCategoryScores(
       5.3 +
         ctaPenalty(observation) +
         (observation.formCount ? 0.4 : -0.4) +
-        (observation.trustSignals.length >= 2 ? 0.5 : 0),
+        (verifiedContactCount >= 1 ? 0.5 : 0) +
+        (observation.trustSignals.length >= 2 ? 0.3 : 0),
     ),
     "mobile-experience": clampScore(
       5.4 +
@@ -180,9 +185,10 @@ export function buildObservedCategoryScores(
             : -0.2),
     ),
     "trust-credibility": clampScore(
-      5.4 +
-        Math.min(observation.trustSignals.length * 0.35, 1.8) +
-        (observation.aboutSnippet ? 0.4 : -0.4) +
+      5.2 +
+        Math.min(observation.trustSignals.length * 0.25, 1.2) +
+        Math.min(verifiedContactCount * 0.45, 1.35) +
+        (verifiedAbout ? 0.4 : -0.4) +
         (observation.templateSignals.length ? -0.8 : 0.2),
     ),
     "security-posture": clampScore(
@@ -217,8 +223,8 @@ export function buildObservedCategoryScores(
           ? "Structural accessibility signals are partially present, but usability still depends on contrast, alt text, and semantic clarity."
           : "Several baseline accessibility signals are missing or unclear, which usually creates friction for everyone.",
       "trust-credibility":
-        observation.trustSignals.length
-          ? `The page already shows trust cues such as ${observation.trustSignals[0].toLowerCase()}`
+        verifiedContactCount
+          ? `The page already exposes ${verifiedContactCount} verified business detail${verifiedContactCount > 1 ? "s" : ""} prospects can use to validate the business.`
           : "The page needs more direct proof, reassurance, and real-world credibility cues near the ask.",
       "security-posture":
         observation.securitySignals.length
@@ -263,7 +269,9 @@ export function buildObservedCategoryScores(
       ),
       "trust-credibility": buildScoreDetails(
         categoryLabels[key],
-        observation.trustSignals,
+        observation.verifiedFacts
+          .filter((fact) => fact.type !== "about")
+          .map((fact) => `${fact.label}: ${fact.value}`),
         "Move proof, credentials, and reassurance closer to the first CTA and key decision moments.",
         "A 9+ trust score makes competence, safety, and legitimacy obvious before the visitor hesitates.",
       ),
@@ -503,7 +511,7 @@ export function buildBenchmarkReferences(profile: ReportProfileType): BenchmarkR
         url: "https://www.onemedical.com",
         sourceLabel: "Healthcare reference",
         note: "Clear booking paths, strong reassurance, and a cleaner primary-care information hierarchy.",
-        previewImage: createWebsiteScreenshotUrl("https://www.onemedical.com"),
+        previewImage: createWebsiteScreenshotUrl("https://www.onemedical.com", "desktop"),
         targetScore: 9.1,
         strengths: ["ux-conversion", "mobile-experience", "trust-credibility"],
       },
@@ -513,7 +521,7 @@ export function buildBenchmarkReferences(profile: ReportProfileType): BenchmarkR
         url: "https://www.zocdoc.com",
         sourceLabel: "Healthcare booking reference",
         note: "Strong next-step clarity and visible scheduling confidence.",
-        previewImage: createWebsiteScreenshotUrl("https://www.zocdoc.com"),
+        previewImage: createWebsiteScreenshotUrl("https://www.zocdoc.com", "desktop"),
         targetScore: 8.9,
         strengths: ["ux-conversion", "trust-credibility", "seo-readiness"],
       },
@@ -523,7 +531,7 @@ export function buildBenchmarkReferences(profile: ReportProfileType): BenchmarkR
         url: "https://www.apple.com",
         sourceLabel: "Global design reference",
         note: "A good reminder of how restrained hierarchy and confident visual systems raise perceived quality fast.",
-        previewImage: createWebsiteScreenshotUrl("https://www.apple.com"),
+        previewImage: createWebsiteScreenshotUrl("https://www.apple.com", "desktop"),
         targetScore: 9.4,
         strengths: ["visual-design", "mobile-experience", "accessibility"],
       },
@@ -535,7 +543,7 @@ export function buildBenchmarkReferences(profile: ReportProfileType): BenchmarkR
         url: "https://www.ajalberts.com",
         sourceLabel: "Home-service reference",
         note: "Shows how service pages, proof, and direct contact can feel more immediate.",
-        previewImage: createWebsiteScreenshotUrl("https://www.ajalberts.com"),
+        previewImage: createWebsiteScreenshotUrl("https://www.ajalberts.com", "desktop"),
         targetScore: 8.8,
         strengths: ["ux-conversion", "trust-credibility", "seo-readiness"],
       },
@@ -545,7 +553,7 @@ export function buildBenchmarkReferences(profile: ReportProfileType): BenchmarkR
         url: "https://northfaceconstruction.com",
         sourceLabel: "Contractor reference",
         note: "Useful reference for a tighter estimate path and stronger first-screen confidence.",
-        previewImage: createWebsiteScreenshotUrl("https://northfaceconstruction.com"),
+        previewImage: createWebsiteScreenshotUrl("https://northfaceconstruction.com", "desktop"),
         targetScore: 8.9,
         strengths: ["visual-design", "ux-conversion", "trust-credibility"],
       },
@@ -555,7 +563,7 @@ export function buildBenchmarkReferences(profile: ReportProfileType): BenchmarkR
         url: "https://www.apple.com",
         sourceLabel: "Global design reference",
         note: "Not a service business, but a strong benchmark for hierarchy, restraint, and premium finish.",
-        previewImage: createWebsiteScreenshotUrl("https://www.apple.com"),
+        previewImage: createWebsiteScreenshotUrl("https://www.apple.com", "desktop"),
         targetScore: 9.4,
         strengths: ["visual-design", "mobile-experience", "accessibility"],
       },
@@ -567,7 +575,7 @@ export function buildBenchmarkReferences(profile: ReportProfileType): BenchmarkR
         url: "https://stripe.com",
         sourceLabel: "SaaS reference",
         note: "Clear positioning, strong proof density, and a product story that stays easy to scan.",
-        previewImage: createWebsiteScreenshotUrl("https://stripe.com"),
+        previewImage: createWebsiteScreenshotUrl("https://stripe.com", "desktop"),
         targetScore: 9.5,
         strengths: ["visual-design", "ux-conversion", "trust-credibility"],
       },
@@ -577,7 +585,7 @@ export function buildBenchmarkReferences(profile: ReportProfileType): BenchmarkR
         url: "https://linear.app",
         sourceLabel: "SaaS reference",
         note: "A strong benchmark for product clarity, pacing, and modern interface confidence.",
-        previewImage: createWebsiteScreenshotUrl("https://linear.app"),
+        previewImage: createWebsiteScreenshotUrl("https://linear.app", "desktop"),
         targetScore: 9.3,
         strengths: ["visual-design", "mobile-experience", "ux-conversion"],
       },
@@ -587,7 +595,7 @@ export function buildBenchmarkReferences(profile: ReportProfileType): BenchmarkR
         url: "https://www.apple.com",
         sourceLabel: "Global design reference",
         note: "Useful as a high bar for clarity, polish, and restraint even outside the SaaS category.",
-        previewImage: createWebsiteScreenshotUrl("https://www.apple.com"),
+        previewImage: createWebsiteScreenshotUrl("https://www.apple.com", "desktop"),
         targetScore: 9.4,
         strengths: ["visual-design", "accessibility", "mobile-experience"],
       },
@@ -609,7 +617,9 @@ export function buildObservedExecutiveSummary(
   const specifics = uniqueTexts(
     [
       observation.aboutSnippet,
-      ...observation.notableDetails,
+      ...observation.verifiedFacts
+        .filter((fact) => fact.type !== "about")
+        .map((fact) => `${fact.label}: ${fact.value}`),
       observation.primaryCtas.length
         ? `current CTA language includes ${observation.primaryCtas.slice(0, 2).join(" and ")}`
         : "",

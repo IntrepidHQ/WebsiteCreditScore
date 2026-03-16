@@ -37,54 +37,20 @@ export default function Home() {
   return (
     <main id="main-content">
       <section className="presentation-section pb-8 pt-12 sm:pt-16">
-        <div className="mx-auto grid w-full max-w-7xl gap-10 px-4 sm:px-6 lg:grid-cols-[minmax(0,1fr)_24rem] lg:px-8">
+        <div className="mx-auto w-full max-w-7xl px-4 sm:px-6 lg:px-8">
           <div className="space-y-8">
             <Badge variant="accent">Craydl for designers, developers, and web product providers</Badge>
             <div className="space-y-6">
-              <h1 className="font-display text-5xl font-semibold tracking-[-0.06em] text-foreground sm:text-7xl">
+              <h1 className="max-w-5xl font-display text-5xl font-semibold tracking-[-0.06em] text-foreground sm:text-7xl">
                 Turn a live website into a{" "}
-                <span className="gradient-type">sendable audit and scoped web deal.</span>
+                <span className="gradient-type">sendable audit and scoped <span className="whitespace-nowrap">web deal.</span></span>
               </h1>
               <p className="max-w-3xl text-lg leading-8 text-muted sm:text-xl">
                 Built for agencies and website providers serving service businesses.
               </p>
             </div>
-            <LandingForm />
-            <div className="grid gap-4 sm:grid-cols-2">
-              <div className="glass-panel rounded-[calc(var(--theme-radius-lg))] p-5">
-                <p className="text-xs uppercase tracking-[0.18em] text-muted">Client packet</p>
-                <p className="mt-3 font-display text-3xl font-semibold text-foreground">
-                  3 to 4 pages
-                </p>
-              </div>
-              <div className="glass-panel rounded-[calc(var(--theme-radius-lg))] p-5">
-                <p className="text-xs uppercase tracking-[0.18em] text-muted">Shared process</p>
-                <p className="mt-3 font-display text-3xl font-semibold text-foreground">
-                  Research to approval
-                </p>
-              </div>
-            </div>
-          </div>
-
-          <div className="glass-panel relative overflow-hidden rounded-[calc(var(--theme-radius-lg))] p-6">
-            <div className="texture-grid absolute inset-0 opacity-35" />
-            <div className="relative space-y-6">
-              <Badge variant="neutral">Recent workspaces</Badge>
-              <div className="space-y-4">
-                {samples.map((sample) => (
-                  <Link
-                    className="flex items-center justify-between gap-4 rounded-[8px] border border-border/70 bg-background-alt/70 px-4 py-4 transition hover:border-accent/30"
-                    href={`/audit/${sample.id}`}
-                    key={sample.id}
-                  >
-                    <div>
-                      <p className="font-semibold text-foreground">{sample.title}</p>
-                      <p className="text-sm text-muted">{sample.summary}</p>
-                    </div>
-                    <ArrowRight className="size-4 shrink-0 text-accent" />
-                  </Link>
-                ))}
-              </div>
+            <div className="max-w-4xl">
+              <LandingForm />
             </div>
           </div>
         </div>
@@ -93,11 +59,11 @@ export default function Home() {
       <section className="presentation-section py-8">
         <div className="mx-auto w-full max-w-7xl space-y-8 px-4 sm:px-6 lg:px-8">
           <SectionHeading
-            eyebrow="Live examples"
+            eyebrow="Recent workspaces"
             title="Real sites, real example reports"
-            description="These sample workspaces are grounded in live websites."
+            description="Use the sample workspaces as quick starting points."
           />
-          <div className="grid gap-5 lg:grid-cols-3">
+          <div aria-label="Recent workspaces" className="horizontal-rail gap-5" tabIndex={0}>
             {samples.map((audit) => (
               <SampleAuditCard audit={audit} key={audit.id} />
             ))}

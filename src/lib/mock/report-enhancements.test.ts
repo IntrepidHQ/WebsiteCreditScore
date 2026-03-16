@@ -13,6 +13,25 @@ const strongObservation: SiteObservation = {
   metaDescription: "Discover Apple products, services, and support.",
   heroHeading: "Apple",
   aboutSnippet: "Apple designs consumer hardware, software, and services with a strong focus on clarity and polish.",
+  verifiedFacts: [
+    {
+      id: "about-schema-apple",
+      type: "about",
+      label: "About",
+      value:
+        "Apple designs consumer hardware, software, and services with a strong focus on clarity and polish.",
+      source: "schema",
+      confidence: "verified",
+    },
+    {
+      id: "phone-tel-apple",
+      type: "phone",
+      label: "Phone",
+      value: "(800) 692-7753",
+      source: "tel-link",
+      confidence: "verified",
+    },
+  ],
   primaryCtas: ["Shop", "Learn more", "Buy"],
   trustSignals: [
     "Direct phone contact is published.",
@@ -39,7 +58,7 @@ const strongObservation: SiteObservation = {
   ],
   notableDetails: ["Phone listed: (800) 692-7753"],
   templateSignals: [],
-  screenshotUrl: "https://image.thum.io/get/width/1600/crop/1100/noanimate/https://www.apple.com",
+  screenshotUrl: "/api/preview?url=https%3A%2F%2Fwww.apple.com&device=desktop&v=static-shot-2",
   ogImage: "https://www.apple.com/og.png",
   formCount: 1,
   internalLinkCount: 24,

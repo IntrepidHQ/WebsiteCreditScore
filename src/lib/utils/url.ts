@@ -1,4 +1,4 @@
-import type { ReportProfileType } from "@/lib/types/audit";
+import type { PreviewDevice, ReportProfileType } from "@/lib/types/audit";
 
 function hashString(input: string) {
   return [...input].reduce((acc, char) => acc + char.charCodeAt(0), 0);
@@ -98,6 +98,9 @@ export function inferProfileType(input: string): ReportProfileType {
   return profiles[hashString(hostname) % profiles.length];
 }
 
-export function createWebsiteScreenshotUrl(input: string) {
-  return `https://image.thum.io/get/width/1600/crop/1100/noanimate/${normalizeUrl(input)}`;
+export function createWebsiteScreenshotUrl(
+  input: string,
+  device: PreviewDevice = "desktop",
+) {
+  return `/api/preview?url=${encodeURIComponent(normalizeUrl(input))}&device=${device}&v=static-shot-2`;
 }

@@ -1,5 +1,6 @@
 import { notFound } from "next/navigation";
 
+import { WorkspaceThemeFrame } from "@/components/common/workspace-theme-frame";
 import { AuditHeroSection } from "@/features/audit/components/audit-hero-section";
 import { BeforeAfterSection } from "@/features/audit/components/before-after-section";
 import { ComparisonSection } from "@/features/audit/components/comparison-section";
@@ -54,21 +55,23 @@ export default async function AuditPage({
   }
 
   return (
-    <main id="main-content">
-      <AuditHeroSection report={report} />
-      <ComparisonSection report={report} />
-      <BenchmarkSection report={report} />
-      {sectionOrder.map((section) => (
-        <FindingsSection
-          findings={report.findings.filter((finding) => finding.section === section)}
-          key={section}
-          section={section}
-        />
-      ))}
-      <RebuildStrategySection report={report} />
-      <BeforeAfterSection report={report} />
-      <PricingConfigurator report={report} />
-      <ProposalActions report={report} />
-    </main>
+    <WorkspaceThemeFrame>
+      <main id="main-content">
+        <AuditHeroSection report={report} />
+        <ComparisonSection report={report} />
+        <BenchmarkSection report={report} />
+        {sectionOrder.map((section) => (
+          <FindingsSection
+            findings={report.findings.filter((finding) => finding.section === section)}
+            key={section}
+            section={section}
+          />
+        ))}
+        <RebuildStrategySection report={report} />
+        <BeforeAfterSection report={report} />
+        <PricingConfigurator report={report} />
+        <ProposalActions report={report} />
+      </main>
+    </WorkspaceThemeFrame>
   );
 }
