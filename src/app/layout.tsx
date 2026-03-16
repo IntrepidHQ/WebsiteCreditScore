@@ -1,3 +1,4 @@
+import { Suspense } from "react";
 import type { Metadata } from "next";
 import { Manrope, Space_Grotesk } from "next/font/google";
 
@@ -38,7 +39,9 @@ export default function RootLayout({
           <div className="relative min-h-screen overflow-x-hidden">
             <div aria-hidden="true" className="ambient-orb left-0 top-16" />
             <div aria-hidden="true" className="ambient-orb ambient-orb-2 right-0 top-[28rem]" />
-            <SiteHeader />
+            <Suspense fallback={null}>
+              <SiteHeader />
+            </Suspense>
             {children}
             <SiteFooter />
             <ContactModal />

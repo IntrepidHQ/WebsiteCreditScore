@@ -338,10 +338,11 @@ function buildFindings(
                 kind: "content",
               },
               {
-                id: "template-copy",
-                label: "Template remnants remain in the page source",
-                detail: "The page script still references placeholder language such as 'Your Practice Name'.",
-                kind: "technical",
+                id: "template-cues",
+                label: "Generic layout cues remain visible",
+                detail:
+                  "The opening structure and supporting modules still read like a shared provider template rather than a distinct local practice.",
+                kind: "visual",
               },
             ],
             benchmark: [
@@ -1286,7 +1287,7 @@ function createCatalog(profile: ReportProfileType): PricingBundle {
     addOns,
     recommendedIds: [baseItem.id, ...addOns.filter((item) => item.defaultSelected).map((item) => item.id)],
     stickyNote:
-      "Select the upgrades that make the proposal feel right-sized for this client now, then expand later if needed.",
+      "Choose the scope that creates a visible improvement now, then expand if needed.",
   };
 }
 
@@ -1376,14 +1377,13 @@ function buildProposalCtas(normalizedUrl: string): ProposalCTA[] {
       label: "Build My New Site",
       description: "Start scoping the redesign package with the current selections.",
       intent: "primary",
-      href: `mailto:hello@northstardigital.co?subject=Redesign%20Proposal%20for%20${encodeURIComponent(normalizedUrl)}`,
+      href: `mailto:?subject=Website%20review%20for%20${encodeURIComponent(normalizedUrl)}`,
     },
     {
       id: "book",
       label: "Book Strategy Call",
       description: "Review priorities, timing, and what we would tackle first.",
       intent: "secondary",
-      href: "https://example.com/book-strategy-call",
     },
     {
       id: "share",
@@ -1394,59 +1394,8 @@ function buildProposalCtas(normalizedUrl: string): ProposalCTA[] {
   ];
 }
 
-function buildSocialProof(profile: ReportProfileType) {
-  const quotes = {
-    healthcare: [
-      {
-        id: "proof-1",
-        name: "Jordan H.",
-        role: "Growth Consultant",
-        quote:
-          "This format makes the problems and the plan feel equally credible, which is rare.",
-      },
-      {
-        id: "proof-2",
-        name: "Priya S.",
-        role: "Agency Partner",
-        quote:
-          "Clients can feel the strategy before you even get to pricing.",
-      },
-    ],
-    "local-service": [
-      {
-        id: "proof-1",
-        name: "Mason R.",
-        role: "Agency Owner",
-        quote:
-          "The proposal feels premium without becoming pushy, which is the balance that usually wins.",
-      },
-      {
-        id: "proof-2",
-        name: "Elena V.",
-        role: "Creative Director",
-        quote:
-          "The pricing configurator does a surprisingly good job of explaining value.",
-      },
-    ],
-    saas: [
-      {
-        id: "proof-1",
-        name: "Cam T.",
-        role: "Demand Gen Lead",
-        quote:
-          "It feels like a strategy deck and a product critique merged together in the best way.",
-      },
-      {
-        id: "proof-2",
-        name: "Noah K.",
-        role: "Studio Founder",
-        quote:
-          "This gives prospects proof, direction, and a buying path in one flow.",
-      },
-    ],
-  };
-
-  return quotes[profile];
+function buildSocialProof() {
+  return [];
 }
 
 function buildRoiDefaults(profile: ReportProfileType): RoiScenarioDefaults {
@@ -1638,7 +1587,7 @@ function buildAuditReport(
     benchmarkReferences,
   );
   const proposalCtas = buildProposalCtas(normalizedUrl);
-  const socialProof = buildSocialProof(profile);
+  const socialProof = buildSocialProof();
   const roiDefaults = buildRoiDefaults(profile);
   const clientProfile = {
     ...profileClientProfiles[profile],

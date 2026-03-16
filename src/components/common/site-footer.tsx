@@ -11,7 +11,7 @@ const primaryLinks = [
   { href: "/audit/mark-deford-md", label: "Sample Audit" },
 ];
 
-const workspaceLinks = [
+const toolLinks = [
   { href: "/brief/mark-deford-md", label: "Discovery Brief" },
   { href: "/settings", label: "Theme Settings" },
 ];
@@ -25,8 +25,7 @@ export function SiteFooter() {
             <CraydlLogo compact />
           </Link>
           <p className="max-w-2xl text-sm leading-7 text-muted">
-            Craydl helps web product providers audit service-business sites, package the
-            opportunity, and move into approved discovery.
+            Audit the live site, package the opportunity, and scope the redesign.
           </p>
           <div className="flex flex-wrap gap-3">
             <Button asChild size="sm">
@@ -64,11 +63,11 @@ export function SiteFooter() {
 
           <div className="space-y-4">
             <p className="text-xs font-semibold uppercase tracking-[0.18em] text-muted">
-              Workspace
+              Tools
             </p>
-            <nav aria-label="Footer workspace">
+            <nav aria-label="Footer tools">
               <ul className="space-y-3 text-sm text-foreground">
-                {workspaceLinks.map((link) => (
+                {toolLinks.map((link) => (
                   <li key={link.href}>
                     <Link className="inline-flex items-center gap-2 hover:text-accent" href={link.href}>
                       {link.label}

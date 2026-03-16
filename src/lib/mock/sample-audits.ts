@@ -9,14 +9,14 @@ export const sampleAudits: SampleAuditCard[] = [
     previewUrl: "https://markdeford.dr-leonardo.com",
     profile: "healthcare",
     summary:
-      "Provider details are present, but the page still feels like a stock medical profile.",
+      "Provider details are present, but the first impression still feels generic.",
     previewImage: createWebsiteScreenshotUrl("https://markdeford.dr-leonardo.com", "desktop"),
     executiveSummary:
       "This example is based on the live Mark Deford M.D. profile page. The site includes real provider metadata and health-information depth, but the templated presentation weakens trust at first glance.",
     highlights: [
-      "The live page exposes specialty, NPI, phone, and North Charleston location details.",
-      "Quick links include Appointments, Credentials, Insurances, Locations, and Connect.",
-      "The visible profile image is still the default placeholder and the page script still references 'Your Practice Name'.",
+      "The live page exposes the physician name, specialty, and North Charleston location details.",
+      "Quick links include appointments, credentials, insurance, locations, and contact paths.",
+      "Generic profile imagery and templated layout cues still show through the experience.",
     ],
     scoreOverrides: {
       "visual-design": 3.8,
@@ -38,7 +38,7 @@ export const sampleAudits: SampleAuditCard[] = [
       "The story is credible, but the page still makes visitors read too much before acting.",
     previewImage: createWebsiteScreenshotUrl("https://www.saunderswoodworkllc.com/about", "desktop"),
     executiveSummary:
-      "This example is based on the live Saunder's Woodworks About page. The business story is credible and detailed, but the page asks visitors to read a lot before it creates a clear next step.",
+      "This example is based on the live Saunders Wood Work LLC About page. The business story is credible and detailed, but the page asks visitors to read a lot before it creates a clear next step.",
     highlights: [
       "The page claims 30+ years in the industry and names owner Mathew as the hands-on reviewer.",
       "Primary navigation and CTA language center on About, Contact Us, and Work with Us.",

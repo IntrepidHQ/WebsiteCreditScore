@@ -97,7 +97,7 @@ export function AuditHeroSection({ report }: { report: AuditReport }) {
       <div className="mx-auto grid w-full max-w-7xl gap-8 px-4 sm:px-6 lg:grid-cols-[minmax(0,0.9fr)_minmax(0,1.1fr)] lg:px-8">
         <div className="space-y-8">
           <div className="space-y-5">
-            <Badge variant="accent">Audit workspace</Badge>
+            <Badge variant="accent">Live audit</Badge>
             <div className="space-y-4">
               <h1 className="font-display text-4xl font-semibold tracking-[-0.04em] text-foreground sm:text-6xl">
                 {report.title}

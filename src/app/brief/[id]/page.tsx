@@ -27,7 +27,7 @@ export default async function BriefPage({
       return (
         <ReportEmptyState
           title="The discovery brief could not be prepared"
-          description="Use a valid public website URL or open the brief from an existing audit workspace."
+          description="Use a valid public website URL or open the brief from an existing review."
         />
       );
     }

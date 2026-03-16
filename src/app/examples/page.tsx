@@ -33,7 +33,7 @@ export default function ExamplesPage() {
           <SectionHeading
             eyebrow="Open the workflow"
             title="Review the audit, packet, and brief together"
-            description="Use the sample workflow to see how the close process fits together."
+            description="Open the sample flow and review the pieces together."
           />
           <Card className="overflow-hidden">
             <CardContent className="flex flex-col gap-5 p-8 lg:flex-row lg:items-center lg:justify-between">
@@ -43,8 +43,7 @@ export default function ExamplesPage() {
                   Open the sample audit, packet, and brief together
                 </h2>
                 <p className="max-w-3xl text-base leading-7 text-muted">
-                  The sample audit shows the internal workspace. The packet and brief show
-                  how the close flow tightens once the prospect responds.
+                  The audit shows the full review. The packet and brief show the shorter client-facing path that follows.
                 </p>
               </div>
               <div className="flex flex-wrap gap-3">

@@ -19,11 +19,60 @@ export function PacketToolbar({
       return;
     }
 
-    const timeout = window.setTimeout(() => {
-      window.print();
-    }, 250);
+    let cancelled = false;
+    let printed = false;
+    const images = Array.from(document.images);
+    let fallbackTimeout = 0;
 
-    return () => window.clearTimeout(timeout);
+    const openPrintDialog = () => {
+      if (cancelled || printed) {
+        return;
+      }
+
+      printed = true;
+      window.clearTimeout(fallbackTimeout);
+      window.setTimeout(() => {
+        if (!cancelled) {
+          window.print();
+        }
+      }, 120);
+    };
+
+    const pendingImages = images.filter((image) => !image.complete);
+
+    if (!pendingImages.length) {
+      openPrintDialog();
+      return;
+    }
+
+    let settledCount = 0;
+    const cleanupFns = pendingImages.map((image) => {
+      const handleSettled = () => {
+        settledCount += 1;
+
+        if (settledCount >= pendingImages.length) {
+          openPrintDialog();
+        }
+      };
+
+      image.addEventListener("load", handleSettled, { once: true });
+      image.addEventListener("error", handleSettled, { once: true });
+
+      return () => {
+        image.removeEventListener("load", handleSettled);
+        image.removeEventListener("error", handleSettled);
+      };
+    });
+
+    fallbackTimeout = window.setTimeout(() => {
+      openPrintDialog();
+    }, 3200);
+
+    return () => {
+      cancelled = true;
+      window.clearTimeout(fallbackTimeout);
+      cleanupFns.forEach((cleanup) => cleanup());
+    };
   }, [autoPrint]);
 
   return (

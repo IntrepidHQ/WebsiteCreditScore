@@ -216,3 +216,25 @@ a {
     height: 18rem;
   }
 }
+
+@media print {
+  @page {
+    size: letter portrait;
+    margin: 0.42in;
+  }
+
+  html,
+  body {
+    background: #ffffff !important;
+  }
+
+  body {
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+
+  .print-avoid-break {
+    break-inside: avoid;
+    page-break-inside: avoid;
+  }
+}

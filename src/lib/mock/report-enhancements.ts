@@ -514,6 +514,12 @@ export function buildBenchmarkReferences(profile: ReportProfileType): BenchmarkR
         previewImage: createWebsiteScreenshotUrl("https://www.onemedical.com", "desktop"),
         targetScore: 9.1,
         strengths: ["ux-conversion", "mobile-experience", "trust-credibility"],
+        whatWorks: [
+          "The first screen states the service clearly and gives the visitor one obvious next step.",
+          "Trust cues and operational details appear before the page asks for commitment.",
+          "The mobile experience keeps booking and wayfinding simple instead of forcing extra scanning.",
+        ],
+        bestFor: "Healthcare sites that need calmer booking flow and stronger first-screen reassurance.",
       },
       {
         id: "benchmark-zocdoc",
@@ -524,6 +530,12 @@ export function buildBenchmarkReferences(profile: ReportProfileType): BenchmarkR
         previewImage: createWebsiteScreenshotUrl("https://www.zocdoc.com", "desktop"),
         targetScore: 8.9,
         strengths: ["ux-conversion", "trust-credibility", "seo-readiness"],
+        whatWorks: [
+          "Search and booking paths are immediate, so intent turns into action quickly.",
+          "Provider proof, filters, and reassurance reduce hesitation before scheduling.",
+          "The page architecture supports both discovery and conversion without feeling bloated.",
+        ],
+        bestFor: "Healthcare teams that need the site to qualify and route appointment intent faster.",
       },
       {
         id: "benchmark-apple",
@@ -534,6 +546,12 @@ export function buildBenchmarkReferences(profile: ReportProfileType): BenchmarkR
         previewImage: createWebsiteScreenshotUrl("https://www.apple.com", "desktop"),
         targetScore: 9.4,
         strengths: ["visual-design", "mobile-experience", "accessibility"],
+        whatWorks: [
+          "The hierarchy is obvious within seconds, even before the visitor reads deeply.",
+          "Spacing, type scale, and component consistency make the brand feel more capable.",
+          "Mobile and accessibility basics feel considered rather than bolted on later.",
+        ],
+        bestFor: "Teams that need a higher bar for visual polish, restraint, and premium perception.",
       },
     ],
     "local-service": [
@@ -546,6 +564,12 @@ export function buildBenchmarkReferences(profile: ReportProfileType): BenchmarkR
         previewImage: createWebsiteScreenshotUrl("https://www.ajalberts.com", "desktop"),
         targetScore: 8.8,
         strengths: ["ux-conversion", "trust-credibility", "seo-readiness"],
+        whatWorks: [
+          "Service intent is visible quickly, so visitors do not have to decode what the company does.",
+          "Proof and contact options appear early, which lowers hesitation for local prospects.",
+          "The site structure supports both service pages and search capture instead of relying on one page.",
+        ],
+        bestFor: "Local-service sites that need clearer service intent and stronger estimate paths.",
       },
       {
         id: "benchmark-northface",
@@ -556,6 +580,12 @@ export function buildBenchmarkReferences(profile: ReportProfileType): BenchmarkR
         previewImage: createWebsiteScreenshotUrl("https://northfaceconstruction.com", "desktop"),
         targetScore: 8.9,
         strengths: ["visual-design", "ux-conversion", "trust-credibility"],
+        whatWorks: [
+          "The first screen feels more custom and more trustworthy than a generic contractor template.",
+          "Calls to action are direct, but the page still earns the ask with proof and process.",
+          "Service-business trust cues are positioned where prospects actually need them.",
+        ],
+        bestFor: "Contractors and trades that need a sharper first impression and cleaner estimate flow.",
       },
       {
         id: "benchmark-apple-local",
@@ -566,6 +596,12 @@ export function buildBenchmarkReferences(profile: ReportProfileType): BenchmarkR
         previewImage: createWebsiteScreenshotUrl("https://www.apple.com", "desktop"),
         targetScore: 9.4,
         strengths: ["visual-design", "mobile-experience", "accessibility"],
+        whatWorks: [
+          "The page direction is clear immediately, which reduces cognitive load.",
+          "The visual system feels consistent at every scale and on every device.",
+          "Polish comes from restraint and clarity, not from piling on more UI.",
+        ],
+        bestFor: "Any service-business redesign that needs a cleaner premium design benchmark.",
       },
     ],
     saas: [
@@ -578,6 +614,12 @@ export function buildBenchmarkReferences(profile: ReportProfileType): BenchmarkR
         previewImage: createWebsiteScreenshotUrl("https://stripe.com", "desktop"),
         targetScore: 9.5,
         strengths: ["visual-design", "ux-conversion", "trust-credibility"],
+        whatWorks: [
+          "Positioning, proof, and product explanation stay scannable even on dense pages.",
+          "The site earns trust with strong structure before it asks for deeper commitment.",
+          "Calls to action stay visible without overwhelming the reader.",
+        ],
+        bestFor: "SaaS sites that need stronger proof density without losing clarity.",
       },
       {
         id: "benchmark-linear",
@@ -588,6 +630,12 @@ export function buildBenchmarkReferences(profile: ReportProfileType): BenchmarkR
         previewImage: createWebsiteScreenshotUrl("https://linear.app", "desktop"),
         targetScore: 9.3,
         strengths: ["visual-design", "mobile-experience", "ux-conversion"],
+        whatWorks: [
+          "The pacing is tight, so the visitor always knows what to read next.",
+          "The interface confidence supports the product story instead of competing with it.",
+          "Mobile and smaller-screen presentation remain deliberate and readable.",
+        ],
+        bestFor: "Product teams that want modern polish without sacrificing comprehension.",
       },
       {
         id: "benchmark-apple-saas",
@@ -598,6 +646,12 @@ export function buildBenchmarkReferences(profile: ReportProfileType): BenchmarkR
         previewImage: createWebsiteScreenshotUrl("https://www.apple.com", "desktop"),
         targetScore: 9.4,
         strengths: ["visual-design", "accessibility", "mobile-experience"],
+        whatWorks: [
+          "Visual hierarchy is strong enough that the page feels premium before the details land.",
+          "Components, spacing, and contrast remain disciplined throughout the experience.",
+          "The product is not buried under unnecessary chrome or competing directions.",
+        ],
+        bestFor: "Teams looking for a reference point for clarity, polish, and restraint.",
       },
     ],
   };

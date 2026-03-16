@@ -71,7 +71,7 @@ export function LandingForm() {
           Prospect website URL
         </label>
         <p className="text-sm leading-6 text-muted" id={helperId}>
-          Paste a public site URL to build the audit, packet, and discovery brief workspace.
+          Paste a public site URL to generate the audit, packet, and brief.
         </p>
       </div>
       <div className="flex flex-col gap-3 sm:flex-row">
@@ -96,11 +96,11 @@ export function LandingForm() {
           {loading ? (
             <>
               <LoaderCircle aria-hidden="true" className="size-4 animate-spin" />
-              Building audit workspace
+              Generating audit
             </>
           ) : (
             <>
-              Build audit workspace
+              Generate audit
               <ArrowRight aria-hidden="true" className="size-4" />
             </>
           )}
@@ -109,10 +109,10 @@ export function LandingForm() {
       <div className="flex flex-wrap items-center gap-3 text-sm text-muted" id={metaId}>
         <span className="inline-flex items-center gap-2">
           <Sparkles aria-hidden="true" className="size-4 text-accent" />
-          Audit, intro email, client packet, and brief workflow
+          Audit, intro email, packet, and brief
         </span>
         <span className="hidden text-border sm:inline">•</span>
-        <span>Built for agencies and website providers pitching higher-value web work</span>
+        <span>Built for agencies pitching higher-value web work</span>
       </div>
       {error ? (
         <p

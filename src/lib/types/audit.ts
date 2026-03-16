@@ -256,6 +256,8 @@ export interface BenchmarkReference {
   previewImage: string;
   targetScore: number;
   strengths: AuditCategoryKey[];
+  whatWorks: string[];
+  bestFor: string;
 }
 
 export interface ObservationFact {

@@ -32,7 +32,7 @@ describe("LandingForm", () => {
     render(<LandingForm />);
 
     await user.type(screen.getByLabelText(/website url/i), "https://bad-url.test");
-    await user.click(screen.getByRole("button", { name: /build audit workspace/i }));
+    await user.click(screen.getByRole("button", { name: /generate audit/i }));
 
     expect(await screen.findByText(/use a valid website url/i)).toBeInTheDocument();
   });
@@ -54,10 +54,10 @@ describe("LandingForm", () => {
     render(<LandingForm />);
 
     await user.type(screen.getByLabelText(/website url/i), "https://example.com");
-    await user.click(screen.getByRole("button", { name: /build audit workspace/i }));
+    await user.click(screen.getByRole("button", { name: /generate audit/i }));
 
     expect(
-      screen.getByRole("button", { name: /building audit workspace/i }),
+      screen.getByRole("button", { name: /generating audit/i }),
     ).toBeInTheDocument();
 
     resolveFetch(
