@@ -220,7 +220,7 @@ a {
 @media print {
   @page {
     size: letter portrait;
-    margin: 0.42in;
+    margin: 0.24in;
   }
 
   html,
