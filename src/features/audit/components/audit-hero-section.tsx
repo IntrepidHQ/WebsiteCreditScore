@@ -53,6 +53,24 @@ export function AuditHeroSection({ report }: { report: AuditReport }) {
   const setContactModalOpen = useUiStore((state) => state.setContactModalOpen);
   const overallTone = getScoreTone(report.overallScore);
   const methodologyNotes = getScoreMethodologyNotes();
+  const observedFacts = report.siteObservation.verifiedFacts.filter((fact) => {
+    if (fact.type === "about") {
+      return false;
+    }
+
+    if (fact.type === "phone" || fact.type === "email") {
+      return true;
+    }
+
+    const value = fact.value.trim();
+
+    return value.length > 3 && !/^(years?)$/i.test(value);
+  });
+  const observedActions = report.siteObservation.primaryCtas.filter((cta) => {
+    const value = cta.trim();
+
+    return value.length > 2 && !/^(years?)$/i.test(value);
+  });
 
   useEffect(() => {
     if (reduceMotion || !sectionRef.current || !previewRef.current) {
@@ -159,9 +177,9 @@ export function AuditHeroSection({ report }: { report: AuditReport }) {
                   value="overall-methodology"
                   className="border-0 bg-transparent px-0"
                 >
-                <AccordionTrigger className="py-0 pr-8 text-sm [&>svg]:right-0 [&>svg]:top-1/2 [&>svg]:-translate-y-1/2">
-                  How this score was calculated
-                </AccordionTrigger>
+                  <AccordionTrigger className="py-0 pr-8 text-sm [&>svg]:right-0 [&>svg]:top-1/2 [&>svg]:-translate-y-1/2">
+                    How this score was calculated
+                  </AccordionTrigger>
                   <AccordionContent className="pt-4">
                     <div className="space-y-3">
                       {methodologyNotes.map((note) => (
@@ -221,9 +239,7 @@ export function AuditHeroSection({ report }: { report: AuditReport }) {
                   {report.siteObservation.aboutSnippet || "No high-confidence business summary was detected, so the audit is leaning more heavily on the visible interface and navigation structure."}
                 </p>
                 <div className="grid gap-3 sm:grid-cols-2">
-                  {(report.siteObservation.verifiedFacts.filter((fact) => fact.type !== "about").length
-                    ? report.siteObservation.verifiedFacts.filter((fact) => fact.type !== "about")
-                    : []).slice(0, 4).map((fact) => (
+                  {observedFacts.slice(0, 4).map((fact) => (
                     <div className="rounded-[calc(var(--theme-radius)-2px)] border border-border/70 bg-background-alt/70 px-4 py-3" key={fact.id}>
                       <div className="flex items-center justify-between gap-3">
                         <p className="text-xs uppercase tracking-[0.18em] text-muted">{fact.label}</p>
@@ -240,8 +256,8 @@ export function AuditHeroSection({ report }: { report: AuditReport }) {
                   <div className="rounded-[calc(var(--theme-radius)-2px)] border border-border/70 bg-background-alt/70 px-4 py-3">
                     <p className="text-xs uppercase tracking-[0.18em] text-muted">Actions seen</p>
                     <div className="mt-2 flex flex-wrap gap-2">
-                      {(report.siteObservation.primaryCtas.length
-                        ? report.siteObservation.primaryCtas
+                      {(observedActions.length
+                        ? observedActions
                         : ["No strong CTA detected"]).map((cta) => (
                         <Badge className="normal-case tracking-normal" key={cta} variant="neutral">
                           {cta}
@@ -269,18 +285,16 @@ export function AuditHeroSection({ report }: { report: AuditReport }) {
                   key={score.key}
                   value={score.key}
                 >
-                  <AccordionTrigger className="relative items-start gap-3 py-5 pr-8 [&>svg]:absolute [&>svg]:bottom-5 [&>svg]:right-0 [&>svg]:top-auto [&>svg]:translate-y-0">
+                  <AccordionTrigger className="relative items-start gap-3 py-5 pr-8 [&>svg]:absolute [&>svg]:right-0 [&>svg]:top-5 [&>svg]:translate-y-0">
                     <div className="w-full space-y-4">
-                      <div className="flex items-start justify-between gap-4">
-                        <p className="text-2xl font-semibold leading-tight text-foreground">
-                          {score.label}
-                        </p>
-                        <span
-                          className={`shrink-0 font-display text-5xl leading-none ${scoreTextClasses[tone]}`}
-                        >
-                          {score.score}
-                        </span>
-                      </div>
+                      <p className="max-w-[12ch] text-2xl font-semibold leading-tight text-foreground">
+                        {score.label}
+                      </p>
+                      <span
+                        className={`block font-display text-5xl leading-none ${scoreTextClasses[tone]}`}
+                      >
+                        {score.score}
+                      </span>
                       <p className="text-sm leading-7 text-muted">{score.summary}</p>
                       <div className="flex items-center gap-3">
                         <Badge variant={tone}>{tone}</Badge>

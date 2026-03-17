@@ -9,6 +9,7 @@ import type { PreviewDevice } from "@/lib/types/audit";
 const CACHE_DIR = path.join("/tmp", "craydl-site-previews");
 const CACHE_TTL_MS = 1000 * 60 * 60 * 12;
 const SCREENSHOT_WAIT_MS = 1200;
+const SCROLL_STEP_DELAY_MS = 140;
 
 const previewCache = new Map<string, Promise<PreviewImageResult>>();
 
@@ -119,6 +120,16 @@ async function captureScreenshot(url: string, device: PreviewDevice) {
     });
     const page = await context.newPage();
 
+    await page.route("**/*", (route) => {
+      const resourceType = route.request().resourceType();
+
+      if (resourceType === "media" || resourceType === "eventsource" || resourceType === "websocket") {
+        return route.abort();
+      }
+
+      return route.continue();
+    });
+
     await page.addInitScript(() => {
       Object.defineProperty(navigator, "webdriver", {
         get: () => undefined,
@@ -130,6 +141,7 @@ async function captureScreenshot(url: string, device: PreviewDevice) {
       timeout: 25000,
     });
     await page.waitForLoadState("networkidle", { timeout: 4000 }).catch(() => undefined);
+    await page.emulateMedia({ reducedMotion: "reduce" }).catch(() => undefined);
     await page.addStyleTag({
       content: `
         *, *::before, *::after {
@@ -145,12 +157,51 @@ async function captureScreenshot(url: string, device: PreviewDevice) {
         }
       `,
     }).catch(() => undefined);
+    await page
+      .evaluate(async (scrollDelay) => {
+        document.querySelectorAll('img[loading="lazy"]').forEach((image) => {
+          image.setAttribute("loading", "eager");
+        });
+
+        const wait = (time: number) =>
+          new Promise((resolve) => window.setTimeout(resolve, time));
+        const scrollRoot = document.scrollingElement || document.documentElement;
+        const maxScroll = Math.max(0, scrollRoot.scrollHeight - window.innerHeight);
+        const step = Math.max(360, Math.floor(window.innerHeight * 0.85));
+
+        for (let position = 0; position <= maxScroll; position += step) {
+          window.scrollTo({ top: position, left: 0, behavior: "auto" });
+          await wait(scrollDelay);
+        }
+
+        window.scrollTo({ top: 0, left: 0, behavior: "auto" });
+        await wait(scrollDelay);
+
+        await Promise.all(
+          Array.from(document.images)
+            .slice(0, 80)
+            .map(
+              (image) =>
+                image.complete
+                  ? Promise.resolve()
+                  : new Promise((resolve) => {
+                      const finish = () => resolve(undefined);
+                      image.addEventListener("load", finish, { once: true });
+                      image.addEventListener("error", finish, { once: true });
+                      window.setTimeout(finish, 1500);
+                    }),
+            ),
+        );
+      }, SCROLL_STEP_DELAY_MS)
+      .catch(() => undefined);
     await page.waitForTimeout(SCREENSHOT_WAIT_MS);
 
     const buffer = await page.screenshot({
       type: "png",
       fullPage: true,
       animations: "disabled",
+      caret: "hide",
+      scale: "css",
     });
 
     await context.close();

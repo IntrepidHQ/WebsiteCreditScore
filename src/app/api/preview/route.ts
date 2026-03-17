@@ -33,7 +33,9 @@ export async function GET(request: Request) {
     return new NextResponse(new Uint8Array(preview.buffer), {
       headers: {
         "Content-Type": preview.contentType,
-        "Cache-Control": "public, max-age=43200, s-maxage=43200",
+        "Cache-Control": "public, max-age=43200, s-maxage=43200, stale-while-revalidate=86400",
+        "Cross-Origin-Resource-Policy": "same-origin",
+        "X-Content-Type-Options": "nosniff",
         "X-Preview-Source": preview.source,
       },
     });

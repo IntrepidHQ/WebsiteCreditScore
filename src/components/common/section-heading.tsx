@@ -22,11 +22,11 @@ export function SectionHeading({
       <Badge variant="accent" className="w-fit">
         {eyebrow}
       </Badge>
-      <div className="space-y-3">
-        <h2 className="font-display text-4xl font-semibold tracking-[-0.03em] text-foreground sm:text-5xl">
+      <div className="space-y-4">
+        <h2 className="font-display text-[2.75rem] font-semibold leading-[0.94] tracking-[-0.04em] text-foreground sm:text-5xl lg:text-[3.4rem]">
           {title}
         </h2>
-        <p className="max-w-2xl text-base leading-7 text-muted sm:text-lg">
+        <p className="max-w-2xl text-[1.03rem] leading-8 text-muted sm:text-lg">
           {description}
         </p>
       </div>

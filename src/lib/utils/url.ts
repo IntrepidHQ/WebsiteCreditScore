@@ -1,7 +1,28 @@
 import type { PreviewDevice, ReportProfileType } from "@/lib/types/audit";
 
+const blockedHostnamePatterns = [
+  /^localhost$/i,
+  /\.localhost$/i,
+  /\.local$/i,
+  /\.internal$/i,
+  /^0\.0\.0\.0$/,
+  /^127\./,
+  /^10\./,
+  /^169\.254\./,
+  /^192\.168\./,
+  /^172\.(1[6-9]|2\d|3[0-1])\./,
+  /^\[::1\]$/i,
+  /^\[?fe80:/i,
+  /^\[?fc/i,
+  /^\[?fd/i,
+];
+
 function hashString(input: string) {
   return [...input].reduce((acc, char) => acc + char.charCodeAt(0), 0);
+}
+
+function isBlockedHostname(hostname: string) {
+  return blockedHostnamePatterns.some((pattern) => pattern.test(hostname));
 }
 
 export function normalizeUrl(input: string) {
@@ -21,6 +42,10 @@ export function normalizeUrl(input: string) {
     parsed = new URL(candidate);
   } catch {
     throw new Error("Use a valid website URL, for example https://example.com.");
+  }
+
+  if (isBlockedHostname(parsed.hostname)) {
+    throw new Error("Use a public website URL, not a local or private address.");
   }
 
   if (!parsed.hostname.includes(".")) {

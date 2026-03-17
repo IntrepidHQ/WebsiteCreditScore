@@ -93,10 +93,12 @@ function PreviewImageInner({
           alt={alt}
           className={cn(
             scrollable
-              ? "block h-auto min-h-full w-full object-contain object-top"
+              ? "block h-auto w-full max-w-none object-top"
               : "absolute inset-0 h-full w-full object-cover object-top",
             imageClassName,
           )}
+          decoding="async"
+          loading="lazy"
           onError={() => {
             if (fallbackSrc && currentSrc !== fallbackSrc) {
               setCurrentSrc(fallbackSrc);

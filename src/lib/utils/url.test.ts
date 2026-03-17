@@ -37,4 +37,13 @@ describe("url utilities", () => {
     expect(createWebsiteScreenshotUrl("https://apple.com")).toContain("device=desktop");
     expect(createWebsiteScreenshotUrl("https://apple.com", "mobile")).toContain("device=mobile");
   });
+
+  it("rejects localhost and private network targets", () => {
+    expect(() => normalizeUrl("http://localhost:3000")).toThrow(
+      "Use a public website URL, not a local or private address.",
+    );
+    expect(() => normalizeUrl("http://192.168.1.10")).toThrow(
+      "Use a public website URL, not a local or private address.",
+    );
+  });
 });

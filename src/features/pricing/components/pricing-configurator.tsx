@@ -243,17 +243,21 @@ export function PricingConfigurator({ report }: { report: AuditReport }) {
               <CardContent className="grid gap-3 md:grid-cols-3">
                 {objectionCards.map((item) => (
                   <div
-                    className="rounded-[calc(var(--theme-radius)-4px)] border border-border/70 bg-background-alt/70 px-4 py-4 text-sm leading-6 text-muted"
+                    className="rounded-[calc(var(--theme-radius)-4px)] border border-border/70 bg-background-alt/70 px-4 py-5"
                     key={item.title}
                   >
-                    <div className="flex items-center gap-2 text-accent">
-                      <item.icon className="size-4" />
-                      <p className="font-semibold text-foreground">{item.title}</p>
+                    <div className="flex items-center gap-3">
+                      <div className="rounded-[8px] border border-accent/20 bg-accent/10 p-2 text-accent">
+                        <item.icon className="size-4" />
+                      </div>
+                      <p className="text-xl font-semibold leading-tight text-foreground">
+                        {item.title}
+                      </p>
                     </div>
-                    <p className="mt-2 text-xs uppercase tracking-[0.18em] text-muted">
+                    <p className="mt-4 text-[11px] uppercase tracking-[0.18em] text-muted">
                       {item.subtitle}
                     </p>
-                    <p className="mt-3">{item.body}</p>
+                    <p className="mt-4 text-base leading-8 text-muted">{item.body}</p>
                   </div>
                 ))}
               </CardContent>
