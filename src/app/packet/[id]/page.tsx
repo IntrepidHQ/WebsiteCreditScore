@@ -15,6 +15,7 @@ import {
   buildLiveAuditReportById,
   buildLiveAuditReportFromUrl,
 } from "@/lib/mock/report-builder";
+import { getBenchmarkReferenceScore } from "@/lib/mock/report-enhancements";
 import { ReportEmptyState } from "@/features/audit/components/report-empty-state";
 import { describeScore, getScoreTone } from "@/lib/utils/scores";
 import { createThemeTokens } from "@/lib/utils/theme";
@@ -92,7 +93,7 @@ export default async function PacketPage({
   const verifiedFacts = report.siteObservation.verifiedFacts
     .filter((fact) => fact.type !== "about")
     .slice(0, 3);
-  const benchmarkTargets = report.benchmarkReferences.map((item) => item.targetScore);
+  const benchmarkTargets = report.benchmarkReferences.map((item) => getBenchmarkReferenceScore(item));
   const referenceFloor = benchmarkTargets.length ? Math.min(...benchmarkTargets) : 8.2;
   const referenceCeiling = benchmarkTargets.length ? Math.max(...benchmarkTargets) : 9.1;
   const referenceNames = report.benchmarkReferences.slice(0, 3).map((item) => item.name);

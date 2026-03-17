@@ -553,6 +553,22 @@ export function buildBenchmarkReferences(profile: ReportProfileType): BenchmarkR
         ],
         bestFor: "Teams that need a higher bar for visual polish, restraint, and premium perception.",
       },
+      {
+        id: "benchmark-mayo",
+        name: "Mayo Clinic",
+        url: "https://www.mayoclinic.org",
+        sourceLabel: "Healthcare content reference",
+        note: "A strong benchmark for health-information clarity, structure, and confidence at scale.",
+        previewImage: createWebsiteScreenshotUrl("https://www.mayoclinic.org", "desktop"),
+        targetScore: 8.8,
+        strengths: ["seo-readiness", "trust-credibility", "accessibility"],
+        whatWorks: [
+          "Information is structured clearly enough that deep health topics still feel trustworthy and navigable.",
+          "Credibility cues are woven into the experience instead of isolated in one section.",
+          "The page architecture supports discovery, reassurance, and follow-on exploration.",
+        ],
+        bestFor: "Healthcare teams that need stronger information architecture without losing trust or readability.",
+      },
     ],
     "local-service": [
       {
@@ -602,6 +618,22 @@ export function buildBenchmarkReferences(profile: ReportProfileType): BenchmarkR
           "Polish comes from restraint and clarity, not from piling on more UI.",
         ],
         bestFor: "Any service-business redesign that needs a cleaner premium design benchmark.",
+      },
+      {
+        id: "benchmark-mrrooter",
+        name: "Mr. Rooter",
+        url: "https://www.mrrooter.com",
+        sourceLabel: "Service-network reference",
+        note: "Useful for studying service hierarchy, contact clarity, and local-intent conversion patterns.",
+        previewImage: createWebsiteScreenshotUrl("https://www.mrrooter.com", "desktop"),
+        targetScore: 8.5,
+        strengths: ["ux-conversion", "seo-readiness", "mobile-experience"],
+        whatWorks: [
+          "Service intent, location discovery, and contact paths appear early in the experience.",
+          "The page structure supports both immediate need and broader service exploration.",
+          "Mobile conversion paths stay direct instead of burying the call or quote action.",
+        ],
+        bestFor: "Trades and local-service sites that need cleaner urgency handling and stronger contact flow.",
       },
     ],
     saas: [
@@ -653,10 +685,30 @@ export function buildBenchmarkReferences(profile: ReportProfileType): BenchmarkR
         ],
         bestFor: "Teams looking for a reference point for clarity, polish, and restraint.",
       },
+      {
+        id: "benchmark-vercel",
+        name: "Vercel",
+        url: "https://vercel.com",
+        sourceLabel: "SaaS platform reference",
+        note: "A strong benchmark for product clarity, design polish, and modern developer-facing storytelling.",
+        previewImage: createWebsiteScreenshotUrl("https://vercel.com", "desktop"),
+        targetScore: 8.9,
+        strengths: ["visual-design", "ux-conversion", "mobile-experience"],
+        whatWorks: [
+          "The page keeps technical product messaging crisp without losing visual confidence.",
+          "Calls to action stay visible while the narrative still earns trust through structure and proof.",
+          "The experience remains deliberate across viewport sizes instead of collapsing into density.",
+        ],
+        bestFor: "SaaS teams that need stronger narrative pacing, proof, and product polish.",
+      },
     ],
   };
 
   return sets[profile];
+}
+
+export function getBenchmarkReferenceScore(reference: BenchmarkReference) {
+  return reference.measuredScore ?? reference.targetScore;
 }
 
 export function buildObservedExecutiveSummary(

@@ -127,5 +127,5 @@ export function createWebsiteScreenshotUrl(
   input: string,
   device: PreviewDevice = "desktop",
 ) {
-  return `/api/preview?url=${encodeURIComponent(normalizeUrl(input))}&device=${device}&v=static-shot-2`;
+  return `/api/preview?url=${encodeURIComponent(normalizeUrl(input))}&device=${device}&v=static-shot-3`;
 }

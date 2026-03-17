@@ -241,6 +241,7 @@ export interface CompetitorSnapshot {
   url: string;
   previewImage: string;
   note: string;
+  overallScore: number;
   metrics: Array<{
     id: string;
     label: string;
@@ -257,6 +258,9 @@ export interface BenchmarkReference {
   note: string;
   previewImage: string;
   targetScore: number;
+  measuredScore?: number;
+  measuredCategoryScores?: AuditCategoryScore[];
+  scoreSource?: "measured" | "reference";
   strengths: AuditCategoryKey[];
   whatWorks: string[];
   bestFor: string;

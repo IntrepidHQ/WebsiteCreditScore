@@ -84,7 +84,7 @@ describe("report enhancements", () => {
   it("returns benchmark references for each profile", () => {
     const references = buildBenchmarkReferences("local-service");
 
-    expect(references).toHaveLength(3);
+    expect(references.length).toBeGreaterThanOrEqual(4);
     expect(references.some((entry) => entry.name.includes("Apple"))).toBe(true);
   });
 });

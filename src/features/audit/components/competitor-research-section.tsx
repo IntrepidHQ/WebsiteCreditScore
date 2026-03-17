@@ -7,7 +7,7 @@ import { SectionHeading } from "@/components/common/section-heading";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { getTenOutOfTenNotes } from "@/lib/mock/report-enhancements";
+import { getBenchmarkReferenceScore, getTenOutOfTenNotes } from "@/lib/mock/report-enhancements";
 import type { AuditCategoryKey, AuditReport, BenchmarkReference } from "@/lib/types/audit";
 
 const strengthCopy: Record<AuditCategoryKey, string> = {
@@ -75,6 +75,8 @@ function CompetitorCard({
   referenceSnapshot: AuditReport["competitorSnapshots"][number] | undefined;
 }) {
   const lift = getLargestLift(currentSnapshot, referenceSnapshot);
+  const referenceScore = referenceSnapshot?.overallScore ?? getBenchmarkReferenceScore(reference);
+  const scoreLabel = reference.scoreSource === "measured" || referenceSnapshot ? "Scanned" : "Reference";
 
   return (
     <Card className="overflow-hidden">
@@ -86,7 +88,7 @@ function CompetitorCard({
       <CardHeader className="space-y-3">
         <div className="space-y-2">
           <Badge className="whitespace-nowrap" variant="accent">
-            Target {reference.targetScore}
+            {scoreLabel} {referenceScore.toFixed(1)}
           </Badge>
           <span className="block text-[11px] uppercase tracking-[0.18em] text-muted">
             {reference.sourceLabel}
@@ -148,7 +150,7 @@ export function CompetitorResearchSection({ report }: { report: AuditReport }) {
         <SectionHeading
           eyebrow="Competitor research"
           title="Three stronger sites worth studying"
-          description="These references are chosen to show what a higher-scoring version of this buying experience looks like in practice."
+          description="These live-scanned references show what a stronger buying experience looks like when the same scoring model is applied consistently."
         />
 
         <div className="grid gap-5 xl:grid-cols-[20rem_minmax(0,1fr)]">

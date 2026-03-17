@@ -7,7 +7,7 @@ import { SectionHeading } from "@/components/common/section-heading";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import type { AuditReport } from "@/lib/types/audit";
-import { getTenOutOfTenNotes } from "@/lib/mock/report-enhancements";
+import { getBenchmarkReferenceScore, getTenOutOfTenNotes } from "@/lib/mock/report-enhancements";
 
 function BenchmarkPreview({
   image,
@@ -74,7 +74,10 @@ export function BenchmarkSection({ report }: { report: AuditReport }) {
                 />
                 <CardHeader className="space-y-3">
                   <div className="flex items-center justify-between gap-3">
-                    <Badge variant="accent">Target score {reference.targetScore}</Badge>
+                    <Badge variant="accent">
+                      {reference.scoreSource === "measured" ? "Scanned" : "Reference"} score{" "}
+                      {getBenchmarkReferenceScore(reference).toFixed(1)}
+                    </Badge>
                     <span className="text-xs uppercase tracking-[0.18em] text-muted">
                       {reference.sourceLabel}
                     </span>

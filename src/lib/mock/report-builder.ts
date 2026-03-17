@@ -18,6 +18,7 @@ import type {
 } from "@/lib/types/audit";
 import {
   buildBenchmarkReferences,
+  getBenchmarkReferenceScore,
   buildObservedCategoryScores,
   buildObservedExecutiveSummary,
   buildObservedFindings,
@@ -126,6 +127,73 @@ function deriveComparisonMetrics(categoryScores: AuditCategoryScore[]) {
 
 function domainHash(input: string) {
   return [...input].reduce((acc, char) => acc + char.charCodeAt(0), 0);
+}
+
+function getHostname(input: string) {
+  return new URL(normalizeUrl(input)).hostname.replace(/^www\./, "");
+}
+
+function sortBenchmarkReferences(
+  references: BenchmarkReference[],
+  currentOverallScore: number,
+) {
+  return [...references].sort((left, right) => {
+    const leftScore = getBenchmarkReferenceScore(left);
+    const rightScore = getBenchmarkReferenceScore(right);
+    const leftIsStronger = leftScore > currentOverallScore;
+    const rightIsStronger = rightScore > currentOverallScore;
+
+    if (leftIsStronger !== rightIsStronger) {
+      return leftIsStronger ? -1 : 1;
+    }
+
+    return rightScore - leftScore;
+  });
+}
+
+export function selectBenchmarkReferencesForReport(
+  currentUrl: string,
+  currentOverallScore: number,
+  references: BenchmarkReference[],
+) {
+  const currentHostname = getHostname(currentUrl);
+  const filtered = references.filter((reference) => getHostname(reference.url) !== currentHostname);
+
+  return sortBenchmarkReferences(filtered, currentOverallScore).slice(0, 3);
+}
+
+async function enrichBenchmarkReferences(
+  currentUrl: string,
+  currentOverallScore: number,
+  references: BenchmarkReference[],
+) {
+  const measured = await Promise.all(
+    references.map(async (reference) => {
+      const observation = await inspectWebsite(reference.url);
+
+      if (!observation.fetchSucceeded) {
+        return {
+          ...reference,
+          scoreSource: "reference" as const,
+        };
+      }
+
+      const measuredCategoryScores = buildObservedCategoryScores(
+        inferProfileType(observation.finalUrl || reference.url),
+        observation,
+      );
+
+      return {
+        ...reference,
+        previewImage: createWebsiteScreenshotUrl(observation.finalUrl || reference.url, "desktop"),
+        measuredScore: aggregateOverallScore(measuredCategoryScores),
+        measuredCategoryScores,
+        scoreSource: "measured" as const,
+      };
+    }),
+  );
+
+  return selectBenchmarkReferencesForReport(currentUrl, currentOverallScore, measured);
 }
 
 function makeBenchmark(
@@ -850,6 +918,7 @@ function buildCompetitors(
     note: string;
   },
   categoryScores: AuditCategoryScore[],
+  overallScore: number,
   benchmarkReferences: BenchmarkReference[],
 ): CompetitorSnapshot[] {
   return [
@@ -860,55 +929,64 @@ function buildCompetitors(
       url: currentSite.url,
       previewImage: currentSite.previewImage,
       note: currentSite.note,
+      overallScore,
       metrics: deriveComparisonMetrics(categoryScores),
     },
-    ...benchmarkReferences.map((site) => ({
-      id: site.id,
-      name: site.name,
-      relationship: "reference" as const,
-      url: site.url,
-      previewImage: site.previewImage,
-      note: site.note,
-      metrics: [
-        {
-          ...comparisonMetrics[0],
-          value: Math.round(
-            (site.strengths.includes("visual-design") ||
-            site.strengths.includes("ux-conversion")
-              ? site.targetScore
-              : site.targetScore - 0.9) * 10,
-          ),
-          format: "percent" as const,
-        },
-        {
-          ...comparisonMetrics[1],
-          value: Math.round(
-            (site.strengths.includes("trust-credibility")
-              ? site.targetScore
-              : site.targetScore - 1) * 10,
-          ),
-          format: "percent" as const,
-        },
-        {
-          ...comparisonMetrics[2],
-          value: Math.round(
-            (site.strengths.includes("mobile-experience")
-              ? site.targetScore
-              : site.targetScore - 0.8) * 10,
-          ),
-          format: "percent" as const,
-        },
-        {
-          ...comparisonMetrics[3],
-          value: Math.round(
-            (site.strengths.includes("seo-readiness")
-              ? site.targetScore
-              : site.targetScore - 1.1) * 10,
-          ),
-          format: "percent" as const,
-        },
-      ],
-    })),
+    ...benchmarkReferences.map((site) => {
+      const fallbackScore = getBenchmarkReferenceScore(site);
+      const metrics = site.measuredCategoryScores
+        ? deriveComparisonMetrics(site.measuredCategoryScores)
+        : [
+            {
+              ...comparisonMetrics[0],
+              value: Math.round(
+                (site.strengths.includes("visual-design") ||
+                site.strengths.includes("ux-conversion")
+                  ? fallbackScore
+                  : fallbackScore - 0.9) * 10,
+              ),
+              format: "percent" as const,
+            },
+            {
+              ...comparisonMetrics[1],
+              value: Math.round(
+                (site.strengths.includes("trust-credibility")
+                  ? fallbackScore
+                  : fallbackScore - 1) * 10,
+              ),
+              format: "percent" as const,
+            },
+            {
+              ...comparisonMetrics[2],
+              value: Math.round(
+                (site.strengths.includes("mobile-experience")
+                  ? fallbackScore
+                  : fallbackScore - 0.8) * 10,
+              ),
+              format: "percent" as const,
+            },
+            {
+              ...comparisonMetrics[3],
+              value: Math.round(
+                (site.strengths.includes("seo-readiness")
+                  ? fallbackScore
+                  : fallbackScore - 1.1) * 10,
+              ),
+              format: "percent" as const,
+            },
+          ];
+
+      return {
+        id: site.id,
+        name: site.name,
+        relationship: "reference" as const,
+        url: site.url,
+        previewImage: site.previewImage,
+        note: site.note,
+        overallScore: fallbackScore,
+        metrics,
+      };
+    }),
   ];
 }
 
@@ -1446,8 +1524,9 @@ function deriveReportTitle(
 export async function buildLiveAuditReportFromUrl(rawUrl: string): Promise<AuditReport> {
   const normalizedUrl = normalizeUrl(rawUrl);
   const observation = await inspectWebsite(normalizedUrl);
+  const report = buildAuditReportFromUrl(rawUrl, observation);
 
-  return buildAuditReportFromUrl(rawUrl, observation);
+  return enrichReportBenchmarks(report);
 }
 
 export function buildAuditReportFromUrl(
@@ -1496,7 +1575,11 @@ function buildAuditReport(
   const reportId = sample?.id ?? slugFromUrl(normalizedUrl);
   const hostname = new URL(normalizedUrl).hostname;
   const overallScore = aggregateOverallScore(categoryScores);
-  const benchmarkReferences = buildBenchmarkReferences(profile);
+  const benchmarkReferences = selectBenchmarkReferencesForReport(
+    normalizedUrl,
+    overallScore,
+    buildBenchmarkReferences(profile),
+  );
   const findings = observation.fetchSucceeded
     ? buildObservedFindings(profile, title, observation, categoryScores, livePreviewSet.current.desktop)
     : buildFindings(profile, title, livePreviewSet.current.desktop);
@@ -1523,6 +1606,7 @@ function buildAuditReport(
               : "The offer is visible, but the package and proof can be much easier to scan."),
     },
     categoryScores,
+    overallScore,
     benchmarkReferences,
   );
   const proposalCtas = buildProposalCtas(normalizedUrl);
@@ -1575,6 +1659,37 @@ function buildAuditReport(
   return report;
 }
 
+async function enrichReportBenchmarks(report: AuditReport): Promise<AuditReport> {
+  const measuredBenchmarkReferences = await enrichBenchmarkReferences(
+    report.normalizedUrl,
+    report.overallScore,
+    buildBenchmarkReferences(report.clientProfile.type),
+  );
+  const currentSnapshot = report.competitorSnapshots.find(
+    (snapshot) => snapshot.relationship === "your-site",
+  );
+
+  return {
+    ...report,
+    benchmarkReferences: measuredBenchmarkReferences,
+    competitorSnapshots: buildCompetitors(
+      {
+        name: currentSnapshot?.name ?? report.title,
+        url: currentSnapshot?.url ?? report.normalizedUrl,
+        previewImage: currentSnapshot?.previewImage ?? report.previewSet.current.desktop,
+        note: currentSnapshot?.note ?? report.executiveSummary,
+      },
+      report.categoryScores,
+      report.overallScore,
+      measuredBenchmarkReferences,
+    ),
+    clientProfile: {
+      ...report.clientProfile,
+      competitors: measuredBenchmarkReferences.map((item) => item.name),
+    },
+  };
+}
+
 export function getSampleAuditCards() {
   return sampleAudits.map((sample) => ({
     ...sample,
@@ -1601,6 +1716,7 @@ export async function buildLiveAuditReportById(id: string) {
   }
 
   const observation = await inspectWebsite(sample.url);
+  const report = buildAuditReport(sample.url, sample, observation);
 
-  return buildAuditReport(sample.url, sample, observation);
+  return enrichReportBenchmarks(report);
 }

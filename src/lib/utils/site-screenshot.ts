@@ -10,6 +10,7 @@ const CACHE_DIR = path.join("/tmp", "craydl-site-previews");
 const CACHE_TTL_MS = 1000 * 60 * 60 * 12;
 const SCREENSHOT_WAIT_MS = 1200;
 const SCROLL_STEP_DELAY_MS = 140;
+const CAPTURE_VERSION = "static-shot-3";
 
 const previewCache = new Map<string, Promise<PreviewImageResult>>();
 
@@ -52,7 +53,10 @@ const mobileContext = {
 };
 
 function createCacheKey(url: string, device: PreviewDevice) {
-  return createHash("sha256").update(`${url}:${device}`).digest("hex").slice(0, 24);
+  return createHash("sha256")
+    .update(`${url}:${device}:${CAPTURE_VERSION}`)
+    .digest("hex")
+    .slice(0, 24);
 }
 
 async function ensureCacheDirectory() {
