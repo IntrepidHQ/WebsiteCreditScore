@@ -1,5 +1,8 @@
+"use client";
+
 import Link from "next/link";
 import { ScanSearch, Settings } from "lucide-react";
+import { usePathname } from "next/navigation";
 
 import { CraydlLogo } from "@/components/common/craydl-logo";
 import { Button } from "@/components/ui/button";
@@ -17,6 +20,12 @@ const toolLinks = [
 ];
 
 export function SiteFooter() {
+  const pathname = usePathname();
+
+  if (pathname.startsWith("/app")) {
+    return null;
+  }
+
   return (
     <footer className="border-t border-border/60 bg-background/78 print:hidden">
       <div className="mx-auto grid w-full max-w-7xl gap-10 px-4 py-10 sm:px-6 lg:grid-cols-[minmax(0,1.2fr)_minmax(0,0.8fr)] lg:px-8">

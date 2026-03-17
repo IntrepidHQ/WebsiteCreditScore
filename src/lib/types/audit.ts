@@ -1,3 +1,5 @@
+import type { ProposalOffer } from "@/lib/types/product";
+
 export type ReportProfileType = "healthcare" | "local-service" | "saas";
 
 export type AuditCategoryKey =
@@ -338,6 +340,7 @@ export interface AuditReport {
   previewSet: AuditPreviewSet;
   siteObservation: SiteObservation;
   outreachEmail: OutreachEmailTemplate;
+  proposalOffer?: ProposalOffer | null;
   socialProof: Array<{
     id: string;
     name: string;

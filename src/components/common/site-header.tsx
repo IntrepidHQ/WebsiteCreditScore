@@ -5,6 +5,7 @@ import {
   ArrowUpRight,
   Compass,
   FileText,
+  LayoutDashboard,
   Menu,
   Palette,
   ScanSearch,
@@ -35,6 +36,7 @@ function getPrimaryNavigation() {
     { href: "/", label: "Home" },
     { href: "/platform", label: "Platform" },
     { href: "/examples", label: "Examples" },
+    { href: "/app", label: "Workspace" },
   ] satisfies NavItem[];
 }
 
@@ -112,6 +114,7 @@ export function SiteHeader() {
 
   const normalizedUrl = searchParams.get("url");
   const reportId = getReportId(pathname);
+  const isAppPath = pathname.startsWith("/app");
   const isAuditPath = pathname.startsWith("/audit/");
   const isBriefPath = pathname.startsWith("/brief/");
   const isWorkspacePath = isAuditPath || isBriefPath;
@@ -145,7 +148,7 @@ export function SiteHeader() {
 
   const quickActions = isAuditPath
     ? [
-        { href: "#pricing", label: "Jump to pricing", icon: Compass },
+        { href: "#pricing", label: "Pricing" },
         { href: packetHref, label: "Packet PDF", icon: FileText },
         { href: briefHref, label: "Brief", icon: ArrowUpRight },
       ]
@@ -158,8 +161,12 @@ export function SiteHeader() {
       : [
           { href: "/examples", label: "Examples", icon: Compass },
           { href: "/audit/mark-deford-md", label: "Sample audit", icon: ScanSearch },
-          { href: "/settings", label: "Settings", icon: Palette },
+          { href: "/app", label: "Workspace", icon: LayoutDashboard },
         ];
+
+  if (isAppPath) {
+    return null;
+  }
 
   return (
     <header
@@ -196,13 +203,12 @@ export function SiteHeader() {
 
           <div className="hidden items-center gap-2 sm:flex">
             {quickActions.map((action, index) => {
-              const Icon = action.icon;
               const variant = index === 1 ? "secondary" : index === 2 ? "outline" : "ghost";
 
               return (
                 <Button asChild className="shrink-0" key={action.href} size="sm" variant={variant}>
                   <Link href={action.href}>
-                    <Icon className="size-4" />
+                    {action.icon ? <action.icon className="size-4" /> : null}
                     {action.label}
                   </Link>
                 </Button>
@@ -213,10 +219,7 @@ export function SiteHeader() {
           <div className="flex items-center gap-2 sm:hidden">
             {isAuditPath ? (
               <Button asChild size="sm" variant="secondary">
-                <Link href="#pricing">
-                  <Compass className="size-4" />
-                  Price
-                </Link>
+                <Link href="#pricing">Pricing</Link>
               </Button>
             ) : null}
             <Dialog>
@@ -286,8 +289,6 @@ export function SiteHeader() {
                     </p>
                     <div className="grid gap-2">
                       {quickActions.map((action) => {
-                        const Icon = action.icon;
-
                         return (
                           action.href.startsWith("#") ? (
                             <DialogClose asChild key={action.href}>
@@ -295,7 +296,7 @@ export function SiteHeader() {
                                 className="inline-flex items-center gap-2 rounded-[8px] border border-border/70 bg-panel/60 px-4 py-3 text-sm font-medium text-foreground transition hover:border-accent/30 hover:bg-elevated"
                                 href={action.href}
                               >
-                                <Icon className="size-4" />
+                                {action.icon ? <action.icon className="size-4" /> : null}
                                 {action.label}
                               </a>
                             </DialogClose>
@@ -305,7 +306,7 @@ export function SiteHeader() {
                                 className="inline-flex items-center gap-2 rounded-[8px] border border-border/70 bg-panel/60 px-4 py-3 text-sm font-medium text-foreground transition hover:border-accent/30 hover:bg-elevated"
                                 href={action.href}
                               >
-                                <Icon className="size-4" />
+                                {action.icon ? <action.icon className="size-4" /> : null}
                                 {action.label}
                               </Link>
                             </DialogClose>

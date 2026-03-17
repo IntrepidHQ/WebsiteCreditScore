@@ -18,20 +18,28 @@ import {
 import { ReportEmptyState } from "@/features/audit/components/report-empty-state";
 import { describeScore, getScoreTone } from "@/lib/utils/scores";
 import { createThemeTokens } from "@/lib/utils/theme";
+import { getProductRepository } from "@/lib/product/repository";
+import { applyProposalOffer } from "@/lib/utils/proposal-offers";
 
 export default async function PacketPage({
   params,
   searchParams,
 }: {
   params: Promise<{ id: string }>;
-  searchParams: Promise<{ url?: string; print?: string; accent?: string }>;
+  searchParams: Promise<{ url?: string; print?: string; accent?: string; share?: string }>;
 }) {
   const { id } = await params;
-  const { url, print, accent } = await searchParams;
+  const { url, print, accent, share } = await searchParams;
 
   let report = null;
 
-  if (url) {
+  if (share) {
+    const shared = await getProductRepository().resolvePublicShare("packet", id, share);
+
+    if (shared) {
+      report = shared.savedReport.reportSnapshot;
+    }
+  } else if (url) {
     try {
       report = await buildLiveAuditReportFromUrl(url);
     } catch {
@@ -54,6 +62,7 @@ export default async function PacketPage({
     report.pricingBundle,
     getDefaultSelectedIds(report.pricingBundle),
   );
+  const offerSummary = applyProposalOffer(summary.total, report.proposalOffer);
   const projectedScore = calculateProjectedScore(
     report.overallScore,
     summary.selectedPackageItems,
@@ -242,6 +251,24 @@ export default async function PacketPage({
                   </span>
                 ))}
               </div>
+              {report.proposalOffer ? (
+                <div className="mt-3 rounded-[6px] border border-accent/25 bg-accent/10 p-3 print:border-[var(--packet-border)] print:bg-white">
+                  <p className="text-xs uppercase tracking-[0.18em] text-accent">
+                    {report.proposalOffer.label}
+                  </p>
+                  <p className="mt-2 text-sm leading-6 text-muted print:text-slate-700">
+                    {report.proposalOffer.reason}
+                  </p>
+                  <p className="mt-2 text-base font-semibold text-foreground print:text-slate-950">
+                    ${offerSummary.finalTotal.toLocaleString()}
+                    {offerSummary.savings ? (
+                      <span className="ml-2 text-sm font-normal text-muted print:text-slate-600">
+                        from ${offerSummary.originalTotal.toLocaleString()}
+                      </span>
+                    ) : null}
+                  </p>
+                </div>
+              ) : null}
             </div>
           </div>
         </section>
@@ -340,8 +367,13 @@ export default async function PacketPage({
               <div className="print-avoid-break rounded-[6px] border border-border bg-elevated p-4 print:border-slate-200 print:bg-slate-50 print:p-3">
                 <p className="text-xs uppercase tracking-[0.18em] text-muted print:text-slate-500">Recommended starting scope</p>
                 <p className="mt-2 font-display text-5xl font-semibold text-foreground print:text-4xl print:text-slate-950">
-                  ${summary.total.toLocaleString()}
+                  ${offerSummary.finalTotal.toLocaleString()}
                 </p>
+                {offerSummary.savings ? (
+                  <p className="mt-2 text-sm leading-6 text-muted print:text-[13px] print:leading-5 print:text-slate-600">
+                    From ${offerSummary.originalTotal.toLocaleString()} with the current offer applied.
+                  </p>
+                ) : null}
                 <p className="mt-2 text-base leading-7 text-foreground print:text-[14px] print:leading-6 print:text-slate-700">
                   This range assumes the base rebuild plus the strategic additions most likely to improve clarity, trust, and response quality for this specific site.
                 </p>

@@ -1,0 +1,598 @@
+import { randomUUID } from "node:crypto";
+
+import { buildAuditReportById, buildAuditReportFromUrl, buildLiveAuditReportFromUrl } from "@/lib/mock/report-builder";
+import { prepareReportForStorage, passesReportQualityCheck } from "@/lib/product/report-quality";
+import { createSupabaseServerClient } from "@/lib/supabase/server";
+import type {
+  DashboardSnapshot,
+  EmailTemplateRecord,
+  LeadActivity,
+  LeadDetailSnapshot,
+  LeadRecord,
+  LeadStage,
+  ProductPromoRecord,
+  PublicShareSnapshot,
+  ReferralCodeRecord,
+  ReferralEventRecord,
+  ReminderRecord,
+  SavedReport,
+  ShareLinkRecord,
+  ShareSurface,
+  WorkspaceCreditEntry,
+  WorkspaceRecord,
+  WorkspaceSession,
+} from "@/lib/types/product";
+import { createDefaultProposalOffer } from "@/lib/utils/proposal-offers";
+import { calculatePricingSummary, calculateProjectedScore, getDefaultSelectedIds } from "@/lib/utils/pricing";
+import { createThemeTokens } from "@/lib/utils/theme";
+import { slugFromUrl } from "@/lib/utils/url";
+
+function createId(prefix: string) {
+  return `${prefix}-${randomUUID().slice(0, 8)}`;
+}
+
+function buildWorkspace(ownerUserId: string, session: WorkspaceSession): WorkspaceRecord {
+  const createdAt = new Date().toISOString();
+
+  return {
+    id: createId("workspace"),
+    ownerUserId,
+    name: `${session.name}'s workspace`,
+    slug: session.name.toLowerCase().replace(/[^a-z0-9]+/g, "-"),
+    createdAt,
+    updatedAt: createdAt,
+    billingStatus: "trial",
+    creditBalance: 0,
+    branding: {
+      agencyName: "Craydl Web Design Agency",
+      logoMark: "/brand/craydl-light.png",
+      contactName: session.name,
+      contactTitle: "Founder",
+      contactEmail: session.email,
+      contactPhone: "",
+      headshot: session.avatarUrl ?? "/brand/craydl-light.png",
+      accentOverride: "#f7b21b",
+    },
+    savedTheme: createThemeTokens({
+      mode: "dark",
+      accentColor: "#f7b21b",
+    }),
+  };
+}
+
+function buildSeededLead(workspaceId: string, reportId: string) {
+  const createdAt = new Date().toISOString();
+  const report = prepareReportForStorage(buildAuditReportById(reportId)!);
+  const summary = calculatePricingSummary(
+    report.pricingBundle,
+    getDefaultSelectedIds(report.pricingBundle),
+  );
+  const reportWithOffer = {
+    ...report,
+    proposalOffer: createDefaultProposalOffer(summary.total, new Date(createdAt)),
+  };
+  const leadId = report.id;
+
+  const savedReport: SavedReport = {
+    id: leadId,
+    workspaceId,
+    leadId,
+    title: report.title,
+    normalizedUrl: report.normalizedUrl,
+    createdAt,
+    updatedAt: createdAt,
+    qualityCheckPassed: passesReportQualityCheck(reportWithOffer),
+    reportSnapshot: reportWithOffer,
+  };
+
+  const lead: LeadRecord = {
+    id: leadId,
+    workspaceId,
+    reportId: savedReport.id,
+    title: report.title,
+    companyName: report.title,
+    normalizedUrl: report.normalizedUrl,
+    previewImage: report.previewSet.current.desktop,
+    stage: "audit-ready",
+    createdAt,
+    updatedAt: createdAt,
+    currentScore: report.overallScore,
+    projectedScore: calculateProjectedScore(report.overallScore, summary.selectedPackageItems),
+    summary: report.executiveSummary,
+    contactName: report.title,
+    contactEmail: report.siteObservation.verifiedFacts.find((fact) => fact.type === "email")?.value,
+    contactPhone: report.siteObservation.verifiedFacts.find((fact) => fact.type === "phone")?.value,
+  };
+
+  const shareLinks: ShareLinkRecord[] = (["audit", "packet", "brief"] as const).map(
+    (surface) => ({
+      id: createId(`share-${surface}`),
+      workspaceId,
+      leadId,
+      surface,
+      token: `${leadId}-${surface}-share`,
+      views: 0,
+      enabled: true,
+      createdAt,
+    }),
+  );
+
+  const activity: LeadActivity = {
+    id: createId("activity"),
+    workspaceId,
+    leadId,
+    type: "audit-created",
+    title: "Audit created",
+    detail: "Seeded starter lead from the Craydl sample library.",
+    occurredAt: createdAt,
+  };
+
+  const reminder: ReminderRecord = {
+    id: createId("reminder"),
+    workspaceId,
+    leadId,
+    title: "Send sample packet",
+    detail: "Use the packet to rehearse the outreach workflow before sending a live prospect review.",
+    dueAt: createdAt,
+    status: "open",
+  };
+
+  return { savedReport, lead, shareLinks, activity, reminder };
+}
+
+async function upsertPayloadRecord(
+  table: string,
+  row: Record<string, unknown>,
+) {
+  const supabase = await createSupabaseServerClient();
+  const { error } = await supabase.from(table).upsert(row, { onConflict: "id" });
+
+  if (error) {
+    throw error;
+  }
+}
+
+async function listPayloadRecords<T>(
+  table: string,
+  column: string,
+  value: string,
+): Promise<T[]> {
+  const supabase = await createSupabaseServerClient();
+  const { data, error } = await supabase.from(table).select("payload").eq(column, value);
+
+  if (error) {
+    throw error;
+  }
+
+  return (data ?? []).map((row) => row.payload as T);
+}
+
+async function getWorkspacePayload(workspaceId: string) {
+  const supabase = await createSupabaseServerClient();
+  const { data, error } = await supabase
+    .from("workspaces")
+    .select("payload")
+    .eq("id", workspaceId)
+    .maybeSingle();
+
+  if (error) {
+    throw error;
+  }
+
+  return (data?.payload as WorkspaceRecord | undefined) ?? null;
+}
+
+export async function ensureSupabaseWorkspace(session: WorkspaceSession) {
+  const supabase = await createSupabaseServerClient();
+  const { data, error } = await supabase
+    .from("workspaces")
+    .select("payload")
+    .eq("owner_user_id", session.userId)
+    .maybeSingle();
+
+  if (error) {
+    throw error;
+  }
+
+  if (data?.payload) {
+    return data.payload as WorkspaceRecord;
+  }
+
+  const workspace = buildWorkspace(session.userId, session);
+  const referralCode: ReferralCodeRecord = {
+    id: createId("referral"),
+    workspaceId: workspace.id,
+    code: `CRAYDL-${session.name.replace(/[^A-Z0-9]/gi, "").slice(0, 6).toUpperCase() || "WORK"}`,
+    shareUrl: "https://craydl.pro/app/login",
+    rewardLabel: "2 workspace credits per activated provider account",
+    createdAt: workspace.createdAt,
+  };
+  const template: EmailTemplateRecord = {
+    id: createId("template"),
+    workspaceId: workspace.id,
+    name: "Intro review",
+    subject: "Quick site review and redesign direction",
+    body: "I pulled together a short review of the current site, the strongest friction points, and the clearest path to a better first impression. If useful, I can send the short packet and walk through it in fifteen minutes.",
+    kind: "intro",
+    updatedAt: workspace.createdAt,
+  };
+  const creditEntry: WorkspaceCreditEntry = {
+    id: createId("credit"),
+    workspaceId: workspace.id,
+    amount: 3,
+    label: "Founding workspace balance",
+    createdAt: workspace.createdAt,
+  };
+  const promo: ProductPromoRecord = {
+    id: createId("promo"),
+    code: "FOUNDING10",
+    label: "Founding provider discount",
+    description: "Prepared for billing activation once checkout is turned on.",
+    type: "percentage",
+    value: 10,
+    active: true,
+  };
+  await upsertPayloadRecord("workspaces", {
+    id: workspace.id,
+    owner_user_id: session.userId,
+    payload: workspace,
+  });
+  await upsertPayloadRecord("referral_codes", {
+    id: referralCode.id,
+    workspace_id: workspace.id,
+    payload: referralCode,
+  });
+  await upsertPayloadRecord("email_templates", {
+    id: template.id,
+    workspace_id: workspace.id,
+    payload: template,
+  });
+  await upsertPayloadRecord("workspace_credits", {
+    id: creditEntry.id,
+    workspace_id: workspace.id,
+    payload: creditEntry,
+  });
+  await upsertPayloadRecord("product_promos", {
+    id: promo.id,
+    workspace_id: workspace.id,
+    payload: promo,
+  });
+
+  for (const reportId of ["mark-deford-md", "saunders-woodworks", "provider-pages"]) {
+    const seeded = buildSeededLead(workspace.id, reportId);
+    await upsertPayloadRecord("saved_reports", {
+      id: seeded.savedReport.id,
+      workspace_id: workspace.id,
+      lead_id: seeded.lead.id,
+      payload: seeded.savedReport,
+    });
+    await upsertPayloadRecord("leads", {
+      id: seeded.lead.id,
+      workspace_id: workspace.id,
+      payload: seeded.lead,
+    });
+    for (const shareLink of seeded.shareLinks) {
+      await upsertPayloadRecord("share_links", {
+        id: shareLink.id,
+        workspace_id: workspace.id,
+        lead_id: seeded.lead.id,
+        surface: shareLink.surface,
+        token: shareLink.token,
+        payload: shareLink,
+      });
+    }
+    await upsertPayloadRecord("activities", {
+      id: seeded.activity.id,
+      workspace_id: workspace.id,
+      lead_id: seeded.lead.id,
+      payload: seeded.activity,
+    });
+    await upsertPayloadRecord("reminders", {
+      id: seeded.reminder.id,
+      workspace_id: workspace.id,
+      lead_id: seeded.lead.id,
+      payload: seeded.reminder,
+    });
+  }
+
+  return workspace;
+}
+
+export async function getSupabaseDashboard(workspaceId: string): Promise<DashboardSnapshot> {
+  const workspace = await getWorkspacePayload(workspaceId);
+
+  if (!workspace) {
+    throw new Error("Workspace not found.");
+  }
+
+  const [leads, reminders, templates, referralCodes, referralEvents, credits, promos] =
+    await Promise.all([
+      listPayloadRecords<LeadRecord>("leads", "workspace_id", workspaceId),
+      listPayloadRecords<ReminderRecord>("reminders", "workspace_id", workspaceId),
+      listPayloadRecords<EmailTemplateRecord>("email_templates", "workspace_id", workspaceId),
+      listPayloadRecords<ReferralCodeRecord>("referral_codes", "workspace_id", workspaceId),
+      listPayloadRecords<ReferralEventRecord>("referral_events", "workspace_id", workspaceId),
+      listPayloadRecords<WorkspaceCreditEntry>("workspace_credits", "workspace_id", workspaceId),
+      listPayloadRecords<ProductPromoRecord>("product_promos", "workspace_id", workspaceId),
+    ]);
+
+  return {
+    workspace,
+    leads,
+    reminders,
+    templates,
+    referralCode: referralCodes[0] ?? null,
+    referralEvents,
+    credits,
+    promos,
+  };
+}
+
+export async function getSupabaseLeadDetail(
+  workspaceId: string,
+  leadId: string,
+): Promise<LeadDetailSnapshot | null> {
+  const workspace = await getWorkspacePayload(workspaceId);
+
+  if (!workspace) {
+    return null;
+  }
+
+  const supabase = await createSupabaseServerClient();
+  const [{ data: leadRow }, { data: reportRow }, { data: activityRows }, { data: reminderRows }, { data: shareRows }] =
+    await Promise.all([
+      supabase.from("leads").select("payload").eq("workspace_id", workspaceId).eq("id", leadId).maybeSingle(),
+      supabase.from("saved_reports").select("payload").eq("workspace_id", workspaceId).eq("lead_id", leadId).maybeSingle(),
+      supabase.from("activities").select("payload").eq("workspace_id", workspaceId).eq("lead_id", leadId),
+      supabase.from("reminders").select("payload").eq("workspace_id", workspaceId).eq("lead_id", leadId),
+      supabase.from("share_links").select("payload").eq("workspace_id", workspaceId).eq("lead_id", leadId),
+    ]);
+
+  if (!leadRow?.payload || !reportRow?.payload) {
+    return null;
+  }
+
+  return {
+    workspace,
+    lead: leadRow.payload as LeadRecord,
+    savedReport: reportRow.payload as SavedReport,
+    activities: (activityRows ?? []).map((row) => row.payload as LeadActivity),
+    reminders: (reminderRows ?? []).map((row) => row.payload as ReminderRecord),
+    shareLinks: (shareRows ?? []).map((row) => row.payload as ShareLinkRecord),
+  };
+}
+
+export async function createSupabaseLeadFromUrl(workspaceId: string, rawUrl: string) {
+  const createdAt = new Date().toISOString();
+  let liveReport;
+
+  try {
+    liveReport = await buildLiveAuditReportFromUrl(rawUrl);
+  } catch {
+    liveReport = buildAuditReportFromUrl(rawUrl);
+  }
+
+  const summary = calculatePricingSummary(
+    liveReport.pricingBundle,
+    getDefaultSelectedIds(liveReport.pricingBundle),
+  );
+  const report = prepareReportForStorage({
+    ...liveReport,
+    proposalOffer: createDefaultProposalOffer(summary.total, new Date(createdAt)),
+  });
+  const leadId = slugFromUrl(report.normalizedUrl);
+  const savedReport: SavedReport = {
+    id: leadId,
+    workspaceId,
+    leadId,
+    title: report.title,
+    normalizedUrl: report.normalizedUrl,
+    createdAt,
+    updatedAt: createdAt,
+    qualityCheckPassed: passesReportQualityCheck(report),
+    reportSnapshot: report,
+  };
+  const lead: LeadRecord = {
+    id: leadId,
+    workspaceId,
+    reportId: savedReport.id,
+    title: report.title,
+    companyName: report.title,
+    normalizedUrl: report.normalizedUrl,
+    previewImage: report.previewSet.current.desktop,
+    stage: "audit-ready",
+    createdAt,
+    updatedAt: createdAt,
+    currentScore: report.overallScore,
+    projectedScore: calculateProjectedScore(report.overallScore, summary.selectedPackageItems),
+    summary: report.executiveSummary,
+    contactName: report.title,
+    contactEmail: report.siteObservation.verifiedFacts.find((fact) => fact.type === "email")?.value,
+    contactPhone: report.siteObservation.verifiedFacts.find((fact) => fact.type === "phone")?.value,
+  };
+
+  await upsertPayloadRecord("saved_reports", {
+    id: savedReport.id,
+    workspace_id: workspaceId,
+    lead_id: lead.id,
+    payload: savedReport,
+  });
+  await upsertPayloadRecord("leads", {
+    id: lead.id,
+    workspace_id: workspaceId,
+    payload: lead,
+  });
+  for (const surface of ["audit", "packet", "brief"] as const) {
+    const shareLink: ShareLinkRecord = {
+      id: createId(`share-${surface}`),
+      workspaceId,
+      leadId: lead.id,
+      surface,
+      token: `${lead.id}-${surface}-share`,
+      views: 0,
+      enabled: true,
+      createdAt,
+    };
+    await upsertPayloadRecord("share_links", {
+      id: shareLink.id,
+      workspace_id: workspaceId,
+      lead_id: lead.id,
+      surface,
+      token: shareLink.token,
+      payload: shareLink,
+    });
+  }
+  await upsertPayloadRecord("activities", {
+    id: createId("activity"),
+    workspace_id: workspaceId,
+    lead_id: lead.id,
+    payload: {
+      id: createId("activity"),
+      workspaceId,
+      leadId: lead.id,
+      type: "audit-created",
+      title: "Audit created",
+      detail: `Saved a working audit for ${report.title}.`,
+      occurredAt: createdAt,
+    } satisfies LeadActivity,
+  });
+
+  return lead;
+}
+
+export async function updateSupabaseLeadStage(
+  workspaceId: string,
+  leadId: string,
+  stage: LeadStage,
+) {
+  const detail = await getSupabaseLeadDetail(workspaceId, leadId);
+
+  if (!detail) {
+    return null;
+  }
+
+  const updatedLead = {
+    ...detail.lead,
+    stage,
+    updatedAt: new Date().toISOString(),
+  };
+
+  await upsertPayloadRecord("leads", {
+    id: updatedLead.id,
+    workspace_id: workspaceId,
+    payload: updatedLead,
+  });
+  await upsertPayloadRecord("activities", {
+    id: createId("activity"),
+    workspace_id: workspaceId,
+    lead_id: leadId,
+    payload: {
+      id: createId("activity"),
+      workspaceId,
+      leadId,
+      type: "stage-updated",
+      title: "Lead stage updated",
+      detail: `Moved to ${stage.replace(/-/g, " ")}.`,
+      occurredAt: updatedLead.updatedAt,
+    } satisfies LeadActivity,
+  });
+
+  return updatedLead;
+}
+
+export async function completeSupabaseReminder(workspaceId: string, reminderId: string) {
+  const supabase = await createSupabaseServerClient();
+  const { data } = await supabase
+    .from("reminders")
+    .select("payload")
+    .eq("workspace_id", workspaceId)
+    .eq("id", reminderId)
+    .maybeSingle();
+
+  if (!data?.payload) {
+    return null;
+  }
+
+  const reminder = data.payload as ReminderRecord;
+  reminder.status = "complete";
+
+  await upsertPayloadRecord("reminders", {
+    id: reminder.id,
+    workspace_id: workspaceId,
+    lead_id: reminder.leadId,
+    payload: reminder,
+  });
+
+  return reminder;
+}
+
+export async function saveSupabaseTemplate(
+  workspaceId: string,
+  input: Pick<EmailTemplateRecord, "name" | "subject" | "body" | "kind"> & {
+    id?: string;
+  },
+) {
+  const template: EmailTemplateRecord = {
+    id: input.id ?? createId("template"),
+    workspaceId,
+    name: input.name,
+    subject: input.subject,
+    body: input.body,
+    kind: input.kind,
+    updatedAt: new Date().toISOString(),
+  };
+
+  await upsertPayloadRecord("email_templates", {
+    id: template.id,
+    workspace_id: workspaceId,
+    payload: template,
+  });
+
+  return template;
+}
+
+export async function resolveSupabasePublicShare(
+  surface: ShareSurface,
+  id: string,
+  token: string,
+): Promise<PublicShareSnapshot | null> {
+  const supabase = await createSupabaseServerClient();
+  const { data } = await supabase
+    .from("share_links")
+    .select("workspace_id,payload")
+    .eq("lead_id", id)
+    .eq("surface", surface)
+    .eq("token", token)
+    .maybeSingle();
+
+  if (!data?.payload || !data.workspace_id) {
+    return null;
+  }
+
+  const shareLink = data.payload as ShareLinkRecord;
+  const detail = await getSupabaseLeadDetail(data.workspace_id, id);
+
+  if (!detail) {
+    return null;
+  }
+
+  const updatedShareLink = {
+    ...shareLink,
+    views: shareLink.views + 1,
+  };
+  await upsertPayloadRecord("share_links", {
+    id: updatedShareLink.id,
+    workspace_id: detail.workspace.id,
+    lead_id: detail.lead.id,
+    surface,
+    token,
+    payload: updatedShareLink,
+  });
+
+  return {
+    workspace: detail.workspace,
+    lead: detail.lead,
+    savedReport: detail.savedReport,
+    shareLink: updatedShareLink,
+  };
+}

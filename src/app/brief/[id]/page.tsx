@@ -7,20 +7,27 @@ import {
   buildLiveAuditReportById,
   buildLiveAuditReportFromUrl,
 } from "@/lib/mock/report-builder";
+import { getProductRepository } from "@/lib/product/repository";
 
 export default async function BriefPage({
   params,
   searchParams,
 }: {
   params: Promise<{ id: string }>;
-  searchParams: Promise<{ url?: string }>;
+  searchParams: Promise<{ url?: string; share?: string }>;
 }) {
   const { id } = await params;
-  const { url } = await searchParams;
+  const { url, share } = await searchParams;
 
   let report = null;
 
-  if (url) {
+  if (share) {
+    const shared = await getProductRepository().resolvePublicShare("brief", id, share);
+
+    if (shared) {
+      report = shared.savedReport.reportSnapshot;
+    }
+  } else if (url) {
     try {
       report = await buildLiveAuditReportFromUrl(url);
     } catch {

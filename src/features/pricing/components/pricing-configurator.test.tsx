@@ -4,6 +4,7 @@ import { beforeEach, describe, expect, it } from "vitest";
 
 import { PricingConfigurator } from "@/features/pricing/components/pricing-configurator";
 import { buildAuditReportFromUrl } from "@/lib/mock/report-builder";
+import { applyProposalOffer } from "@/lib/utils/proposal-offers";
 import { calculatePricingSummary, getDefaultSelectedIds } from "@/lib/utils/pricing";
 import { usePricingStore } from "@/store/pricing-store";
 
@@ -22,27 +23,32 @@ describe("PricingConfigurator", () => {
       report.pricingBundle,
       getDefaultSelectedIds(report.pricingBundle),
     );
+    const offered = applyProposalOffer(expected.total, report.proposalOffer);
 
     render(<PricingConfigurator report={report} />);
 
     expect(
-      await screen.findAllByText(`$${expected.total.toLocaleString()}`),
-    ).toHaveLength(2);
+      await screen.findByText(`$${offered.finalTotal.toLocaleString()}`),
+    ).toBeInTheDocument();
   });
 
   it("updates the total when an add-on is selected", async () => {
     const user = userEvent.setup();
-    const startingTotal = calculatePricingSummary(
-      report.pricingBundle,
-      getDefaultSelectedIds(report.pricingBundle),
-    ).total;
+    const firstOptionalAddOn = report.pricingBundle.addOns[0]!;
+    const nextSummary = calculatePricingSummary(report.pricingBundle, [
+      ...getDefaultSelectedIds(report.pricingBundle),
+      firstOptionalAddOn.id,
+    ]);
+    const nextOffered = applyProposalOffer(nextSummary.total, report.proposalOffer);
 
     render(<PricingConfigurator report={report} />);
 
-    await user.click(screen.getAllByRole("button", { name: /^add /i })[0]);
+    await user.click(
+      screen.getByRole("button", { name: new RegExp(`^Add ${firstOptionalAddOn.title}$`, "i") }),
+    );
 
     await waitFor(() =>
-      expect(screen.queryAllByText(`$${startingTotal.toLocaleString()}`)).toHaveLength(0),
+      expect(screen.getByText(`$${nextOffered.finalTotal.toLocaleString()}`)).toBeInTheDocument(),
     );
   });
 });

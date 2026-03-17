@@ -24,6 +24,8 @@ import {
 } from "@/lib/mock/report-enhancements";
 import { sampleAudits } from "@/lib/mock/sample-audits";
 import { generateOutreachEmail } from "@/lib/utils/outreach";
+import { createDefaultProposalOffer } from "@/lib/utils/proposal-offers";
+import { calculatePricingSummary, getDefaultSelectedIds } from "@/lib/utils/pricing";
 import { aggregateOverallScore, clampScore } from "@/lib/utils/scores";
 import {
   createFallbackObservation,
@@ -999,78 +1001,45 @@ function buildRebuildPhases(profile: ReportProfileType): RebuildPhase[] {
   ];
 }
 
-function createCatalog(profile: ReportProfileType): PricingBundle {
+function createCatalog(): PricingBundle {
   const baseItem: PricingItem = {
     id: "base-rebuild",
     title: "Strategic Website Rebuild",
     description:
-      "Core strategy, homepage redesign, responsive build system, and launch-ready presentation polish.",
-    price: 5000,
+      "Core strategy, homepage redesign, responsive component foundation, and launch-ready polish.",
+    price: 4200,
     defaultSelected: true,
     impactLevel: "core",
-    sourceLabel: "Agency package baseline",
+    sourceLabel: "Calibrated SMB redesign baseline",
     synergyWith: [],
     category: "base",
     deliverables: [
       "Strategy sprint",
       "Homepage redesign",
-      "Responsive front-end build",
+      "Responsive build system",
+      "Baseline search + QA setup",
       "Launch checklist",
     ],
     benchmarkNote:
-      "This anchors the redesign around clarity, trust, and premium execution.",
-    estimatedLiftLabel: "Foundation for conversion and brand perception gains",
-    estimatedScoreLift: 2.8,
-    liftFocus: ["visual-design", "ux-conversion", "trust-credibility"],
+      "This anchors the redesign around clarity, trust, and a visibly better first impression.",
+    estimatedLiftLabel: "Core lift in clarity, trust, and conversion readiness",
+    estimatedScoreLift: 3.1,
+    liftFocus: ["visual-design", "ux-conversion", "trust-credibility", "mobile-experience"],
   };
 
   const addOns: PricingItem[] = [
-    {
-      id: "design-system",
-      title: "Design System Rebuild",
-      description:
-        "Token-driven component system for consistent, scalable pages and future iterations.",
-      price: 1800,
-      defaultSelected: true,
-      impactLevel: "high",
-      sourceLabel: "Best-practice benchmark",
-      synergyWith: ["homepage-redesign", "mobile-ux"],
-      category: "design",
-      deliverables: ["UI tokens", "Core components", "Design specs"],
-      benchmarkNote: "Creates long-term consistency and speed across the site.",
-      estimatedLiftLabel: "Sharper consistency and stronger premium feel",
-      estimatedScoreLift: 0.7,
-      liftFocus: ["visual-design", "accessibility"],
-    },
-    {
-      id: "homepage-redesign",
-      title: "Expanded Homepage Redesign",
-      description:
-        "Additional conversion-focused homepage sections, proof modules, and richer narrative flow.",
-      price: 1400,
-      defaultSelected: profile !== "saas",
-      impactLevel: "high",
-      sourceLabel: "Observed on the current site",
-      synergyWith: ["copywriting", "analytics"],
-      category: "experience",
-      deliverables: ["Hero rebuild", "Social proof section", "CTA architecture"],
-      benchmarkNote: "Usually the highest-visibility page to upgrade first.",
-      estimatedLiftLabel: "Clearer first impression and stronger CTA momentum",
-      estimatedScoreLift: 0.6,
-      liftFocus: ["visual-design", "ux-conversion", "trust-credibility"],
-    },
     {
       id: "full-site",
       title: "Full Site Rebuild",
       description:
         "Extend the new system across service, pricing, about, and key funnel pages.",
-      price: 3600,
+      price: 2200,
       defaultSelected: false,
       impactLevel: "transformative",
-      sourceLabel: "Recommended delivery scope",
-      synergyWith: ["local-seo-pages", "technical-seo", "copywriting"],
+      sourceLabel: "Scaled implementation scope",
+      synergyWith: ["local-seo-pages", "search-foundation", "copywriting"],
       category: "build",
-      deliverables: ["Up to 8 high-value pages", "Reusable layouts", "QA pass"],
+      deliverables: ["Up to 6 high-value pages", "Reusable layouts", "QA pass"],
       benchmarkNote: "Best when the goal is a true perception reset, not patching.",
       estimatedLiftLabel: "Site-wide lift in consistency, trust, and conversion coverage",
       estimatedScoreLift: 1.4,
@@ -1081,11 +1050,11 @@ function createCatalog(profile: ReportProfileType): PricingBundle {
       title: "Mobile UX Optimization",
       description:
         "Focused mobile conversion pass with touch-target, form, and hierarchy improvements.",
-      price: 1200,
-      defaultSelected: true,
+      price: 850,
+      defaultSelected: false,
       impactLevel: "high",
       sourceLabel: "Observed friction point",
-      synergyWith: ["booking-funnel", "analytics"],
+      synergyWith: ["booking-funnel", "accessibility-speed"],
       category: "ux",
       deliverables: ["Mobile flow audit", "Responsive refinements", "Form tuning"],
       benchmarkNote: "Small-screen clarity often pays back fast.",
@@ -1098,11 +1067,11 @@ function createCatalog(profile: ReportProfileType): PricingBundle {
       title: "Booking / Lead Funnel Redesign",
       description:
         "Rebuild the primary inquiry flow around reassurance, speed, and staged commitment.",
-      price: 1450,
-      defaultSelected: profile !== "saas",
+      price: 1100,
+      defaultSelected: false,
       impactLevel: "transformative",
       sourceLabel: "Conversion benchmark",
-      synergyWith: ["analytics", "copywriting", "crm"],
+      synergyWith: ["analytics", "copywriting", "lead-follow-up"],
       category: "conversion",
       deliverables: ["Form redesign", "Follow-up flow", "CTA alignment"],
       benchmarkNote: "High leverage when the current path feels heavy or vague.",
@@ -1115,11 +1084,11 @@ function createCatalog(profile: ReportProfileType): PricingBundle {
       title: "Local SEO Pages",
       description:
         "Location or service-area pages built to support both search intent and conversion trust.",
-      price: 1500,
-      defaultSelected: profile === "local-service" || profile === "healthcare",
+      price: 1200,
+      defaultSelected: false,
       impactLevel: "high",
       sourceLabel: "Search opportunity",
-      synergyWith: ["technical-seo", "schema"],
+      synergyWith: ["search-foundation", "full-site"],
       category: "seo",
       deliverables: ["3 location pages", "Template structure", "Internal-link map"],
       benchmarkNote: "Turns service coverage into visible demand capture.",
@@ -1128,63 +1097,46 @@ function createCatalog(profile: ReportProfileType): PricingBundle {
       liftFocus: ["seo-readiness", "trust-credibility"],
     },
     {
-      id: "technical-seo",
-      title: "Technical SEO Cleanup",
+      id: "search-foundation",
+      title: "Search Foundation",
       description:
-        "Metadata, headings, crawl structure, redirects, and search-readiness cleanup.",
-      price: 1150,
-      defaultSelected: true,
+        "Metadata, headings, schema, and internal search-readiness cleanup in one pass.",
+      price: 950,
+      defaultSelected: false,
       impactLevel: "high",
       sourceLabel: "SEO readiness review",
-      synergyWith: ["schema", "local-seo-pages"],
+      synergyWith: ["local-seo-pages", "full-site", "speed"],
       category: "seo",
-      deliverables: ["Metadata framework", "Heading cleanup", "Search checklist"],
+      deliverables: ["Metadata framework", "Heading cleanup", "Schema mapping"],
       benchmarkNote: "Supports both ranking health and clearer information architecture.",
       estimatedLiftLabel: "Stronger indexability and cleaner search presentation",
       estimatedScoreLift: 0.7,
       liftFocus: ["seo-readiness", "accessibility"],
     },
     {
-      id: "schema",
-      title: "Schema Implementation",
+      id: "accessibility-speed",
+      title: "Accessibility + Speed QA",
       description:
-        "Structured data support for business, service, FAQ, and review opportunities.",
-      price: 750,
-      defaultSelected: profile !== "saas",
-      impactLevel: "core",
-      sourceLabel: "Schema review",
-      synergyWith: ["technical-seo", "local-seo-pages"],
-      category: "seo",
-      deliverables: ["Schema mapping", "Implementation plan", "Validation pass"],
-      benchmarkNote: "Adds machine-readable clarity where relevant.",
-      estimatedLiftLabel: "Better search context and richer result opportunities",
-      estimatedScoreLift: 0.4,
-      liftFocus: ["seo-readiness", "trust-credibility"],
-    },
-    {
-      id: "accessibility",
-      title: "Accessibility Remediation",
-      description:
-        "Contrast, focus, structure, and component usability improvements across the primary flow.",
+        "Polish the primary pages with contrast, focus, image, and performance cleanup that visitors actually feel.",
       price: 950,
       defaultSelected: false,
       impactLevel: "high",
-      sourceLabel: "Accessibility review",
-      synergyWith: ["design-system", "mobile-ux"],
+      sourceLabel: "Quality review",
+      synergyWith: ["mobile-ux", "search-foundation"],
       category: "quality",
-      deliverables: ["Contrast audit", "Focus states", "Semantics pass"],
-      benchmarkNote: "Often improves clarity for every visitor, not just edge cases.",
-      estimatedLiftLabel: "Cleaner usability and broader trust",
-      estimatedScoreLift: 0.5,
-      liftFocus: ["accessibility", "mobile-experience", "trust-credibility"],
+      deliverables: ["Contrast + focus pass", "Image/performance tuning", "Core QA cleanup"],
+      benchmarkNote: "Improves polish in the places visitors notice immediately.",
+      estimatedLiftLabel: "Cleaner usability and faster perceived load",
+      estimatedScoreLift: 0.6,
+      liftFocus: ["accessibility", "mobile-experience", "seo-readiness"],
     },
     {
       id: "analytics",
       title: "Analytics + Event Tracking",
       description:
         "Measure scroll depth, CTA engagement, form progression, and key conversion events.",
-      price: 900,
-      defaultSelected: profile === "saas",
+      price: 650,
+      defaultSelected: false,
       impactLevel: "core",
       sourceLabel: "Optimization plan",
       synergyWith: ["booking-funnel", "cro"],
@@ -1200,11 +1152,11 @@ function createCatalog(profile: ReportProfileType): PricingBundle {
       title: "Copywriting + Messaging Rewrite",
       description:
         "Rewrite key sections around differentiation, proof, and lower-friction calls to action.",
-      price: 1650,
-      defaultSelected: true,
+      price: 1250,
+      defaultSelected: false,
       impactLevel: "transformative",
       sourceLabel: "Messaging review",
-      synergyWith: ["homepage-redesign", "booking-funnel", "full-site"],
+      synergyWith: ["booking-funnel", "full-site"],
       category: "content",
       deliverables: ["Headline system", "Proof messaging", "CTA rewrite"],
       benchmarkNote: "Usually the difference between attractive and persuasive.",
@@ -1213,37 +1165,20 @@ function createCatalog(profile: ReportProfileType): PricingBundle {
       liftFocus: ["ux-conversion", "trust-credibility", "visual-design"],
     },
     {
-      id: "crm",
-      title: "CRM / Lead Capture Improvements",
+      id: "lead-follow-up",
+      title: "Lead Follow-Up Automation",
       description:
-        "Connect forms to a cleaner follow-up process, tagging, and response routing.",
-      price: 1100,
+        "Connect forms to cleaner routing, follow-up automation, and faster response handling.",
+      price: 900,
       defaultSelected: false,
       impactLevel: "high",
       sourceLabel: "Operational fit",
-      synergyWith: ["booking-funnel", "analytics", "email-nurture"],
+      synergyWith: ["booking-funnel", "analytics"],
       category: "operations",
-      deliverables: ["CRM mapping", "Lead routing", "Response playbook"],
+      deliverables: ["CRM mapping", "Lead routing", "Follow-up sequence"],
       benchmarkNote: "Prevents better leads from entering a weaker handoff system.",
-      estimatedLiftLabel: "Higher capture quality and faster follow-up",
-      estimatedScoreLift: 0.4,
-      liftFocus: ["ux-conversion", "trust-credibility"],
-    },
-    {
-      id: "email-nurture",
-      title: "Email Nurture Setup",
-      description:
-        "Automated follow-up sequence for undecided prospects or longer sales cycles.",
-      price: 850,
-      defaultSelected: false,
-      impactLevel: "core",
-      sourceLabel: "Lifecycle follow-up",
-      synergyWith: ["crm", "copywriting"],
-      category: "automation",
-      deliverables: ["3-email sequence", "Automation mapping", "CTA handoff"],
-      benchmarkNote: "Useful when prospects need more proof or time before committing.",
-      estimatedLiftLabel: "More value recovered from existing inbound interest",
-      estimatedScoreLift: 0.3,
+      estimatedLiftLabel: "Better follow-up speed and less lead leakage",
+      estimatedScoreLift: 0.5,
       liftFocus: ["ux-conversion", "trust-credibility"],
     },
     {
@@ -1251,11 +1186,11 @@ function createCatalog(profile: ReportProfileType): PricingBundle {
       title: "Speed Optimization",
       description:
         "Performance pass for assets, layout stability, and perceived load speed.",
-      price: 950,
+      price: 800,
       defaultSelected: false,
       impactLevel: "high",
       sourceLabel: "Performance review",
-      synergyWith: ["technical-seo", "mobile-ux"],
+      synergyWith: ["search-foundation", "mobile-ux"],
       category: "quality",
       deliverables: ["Performance audit", "Asset optimization", "Load tuning"],
       benchmarkNote: "Speed supports both trust and mobile usability.",
@@ -1268,7 +1203,7 @@ function createCatalog(profile: ReportProfileType): PricingBundle {
       title: "Ongoing CRO Testing",
       description:
         "Structured post-launch testing cadence for CTAs, proof, layouts, and offer framing.",
-      price: 1450,
+      price: 850,
       defaultSelected: false,
       impactLevel: "transformative",
       sourceLabel: "Optimization plan",
@@ -1285,9 +1220,9 @@ function createCatalog(profile: ReportProfileType): PricingBundle {
   return {
     baseItem,
     addOns,
-    recommendedIds: [baseItem.id, ...addOns.filter((item) => item.defaultSelected).map((item) => item.id)],
+    recommendedIds: [baseItem.id],
     stickyNote:
-      "Choose the scope that creates a visible improvement now, then expand if needed.",
+      "Start with the rebuild that visibly changes the score, then add only the upgrades that match the sales goal.",
   };
 }
 
@@ -1314,7 +1249,7 @@ function buildOpportunities(
       sourceLabel: "Heuristic presentation layer",
       benchmarkType: "recommendation",
       notes: lens,
-      synergy: ["copywriting", "homepage-redesign"],
+      synergy: ["copywriting", "base-rebuild"],
       currentState: "Current layout asks visitors to decode the message before they feel momentum.",
       futureState: "Proposed layout makes the value and next step obvious in under a few seconds.",
       previewImage: previewSet.future.desktop,
@@ -1346,7 +1281,7 @@ function buildOpportunities(
       sourceLabel: "Site architecture review",
       benchmarkType: "benchmark",
       notes: "Better content hierarchy improves both usability and discoverability.",
-      synergy: ["technical-seo", "local-seo-pages", "full-site"],
+      synergy: ["search-foundation", "local-seo-pages", "full-site"],
       currentState: "Important details are present, but spread too thinly or buried too deep.",
       futureState: "High-intent pages become clearer, easier to navigate, and more obviously valuable.",
       previewImage: previewSet.future.desktop,
@@ -1362,7 +1297,7 @@ function buildOpportunities(
       sourceLabel: "Design direction",
       benchmarkType: "recommendation",
       notes: "A system-level uplift improves perception across every page, not just the homepage.",
-      synergy: ["design-system", "full-site", "accessibility"],
+      synergy: ["base-rebuild", "full-site", "accessibility-speed"],
       currentState: "The current interface works, but it does not fully communicate premium confidence.",
       futureState: "The redesign feels custom, modern, and aligned with the quality of the offer.",
       previewImage: previewSet.future.desktop,
@@ -1567,7 +1502,11 @@ function buildAuditReport(
     : buildFindings(profile, title, livePreviewSet.current.desktop);
   const opportunities = buildOpportunities(profile, livePreviewSet);
   const rebuildPhases = buildRebuildPhases(profile);
-  const pricingBundle = createCatalog(profile);
+  const pricingBundle = createCatalog();
+  const defaultPricingSummary = calculatePricingSummary(
+    pricingBundle,
+    getDefaultSelectedIds(pricingBundle),
+  );
   const competitorSnapshots = buildCompetitors(
     {
       name: title,
@@ -1627,6 +1566,7 @@ function buildAuditReport(
       previewLine: "",
       body: "",
     },
+    proposalOffer: createDefaultProposalOffer(defaultPricingSummary.total),
     socialProof,
   };
 

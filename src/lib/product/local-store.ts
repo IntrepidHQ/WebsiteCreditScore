@@ -1,0 +1,721 @@
+import { promises as fs } from "node:fs";
+import path from "node:path";
+import { randomUUID } from "node:crypto";
+
+import { buildAuditReportById, buildAuditReportFromUrl, buildLiveAuditReportFromUrl } from "@/lib/mock/report-builder";
+import { prepareReportForStorage, passesReportQualityCheck } from "@/lib/product/report-quality";
+import type {
+  DashboardSnapshot,
+  EmailTemplateRecord,
+  LeadActivity,
+  LeadDetailSnapshot,
+  LeadRecord,
+  LeadStage,
+  ProductPromoRecord,
+  PublicShareSnapshot,
+  ReferralCodeRecord,
+  ReferralEventRecord,
+  ReminderRecord,
+  SavedReport,
+  ShareLinkRecord,
+  ShareSurface,
+  WorkspaceCreditEntry,
+  WorkspaceRecord,
+  WorkspaceSession,
+} from "@/lib/types/product";
+import { createDefaultProposalOffer } from "@/lib/utils/proposal-offers";
+import { calculatePricingSummary, calculateProjectedScore, getDefaultSelectedIds } from "@/lib/utils/pricing";
+import { createThemeTokens } from "@/lib/utils/theme";
+import { slugFromUrl } from "@/lib/utils/url";
+
+const STORE_PATH = path.join("/tmp", "craydl-product-store.json");
+
+interface LocalProductStore {
+  workspaces: WorkspaceRecord[];
+  savedReports: SavedReport[];
+  leads: LeadRecord[];
+  activities: LeadActivity[];
+  reminders: ReminderRecord[];
+  emailTemplates: EmailTemplateRecord[];
+  referralCodes: ReferralCodeRecord[];
+  referralEvents: ReferralEventRecord[];
+  workspaceCredits: WorkspaceCreditEntry[];
+  promos: ProductPromoRecord[];
+  shareLinks: ShareLinkRecord[];
+}
+
+function createId(prefix: string) {
+  return `${prefix}-${randomUUID().slice(0, 8)}`;
+}
+
+function sortNewestFirst<
+  T extends {
+    updatedAt?: string;
+    createdAt?: string;
+    dueAt?: string;
+    occurredAt?: string;
+  },
+>(
+  items: T[],
+) {
+  return [...items].sort((left, right) => {
+    const leftValue =
+      left.updatedAt ?? left.occurredAt ?? left.createdAt ?? left.dueAt ?? "";
+    const rightValue =
+      right.updatedAt ?? right.occurredAt ?? right.createdAt ?? right.dueAt ?? "";
+
+    return new Date(rightValue).getTime() - new Date(leftValue).getTime();
+  });
+}
+
+function getSurfaceToken(leadId: string, surface: ShareSurface) {
+  return `${leadId}-${surface}-share`;
+}
+
+function getWorkspaceDefaults(ownerUserId: string) {
+  const createdAt = new Date().toISOString();
+
+  return {
+    id: "workspace-craydl",
+    ownerUserId,
+    name: "Craydl internal workspace",
+    slug: "craydl",
+    createdAt,
+    updatedAt: createdAt,
+    billingStatus: "trial" as const,
+    creditBalance: 8,
+    branding: {
+      agencyName: "Craydl Web Design Agency",
+      logoMark: "/brand/craydl-light.png",
+      contactName: "Craydl team",
+      contactTitle: "Founder",
+      contactEmail: "hello@craydl.pro",
+      contactPhone: "(843) 555-0198",
+      headshot: "/brand/craydl-light.png",
+      accentOverride: "#f7b21b",
+    },
+    savedTheme: createThemeTokens({
+      mode: "dark",
+      accentColor: "#f7b21b",
+    }),
+  };
+}
+
+function createSavedLeadFromReport(
+  workspaceId: string,
+  reportId: string,
+  reportTitle: string,
+  normalizedUrl: string,
+  createdAt: string,
+) {
+  const baseReport = prepareReportForStorage(
+    buildAuditReportById(reportId) ?? buildAuditReportFromUrl(normalizedUrl),
+  );
+  const defaultSelections = getDefaultSelectedIds(baseReport.pricingBundle);
+  const summary = calculatePricingSummary(baseReport.pricingBundle, defaultSelections);
+  const projectedScore = calculateProjectedScore(
+    baseReport.overallScore,
+    summary.selectedPackageItems,
+  );
+  const proposalOffer = createDefaultProposalOffer(summary.total, new Date(createdAt));
+  const report = {
+    ...baseReport,
+    proposalOffer,
+  };
+  const leadId = report.id;
+  const phoneFact = report.siteObservation.verifiedFacts.find((fact) => fact.type === "phone");
+  const emailFact = report.siteObservation.verifiedFacts.find((fact) => fact.type === "email");
+
+  const savedReport: SavedReport = {
+    id: leadId,
+    workspaceId,
+    leadId,
+    title: reportTitle,
+    normalizedUrl,
+    createdAt,
+    updatedAt: createdAt,
+    qualityCheckPassed: passesReportQualityCheck(report),
+    reportSnapshot: report,
+  };
+
+  const lead: LeadRecord = {
+    id: leadId,
+    workspaceId,
+    reportId: savedReport.id,
+    title: report.title,
+    companyName: report.title,
+    normalizedUrl,
+    previewImage: report.previewSet.current.desktop,
+    stage: reportId === "provider-pages" ? "audit-ready" : "follow-up-due",
+    createdAt,
+    updatedAt: createdAt,
+    currentScore: report.overallScore,
+    projectedScore,
+    summary: report.executiveSummary,
+    contactName: report.title,
+    contactEmail: emailFact?.value,
+    contactPhone: phoneFact?.value,
+  };
+
+  const shareLinks: ShareLinkRecord[] = (["audit", "packet", "brief"] as const).map(
+    (surface) => ({
+      id: createId(`share-${surface}`),
+      workspaceId,
+      leadId,
+      surface,
+      token: getSurfaceToken(leadId, surface),
+      views: surface === "packet" ? 2 : surface === "audit" ? 1 : 0,
+      enabled: true,
+      createdAt,
+    }),
+  );
+
+  const activities: LeadActivity[] = [
+    {
+      id: createId("activity"),
+      workspaceId,
+      leadId,
+      type: "audit-created",
+      title: "Audit created",
+      detail: "The working audit was generated and saved to the workspace.",
+      occurredAt: createdAt,
+    },
+    {
+      id: createId("activity"),
+      workspaceId,
+      leadId,
+      type: "packet-opened",
+      title: "Packet opened",
+      detail: "The packet share link has already been checked internally.",
+      occurredAt: createdAt,
+    },
+  ];
+
+  const reminderDue = new Date(createdAt);
+  reminderDue.setDate(reminderDue.getDate() + 2);
+  const reminders: ReminderRecord[] = [
+    {
+      id: createId("reminder"),
+      workspaceId,
+      leadId,
+      title: "Follow up on the packet",
+      detail: "Send the short intro email, then check for a reply or site visit within two business days.",
+      dueAt: reminderDue.toISOString(),
+      status: "open",
+    },
+  ];
+
+  return {
+    savedReport,
+    lead,
+    shareLinks,
+    activities,
+    reminders,
+  };
+}
+
+async function createSeedStore(ownerUserId: string): Promise<LocalProductStore> {
+  const workspace = getWorkspaceDefaults(ownerUserId);
+  const now = new Date();
+  const mark = new Date(now);
+  mark.setDate(now.getDate() - 4);
+  const saunders = new Date(now);
+  saunders.setDate(now.getDate() - 2);
+  const provider = new Date(now);
+  provider.setDate(now.getDate() - 1);
+
+  const seededLeads = [
+    createSavedLeadFromReport(
+      workspace.id,
+      "mark-deford-md",
+      "Mark Deford M.D.",
+      "https://markdeford.dr-leonardo.com",
+      mark.toISOString(),
+    ),
+    createSavedLeadFromReport(
+      workspace.id,
+      "saunders-woodworks",
+      "Saunders Wood Work LLC",
+      "https://www.saunderswoodworkllc.com/about",
+      saunders.toISOString(),
+    ),
+    createSavedLeadFromReport(
+      workspace.id,
+      "provider-pages",
+      "Provider Pages",
+      "https://provider-pages.com",
+      provider.toISOString(),
+    ),
+  ];
+
+  const referralCodeId = createId("referral");
+
+  return {
+    workspaces: [workspace],
+    savedReports: seededLeads.map((entry) => entry.savedReport),
+    leads: seededLeads.map((entry) => entry.lead),
+    activities: seededLeads.flatMap((entry) => entry.activities),
+    reminders: seededLeads.flatMap((entry) => entry.reminders),
+    emailTemplates: [
+      {
+        id: createId("template"),
+        workspaceId: workspace.id,
+        name: "Intro review",
+        subject: "Quick site review and redesign direction",
+        body: "I pulled together a short review of the current site, the biggest friction points, and the fastest path to a better first impression. If helpful, I can send over the short packet and walk you through it in fifteen minutes.",
+        kind: "intro",
+        updatedAt: provider.toISOString(),
+      },
+      {
+        id: createId("template"),
+        workspaceId: workspace.id,
+        name: "Follow-up after packet",
+        subject: "Following up on the site packet",
+        body: "Wanted to follow up on the review I sent over. If the direction feels relevant, I can tighten this into a scoped brief and recommended package before any design work starts.",
+        kind: "follow-up",
+        updatedAt: provider.toISOString(),
+      },
+    ],
+    referralCodes: [
+      {
+        id: referralCodeId,
+        workspaceId: workspace.id,
+        code: "CRAYDL-FOUNDING",
+        shareUrl: "https://craydl.pro/app/login?ref=CRAYDL-FOUNDING",
+        rewardLabel: "2 workspace credits per activated provider account",
+        createdAt: now.toISOString(),
+      },
+    ],
+    referralEvents: [
+      {
+        id: createId("ref-event"),
+        workspaceId: workspace.id,
+        codeId: referralCodeId,
+        inviteeEmail: "studio@example.com",
+        status: "pending",
+        creditAmount: 2,
+        createdAt: now.toISOString(),
+      },
+      {
+        id: createId("ref-event"),
+        workspaceId: workspace.id,
+        codeId: referralCodeId,
+        inviteeEmail: "ops@example.com",
+        status: "credited",
+        creditAmount: 2,
+        createdAt: saunders.toISOString(),
+        convertedAt: provider.toISOString(),
+      },
+    ],
+    workspaceCredits: [
+      {
+        id: createId("credit"),
+        workspaceId: workspace.id,
+        amount: 5,
+        label: "Founding workspace balance",
+        createdAt: mark.toISOString(),
+      },
+      {
+        id: createId("credit"),
+        workspaceId: workspace.id,
+        amount: 2,
+        label: "Referral reward",
+        createdAt: provider.toISOString(),
+      },
+    ],
+    promos: [
+      {
+        id: createId("promo"),
+        code: "FOUNDING10",
+        label: "Founding provider discount",
+        description: "Reserved for the first few studios using Craydl internally.",
+        type: "percentage",
+        value: 10,
+        active: true,
+      },
+    ],
+    shareLinks: seededLeads.flatMap((entry) => entry.shareLinks),
+  };
+}
+
+async function readStore(ownerUserId: string) {
+  try {
+    const content = await fs.readFile(STORE_PATH, "utf8");
+    const parsed = JSON.parse(content) as LocalProductStore;
+
+    if (!parsed.workspaces.length) {
+      throw new Error("Empty local product store");
+    }
+
+    return parsed;
+  } catch {
+    const seeded = await createSeedStore(ownerUserId);
+    await fs.writeFile(STORE_PATH, JSON.stringify(seeded, null, 2), "utf8");
+    return seeded;
+  }
+}
+
+async function writeStore(store: LocalProductStore) {
+  await fs.writeFile(STORE_PATH, JSON.stringify(store, null, 2), "utf8");
+}
+
+async function updateStore<T>(
+  ownerUserId: string,
+  updater: (store: LocalProductStore) => Promise<T> | T,
+) {
+  const store = await readStore(ownerUserId);
+  const result = await updater(store);
+  await writeStore(store);
+  return result;
+}
+
+function getWorkspaceOrThrow(store: LocalProductStore, workspaceId: string) {
+  const workspace = store.workspaces.find((entry) => entry.id === workspaceId);
+
+  if (!workspace) {
+    throw new Error(`Unknown workspace: ${workspaceId}`);
+  }
+
+  return workspace;
+}
+
+export async function ensureLocalWorkspace(session: WorkspaceSession) {
+  const store = await readStore(session.userId);
+  const existing = store.workspaces.find((workspace) => workspace.ownerUserId === session.userId);
+
+  if (existing) {
+    return existing;
+  }
+
+  const workspace = getWorkspaceDefaults(session.userId);
+  store.workspaces.push(workspace);
+  await writeStore(store);
+
+  return workspace;
+}
+
+export async function getLocalDashboard(workspaceId: string, ownerUserId: string): Promise<DashboardSnapshot> {
+  const store = await readStore(ownerUserId);
+  const workspace = getWorkspaceOrThrow(store, workspaceId);
+
+  return {
+    workspace,
+    leads: sortNewestFirst(
+      store.leads
+        .filter((lead) => lead.workspaceId === workspaceId)
+        .map((lead) => ({
+          ...lead,
+          previewImage:
+            lead.previewImage ??
+            store.savedReports.find((entry) => entry.leadId === lead.id)?.reportSnapshot.previewSet.current.desktop,
+        })),
+    ),
+    reminders: sortNewestFirst(
+      store.reminders.filter(
+        (reminder) => reminder.workspaceId === workspaceId && reminder.status === "open",
+      ),
+    ),
+    templates: sortNewestFirst(
+      store.emailTemplates.filter((template) => template.workspaceId === workspaceId),
+    ),
+    referralCode:
+      store.referralCodes.find((entry) => entry.workspaceId === workspaceId) ?? null,
+    referralEvents: sortNewestFirst(
+      store.referralEvents.filter((entry) => entry.workspaceId === workspaceId),
+    ),
+    credits: sortNewestFirst(
+      store.workspaceCredits.filter((entry) => entry.workspaceId === workspaceId),
+    ),
+    promos: store.promos.filter((promo) => promo.active),
+  };
+}
+
+export async function getLocalLeadDetail(
+  workspaceId: string,
+  leadId: string,
+  ownerUserId: string,
+): Promise<LeadDetailSnapshot | null> {
+  const store = await readStore(ownerUserId);
+  const workspace = getWorkspaceOrThrow(store, workspaceId);
+  const lead = store.leads.find((entry) => entry.workspaceId === workspaceId && entry.id === leadId);
+  const savedReport = store.savedReports.find(
+    (entry) => entry.workspaceId === workspaceId && entry.leadId === leadId,
+  );
+
+  if (!lead || !savedReport) {
+    return null;
+  }
+
+  return {
+    workspace,
+    lead,
+    savedReport,
+    activities: sortNewestFirst(
+      store.activities.filter((entry) => entry.workspaceId === workspaceId && entry.leadId === leadId),
+    ),
+    reminders: sortNewestFirst(
+      store.reminders.filter((entry) => entry.workspaceId === workspaceId && entry.leadId === leadId),
+    ),
+    shareLinks: store.shareLinks.filter(
+      (entry) => entry.workspaceId === workspaceId && entry.leadId === leadId,
+    ),
+  };
+}
+
+export async function createLocalLeadFromUrl(
+  workspaceId: string,
+  rawUrl: string,
+  ownerUserId: string,
+) {
+  return updateStore(ownerUserId, async (store) => {
+    getWorkspaceOrThrow(store, workspaceId);
+    const createdAt = new Date().toISOString();
+
+    let liveReport;
+
+    try {
+      liveReport = await buildLiveAuditReportFromUrl(rawUrl);
+    } catch {
+      liveReport = buildAuditReportFromUrl(rawUrl);
+    }
+
+    const defaultSelections = getDefaultSelectedIds(liveReport.pricingBundle);
+    const summary = calculatePricingSummary(liveReport.pricingBundle, defaultSelections);
+    const projectedScore = calculateProjectedScore(
+      liveReport.overallScore,
+      summary.selectedPackageItems,
+    );
+    const report = prepareReportForStorage({
+      ...liveReport,
+      proposalOffer: createDefaultProposalOffer(summary.total, new Date(createdAt)),
+    });
+    const leadId = slugFromUrl(report.normalizedUrl);
+    const savedReport: SavedReport = {
+      id: leadId,
+      workspaceId,
+      leadId,
+      title: report.title,
+      normalizedUrl: report.normalizedUrl,
+      createdAt,
+      updatedAt: createdAt,
+      qualityCheckPassed: passesReportQualityCheck(report),
+      reportSnapshot: report,
+    };
+    const lead: LeadRecord = {
+      id: leadId,
+      workspaceId,
+      reportId: savedReport.id,
+      title: report.title,
+      companyName: report.title,
+      normalizedUrl: report.normalizedUrl,
+      previewImage: report.previewSet.current.desktop,
+      stage: "audit-ready",
+      createdAt,
+      updatedAt: createdAt,
+      currentScore: report.overallScore,
+      projectedScore,
+      summary: report.executiveSummary,
+      contactName: report.title,
+      contactEmail: report.siteObservation.verifiedFacts.find((fact) => fact.type === "email")?.value,
+      contactPhone: report.siteObservation.verifiedFacts.find((fact) => fact.type === "phone")?.value,
+    };
+    const shareLinks: ShareLinkRecord[] = (["audit", "packet", "brief"] as const).map(
+      (surface) => ({
+        id: createId(`share-${surface}`),
+        workspaceId,
+        leadId,
+        surface,
+        token: getSurfaceToken(leadId, surface),
+        views: 0,
+        enabled: true,
+        createdAt,
+      }),
+    );
+
+    store.savedReports = [
+      ...store.savedReports.filter((entry) => entry.id !== savedReport.id),
+      savedReport,
+    ];
+    store.leads = [...store.leads.filter((entry) => entry.id !== lead.id), lead];
+    store.shareLinks = [
+      ...store.shareLinks.filter((entry) => entry.leadId !== lead.id),
+      ...shareLinks,
+    ];
+    store.activities.push(
+      {
+        id: createId("activity"),
+        workspaceId,
+        leadId,
+        type: "audit-created",
+        title: "Audit created",
+        detail: `Saved a working audit for ${report.title}.`,
+        occurredAt: createdAt,
+      },
+      {
+        id: createId("activity"),
+        workspaceId,
+        leadId,
+        type: "reminder-created",
+        title: "Follow-up reminder queued",
+        detail: "The lead is ready for packet delivery and follow-up.",
+        occurredAt: createdAt,
+      },
+    );
+    store.reminders.push({
+      id: createId("reminder"),
+      workspaceId,
+      leadId,
+      title: "Send packet and follow up",
+      detail: "Review the packet, copy the outreach email, and send the short packet within one business day.",
+      dueAt: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString(),
+      status: "open",
+    });
+
+    return lead;
+  });
+}
+
+export async function updateLocalLeadStage(
+  workspaceId: string,
+  leadId: string,
+  stage: LeadStage,
+  ownerUserId: string,
+) {
+  return updateStore(ownerUserId, (store) => {
+    const lead = store.leads.find((entry) => entry.workspaceId === workspaceId && entry.id === leadId);
+
+    if (!lead) {
+      return null;
+    }
+
+    lead.stage = stage;
+    lead.updatedAt = new Date().toISOString();
+    store.activities.push({
+      id: createId("activity"),
+      workspaceId,
+      leadId,
+      type: "stage-updated",
+      title: "Lead stage updated",
+      detail: `Moved to ${stage.replace(/-/g, " ")}.`,
+      occurredAt: lead.updatedAt,
+    });
+
+    return lead;
+  });
+}
+
+export async function completeLocalReminder(
+  workspaceId: string,
+  reminderId: string,
+  ownerUserId: string,
+) {
+  return updateStore(ownerUserId, (store) => {
+    const reminder = store.reminders.find(
+      (entry) => entry.workspaceId === workspaceId && entry.id === reminderId,
+    );
+
+    if (!reminder) {
+      return null;
+    }
+
+    reminder.status = "complete";
+    store.activities.push({
+      id: createId("activity"),
+      workspaceId,
+      leadId: reminder.leadId,
+      type: "reminder-completed",
+      title: "Reminder completed",
+      detail: reminder.title,
+      occurredAt: new Date().toISOString(),
+    });
+
+    return reminder;
+  });
+}
+
+export async function saveLocalTemplate(
+  workspaceId: string,
+  ownerUserId: string,
+  input: Pick<EmailTemplateRecord, "name" | "subject" | "body" | "kind"> & {
+    id?: string;
+  },
+) {
+  return updateStore(ownerUserId, (store) => {
+    const existing = input.id
+      ? store.emailTemplates.find(
+          (entry) => entry.workspaceId === workspaceId && entry.id === input.id,
+        )
+      : null;
+
+    if (existing) {
+      existing.name = input.name;
+      existing.subject = input.subject;
+      existing.body = input.body;
+      existing.kind = input.kind;
+      existing.updatedAt = new Date().toISOString();
+
+      return existing;
+    }
+
+    const template: EmailTemplateRecord = {
+      id: createId("template"),
+      workspaceId,
+      name: input.name,
+      subject: input.subject,
+      body: input.body,
+      kind: input.kind,
+      updatedAt: new Date().toISOString(),
+    };
+
+    store.emailTemplates.push(template);
+
+    return template;
+  });
+}
+
+export async function resolveLocalPublicShare(
+  surface: ShareSurface,
+  id: string,
+  token: string,
+  ownerUserId = "demo-owner",
+): Promise<PublicShareSnapshot | null> {
+  return updateStore(ownerUserId, (store) => {
+    const shareLink = store.shareLinks.find(
+      (entry) =>
+        entry.leadId === id &&
+        entry.surface === surface &&
+        entry.token === token &&
+        entry.enabled,
+    );
+
+    if (!shareLink) {
+      return null;
+    }
+
+    const savedReport = store.savedReports.find((entry) => entry.leadId === id);
+    const lead = store.leads.find((entry) => entry.id === id);
+    const workspace = store.workspaces.find((entry) => entry.id === shareLink.workspaceId);
+
+    if (!savedReport || !lead || !workspace) {
+      return null;
+    }
+
+    shareLink.views += 1;
+    store.activities.push({
+      id: createId("activity"),
+      workspaceId: workspace.id,
+      leadId: lead.id,
+      type: "share-opened",
+      title: `${surface} share opened`,
+      detail: `The ${surface} share link was opened.`,
+      occurredAt: new Date().toISOString(),
+    });
+
+    return {
+      workspace,
+      lead,
+      savedReport,
+      shareLink,
+    };
+  });
+}

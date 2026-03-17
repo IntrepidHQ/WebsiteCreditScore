@@ -25,6 +25,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import type { AuditReport, PricingItem } from "@/lib/types/audit";
+import { applyProposalOffer, isProposalOfferActive } from "@/lib/utils/proposal-offers";
 import {
   calculateProjectedScore,
   calculatePricingSummary,
@@ -168,7 +169,8 @@ export function PricingConfigurator({ report }: { report: AuditReport }) {
   }, [initializeReport, report.id, report.pricingBundle, report.roiDefaults]);
 
   const summary = calculatePricingSummary(report.pricingBundle, selections);
-  const roiScenario = calculateRoiScenario(summary.total, roi);
+  const offerSummary = applyProposalOffer(summary.total, report.proposalOffer);
+  const roiScenario = calculateRoiScenario(offerSummary.finalTotal, roi);
   const projectedScore = calculateProjectedScore(report.overallScore, summary.selectedPackageItems);
   const objectionCards = [
     {
@@ -197,7 +199,7 @@ export function PricingConfigurator({ report }: { report: AuditReport }) {
         <SectionHeading
           eyebrow="Choose your price"
           title="Scope the proposal like a real estimate"
-          description="Keep the base clear. Add-ons stay itemized so scope and price move together."
+          description="The base rebuild should create a visible lift on its own. Add-ons are only for broader page coverage, search growth, or follow-up systems."
         />
         <div className="grid gap-8 lg:grid-cols-[minmax(0,1fr)_22rem]">
           <div className="space-y-6">
@@ -425,8 +427,23 @@ export function PricingConfigurator({ report }: { report: AuditReport }) {
                     aria-live="polite"
                     className="mt-2 font-display text-5xl font-semibold text-accent"
                   >
-                    ${summary.total.toLocaleString()}
+                    ${offerSummary.finalTotal.toLocaleString()}
                   </p>
+                  {report.proposalOffer ? (
+                    <div className="mt-2 space-y-1">
+                      <p className="text-sm font-semibold text-foreground">
+                        {report.proposalOffer.label}
+                      </p>
+                      <p className="text-xs leading-5 text-muted">
+                        {report.proposalOffer.reason}
+                      </p>
+                      <p className="text-xs leading-5 text-muted">
+                        {isProposalOfferActive(report.proposalOffer)
+                          ? `From $${offerSummary.originalTotal.toLocaleString()} · expires ${new Date(report.proposalOffer.expiresAt).toLocaleDateString()}`
+                          : "Offer expired"}
+                      </p>
+                    </div>
+                  ) : null}
                   <p className="mt-2 text-sm leading-6 text-muted">
                     {report.pricingBundle.stickyNote}
                   </p>

@@ -37,7 +37,7 @@ describe("pricing utilities", () => {
     const projected = calculateProjectedScore(report.overallScore, [
       bundle.addOns.find((item) => item.id === "full-site")!,
       bundle.addOns.find((item) => item.id === "copywriting")!,
-      bundle.addOns.find((item) => item.id === "technical-seo")!,
+      bundle.addOns.find((item) => item.id === "search-foundation")!,
     ]);
 
     expect(projected).toBeGreaterThan(report.overallScore);

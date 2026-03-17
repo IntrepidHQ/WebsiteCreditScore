@@ -3,6 +3,7 @@ import type { Metadata } from "next";
 import { Manrope, Space_Grotesk } from "next/font/google";
 
 import { ContactModal } from "@/components/common/contact-modal";
+import { RouteScrollReset } from "@/components/common/route-scroll-reset";
 import { SiteFooter } from "@/components/common/site-footer";
 import { SiteHeader } from "@/components/common/site-header";
 import { ThemeStyleProvider } from "@/components/common/theme-style-provider";
@@ -41,6 +42,9 @@ export default function RootLayout({
             <div aria-hidden="true" className="ambient-orb ambient-orb-2 right-0 top-[28rem]" />
             <Suspense fallback={null}>
               <SiteHeader />
+            </Suspense>
+            <Suspense fallback={null}>
+              <RouteScrollReset />
             </Suspense>
             {children}
             <SiteFooter />

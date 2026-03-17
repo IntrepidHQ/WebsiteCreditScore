@@ -159,9 +159,9 @@ export function AuditHeroSection({ report }: { report: AuditReport }) {
                   value="overall-methodology"
                   className="border-0 bg-transparent px-0"
                 >
-                  <AccordionTrigger className="py-0 text-sm">
-                    How this score was calculated
-                  </AccordionTrigger>
+                <AccordionTrigger className="py-0 pr-8 text-sm [&>svg]:right-0 [&>svg]:top-1/2 [&>svg]:-translate-y-1/2">
+                  How this score was calculated
+                </AccordionTrigger>
                   <AccordionContent className="pt-4">
                     <div className="space-y-3">
                       {methodologyNotes.map((note) => (
@@ -269,7 +269,7 @@ export function AuditHeroSection({ report }: { report: AuditReport }) {
                   key={score.key}
                   value={score.key}
                 >
-                  <AccordionTrigger className="items-start gap-3 py-5">
+                  <AccordionTrigger className="relative items-start gap-3 py-5 pr-8 [&>svg]:absolute [&>svg]:bottom-5 [&>svg]:right-0 [&>svg]:top-auto [&>svg]:translate-y-0">
                     <div className="w-full space-y-4">
                       <div className="flex items-start justify-between gap-4">
                         <p className="text-2xl font-semibold leading-tight text-foreground">
