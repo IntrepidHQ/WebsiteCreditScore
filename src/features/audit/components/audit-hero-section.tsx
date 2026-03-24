@@ -111,12 +111,12 @@ export function AuditHeroSection({ report }: { report: AuditReport }) {
   }, [reduceMotion]);
 
   return (
-    <section ref={sectionRef} className="presentation-section pt-10" id="overview">
-      <div className="mx-auto grid w-full max-w-7xl gap-8 px-4 sm:px-6 lg:grid-cols-[minmax(0,0.9fr)_minmax(0,1.1fr)] lg:px-8">
-        <div className="space-y-8">
-          <div className="space-y-5">
+    <section ref={sectionRef} className="presentation-section pt-8" id="overview">
+      <div className="mx-auto grid w-full max-w-7xl gap-6 px-4 sm:px-6 xl:grid-cols-[minmax(0,0.92fr)_minmax(0,1.08fr)] xl:gap-8 lg:px-8">
+        <div className="space-y-6">
+          <div className="space-y-4">
             <Badge variant="accent">Live audit</Badge>
-            <div className="space-y-4">
+            <div className="space-y-3">
               <h1 className="font-display text-4xl font-semibold tracking-[-0.04em] text-foreground sm:text-6xl">
                 {report.title}
               </h1>
@@ -124,7 +124,7 @@ export function AuditHeroSection({ report }: { report: AuditReport }) {
                 {report.executiveSummary}
               </p>
             </div>
-            <div className="flex flex-wrap gap-3">
+            <div className="flex flex-wrap gap-2.5">
               <Button asChild size="lg">
                 <a
                   href={`/packet/${report.id}?url=${encodeURIComponent(report.normalizedUrl)}`}
@@ -148,9 +148,9 @@ export function AuditHeroSection({ report }: { report: AuditReport }) {
             </div>
           </div>
 
-          <div className="grid gap-4">
+          <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-1">
             <div
-              className={`glass-panel rounded-[10px] border ${scoreSurfaceClasses[overallTone]} p-6`}
+              className={`glass-panel rounded-[10px] border ${scoreSurfaceClasses[overallTone]} p-5 sm:p-6`}
             >
               <div className="flex flex-wrap items-start justify-between gap-4">
                 <div>
@@ -165,14 +165,14 @@ export function AuditHeroSection({ report }: { report: AuditReport }) {
                     <span className="sr-only">{report.overallScore} out of 10</span>
                     <span className="pb-2 text-sm text-muted">/ 10</span>
                   </div>
-                  <p className="mt-3 text-sm leading-6 text-muted">
+                  <p className="mt-3 max-w-[32rem] text-sm leading-6 text-muted">
                     {describeScore(report.overallScore)}
                   </p>
                 </div>
                 <Badge variant={overallTone}>{overallTone}</Badge>
               </div>
 
-              <Accordion collapsible type="single" className="mt-5">
+              <Accordion collapsible type="single" className="mt-4">
                 <AccordionItem
                   value="overall-methodology"
                   className="border-0 bg-transparent px-0"
@@ -204,7 +204,7 @@ export function AuditHeroSection({ report }: { report: AuditReport }) {
               </Accordion>
             </div>
 
-            <div className="glass-panel rounded-[10px] p-6">
+            <div className="glass-panel rounded-[10px] p-5 sm:p-6">
               <p className="text-xs uppercase tracking-[0.18em] text-muted">Profile</p>
               <p className="mt-3 font-display text-2xl font-semibold">
                 {report.clientProfile.industryLabel}
@@ -212,7 +212,7 @@ export function AuditHeroSection({ report }: { report: AuditReport }) {
               <p className="mt-3 text-sm leading-6 text-muted">
                 Audience: {report.clientProfile.audience}
               </p>
-              <div className="mt-5 grid gap-3 sm:grid-cols-2 xl:grid-cols-1">
+              <div className="mt-4 grid gap-3 sm:grid-cols-2 xl:grid-cols-1">
                 <div className="rounded-[calc(var(--theme-radius)-2px)] border border-border/70 bg-background-alt/70 px-4 py-3">
                   <p className="text-xs uppercase tracking-[0.18em] text-muted">Primary goal</p>
                   <p className="mt-2 text-sm leading-6 text-foreground">
@@ -231,14 +231,15 @@ export function AuditHeroSection({ report }: { report: AuditReport }) {
                 </div>
               </div>
             </div>
+          </div>
 
-            <div className="glass-panel rounded-[10px] p-6">
+          <div className="glass-panel rounded-[10px] p-5 sm:p-6">
               <p className="text-xs uppercase tracking-[0.18em] text-muted">Observed on page</p>
               <div className="mt-3 space-y-4">
                 <p className="text-sm leading-6 text-foreground">
                   {report.siteObservation.aboutSnippet || "No high-confidence business summary was detected, so the audit is leaning more heavily on the visible interface and navigation structure."}
                 </p>
-                <div className="grid gap-3 sm:grid-cols-2">
+                <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-3">
                   {observedFacts.slice(0, 4).map((fact) => (
                     <div className="rounded-[calc(var(--theme-radius)-2px)] border border-border/70 bg-background-alt/70 px-4 py-3" key={fact.id}>
                       <div className="flex items-center justify-between gap-3">
@@ -267,12 +268,11 @@ export function AuditHeroSection({ report }: { report: AuditReport }) {
                   </div>
                 </div>
               </div>
-            </div>
           </div>
 
           <Accordion
             aria-label="Category score breakdown"
-            className="grid gap-4 md:grid-cols-2"
+            className="grid gap-3 lg:grid-cols-2 2xl:grid-cols-3"
             type="multiple"
           >
             {report.categoryScores.map((score) => {
@@ -285,16 +285,18 @@ export function AuditHeroSection({ report }: { report: AuditReport }) {
                   key={score.key}
                   value={score.key}
                 >
-                  <AccordionTrigger className="relative items-start gap-3 py-5 pr-8 [&>svg]:absolute [&>svg]:right-0 [&>svg]:top-5 [&>svg]:translate-y-0">
-                    <div className="w-full space-y-4">
-                      <p className="max-w-[12ch] text-2xl font-semibold leading-tight text-foreground">
-                        {score.label}
-                      </p>
-                      <span
-                        className={`block font-display text-5xl leading-none ${scoreTextClasses[tone]}`}
-                      >
-                        {score.score}
-                      </span>
+                  <AccordionTrigger className="relative items-start gap-3 py-4 pr-8 [&>svg]:absolute [&>svg]:right-0 [&>svg]:top-4 [&>svg]:translate-y-0">
+                    <div className="grid w-full gap-3">
+                      <div className="flex items-start justify-between gap-4">
+                        <p className="max-w-[13ch] text-[1.7rem] font-semibold leading-tight text-foreground">
+                          {score.label}
+                        </p>
+                        <span
+                          className={`block shrink-0 font-display text-5xl leading-none ${scoreTextClasses[tone]}`}
+                        >
+                          {score.score}
+                        </span>
+                      </div>
                       <p className="text-sm leading-7 text-muted">{score.summary}</p>
                       <div className="flex items-center gap-3">
                         <Badge variant={tone}>{tone}</Badge>

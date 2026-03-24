@@ -47,12 +47,12 @@ export function DevicePreview({
   return (
     <div
       className={cn(
-        "relative overflow-hidden rounded-[10px] border border-border/70 bg-panel/75 p-3 shadow-[var(--theme-shadow)] backdrop-blur-sm",
+        "relative overflow-hidden rounded-[10px] border border-border/70 bg-panel/75 p-2.5 shadow-[var(--theme-shadow)] backdrop-blur-sm sm:p-3",
         highlight && "ring-1 ring-accent/30",
         device === "mobile" && "mx-auto max-w-[18rem]",
       )}
     >
-      <div className="mb-3 flex items-center justify-between px-1.5">
+      <div className="mb-2.5 flex items-center justify-between px-1.5">
         <Badge variant={highlight ? "accent" : "neutral"}>{label}</Badge>
         <div className="flex items-center gap-1.5">
           <span className="size-2 rounded-full bg-danger/80" />

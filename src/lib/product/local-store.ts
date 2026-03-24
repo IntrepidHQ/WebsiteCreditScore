@@ -400,6 +400,9 @@ export async function getLocalDashboard(workspaceId: string, ownerUserId: string
 
   return {
     workspace,
+    savedReports: sortNewestFirst(
+      store.savedReports.filter((report) => report.workspaceId === workspaceId),
+    ),
     leads: sortNewestFirst(
       store.leads
         .filter((lead) => lead.workspaceId === workspaceId)
@@ -572,6 +575,40 @@ export async function createLocalLeadFromUrl(
     });
 
     return lead;
+  });
+}
+
+export async function deleteLocalLead(
+  workspaceId: string,
+  leadId: string,
+  ownerUserId: string,
+) {
+  return updateStore(ownerUserId, (store) => {
+    const leadExists = store.leads.some(
+      (entry) => entry.workspaceId === workspaceId && entry.id === leadId,
+    );
+
+    if (!leadExists) {
+      return false;
+    }
+
+    store.leads = store.leads.filter(
+      (entry) => !(entry.workspaceId === workspaceId && entry.id === leadId),
+    );
+    store.savedReports = store.savedReports.filter(
+      (entry) => !(entry.workspaceId === workspaceId && entry.leadId === leadId),
+    );
+    store.reminders = store.reminders.filter(
+      (entry) => !(entry.workspaceId === workspaceId && entry.leadId === leadId),
+    );
+    store.activities = store.activities.filter(
+      (entry) => !(entry.workspaceId === workspaceId && entry.leadId === leadId),
+    );
+    store.shareLinks = store.shareLinks.filter(
+      (entry) => !(entry.workspaceId === workspaceId && entry.leadId === leadId),
+    );
+
+    return true;
   });
 }
 

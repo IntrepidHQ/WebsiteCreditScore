@@ -38,6 +38,21 @@ export async function updateLeadStageAction(formData: FormData) {
   redirect(returnTo);
 }
 
+export async function deleteLeadAction(formData: FormData) {
+  const leadId = String(formData.get("leadId") ?? "");
+  const returnTo = String(formData.get("returnTo") ?? "/app");
+  const { repository, session, workspace } = await getWorkspaceAppContext();
+
+  if (!leadId) {
+    redirect(returnTo);
+  }
+
+  await repository.deleteLead(workspace.id, leadId, session);
+  revalidatePath("/app");
+  revalidatePath("/app/leads");
+  redirect(returnTo);
+}
+
 export async function completeReminderAction(formData: FormData) {
   const reminderId = String(formData.get("reminderId") ?? "");
   const returnTo = String(formData.get("returnTo") ?? "/app");

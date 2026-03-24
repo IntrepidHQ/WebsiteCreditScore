@@ -7,6 +7,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { LeadStageBadge } from "@/features/app/components/lead-stage-badge";
+import { ScanHistorySection } from "@/features/app/components/scan-history-section";
 import { getWorkspaceAppContext } from "@/lib/product/context";
 
 export default async function AppDashboardPage() {
@@ -169,6 +170,8 @@ export default async function AppDashboardPage() {
           </CardContent>
         </Card>
       </section>
+
+      <ScanHistorySection leads={dashboard.leads} savedReports={dashboard.savedReports} />
     </div>
   );
 }

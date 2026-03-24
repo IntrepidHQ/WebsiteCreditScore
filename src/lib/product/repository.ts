@@ -12,6 +12,7 @@ import { hasSupabaseEnv } from "@/lib/supabase/config";
 import {
   completeLocalReminder,
   createLocalLeadFromUrl,
+  deleteLocalLead,
   ensureLocalWorkspace,
   getLocalDashboard,
   getLocalLeadDetail,
@@ -22,6 +23,7 @@ import {
 import {
   completeSupabaseReminder,
   createSupabaseLeadFromUrl,
+  deleteSupabaseLead,
   ensureSupabaseWorkspace,
   getSupabaseDashboard,
   getSupabaseLeadDetail,
@@ -45,6 +47,11 @@ export interface ProductRepository {
     rawUrl: string,
     session: WorkspaceSession,
   ): Promise<LeadRecord>;
+  deleteLead(
+    workspaceId: string,
+    leadId: string,
+    session: WorkspaceSession,
+  ): Promise<boolean>;
   updateLeadStage(
     workspaceId: string,
     leadId: string,
@@ -79,6 +86,8 @@ function createLocalRepository(): ProductRepository {
       getLocalLeadDetail(workspaceId, leadId, session.userId),
     createLeadFromUrl: (workspaceId, rawUrl, session) =>
       createLocalLeadFromUrl(workspaceId, rawUrl, session.userId),
+    deleteLead: (workspaceId, leadId, session) =>
+      deleteLocalLead(workspaceId, leadId, session.userId),
     updateLeadStage: (workspaceId, leadId, stage, session) =>
       updateLocalLeadStage(workspaceId, leadId, stage, session.userId),
     completeReminder: (workspaceId, reminderId, session) =>
@@ -97,6 +106,7 @@ function createSupabaseRepository(): ProductRepository {
     getDashboard: (workspaceId) => getSupabaseDashboard(workspaceId),
     getLeadDetail: (workspaceId, leadId) => getSupabaseLeadDetail(workspaceId, leadId),
     createLeadFromUrl: (workspaceId, rawUrl) => createSupabaseLeadFromUrl(workspaceId, rawUrl),
+    deleteLead: (workspaceId, leadId) => deleteSupabaseLead(workspaceId, leadId),
     updateLeadStage: (workspaceId, leadId, stage) =>
       updateSupabaseLeadStage(workspaceId, leadId, stage),
     completeReminder: (workspaceId, reminderId) =>

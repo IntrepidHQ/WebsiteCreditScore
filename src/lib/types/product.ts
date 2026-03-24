@@ -161,6 +161,7 @@ export interface ShareLinkRecord {
 
 export interface DashboardSnapshot {
   workspace: WorkspaceRecord;
+  savedReports: SavedReport[];
   leads: LeadRecord[];
   reminders: ReminderRecord[];
   templates: EmailTemplateRecord[];

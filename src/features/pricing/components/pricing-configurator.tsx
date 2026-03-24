@@ -63,7 +63,7 @@ function PricingRow({
 
   return (
     <div
-      className="grid gap-4 border-t border-border/70 px-4 py-5 md:grid-cols-[minmax(0,1.55fr)_11rem_minmax(0,0.95fr)_8rem_3.25rem] md:items-start"
+      className="grid gap-4 border-t border-border/70 px-4 py-4 md:grid-cols-[minmax(0,1.7fr)_9rem_minmax(0,0.95fr)_7rem_3rem] md:items-start"
       role="row"
     >
       <div className="space-y-3" role="cell">
@@ -106,7 +106,7 @@ function PricingRow({
       </div>
 
       <div className="space-y-2" role="cell">
-        <p className="font-display text-3xl font-semibold text-accent">
+        <p className="font-display text-[2rem] font-semibold text-accent">
           +{item.estimatedScoreLift.toFixed(1)}
         </p>
         <p className="text-sm font-semibold text-foreground">{item.estimatedLiftLabel}</p>
@@ -123,7 +123,7 @@ function PricingRow({
       </div>
 
       <div className="space-y-2 md:text-right" role="cell">
-        <p className="font-display text-3xl font-semibold text-accent">
+        <p className="font-display text-[2rem] font-semibold text-accent">
           ${item.price.toLocaleString()}
         </p>
       </div>
@@ -133,7 +133,7 @@ function PricingRow({
           aria-describedby={`${descriptionId} ${benchmarkId}`}
           aria-label={selected ? `Remove ${item.title}` : `Add ${item.title}`}
           aria-pressed={selected}
-          className="size-11 px-0"
+          className="size-10 px-0"
           onClick={onToggle}
           size="icon"
           variant={selected ? "secondary" : "default"}
@@ -201,7 +201,7 @@ export function PricingConfigurator({ report }: { report: AuditReport }) {
           title="Scope the proposal like a real estimate"
           description="The base rebuild should create a visible lift on its own. Add-ons are only for broader page coverage, search growth, or follow-up systems."
         />
-        <div className="grid gap-8 lg:grid-cols-[minmax(0,1fr)_22rem]">
+        <div className="grid gap-6 xl:grid-cols-[minmax(0,1fr)_20rem] 2xl:grid-cols-[minmax(0,1fr)_21rem]">
           <div className="space-y-6">
             <Card className="border-accent/20 bg-accent/8">
               <CardHeader>
@@ -240,10 +240,10 @@ export function PricingConfigurator({ report }: { report: AuditReport }) {
                 <Badge variant="neutral">Why this matters now</Badge>
                 <CardTitle className="text-3xl">Objection handling inside the estimate</CardTitle>
               </CardHeader>
-              <CardContent className="grid gap-3 md:grid-cols-3">
+              <CardContent className="grid gap-3 lg:grid-cols-3">
                 {objectionCards.map((item) => (
                   <div
-                    className="rounded-[calc(var(--theme-radius)-4px)] border border-border/70 bg-background-alt/70 px-4 py-5"
+                    className="rounded-[calc(var(--theme-radius)-4px)] border border-border/70 bg-background-alt/70 px-4 py-4"
                     key={item.title}
                   >
                     <div className="flex items-center gap-3">
@@ -254,10 +254,10 @@ export function PricingConfigurator({ report }: { report: AuditReport }) {
                         {item.title}
                       </p>
                     </div>
-                    <p className="mt-4 text-[11px] uppercase tracking-[0.18em] text-muted">
+                    <p className="mt-3 text-[11px] uppercase tracking-[0.18em] text-muted">
                       {item.subtitle}
                     </p>
-                    <p className="mt-4 text-base leading-8 text-muted">{item.body}</p>
+                    <p className="mt-3 text-[15px] leading-7 text-muted">{item.body}</p>
                   </div>
                 ))}
               </CardContent>
@@ -283,7 +283,7 @@ export function PricingConfigurator({ report }: { report: AuditReport }) {
                       variant="outline"
                       onClick={() => setSelections(report.id, baseOnlySelections)}
                     >
-                      Clear
+                      Base only
                     </Button>
                   </div>
                 </div>
@@ -291,7 +291,7 @@ export function PricingConfigurator({ report }: { report: AuditReport }) {
               <CardContent className="p-0">
                 <div aria-label="Optional proposal upgrades" role="table">
                   <div
-                    className="hidden md:grid md:grid-cols-[minmax(0,1.55fr)_11rem_minmax(0,0.95fr)_8rem_3.25rem] md:gap-4 md:px-4 md:pb-2"
+                    className="hidden md:grid md:grid-cols-[minmax(0,1.7fr)_9rem_minmax(0,0.95fr)_7rem_3rem] md:gap-4 md:px-4 md:pb-2"
                     role="row"
                   >
                     <div role="columnheader">Scope item</div>
@@ -418,18 +418,18 @@ export function PricingConfigurator({ report }: { report: AuditReport }) {
             </Card>
           </div>
 
-          <aside className="lg:sticky lg:top-28 lg:h-fit">
+          <aside className="xl:sticky xl:top-24 xl:h-fit">
             <Card className="overflow-hidden">
               <CardHeader>
                 <Badge variant="accent">Proposal summary</Badge>
                 <CardTitle className="text-3xl">Current package</CardTitle>
               </CardHeader>
-              <CardContent className="space-y-5">
+              <CardContent className="space-y-4">
                 <div className="rounded-[calc(var(--theme-radius)-2px)] border border-border/70 bg-background-alt/70 p-4">
                   <p className="text-xs uppercase tracking-[0.18em] text-muted">Total investment</p>
                   <p
                     aria-live="polite"
-                    className="mt-2 font-display text-5xl font-semibold text-accent"
+                    className="mt-2 font-display text-[2.8rem] font-semibold leading-none text-accent"
                   >
                     ${offerSummary.finalTotal.toLocaleString()}
                   </p>
@@ -451,7 +451,7 @@ export function PricingConfigurator({ report }: { report: AuditReport }) {
                   <p className="mt-2 text-sm leading-6 text-muted">
                     {report.pricingBundle.stickyNote}
                   </p>
-                  <div className="mt-4 grid gap-3 sm:grid-cols-2">
+                  <div className="mt-4 grid gap-3 sm:grid-cols-2 xl:grid-cols-1">
                     <div className="rounded-[calc(var(--theme-radius)-4px)] border border-border/70 bg-panel/50 px-3 py-3">
                       <p className="text-xs uppercase tracking-[0.18em] text-muted">Current score</p>
                       <p className="mt-2 font-display text-3xl font-semibold text-foreground">
@@ -563,7 +563,7 @@ export function PricingConfigurator({ report }: { report: AuditReport }) {
                 <div>
                   <p className="text-xs uppercase tracking-[0.18em] text-muted">Proposal total</p>
                   <p className="font-display text-3xl font-semibold text-accent">
-                    ${summary.total.toLocaleString()}
+                    ${offerSummary.finalTotal.toLocaleString()}
                   </p>
                 </div>
                 <Button onClick={() => setContactModalOpen(true)}>Book call</Button>

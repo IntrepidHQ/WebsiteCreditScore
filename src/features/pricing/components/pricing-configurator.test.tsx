@@ -28,7 +28,9 @@ describe("PricingConfigurator", () => {
     render(<PricingConfigurator report={report} />);
 
     expect(
-      await screen.findByText(`$${offered.finalTotal.toLocaleString()}`),
+      await screen.findByText(`$${offered.finalTotal.toLocaleString()}`, {
+        selector: "[aria-live='polite']",
+      }),
     ).toBeInTheDocument();
   });
 
@@ -48,7 +50,11 @@ describe("PricingConfigurator", () => {
     );
 
     await waitFor(() =>
-      expect(screen.getByText(`$${nextOffered.finalTotal.toLocaleString()}`)).toBeInTheDocument(),
+      expect(
+        screen.getByText(`$${nextOffered.finalTotal.toLocaleString()}`, {
+          selector: "[aria-live='polite']",
+        }),
+      ).toBeInTheDocument(),
     );
   });
 });

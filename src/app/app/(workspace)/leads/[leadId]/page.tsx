@@ -5,6 +5,7 @@ import { History, LayoutPanelLeft, Sparkles } from "lucide-react";
 import { completeReminderAction, updateLeadStageAction } from "@/app/app/actions";
 import { AuditReportSections } from "@/features/audit/components/audit-report-sections";
 import { Button } from "@/components/ui/button";
+import { DeleteLeadButton } from "@/features/app/components/delete-lead-button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { LeadStageBadge } from "@/features/app/components/lead-stage-badge";
 import { ShareLinksPanel } from "@/features/app/components/share-links-panel";
@@ -87,6 +88,13 @@ export default async function LeadDetailPage({
                 <Button className="w-full" type="submit" variant="secondary">
                   Update stage
                 </Button>
+                <div className="flex justify-end">
+                  <DeleteLeadButton
+                    label={`Delete ${detail.lead.title}`}
+                    leadId={detail.lead.id}
+                    returnTo="/app"
+                  />
+                </div>
               </form>
             </CardContent>
           </Card>

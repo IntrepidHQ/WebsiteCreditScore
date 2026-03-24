@@ -21,8 +21,10 @@ describe("proposal offers", () => {
       expiresAt: "2026-03-20T00:00:00.000Z",
     };
 
-    expect(applyProposalOffer(5000, offer).finalTotal).toBe(4400);
-    expect(applyProposalOffer(400, offer).finalTotal).toBe(0);
+    const now = new Date("2026-03-10T00:00:00.000Z");
+
+    expect(applyProposalOffer(5000, offer, now).finalTotal).toBe(4400);
+    expect(applyProposalOffer(400, offer, now).finalTotal).toBe(0);
   });
 
   it("ignores expired offers", () => {

@@ -142,7 +142,7 @@ a {
 
 .presentation-section {
   position: relative;
-  padding-block: calc(4rem * var(--theme-spacing-density));
+  padding-block: calc(3.5rem * var(--theme-spacing-density));
 }
 
 .section-grid {
@@ -243,7 +243,7 @@ a {
 @media print {
   @page {
     size: letter portrait;
-    margin: 0.24in;
+    margin: 0.2in;
   }
 
   html,

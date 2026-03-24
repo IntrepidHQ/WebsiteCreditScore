@@ -31,6 +31,24 @@ function createId(prefix: string) {
   return `${prefix}-${randomUUID().slice(0, 8)}`;
 }
 
+function sortNewestFirst<
+  T extends {
+    updatedAt?: string;
+    createdAt?: string;
+    dueAt?: string;
+    occurredAt?: string;
+  },
+>(items: T[]) {
+  return [...items].sort((left, right) => {
+    const leftValue =
+      left.updatedAt ?? left.occurredAt ?? left.createdAt ?? left.dueAt ?? "";
+    const rightValue =
+      right.updatedAt ?? right.occurredAt ?? right.createdAt ?? right.dueAt ?? "";
+
+    return new Date(rightValue).getTime() - new Date(leftValue).getTime();
+  });
+}
+
 function buildWorkspace(ownerUserId: string, session: WorkspaceSession): WorkspaceRecord {
   const createdAt = new Date().toISOString();
 
@@ -146,6 +164,25 @@ async function upsertPayloadRecord(
 ) {
   const supabase = await createSupabaseServerClient();
   const { error } = await supabase.from(table).upsert(row, { onConflict: "id" });
+
+  if (error) {
+    throw error;
+  }
+}
+
+async function deleteWorkspaceScopedRows(
+  table: string,
+  workspaceId: string,
+  filters: Array<[column: string, value: string]>,
+) {
+  const supabase = await createSupabaseServerClient();
+  let query = supabase.from(table).delete().eq("workspace_id", workspaceId);
+
+  for (const [column, value] of filters) {
+    query = query.eq(column, value);
+  }
+
+  const { error } = await query;
 
   if (error) {
     throw error;
@@ -305,8 +342,9 @@ export async function getSupabaseDashboard(workspaceId: string): Promise<Dashboa
     throw new Error("Workspace not found.");
   }
 
-  const [leads, reminders, templates, referralCodes, referralEvents, credits, promos] =
+  const [savedReports, leads, reminders, templates, referralCodes, referralEvents, credits, promos] =
     await Promise.all([
+      listPayloadRecords<SavedReport>("saved_reports", "workspace_id", workspaceId),
       listPayloadRecords<LeadRecord>("leads", "workspace_id", workspaceId),
       listPayloadRecords<ReminderRecord>("reminders", "workspace_id", workspaceId),
       listPayloadRecords<EmailTemplateRecord>("email_templates", "workspace_id", workspaceId),
@@ -318,12 +356,13 @@ export async function getSupabaseDashboard(workspaceId: string): Promise<Dashboa
 
   return {
     workspace,
-    leads,
-    reminders,
-    templates,
+    savedReports: sortNewestFirst(savedReports),
+    leads: sortNewestFirst(leads),
+    reminders: sortNewestFirst(reminders.filter((reminder) => reminder.status === "open")),
+    templates: sortNewestFirst(templates),
     referralCode: referralCodes[0] ?? null,
-    referralEvents,
-    credits,
+    referralEvents: sortNewestFirst(referralEvents),
+    credits: sortNewestFirst(credits),
     promos,
   };
 }
@@ -458,6 +497,24 @@ export async function createSupabaseLeadFromUrl(workspaceId: string, rawUrl: str
   });
 
   return lead;
+}
+
+export async function deleteSupabaseLead(workspaceId: string, leadId: string) {
+  const detail = await getSupabaseLeadDetail(workspaceId, leadId);
+
+  if (!detail) {
+    return false;
+  }
+
+  await Promise.all([
+    deleteWorkspaceScopedRows("share_links", workspaceId, [["lead_id", leadId]]),
+    deleteWorkspaceScopedRows("activities", workspaceId, [["lead_id", leadId]]),
+    deleteWorkspaceScopedRows("reminders", workspaceId, [["lead_id", leadId]]),
+    deleteWorkspaceScopedRows("saved_reports", workspaceId, [["lead_id", leadId]]),
+    deleteWorkspaceScopedRows("leads", workspaceId, [["id", leadId]]),
+  ]);
+
+  return true;
 }
 
 export async function updateSupabaseLeadStage(
