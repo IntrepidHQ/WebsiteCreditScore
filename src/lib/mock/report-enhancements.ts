@@ -8,8 +8,11 @@ import type {
   SeverityLevel,
   SiteObservation,
 } from "@/lib/types/audit";
+import {
+  buildBenchmarkReferencesForProfile,
+  getCriterionForProfileCategory,
+} from "@/lib/benchmarks/library";
 import { clampScore } from "@/lib/utils/scores";
-import { createWebsiteScreenshotUrl } from "@/lib/utils/url";
 
 const categoryLabels: Record<AuditCategoryKey, string> = {
   "visual-design": "Visual Design",
@@ -126,16 +129,18 @@ function buildScoreDetails(
   observed: string[],
   action: string,
   benchmark: string,
+  rubricFocus?: string,
 ) {
   return [
     observed.length ? `Observed: ${observed[0]}` : `Observed: ${label} needs more direct evidence on-page.`,
+    rubricFocus ? `Benchmark focus: ${rubricFocus}` : null,
     `Why it matters: ${benchmark}`,
     `Next step: ${action}`,
-  ];
+  ].filter(Boolean) as string[];
 }
 
 export function buildObservedCategoryScores(
-  _profile: ReportProfileType,
+  profile: ReportProfileType,
   observation: SiteObservation,
   scoreOverrides?: Partial<Record<AuditCategoryKey, number>>,
 ) {
@@ -143,20 +148,30 @@ export function buildObservedCategoryScores(
     fact.type === "phone" || fact.type === "email" || fact.type === "address",
   ).length;
   const verifiedAbout = observation.verifiedFacts.find((fact) => fact.type === "about");
+  const motionSignalBonus = observation.motionSignals.length ? 0.35 : -0.3;
+  const motionStoryBonus = observation.motionSignals.some(
+    (signal) => signal === "scroll-story" || signal === "layout-transition" || signal === "page-transition",
+  )
+    ? 0.2
+    : observation.motionSignals.length
+      ? 0.05
+      : -0.15;
   const computedScores: Record<AuditCategoryKey, number> = {
     "visual-design": clampScore(
       5.6 +
         (observation.heroHeading ? 0.6 : -0.7) +
         (observation.metaDescription ? 0.3 : -0.4) +
         (observation.ogImage ? 0.3 : 0) +
-        (observation.templateSignals.length ? -1.3 : 0.4),
+        (observation.templateSignals.length ? -1.3 : 0.4) +
+        motionSignalBonus,
     ),
     "ux-conversion": clampScore(
       5.3 +
         ctaPenalty(observation) +
         (observation.formCount ? 0.4 : -0.4) +
         (verifiedContactCount >= 1 ? 0.5 : 0) +
-        (observation.trustSignals.length >= 2 ? 0.3 : 0),
+        (observation.trustSignals.length >= 2 ? 0.3 : 0) +
+        motionStoryBonus,
     ),
     "mobile-experience": clampScore(
       5.4 +
@@ -238,6 +253,7 @@ export function buildObservedCategoryScores(
         [observation.heroHeading || observation.pageTitle],
         "Tighten hierarchy, reduce generic chrome, and make the first screen feel unmistakably custom.",
         "A 9+ visual score feels immediate, branded, and intentional before the visitor starts reading.",
+        getCriterionForProfileCategory(profile, key)?.whyItMatters,
       ),
       "ux-conversion": buildScoreDetails(
         categoryLabels[key],
@@ -248,24 +264,28 @@ export function buildObservedCategoryScores(
         ],
         "Sequence proof before the ask and reduce the number of competing actions.",
         "High-scoring conversion paths make the next step obvious without asking for commitment too early.",
+        getCriterionForProfileCategory(profile, key)?.whyItMatters,
       ),
       "mobile-experience": buildScoreDetails(
         categoryLabels[key],
         [observation.hasViewport ? "Viewport meta tag is present." : "Viewport meta tag was not detected."],
         "Prioritize shorter sections, stronger spacing, and one clear mobile CTA path.",
         "A 9+ mobile score means the first message, proof, and next step still land cleanly on small screens.",
+        getCriterionForProfileCategory(profile, key)?.whyItMatters,
       ),
       "seo-readiness": buildScoreDetails(
         categoryLabels[key],
         observation.seoSignals,
         "Expand supporting pages, tighten metadata, and map internal links around real search intent.",
         "A 9+ search score combines page-level hygiene with real content depth and crawlable structure.",
+        getCriterionForProfileCategory(profile, key)?.whyItMatters,
       ),
       accessibility: buildScoreDetails(
         categoryLabels[key],
         observation.technicalSignals,
         "Audit contrast, alt text, focus states, and heading order so the page gets easier to use for everyone.",
         "High accessibility scores usually correlate with clearer content structure and lower friction.",
+        getCriterionForProfileCategory(profile, key)?.whyItMatters,
       ),
       "trust-credibility": buildScoreDetails(
         categoryLabels[key],
@@ -274,12 +294,14 @@ export function buildObservedCategoryScores(
           .map((fact) => `${fact.label}: ${fact.value}`),
         "Move proof, credentials, and reassurance closer to the first CTA and key decision moments.",
         "A 9+ trust score makes competence, safety, and legitimacy obvious before the visitor hesitates.",
+        getCriterionForProfileCategory(profile, key)?.whyItMatters,
       ),
       "security-posture": buildScoreDetails(
         categoryLabels[key],
         observation.securitySignals.length ? observation.securitySignals : ["No strong public-facing security headers were detected."],
         "Add missing security headers and make trust around forms and handling more explicit.",
         "A strong security posture is visible: HTTPS, modern headers, and fewer public signs of operational looseness.",
+        getCriterionForProfileCategory(profile, key)?.whyItMatters,
       ),
     };
 
@@ -503,208 +525,7 @@ export function buildObservedFindings(
 }
 
 export function buildBenchmarkReferences(profile: ReportProfileType): BenchmarkReference[] {
-  const sets: Record<ReportProfileType, BenchmarkReference[]> = {
-    healthcare: [
-      {
-        id: "benchmark-onemedical",
-        name: "One Medical",
-        url: "https://www.onemedical.com",
-        sourceLabel: "Healthcare reference",
-        note: "Clear booking paths, strong reassurance, and a cleaner primary-care information hierarchy.",
-        previewImage: createWebsiteScreenshotUrl("https://www.onemedical.com", "desktop"),
-        targetScore: 9.1,
-        strengths: ["ux-conversion", "mobile-experience", "trust-credibility"],
-        whatWorks: [
-          "The first screen states the service clearly and gives the visitor one obvious next step.",
-          "Trust cues and operational details appear before the page asks for commitment.",
-          "The mobile experience keeps booking and wayfinding simple instead of forcing extra scanning.",
-        ],
-        bestFor: "Healthcare sites that need calmer booking flow and stronger first-screen reassurance.",
-      },
-      {
-        id: "benchmark-zocdoc",
-        name: "Zocdoc",
-        url: "https://www.zocdoc.com",
-        sourceLabel: "Healthcare booking reference",
-        note: "Strong next-step clarity and visible scheduling confidence.",
-        previewImage: createWebsiteScreenshotUrl("https://www.zocdoc.com", "desktop"),
-        targetScore: 8.9,
-        strengths: ["ux-conversion", "trust-credibility", "seo-readiness"],
-        whatWorks: [
-          "Search and booking paths are immediate, so intent turns into action quickly.",
-          "Provider proof, filters, and reassurance reduce hesitation before scheduling.",
-          "The page architecture supports both discovery and conversion without feeling bloated.",
-        ],
-        bestFor: "Healthcare teams that need the site to qualify and route appointment intent faster.",
-      },
-      {
-        id: "benchmark-apple",
-        name: "Apple",
-        url: "https://www.apple.com",
-        sourceLabel: "Global design reference",
-        note: "A good reminder of how restrained hierarchy and confident visual systems raise perceived quality fast.",
-        previewImage: createWebsiteScreenshotUrl("https://www.apple.com", "desktop"),
-        targetScore: 9.4,
-        strengths: ["visual-design", "mobile-experience", "accessibility"],
-        whatWorks: [
-          "The hierarchy is obvious within seconds, even before the visitor reads deeply.",
-          "Spacing, type scale, and component consistency make the brand feel more capable.",
-          "Mobile and accessibility basics feel considered rather than bolted on later.",
-        ],
-        bestFor: "Teams that need a higher bar for visual polish, restraint, and premium perception.",
-      },
-      {
-        id: "benchmark-mayo",
-        name: "Mayo Clinic",
-        url: "https://www.mayoclinic.org",
-        sourceLabel: "Healthcare content reference",
-        note: "A strong benchmark for health-information clarity, structure, and confidence at scale.",
-        previewImage: createWebsiteScreenshotUrl("https://www.mayoclinic.org", "desktop"),
-        targetScore: 8.8,
-        strengths: ["seo-readiness", "trust-credibility", "accessibility"],
-        whatWorks: [
-          "Information is structured clearly enough that deep health topics still feel trustworthy and navigable.",
-          "Credibility cues are woven into the experience instead of isolated in one section.",
-          "The page architecture supports discovery, reassurance, and follow-on exploration.",
-        ],
-        bestFor: "Healthcare teams that need stronger information architecture without losing trust or readability.",
-      },
-    ],
-    "local-service": [
-      {
-        id: "benchmark-ajalberts",
-        name: "AJ Alberts Plumbing",
-        url: "https://www.ajalberts.com",
-        sourceLabel: "Home-service reference",
-        note: "Shows how service pages, proof, and direct contact can feel more immediate.",
-        previewImage: createWebsiteScreenshotUrl("https://www.ajalberts.com", "desktop"),
-        targetScore: 8.8,
-        strengths: ["ux-conversion", "trust-credibility", "seo-readiness"],
-        whatWorks: [
-          "Service intent is visible quickly, so visitors do not have to decode what the company does.",
-          "Proof and contact options appear early, which lowers hesitation for local prospects.",
-          "The site structure supports both service pages and search capture instead of relying on one page.",
-        ],
-        bestFor: "Local-service sites that need clearer service intent and stronger estimate paths.",
-      },
-      {
-        id: "benchmark-northface",
-        name: "Northface Construction",
-        url: "https://northfaceconstruction.com",
-        sourceLabel: "Contractor reference",
-        note: "Useful reference for a tighter estimate path and stronger first-screen confidence.",
-        previewImage: createWebsiteScreenshotUrl("https://northfaceconstruction.com", "desktop"),
-        targetScore: 8.9,
-        strengths: ["visual-design", "ux-conversion", "trust-credibility"],
-        whatWorks: [
-          "The first screen feels more custom and more trustworthy than a generic contractor template.",
-          "Calls to action are direct, but the page still earns the ask with proof and process.",
-          "Service-business trust cues are positioned where prospects actually need them.",
-        ],
-        bestFor: "Contractors and trades that need a sharper first impression and cleaner estimate flow.",
-      },
-      {
-        id: "benchmark-apple-local",
-        name: "Apple",
-        url: "https://www.apple.com",
-        sourceLabel: "Global design reference",
-        note: "Not a service business, but a strong benchmark for hierarchy, restraint, and premium finish.",
-        previewImage: createWebsiteScreenshotUrl("https://www.apple.com", "desktop"),
-        targetScore: 9.4,
-        strengths: ["visual-design", "mobile-experience", "accessibility"],
-        whatWorks: [
-          "The page direction is clear immediately, which reduces cognitive load.",
-          "The visual system feels consistent at every scale and on every device.",
-          "Polish comes from restraint and clarity, not from piling on more UI.",
-        ],
-        bestFor: "Any service-business redesign that needs a cleaner premium design benchmark.",
-      },
-      {
-        id: "benchmark-mrrooter",
-        name: "Mr. Rooter",
-        url: "https://www.mrrooter.com",
-        sourceLabel: "Service-network reference",
-        note: "Useful for studying service hierarchy, contact clarity, and local-intent conversion patterns.",
-        previewImage: createWebsiteScreenshotUrl("https://www.mrrooter.com", "desktop"),
-        targetScore: 8.5,
-        strengths: ["ux-conversion", "seo-readiness", "mobile-experience"],
-        whatWorks: [
-          "Service intent, location discovery, and contact paths appear early in the experience.",
-          "The page structure supports both immediate need and broader service exploration.",
-          "Mobile conversion paths stay direct instead of burying the call or quote action.",
-        ],
-        bestFor: "Trades and local-service sites that need cleaner urgency handling and stronger contact flow.",
-      },
-    ],
-    saas: [
-      {
-        id: "benchmark-stripe",
-        name: "Stripe",
-        url: "https://stripe.com",
-        sourceLabel: "SaaS reference",
-        note: "Clear positioning, strong proof density, and a product story that stays easy to scan.",
-        previewImage: createWebsiteScreenshotUrl("https://stripe.com", "desktop"),
-        targetScore: 9.5,
-        strengths: ["visual-design", "ux-conversion", "trust-credibility"],
-        whatWorks: [
-          "Positioning, proof, and product explanation stay scannable even on dense pages.",
-          "The site earns trust with strong structure before it asks for deeper commitment.",
-          "Calls to action stay visible without overwhelming the reader.",
-        ],
-        bestFor: "SaaS sites that need stronger proof density without losing clarity.",
-      },
-      {
-        id: "benchmark-linear",
-        name: "Linear",
-        url: "https://linear.app",
-        sourceLabel: "SaaS reference",
-        note: "A strong benchmark for product clarity, pacing, and modern interface confidence.",
-        previewImage: createWebsiteScreenshotUrl("https://linear.app", "desktop"),
-        targetScore: 9.3,
-        strengths: ["visual-design", "mobile-experience", "ux-conversion"],
-        whatWorks: [
-          "The pacing is tight, so the visitor always knows what to read next.",
-          "The interface confidence supports the product story instead of competing with it.",
-          "Mobile and smaller-screen presentation remain deliberate and readable.",
-        ],
-        bestFor: "Product teams that want modern polish without sacrificing comprehension.",
-      },
-      {
-        id: "benchmark-apple-saas",
-        name: "Apple",
-        url: "https://www.apple.com",
-        sourceLabel: "Global design reference",
-        note: "Useful as a high bar for clarity, polish, and restraint even outside the SaaS category.",
-        previewImage: createWebsiteScreenshotUrl("https://www.apple.com", "desktop"),
-        targetScore: 9.4,
-        strengths: ["visual-design", "accessibility", "mobile-experience"],
-        whatWorks: [
-          "Visual hierarchy is strong enough that the page feels premium before the details land.",
-          "Components, spacing, and contrast remain disciplined throughout the experience.",
-          "The product is not buried under unnecessary chrome or competing directions.",
-        ],
-        bestFor: "Teams looking for a reference point for clarity, polish, and restraint.",
-      },
-      {
-        id: "benchmark-vercel",
-        name: "Vercel",
-        url: "https://vercel.com",
-        sourceLabel: "SaaS platform reference",
-        note: "A strong benchmark for product clarity, design polish, and modern developer-facing storytelling.",
-        previewImage: createWebsiteScreenshotUrl("https://vercel.com", "desktop"),
-        targetScore: 8.9,
-        strengths: ["visual-design", "ux-conversion", "mobile-experience"],
-        whatWorks: [
-          "The page keeps technical product messaging crisp without losing visual confidence.",
-          "Calls to action stay visible while the narrative still earns trust through structure and proof.",
-          "The experience remains deliberate across viewport sizes instead of collapsing into density.",
-        ],
-        bestFor: "SaaS teams that need stronger narrative pacing, proof, and product polish.",
-      },
-    ],
-  };
-
-  return sets[profile];
+  return buildBenchmarkReferencesForProfile(profile);
 }
 
 export function getBenchmarkReferenceScore(reference: BenchmarkReference) {

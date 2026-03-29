@@ -9,6 +9,7 @@ import {
   createThemeTokens,
   defaultBranding,
   exportThemePayload,
+  getThemePresets,
 } from "@/lib/utils/theme";
 
 type MotionPreference = "system" | "reduced";
@@ -17,6 +18,7 @@ interface ThemeState {
   tokens: ThemeTokens;
   branding: AgencyBranding;
   motionPreference: MotionPreference;
+  presetId: string | null;
   setMode: (mode: ThemeMode) => void;
   setAccentColor: (accentColor: string) => void;
   setFontScale: (fontScale: number) => void;
@@ -24,6 +26,7 @@ interface ThemeState {
   setShadowIntensity: (shadowIntensity: number) => void;
   setSpacingDensity: (spacingDensity: number) => void;
   setMotionPreference: (preference: MotionPreference) => void;
+  applyPreset: (presetId: string) => void;
   randomizeTheme: () => void;
   restoreDefaults: () => void;
   updateBranding: (patch: Partial<AgencyBranding>) => void;
@@ -31,6 +34,7 @@ interface ThemeState {
 }
 
 const defaultTokens = createThemeTokens();
+const themePresets = getThemePresets();
 
 export const useThemeStore = create<ThemeState>()(
   persist(
@@ -38,8 +42,10 @@ export const useThemeStore = create<ThemeState>()(
       tokens: defaultTokens,
       branding: defaultBranding,
       motionPreference: "system",
+      presetId: themePresets[0]?.id ?? null,
       setMode: (mode) =>
         set((state) => ({
+          presetId: null,
           tokens: createThemeTokens({
             ...state.tokens,
             mode,
@@ -48,6 +54,7 @@ export const useThemeStore = create<ThemeState>()(
         })),
       setAccentColor: (accentColor) =>
         set((state) => ({
+          presetId: null,
           tokens: createThemeTokens({
             ...state.tokens,
             accentColor,
@@ -55,6 +62,7 @@ export const useThemeStore = create<ThemeState>()(
         })),
       setFontScale: (fontScale) =>
         set((state) => ({
+          presetId: null,
           tokens: createThemeTokens({
             ...state.tokens,
             fontScale,
@@ -62,6 +70,7 @@ export const useThemeStore = create<ThemeState>()(
         })),
       setRadius: (radius) =>
         set((state) => ({
+          presetId: null,
           tokens: createThemeTokens({
             ...state.tokens,
             radius,
@@ -69,6 +78,7 @@ export const useThemeStore = create<ThemeState>()(
         })),
       setShadowIntensity: (shadowIntensity) =>
         set((state) => ({
+          presetId: null,
           tokens: createThemeTokens({
             ...state.tokens,
             shadowIntensity,
@@ -76,14 +86,33 @@ export const useThemeStore = create<ThemeState>()(
         })),
       setSpacingDensity: (spacingDensity) =>
         set((state) => ({
+          presetId: null,
           tokens: createThemeTokens({
             ...state.tokens,
             spacingDensity,
           }),
         })),
       setMotionPreference: (motionPreference) => set({ motionPreference }),
+      applyPreset: (presetId) =>
+        set((state) => {
+          const preset = themePresets.find((item) => item.id === presetId);
+
+          if (!preset) {
+            return state;
+          }
+
+          return {
+            presetId,
+            tokens: createThemeTokens({
+              ...preset.tokens,
+              accentColor:
+                state.branding.accentOverride || preset.tokens.accentColor,
+            }),
+          };
+        }),
       randomizeTheme: () =>
         set((state) => ({
+          presetId: null,
           tokens: createRandomTheme(state.tokens.mode),
         })),
       restoreDefaults: () =>
@@ -91,6 +120,7 @@ export const useThemeStore = create<ThemeState>()(
           tokens: defaultTokens,
           branding: defaultBranding,
           motionPreference: "system",
+          presetId: themePresets[0]?.id ?? null,
         }),
       updateBranding: (patch) =>
         set((state) => {
@@ -118,6 +148,7 @@ export const useThemeStore = create<ThemeState>()(
           tokens: persisted.tokens
             ? createThemeTokens(persisted.tokens)
             : currentState.tokens,
+          presetId: persisted.presetId ?? currentState.presetId,
         };
       },
     },

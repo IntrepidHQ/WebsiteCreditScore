@@ -36,14 +36,14 @@ export function SiteFooter() {
           <p className="max-w-2xl text-sm leading-7 text-muted">
             Audit the live site, package the opportunity, and scope the redesign.
           </p>
-          <div className="flex flex-wrap gap-3">
-            <Button asChild size="sm">
+          <div className="grid gap-3 sm:flex sm:flex-wrap">
+            <Button asChild className="w-full sm:w-auto" size="sm">
               <Link href="/audit/mark-deford-md">
                 <ScanSearch className="size-4" />
                 Open sample audit
               </Link>
             </Button>
-            <Button asChild size="sm" variant="secondary">
+            <Button asChild className="w-full sm:w-auto" size="sm" variant="secondary">
               <Link href="/settings">
                 <Settings className="size-4" />
                 Theme settings

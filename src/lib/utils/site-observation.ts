@@ -40,6 +40,8 @@ function normalizeObservationText(input: string) {
     .replace(/\bskip to content\b/gi, " ")
     .replace(/^\d+\s+/, "")
     .replace(/\bopen\b$/i, "")
+    .replace(/\bsaunders\b/gi, "Saunders")
+    .replace(/\bsaunder's\b/gi, "Saunder's")
     .replace(/\s+/g, " ")
     .trim();
 }
@@ -239,11 +241,11 @@ function selectAboutSnippet(paragraphs: string[], metaDescription: string) {
   const safeMetaDescription = cleanText(metaDescription);
 
   if (candidate) {
-    return trimToSentenceBoundary(candidate);
+    return trimToSentenceBoundary(candidate, 150, 1);
   }
 
   if (safeMetaDescription && !isLikelyNavigationNoise(safeMetaDescription)) {
-    return trimToSentenceBoundary(safeMetaDescription);
+    return trimToSentenceBoundary(safeMetaDescription, 150, 1);
   }
 
   return "";
@@ -656,6 +658,49 @@ function deriveSecuritySignals(headers: Headers) {
   return signals;
 }
 
+function deriveMotionSignals(html: string, text: string) {
+  const signals = new Set<string>();
+  const haystack = `${html}\n${text}`;
+
+  if (/prefers-reduced-motion|motion-reduce/i.test(haystack)) {
+    signals.add("reduced-motion");
+  }
+
+  if (/(hover:|focus:|active:|transition(?:-duration)?|duration-\d|ease-)/i.test(haystack)) {
+    signals.add("micro-feedback");
+  }
+
+  if (/(accordion|toggle|toast|success|error|validation|form-state)/i.test(haystack)) {
+    signals.add("state-feedback");
+  }
+
+  if (/(animate-|fade-|fade in|stagger|entrance|entering|reveal)/i.test(haystack)) {
+    signals.add("reveal");
+  }
+
+  if (/(scrolltrigger|data-aos|scrollreveal|framer-motion|motion\/react|motion\.dev|gsap|lenis|locomotive|lottie|animejs|scroll[- ]story|parallax)/i.test(haystack)) {
+    signals.add("scroll-story");
+  }
+
+  if (/(flip|layoutid|layout transition|layout-transition|view-transition)/i.test(haystack)) {
+    signals.add("layout-transition");
+  }
+
+  if (/(page transition|route transition|view-transition|route-transition)/i.test(haystack)) {
+    signals.add("page-transition");
+  }
+
+  if (/(splittext|typewriter|typing|scramble|kinetic|text reveal|line reveal|text-motion)/i.test(haystack)) {
+    signals.add("text-motion");
+  }
+
+  if (/(marquee|ticker|ambient|background animation|looping|continuous motion)/i.test(haystack)) {
+    signals.add("ambient-motion");
+  }
+
+  return uniqueTexts([...signals], 8);
+}
+
 export function createFallbackObservation(rawUrl: string): SiteObservation {
   const normalizedUrl = normalizeUrl(rawUrl);
 
@@ -672,6 +717,7 @@ export function createFallbackObservation(rawUrl: string): SiteObservation {
     seoSignals: [],
     securitySignals: [],
     technicalSignals: [],
+    motionSignals: [],
     notableDetails: [],
     templateSignals: [],
     screenshotUrl: createWebsiteScreenshotUrl(normalizedUrl, "desktop"),
@@ -736,6 +782,7 @@ async function fetchObservation(normalizedUrl: string): Promise<SiteObservation>
     const templateSignals = deriveTemplateSignals(text);
     const trustSignals = deriveTrustSignals(text, paragraphs, schemaKinds, verifiedFacts);
     const securitySignals = deriveSecuritySignals(response.headers);
+    const motionSignals = deriveMotionSignals(html, text);
     const seoSignals = uniqueTexts(
       [
         pageTitle ? `Title tag present: ${pageTitle}` : "",
@@ -772,6 +819,7 @@ async function fetchObservation(normalizedUrl: string): Promise<SiteObservation>
       seoSignals,
       securitySignals,
       technicalSignals,
+      motionSignals,
       notableDetails: extractNotableDetails(text, paragraphs, verifiedFacts),
       templateSignals,
       screenshotUrl: createWebsiteScreenshotUrl(finalUrl, "desktop"),

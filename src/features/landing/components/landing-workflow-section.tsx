@@ -52,14 +52,14 @@ export function LandingWorkflowSection() {
             </Card>
           ))}
         </div>
-        <div className="flex flex-wrap gap-3">
-          <Button asChild>
+        <div className="grid gap-3 sm:flex sm:flex-wrap">
+          <Button asChild className="w-full sm:w-auto">
             <Link href="/examples">
               Browse all examples
               <ArrowRight className="size-4" />
             </Link>
           </Button>
-          <Button asChild variant="secondary">
+          <Button asChild className="w-full sm:w-auto" variant="secondary">
             <Link href="/platform">
               Platform overview
               <ArrowRight className="size-4" />

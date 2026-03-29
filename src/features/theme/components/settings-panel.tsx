@@ -11,6 +11,7 @@ import { Input } from "@/components/ui/input";
 import { Slider } from "@/components/ui/slider";
 import { Switch } from "@/components/ui/switch";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { getThemePresets } from "@/lib/utils/theme";
 import { useThemeStore } from "@/store/theme-store";
 
 function SettingRow({
@@ -63,6 +64,7 @@ export function SettingsPanel() {
   const tokens = useThemeStore((state) => state.tokens);
   const branding = useThemeStore((state) => state.branding);
   const motionPreference = useThemeStore((state) => state.motionPreference);
+  const presetId = useThemeStore((state) => state.presetId);
   const setMode = useThemeStore((state) => state.setMode);
   const setAccentColor = useThemeStore((state) => state.setAccentColor);
   const setFontScale = useThemeStore((state) => state.setFontScale);
@@ -70,10 +72,12 @@ export function SettingsPanel() {
   const setShadowIntensity = useThemeStore((state) => state.setShadowIntensity);
   const setSpacingDensity = useThemeStore((state) => state.setSpacingDensity);
   const setMotionPreference = useThemeStore((state) => state.setMotionPreference);
+  const applyPreset = useThemeStore((state) => state.applyPreset);
   const updateBranding = useThemeStore((state) => state.updateBranding);
   const randomizeTheme = useThemeStore((state) => state.randomizeTheme);
   const restoreDefaults = useThemeStore((state) => state.restoreDefaults);
   const exportThemeJson = useThemeStore((state) => state.exportThemeJson);
+  const presets = getThemePresets();
 
   function downloadTheme() {
     const blob = new Blob([exportThemeJson()], { type: "application/json" });
@@ -119,6 +123,39 @@ export function SettingsPanel() {
               </div>
             </CardHeader>
             <CardContent className="space-y-4">
+              <div className="grid gap-3 lg:grid-cols-2 xl:grid-cols-3">
+                {presets.map((preset) => (
+                  <button
+                    className={`rounded-[10px] border p-4 text-left transition ${
+                      presetId === preset.id
+                        ? "border-accent/40 bg-accent/8"
+                        : "border-border/70 bg-panel/50 hover:border-accent/25 hover:bg-panel/70"
+                    }`}
+                    key={preset.id}
+                    onClick={() => applyPreset(preset.id)}
+                    type="button"
+                  >
+                    <div className="flex items-center justify-between gap-3">
+                      <div>
+                        <p className="font-semibold text-foreground">{preset.name}</p>
+                        <p className="mt-1 text-xs uppercase tracking-[0.18em] text-muted">
+                          {preset.mode} · {preset.accentFamily}
+                        </p>
+                      </div>
+                      <span
+                        aria-hidden="true"
+                        className="size-5 rounded-full border border-border/60"
+                        style={{ backgroundColor: preset.tokens.surfaces.accent }}
+                      />
+                    </div>
+                    <p className="mt-3 text-sm leading-6 text-muted">{preset.mood}</p>
+                    <p className="mt-2 text-xs uppercase tracking-[0.18em] text-muted">
+                      {preset.recommendedUseCase}
+                    </p>
+                  </button>
+                ))}
+              </div>
+
               <SettingRow
                 titleId={modeLabelId}
                 label="Theme mode"
@@ -129,9 +166,13 @@ export function SettingsPanel() {
                   onValueChange={(value) => setMode(value === "light" ? "light" : "dark")}
                   value={tokens.mode}
                 >
-                  <TabsList>
-                    <TabsTrigger value="dark">Dark</TabsTrigger>
-                    <TabsTrigger value="light">Light</TabsTrigger>
+                  <TabsList className="w-full sm:w-auto">
+                    <TabsTrigger className="flex-1 justify-center sm:flex-none" value="dark">
+                      Dark
+                    </TabsTrigger>
+                    <TabsTrigger className="flex-1 justify-center sm:flex-none" value="light">
+                      Light
+                    </TabsTrigger>
                   </TabsList>
                 </Tabs>
               </SettingRow>

@@ -1,4 +1,10 @@
-import type { AgencyBranding, ThemeMode, ThemeTokens } from "@/lib/types/audit";
+import type {
+  AgencyBranding,
+  ThemeMode,
+  ThemePreset,
+  ThemeTokens,
+} from "@/lib/types/audit";
+import { getAllThemePresetSeeds } from "@/lib/benchmarks/library";
 
 function clamp(value: number, min: number, max: number) {
   return Math.min(max, Math.max(min, value));
@@ -253,6 +259,25 @@ export function createRandomTheme(mode: ThemeMode) {
     shadowIntensity: clamp(0.55 + Math.random() * 0.45, 0.45, 1),
     spacingDensity: clamp(0.88 + Math.random() * 0.22, 0.84, 1.12),
   });
+}
+
+export function getThemePresets(): ThemePreset[] {
+  return getAllThemePresetSeeds().map((preset) => ({
+    id: preset.id,
+    name: preset.name,
+    mode: preset.mode,
+    accentFamily: preset.accentFamily,
+    mood: preset.mood,
+    recommendedUseCase: preset.recommendedUseCase,
+    tokens: createThemeTokens({
+      mode: preset.mode,
+      accentColor: preset.options.accentColor,
+      fontScale: preset.options.fontScale,
+      radius: preset.options.radius,
+      shadowIntensity: preset.options.shadowIntensity,
+      spacingDensity: preset.options.spacingDensity,
+    }),
+  }));
 }
 
 export function getThemeCssVariables(tokens: ThemeTokens) {

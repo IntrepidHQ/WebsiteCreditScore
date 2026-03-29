@@ -38,20 +38,20 @@ export function AppShell({
                 </div>
               </div>
             </div>
-            <div className="flex flex-wrap items-center gap-2">
-              <Button asChild size="sm">
+            <div className="grid w-full gap-2 sm:flex sm:w-auto sm:flex-wrap sm:items-center">
+              <Button asChild className="w-full sm:w-auto" size="sm">
                 <Link href="/app#new-lead">
                   <PlusCircle className="size-4" />
                   New audit
                 </Link>
               </Button>
-              <Button asChild size="sm" variant="secondary">
+              <Button asChild className="w-full sm:w-auto" size="sm" variant="secondary">
                 <Link href="/examples">
                   <ArrowUpRight className="size-4" />
                   Public examples
                 </Link>
               </Button>
-              <Button asChild size="sm" variant="ghost">
+              <Button asChild className="w-full sm:w-auto" size="sm" variant="ghost">
                 <Link href="/auth/logout">
                   <LogOut className="size-4" />
                   Log out

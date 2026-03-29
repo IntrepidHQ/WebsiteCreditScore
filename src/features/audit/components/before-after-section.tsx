@@ -52,23 +52,21 @@ function OpportunityCard({
 
 export function BeforeAfterSection({ report }: { report: AuditReport }) {
   const sectionRef = useRef<HTMLElement>(null);
-  const previewRef = useRef<HTMLDivElement>(null);
   const { reduceMotion } = useMotionSettings();
 
   useEffect(() => {
-    if (reduceMotion || !sectionRef.current || !previewRef.current) {
+    if (reduceMotion || !sectionRef.current) {
       return;
     }
 
     gsap.registerPlugin(ScrollTrigger);
-    const desktopOnly = window.matchMedia("(min-width: 1024px)").matches;
 
     const ctx = gsap.context(() => {
       gsap.from("[data-opportunity-card]", {
-        y: 32,
+        y: 18,
         opacity: 0,
-        duration: 0.75,
-        stagger: 0.12,
+        duration: 0.55,
+        stagger: 0.08,
         ease: "power3.out",
         scrollTrigger: {
           trigger: sectionRef.current,
@@ -76,16 +74,6 @@ export function BeforeAfterSection({ report }: { report: AuditReport }) {
           once: true,
         },
       });
-
-      if (desktopOnly) {
-        ScrollTrigger.create({
-          trigger: sectionRef.current,
-          start: "top top+=110",
-          end: "bottom bottom-=120",
-          pin: previewRef.current,
-          pinSpacing: false,
-        });
-      }
     }, sectionRef);
 
     return () => ctx.revert();
@@ -94,7 +82,7 @@ export function BeforeAfterSection({ report }: { report: AuditReport }) {
   return (
     <section ref={sectionRef} className="presentation-section" id="vision">
       <div className="mx-auto grid w-full max-w-7xl gap-6 px-4 sm:px-6 xl:grid-cols-[minmax(0,0.97fr)_minmax(0,1.03fr)] xl:items-start xl:gap-8 lg:px-8">
-        <div ref={previewRef} className="space-y-4 xl:space-y-5">
+        <div className="space-y-4 xl:space-y-5">
           <SectionHeading
             eyebrow="Before / after vision"
             title="What the upgraded site could actually feel like"

@@ -38,6 +38,32 @@ export type BenchmarkType =
 
 export type ThemeMode = "light" | "dark";
 export type PreviewDevice = "desktop" | "mobile";
+export type BenchmarkVertical =
+  | "service-providers"
+  | "private-healthcare"
+  | "product-saas";
+export type BenchmarkTier = "flagship" | "reference" | "specialist";
+export type DesignElementKey =
+  | "line"
+  | "shape"
+  | "form"
+  | "space"
+  | "value"
+  | "color"
+  | "texture";
+export type DesignPrincipleKey =
+  | "balance"
+  | "contrast"
+  | "emphasis"
+  | "movement"
+  | "pattern"
+  | "rhythm"
+  | "unity"
+  | "variety"
+  | "hierarchy"
+  | "alignment"
+  | "proximity"
+  | "proportion";
 export type ObservationFactType = "about" | "phone" | "email" | "address";
 export type ObservationFactSource =
   | "tel-link"
@@ -170,6 +196,16 @@ export interface ThemeTokens {
   surfaces: ThemeSurfaces;
 }
 
+export interface ThemePreset {
+  id: string;
+  name: string;
+  mode: ThemeMode;
+  accentFamily: string;
+  mood: string;
+  recommendedUseCase: string;
+  tokens: ThemeTokens;
+}
+
 export interface AgencyBranding {
   agencyName: string;
   logoMark: string;
@@ -250,20 +286,102 @@ export interface CompetitorSnapshot {
   }>;
 }
 
+export interface BenchmarkCriterion {
+  id: string;
+  category: AuditCategoryKey;
+  title: string;
+  description: string;
+  whyItMatters: string;
+  signals: string[];
+}
+
+export interface BenchmarkRubric {
+  id: string;
+  vertical: BenchmarkVertical;
+  title: string;
+  summary: string;
+  fastLifts: string[];
+  criteria: BenchmarkCriterion[];
+}
+
+export interface DesignPatternNote {
+  id: string;
+  title: string;
+  source: string;
+  category:
+    | "typography"
+    | "grid"
+    | "workflow"
+    | "iconography"
+    | "color"
+    | "prompts";
+  summary: string;
+  takeaways: string[];
+  applicability: string;
+}
+
+export interface BenchmarkSite {
+  id: string;
+  vertical: BenchmarkVertical;
+  tier: BenchmarkTier;
+  name: string;
+  url: string;
+  sourceLabel: string;
+  note: string;
+  desktopPreviewImage: string;
+  mobilePreviewImage: string;
+  strengths: AuditCategoryKey[];
+  whatWorks: string[];
+  bestFor: string;
+  reusablePatterns: string[];
+  curatedWeight: number;
+}
+
+export interface DesignDimensionScore<Key extends string = string> {
+  key: Key;
+  label: string;
+  description: string;
+  score: number;
+}
+
+export interface BenchmarkScan {
+  id: string;
+  siteId: string;
+  vertical: BenchmarkVertical;
+  overallScore: number;
+  designScore: number;
+  animationScore: number;
+  designElementScores: DesignDimensionScore<DesignElementKey>[];
+  designPrincipleScores: DesignDimensionScore<DesignPrincipleKey>[];
+  categoryScores: AuditCategoryScore[];
+  scannedAt: string;
+  previewImages: AuditPreviewAsset;
+  note: string;
+  tier: BenchmarkTier;
+  scoreSource: "measured" | "reference";
+}
+
 export interface BenchmarkReference {
   id: string;
+  siteId: string;
+  vertical: BenchmarkVertical;
+  tier: BenchmarkTier;
   name: string;
   url: string;
   sourceLabel: string;
   note: string;
   previewImage: string;
+  mobilePreviewImage: string;
   targetScore: number;
   measuredScore?: number;
+  measuredAnimationScore?: number;
   measuredCategoryScores?: AuditCategoryScore[];
+  benchmarkScanId?: string;
   scoreSource?: "measured" | "reference";
   strengths: AuditCategoryKey[];
   whatWorks: string[];
   bestFor: string;
+  reusablePatterns: string[];
 }
 
 export interface ObservationFact {
@@ -288,6 +406,7 @@ export interface SiteObservation {
   seoSignals: string[];
   securitySignals: string[];
   technicalSignals: string[];
+  motionSignals: string[];
   notableDetails: string[];
   templateSignals: string[];
   screenshotUrl: string;
@@ -339,6 +458,7 @@ export interface AuditReport {
   proposalCtas: ProposalCTA[];
   competitorSnapshots: CompetitorSnapshot[];
   benchmarkReferences: BenchmarkReference[];
+  benchmarkScanIds: string[];
   objectionHandling: string[];
   roiDefaults: RoiScenarioDefaults;
   previewSet: AuditPreviewSet;

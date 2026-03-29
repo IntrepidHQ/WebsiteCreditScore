@@ -23,6 +23,10 @@ import {
   buildObservedExecutiveSummary,
   buildObservedFindings,
 } from "@/lib/mock/report-enhancements";
+import {
+  measureBenchmarkReferences,
+  rankMeasuredBenchmarkReferences,
+} from "@/lib/benchmarks/scans";
 import { sampleAudits } from "@/lib/mock/sample-audits";
 import { generateOutreachEmail } from "@/lib/utils/outreach";
 import { createDefaultProposalOffer } from "@/lib/utils/proposal-offers";
@@ -129,71 +133,22 @@ function domainHash(input: string) {
   return [...input].reduce((acc, char) => acc + char.charCodeAt(0), 0);
 }
 
-function getHostname(input: string) {
-  return new URL(normalizeUrl(input)).hostname.replace(/^www\./, "");
-}
-
-function sortBenchmarkReferences(
-  references: BenchmarkReference[],
-  currentOverallScore: number,
-) {
-  return [...references].sort((left, right) => {
-    const leftScore = getBenchmarkReferenceScore(left);
-    const rightScore = getBenchmarkReferenceScore(right);
-    const leftIsStronger = leftScore > currentOverallScore;
-    const rightIsStronger = rightScore > currentOverallScore;
-
-    if (leftIsStronger !== rightIsStronger) {
-      return leftIsStronger ? -1 : 1;
-    }
-
-    return rightScore - leftScore;
-  });
-}
-
 export function selectBenchmarkReferencesForReport(
   currentUrl: string,
   currentOverallScore: number,
   references: BenchmarkReference[],
 ) {
-  const currentHostname = getHostname(currentUrl);
-  const filtered = references.filter((reference) => getHostname(reference.url) !== currentHostname);
-
-  return sortBenchmarkReferences(filtered, currentOverallScore).slice(0, 3);
+  return rankMeasuredBenchmarkReferences(currentUrl, currentOverallScore, references).slice(0, 3);
 }
 
 async function enrichBenchmarkReferences(
   currentUrl: string,
   currentOverallScore: number,
-  references: BenchmarkReference[],
+  profile: ReportProfileType,
 ) {
-  const measured = await Promise.all(
-    references.map(async (reference) => {
-      const observation = await inspectWebsite(reference.url);
+  const { references } = await measureBenchmarkReferences(profile);
 
-      if (!observation.fetchSucceeded) {
-        return {
-          ...reference,
-          scoreSource: "reference" as const,
-        };
-      }
-
-      const measuredCategoryScores = buildObservedCategoryScores(
-        inferProfileType(observation.finalUrl || reference.url),
-        observation,
-      );
-
-      return {
-        ...reference,
-        previewImage: createWebsiteScreenshotUrl(observation.finalUrl || reference.url, "desktop"),
-        measuredScore: aggregateOverallScore(measuredCategoryScores),
-        measuredCategoryScores,
-        scoreSource: "measured" as const,
-      };
-    }),
-  );
-
-  return selectBenchmarkReferencesForReport(currentUrl, currentOverallScore, measured);
+  return selectBenchmarkReferencesForReport(currentUrl, currentOverallScore, references);
 }
 
 function makeBenchmark(
@@ -1637,6 +1592,9 @@ function buildAuditReport(
     proposalCtas,
     competitorSnapshots,
     benchmarkReferences,
+    benchmarkScanIds: benchmarkReferences
+      .map((item) => item.benchmarkScanId)
+      .filter(Boolean) as string[],
     objectionHandling: [
       "Patching the current site usually preserves the same structural compromises that are already suppressing trust and conversion.",
       "A phased rebuild lowers risk because strategy, content, design, and implementation can be validated in sequence instead of guessed all at once.",
@@ -1663,7 +1621,7 @@ async function enrichReportBenchmarks(report: AuditReport): Promise<AuditReport>
   const measuredBenchmarkReferences = await enrichBenchmarkReferences(
     report.normalizedUrl,
     report.overallScore,
-    buildBenchmarkReferences(report.clientProfile.type),
+    report.clientProfile.type,
   );
   const currentSnapshot = report.competitorSnapshots.find(
     (snapshot) => snapshot.relationship === "your-site",
@@ -1672,6 +1630,9 @@ async function enrichReportBenchmarks(report: AuditReport): Promise<AuditReport>
   return {
     ...report,
     benchmarkReferences: measuredBenchmarkReferences,
+    benchmarkScanIds: measuredBenchmarkReferences
+      .map((item) => item.benchmarkScanId)
+      .filter(Boolean) as string[],
     competitorSnapshots: buildCompetitors(
       {
         name: currentSnapshot?.name ?? report.title,

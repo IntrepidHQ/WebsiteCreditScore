@@ -66,7 +66,7 @@ h6 {
 p,
 li,
 figcaption {
-  line-height: 1.65;
+  line-height: 1.7;
   text-wrap: pretty;
 }
 
@@ -77,7 +77,7 @@ body {
   color: var(--theme-foreground);
   font-family: var(--font-manrope), sans-serif;
   font-size: calc(16px * var(--theme-font-scale));
-  line-height: 1.55;
+  line-height: 1.58;
   font-kerning: normal;
   font-feature-settings: "liga" 1, "kern" 1, "ss01" 1, "cv05" 1;
   -webkit-font-smoothing: antialiased;

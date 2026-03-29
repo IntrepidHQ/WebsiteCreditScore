@@ -46,7 +46,6 @@ const scoreTextClasses = {
 
 export function AuditHeroSection({ report }: { report: AuditReport }) {
   const sectionRef = useRef<HTMLElement>(null);
-  const previewRef = useRef<HTMLDivElement>(null);
   const { reduceMotion } = useMotionSettings();
   const previewDevice = useUiStore((state) => state.previewDevice);
   const setPreviewDevice = useUiStore((state) => state.setPreviewDevice);
@@ -73,31 +72,18 @@ export function AuditHeroSection({ report }: { report: AuditReport }) {
   });
 
   useEffect(() => {
-    if (reduceMotion || !sectionRef.current || !previewRef.current) {
+    if (reduceMotion || !sectionRef.current) {
       return;
     }
 
     gsap.registerPlugin(ScrollTrigger);
-    const desktopOnly = window.matchMedia("(min-width: 1024px)").matches;
-
-    if (!desktopOnly) {
-      return;
-    }
 
     const ctx = gsap.context(() => {
-      ScrollTrigger.create({
-        trigger: sectionRef.current,
-        start: "top top+=96",
-        end: "bottom bottom-=120",
-        pin: previewRef.current,
-        pinSpacing: false,
-      });
-
       gsap.from("[data-hero-chip]", {
-        y: 24,
+        y: 18,
         opacity: 0,
-        duration: 0.7,
-        stagger: 0.08,
+        duration: 0.55,
+        stagger: 0.06,
         ease: "power3.out",
         scrollTrigger: {
           trigger: sectionRef.current,
@@ -112,20 +98,20 @@ export function AuditHeroSection({ report }: { report: AuditReport }) {
 
   return (
     <section ref={sectionRef} className="presentation-section pt-8" id="overview">
-      <div className="mx-auto grid w-full max-w-7xl gap-6 px-4 sm:px-6 xl:grid-cols-[minmax(0,0.92fr)_minmax(0,1.08fr)] xl:gap-8 lg:px-8">
-        <div className="space-y-6">
-          <div className="space-y-4">
+      <div className="mx-auto w-full max-w-7xl space-y-6 px-4 sm:px-6 lg:px-8">
+        <div className="grid gap-6 xl:grid-cols-[minmax(0,0.92fr)_minmax(0,1.08fr)] xl:gap-8">
+          <div className="space-y-5">
             <Badge variant="accent">Live audit</Badge>
             <div className="space-y-3">
               <h1 className="font-display text-4xl font-semibold tracking-[-0.04em] text-foreground sm:text-6xl">
                 {report.title}
               </h1>
-              <p className="max-w-2xl text-lg leading-8 text-muted">
+              <p className="max-w-3xl text-lg leading-8 text-muted">
                 {report.executiveSummary}
               </p>
             </div>
-            <div className="flex flex-wrap gap-2.5">
-              <Button asChild size="lg">
+            <div className="grid gap-2.5 sm:flex sm:flex-wrap">
+              <Button asChild className="w-full sm:w-auto" size="lg">
                 <a
                   href={`/packet/${report.id}?url=${encodeURIComponent(report.normalizedUrl)}`}
                   target="_blank"
@@ -135,41 +121,91 @@ export function AuditHeroSection({ report }: { report: AuditReport }) {
                   <ArrowRight className="size-4" />
                 </a>
               </Button>
-              <Button asChild size="lg" variant="secondary">
+              <Button asChild className="w-full sm:w-auto" size="lg" variant="secondary">
                 <a href={`/brief/${report.id}?url=${encodeURIComponent(report.normalizedUrl)}`}>
                   Open Creative Brief
                   <ArrowRight className="size-4" />
                 </a>
               </Button>
-              <Button size="lg" onClick={() => setContactModalOpen(true)} variant="outline">
+              <Button
+                className="w-full sm:w-auto"
+                size="lg"
+                onClick={() => setContactModalOpen(true)}
+                variant="outline"
+              >
                 Book Strategy Call
                 <ArrowRight className="size-4" />
               </Button>
             </div>
           </div>
 
-          <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-1">
+          <div className="space-y-4">
+            <div className="glass-panel rounded-[10px] border border-border/70 p-5">
+              <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+                <div>
+                  <p className="text-xs uppercase tracking-[0.18em] text-muted">Website preview</p>
+                  <div className="mt-2 flex items-center gap-2 text-sm text-muted">
+                    <Sparkles className="size-4 text-accent" />
+                    {report.normalizedUrl}
+                  </div>
+                </div>
+                <Tabs
+                  onValueChange={(value) =>
+                    setPreviewDevice(value === "mobile" ? "mobile" : "desktop")
+                  }
+                  value={previewDevice}
+                >
+                  <TabsList className="w-full sm:w-auto">
+                    <TabsTrigger className="flex-1 justify-center sm:flex-none" value="desktop">
+                      <Monitor className="mr-2 size-4" />
+                      Desktop
+                    </TabsTrigger>
+                    <TabsTrigger className="flex-1 justify-center sm:flex-none" value="mobile">
+                      <Smartphone className="mr-2 size-4" />
+                      Mobile
+                    </TabsTrigger>
+                  </TabsList>
+                </Tabs>
+              </div>
+            </div>
+            <DevicePreview
+              alt={`${report.title} preview`}
+              device={previewDevice}
+              fallbackImage={report.previewSet.fallbackCurrent[previewDevice]}
+              highlight
+              image={report.previewSet.current[previewDevice]}
+              label={
+                previewDevice === "mobile"
+                  ? report.previewSet.mobileLabel
+                  : report.previewSet.desktopLabel
+              }
+            />
+          </div>
+        </div>
+
+        <div className="grid gap-4 xl:grid-cols-[minmax(0,0.42fr)_minmax(0,0.58fr)]">
+          <div className="space-y-4">
             <div
               className={`glass-panel rounded-[10px] border ${scoreSurfaceClasses[overallTone]} p-5 sm:p-6`}
             >
-              <div className="flex flex-wrap items-start justify-between gap-4">
-                <div>
+              <div className="space-y-4">
+                <div className="flex flex-wrap items-start justify-between gap-3">
                   <p className="text-xs uppercase tracking-[0.18em] text-muted">Overall score</p>
-                  <div className="mt-3 flex items-end gap-3">
-                    <div
-                      aria-hidden="true"
-                      className={`font-display text-6xl font-semibold tracking-[-0.04em] ${scoreTextClasses[overallTone]}`}
-                    >
-                      <AnimatedScore score={report.overallScore} />
-                    </div>
-                    <span className="sr-only">{report.overallScore} out of 10</span>
-                    <span className="pb-2 text-sm text-muted">/ 10</span>
-                  </div>
-                  <p className="mt-3 max-w-[32rem] text-sm leading-6 text-muted">
-                    {describeScore(report.overallScore)}
-                  </p>
+                  <Badge variant={overallTone}>{overallTone}</Badge>
                 </div>
-                <Badge variant={overallTone}>{overallTone}</Badge>
+                <div className="flex items-end gap-3">
+                  <div
+                    aria-hidden="true"
+                    className={`font-display text-6xl font-semibold tracking-[-0.04em] ${scoreTextClasses[overallTone]}`}
+                  >
+                    <AnimatedScore score={report.overallScore} />
+                  </div>
+                  <span className="sr-only">{report.overallScore} out of 10</span>
+                  <span className="pb-2 text-sm text-muted">/ 10</span>
+                </div>
+                <p className="max-w-[34rem] text-sm leading-6 text-muted">
+                  {describeScore(report.overallScore)}
+                </p>
               </div>
 
               <Accordion collapsible type="single" className="mt-4">
@@ -204,7 +240,7 @@ export function AuditHeroSection({ report }: { report: AuditReport }) {
               </Accordion>
             </div>
 
-            <div className="glass-panel rounded-[10px] p-5 sm:p-6">
+            <div className="glass-panel rounded-[10px] border border-border/70 p-5 sm:p-6">
               <p className="text-xs uppercase tracking-[0.18em] text-muted">Profile</p>
               <p className="mt-3 font-display text-2xl font-semibold">
                 {report.clientProfile.industryLabel}
@@ -212,7 +248,7 @@ export function AuditHeroSection({ report }: { report: AuditReport }) {
               <p className="mt-3 text-sm leading-6 text-muted">
                 Audience: {report.clientProfile.audience}
               </p>
-              <div className="mt-4 grid gap-3 sm:grid-cols-2 xl:grid-cols-1">
+              <div className="mt-4 grid gap-3">
                 <div className="rounded-[calc(var(--theme-radius)-2px)] border border-border/70 bg-background-alt/70 px-4 py-3">
                   <p className="text-xs uppercase tracking-[0.18em] text-muted">Primary goal</p>
                   <p className="mt-2 text-sm leading-6 text-foreground">
@@ -233,18 +269,26 @@ export function AuditHeroSection({ report }: { report: AuditReport }) {
             </div>
           </div>
 
-          <div className="glass-panel rounded-[10px] p-5 sm:p-6">
+          <div className="space-y-4">
+            <div className="glass-panel rounded-[10px] border border-border/70 p-5 sm:p-6">
               <p className="text-xs uppercase tracking-[0.18em] text-muted">Observed on page</p>
               <div className="mt-3 space-y-4">
-                <p className="text-sm leading-6 text-foreground">
-                  {report.siteObservation.aboutSnippet || "No high-confidence business summary was detected, so the audit is leaning more heavily on the visible interface and navigation structure."}
+                <p className="text-sm leading-7 text-foreground">
+                  {report.siteObservation.aboutSnippet ||
+                    "No high-confidence business summary was detected, so the audit is leaning more heavily on the visible interface and navigation structure."}
                 </p>
-                <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-3">
+                <div className="grid gap-3 lg:grid-cols-2">
                   {observedFacts.slice(0, 4).map((fact) => (
-                    <div className="rounded-[calc(var(--theme-radius)-2px)] border border-border/70 bg-background-alt/70 px-4 py-3" key={fact.id}>
-                      <div className="flex items-center justify-between gap-3">
+                    <div
+                      className="rounded-[calc(var(--theme-radius)-2px)] border border-border/70 bg-background-alt/70 px-4 py-3"
+                      key={fact.id}
+                    >
+                      <div className="flex items-start justify-between gap-3">
                         <p className="text-xs uppercase tracking-[0.18em] text-muted">{fact.label}</p>
-                        <Badge variant={fact.confidence === "verified" ? "accent" : "neutral"}>
+                        <Badge
+                          className="shrink-0"
+                          variant={fact.confidence === "verified" ? "accent" : "neutral"}
+                        >
                           {fact.confidence}
                         </Badge>
                       </div>
@@ -268,100 +312,56 @@ export function AuditHeroSection({ report }: { report: AuditReport }) {
                   </div>
                 </div>
               </div>
-          </div>
+            </div>
 
-          <Accordion
-            aria-label="Category score breakdown"
-            className="grid gap-3 lg:grid-cols-2 2xl:grid-cols-3"
-            type="multiple"
-          >
-            {report.categoryScores.map((score) => {
-              const tone = getScoreTone(score.score);
+            <Accordion
+              aria-label="Category score breakdown"
+              className="grid gap-3 xl:grid-cols-2"
+              type="multiple"
+            >
+              {report.categoryScores.map((score) => {
+                const tone = getScoreTone(score.score);
 
-              return (
-                <AccordionItem
-                  className="rounded-[10px] border-border/70 bg-panel/72"
-                  data-hero-chip
-                  key={score.key}
-                  value={score.key}
-                >
-                  <AccordionTrigger className="relative items-start gap-3 py-4 pr-8 [&>svg]:absolute [&>svg]:right-0 [&>svg]:top-4 [&>svg]:translate-y-0">
-                    <div className="grid w-full gap-3">
-                      <div className="flex items-start justify-between gap-4">
-                        <p className="max-w-[13ch] text-[1.7rem] font-semibold leading-tight text-foreground">
+                return (
+                  <AccordionItem
+                    className="rounded-[10px] border-border/70 bg-panel/72"
+                    data-hero-chip
+                    key={score.key}
+                    value={score.key}
+                  >
+                    <AccordionTrigger className="relative flex flex-col items-start gap-4 py-5 pr-10 text-left [&>svg]:absolute [&>svg]:bottom-5 [&>svg]:right-0 [&>svg]:top-auto">
+                      <div className="grid w-full gap-3">
+                        <p className="text-[1.9rem] font-semibold leading-[1] text-foreground">
                           {score.label}
                         </p>
                         <span
-                          className={`block shrink-0 font-display text-5xl leading-none ${scoreTextClasses[tone]}`}
+                          className={`block font-display text-5xl leading-none ${scoreTextClasses[tone]}`}
                         >
                           {score.score}
                         </span>
-                      </div>
-                      <p className="text-sm leading-7 text-muted">{score.summary}</p>
-                      <div className="flex items-center gap-3">
-                        <Badge variant={tone}>{tone}</Badge>
-                      </div>
-                    </div>
-                  </AccordionTrigger>
-                  <AccordionContent>
-                    <div className="space-y-3">
-                      {score.details.map((detail) => (
-                        <div
-                          className="rounded-[calc(var(--theme-radius)-4px)] border border-border/70 bg-background-alt/70 px-4 py-3 text-sm leading-6 text-muted"
-                          key={detail}
-                        >
-                          {detail}
+                        <p className="text-sm font-normal leading-7 text-muted">{score.summary}</p>
+                        <div className="flex items-center gap-3">
+                          <Badge variant={tone}>{tone}</Badge>
                         </div>
-                      ))}
-                    </div>
-                  </AccordionContent>
-                </AccordionItem>
-              );
-            })}
-          </Accordion>
-        </div>
-
-        <div ref={previewRef} className="space-y-4">
-          <div className="glass-panel rounded-[10px] p-5">
-            <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-              <div>
-                <p className="text-xs uppercase tracking-[0.18em] text-muted">Website preview</p>
-                <div className="mt-2 flex items-center gap-2 text-sm text-muted">
-                  <Sparkles className="size-4 text-accent" />
-                  {report.normalizedUrl}
-                </div>
-              </div>
-              <Tabs
-                onValueChange={(value) =>
-                  setPreviewDevice(value === "mobile" ? "mobile" : "desktop")
-                }
-                value={previewDevice}
-              >
-                <TabsList>
-                  <TabsTrigger value="desktop">
-                    <Monitor className="mr-2 size-4" />
-                    Desktop
-                  </TabsTrigger>
-                  <TabsTrigger value="mobile">
-                    <Smartphone className="mr-2 size-4" />
-                    Mobile
-                  </TabsTrigger>
-                </TabsList>
-              </Tabs>
-            </div>
+                      </div>
+                    </AccordionTrigger>
+                    <AccordionContent className="pt-0">
+                      <div className="space-y-3">
+                        {score.details.map((detail) => (
+                          <div
+                            className="rounded-[calc(var(--theme-radius)-4px)] border border-border/70 bg-background-alt/70 px-4 py-3 text-sm leading-6 text-muted"
+                            key={detail}
+                          >
+                            {detail}
+                          </div>
+                        ))}
+                      </div>
+                    </AccordionContent>
+                  </AccordionItem>
+                );
+              })}
+            </Accordion>
           </div>
-          <DevicePreview
-            alt={`${report.title} preview`}
-            device={previewDevice}
-            fallbackImage={report.previewSet.fallbackCurrent[previewDevice]}
-            highlight
-            image={report.previewSet.current[previewDevice]}
-            label={
-              previewDevice === "mobile"
-                ? report.previewSet.mobileLabel
-                : report.previewSet.desktopLabel
-            }
-          />
         </div>
       </div>
     </section>

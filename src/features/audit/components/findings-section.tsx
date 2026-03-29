@@ -67,25 +67,23 @@ export function FindingsSection({
   findings: Finding[];
 }) {
   const sectionRef = useRef<HTMLElement>(null);
-  const introRef = useRef<HTMLDivElement>(null);
   const { reduceMotion } = useMotionSettings();
   const meta = sectionMeta[section];
   const Icon = meta.icon;
 
   useEffect(() => {
-    if (reduceMotion || !sectionRef.current || !introRef.current) {
+    if (reduceMotion || !sectionRef.current) {
       return;
     }
 
     gsap.registerPlugin(ScrollTrigger);
-    const desktopOnly = window.matchMedia("(min-width: 1024px)").matches;
 
     const ctx = gsap.context(() => {
       gsap.from("[data-finding-card]", {
-        y: 40,
+        y: 20,
         opacity: 0,
-        duration: 0.8,
-        stagger: 0.12,
+        duration: 0.55,
+        stagger: 0.08,
         ease: "power3.out",
         scrollTrigger: {
           trigger: sectionRef.current,
@@ -94,15 +92,6 @@ export function FindingsSection({
         },
       });
 
-      if (desktopOnly) {
-        ScrollTrigger.create({
-          trigger: sectionRef.current,
-          start: "top top+=110",
-          end: "bottom bottom-=120",
-          pin: introRef.current,
-          pinSpacing: false,
-        });
-      }
     }, sectionRef);
 
     return () => ctx.revert();
@@ -115,7 +104,7 @@ export function FindingsSection({
       id={section === "what-working" ? "findings" : undefined}
     >
       <div className="mx-auto grid w-full max-w-7xl gap-8 px-4 sm:px-6 lg:grid-cols-[22rem_minmax(0,1fr)] lg:px-8">
-        <div ref={introRef} className="space-y-4 lg:pr-8">
+        <div className="space-y-4 lg:pr-8">
           <Badge variant="accent">{meta.title}</Badge>
           <div className="space-y-4">
             <div className="inline-flex size-14 items-center justify-center rounded-2xl border border-accent/25 bg-accent/10 text-accent">

@@ -3,6 +3,7 @@ import { describe, expect, it } from "vitest";
 import {
   createRandomTheme,
   createThemeTokens,
+  getThemePresets,
   getContrastChecks,
   getThemeCssVariables,
 } from "@/lib/utils/theme";
@@ -43,5 +44,23 @@ describe("theme generation", () => {
     expect(tokens.mode).toBe("light");
     expect(tokens.radius).toBeGreaterThanOrEqual(8);
     expect(tokens.radius).toBeLessThanOrEqual(18);
+  });
+
+  it("exposes six named presets with three dark and three light options", () => {
+    const presets = getThemePresets();
+    const dark = presets.filter((preset) => preset.mode === "dark");
+    const light = presets.filter((preset) => preset.mode === "light");
+
+    expect(presets).toHaveLength(6);
+    expect(dark).toHaveLength(3);
+    expect(light).toHaveLength(3);
+    expect(new Set(presets.map((preset) => preset.id)).size).toBe(6);
+    expect(
+      presets.every(
+        (preset) =>
+          getContrastChecks(preset.tokens).foregroundOnBackground > 4.5 &&
+          getContrastChecks(preset.tokens).accentOnAccentForeground > 4.5,
+      ),
+    ).toBe(true);
   });
 });

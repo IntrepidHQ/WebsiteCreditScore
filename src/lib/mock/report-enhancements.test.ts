@@ -58,6 +58,7 @@ const strongObservation: SiteObservation = {
   ],
   notableDetails: ["Phone listed: (800) 692-7753"],
   templateSignals: [],
+  motionSignals: ["micro-feedback", "scroll-story", "reduced-motion"],
   screenshotUrl: "/api/preview?url=https%3A%2F%2Fwww.apple.com&device=desktop&v=static-shot-2",
   ogImage: "https://www.apple.com/og.png",
   formCount: 1,
