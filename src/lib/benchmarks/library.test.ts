@@ -44,11 +44,14 @@ describe("benchmark library", () => {
   it("groups woodworking references for the service-provider benchmark set", () => {
     const woodworkingSites = getBenchmarkSitesByFocus("service-providers", "woodworking");
 
-    expect(woodworkingSites).toHaveLength(3);
+    expect(woodworkingSites).toHaveLength(6);
     expect(woodworkingSites.map((site) => site.name)).toEqual([
       "Design In Wood",
       "Woodworks & Design",
       "Wolfe Custom Woodworking",
+      "Hughes WoodWorks",
+      "Walker's Woodworks",
+      "A Carpenter's Son Design Co.",
     ]);
   });
 });

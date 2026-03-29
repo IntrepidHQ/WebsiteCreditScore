@@ -138,7 +138,10 @@ export function selectBenchmarkReferencesForReport(
   currentOverallScore: number,
   references: BenchmarkReference[],
 ) {
-  return rankMeasuredBenchmarkReferences(currentUrl, currentOverallScore, references).slice(0, 3);
+  const ranked = rankMeasuredBenchmarkReferences(currentUrl, currentOverallScore, references);
+  const highScoring = ranked.filter((reference) => getBenchmarkReferenceScore(reference) >= 9);
+
+  return (highScoring.length ? highScoring : ranked).slice(0, 3);
 }
 
 async function enrichBenchmarkReferences(

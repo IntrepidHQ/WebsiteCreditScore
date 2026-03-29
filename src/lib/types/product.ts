@@ -146,6 +146,8 @@ export interface ProductPromoRecord {
   type: "percentage" | "fixed" | "workspace-credit";
   value: number;
   active: boolean;
+  maxRedemptions?: number;
+  redemptionsUsed?: number;
 }
 
 export interface ShareLinkRecord {

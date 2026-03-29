@@ -59,30 +59,33 @@ export function BenchmarkSiteCard({
         </div>
       </Tabs>
 
-      <div className="grid gap-3 border-y border-border/70 bg-background-alt/60 p-4 sm:grid-cols-2 xl:grid-cols-4">
-        <div className="rounded-[10px] border border-border/70 bg-panel/55 p-4">
-          <p className="text-xs uppercase tracking-[0.18em] text-muted">Scanned score</p>
-          <p className="mt-2 font-display text-4xl font-semibold text-foreground">
-            {(scan?.overallScore ?? reference.measuredScore ?? reference.targetScore).toFixed(1)}
-          </p>
+      <div className="space-y-3 border-y border-border/70 bg-background-alt/60 p-4">
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <p className="text-xs uppercase tracking-[0.18em] text-muted">Selected benchmark</p>
+          <div className="flex items-center gap-2">
+            <span className="text-xs uppercase tracking-[0.18em] text-muted">Tier</span>
+            <Badge variant="accent">{reference.tier}</Badge>
+          </div>
         </div>
-        <div className="rounded-[10px] border border-border/70 bg-panel/55 p-4">
-          <p className="text-xs uppercase tracking-[0.18em] text-muted">Design score</p>
-          <p className="mt-2 font-display text-4xl font-semibold text-accent">
-            {(scan?.designScore ?? reference.measuredScore ?? reference.targetScore).toFixed(1)}
-          </p>
-        </div>
-        <div className="rounded-[10px] border border-border/70 bg-panel/55 p-4">
-          <p className="text-xs uppercase tracking-[0.18em] text-muted">Animation score</p>
-          <p className="mt-2 font-display text-4xl font-semibold text-foreground">
-            {(scan?.animationScore ?? reference.measuredAnimationScore ?? 0).toFixed(1)}
-          </p>
-        </div>
-        <div className="rounded-[10px] border border-border/70 bg-panel/55 p-4">
-          <p className="text-xs uppercase tracking-[0.18em] text-muted">Tier</p>
-          <Badge className="mt-2 w-fit" variant="accent">
-            {reference.tier}
-          </Badge>
+        <div className="grid gap-3 sm:grid-cols-3">
+          <div className="rounded-[10px] border border-border/70 bg-panel/55 p-4">
+            <p className="text-xs uppercase tracking-[0.18em] text-muted">Scanned score</p>
+            <p className="mt-2 font-display text-4xl font-semibold text-foreground">
+              {(scan?.overallScore ?? reference.measuredScore ?? reference.targetScore).toFixed(1)}
+            </p>
+          </div>
+          <div className="rounded-[10px] border border-border/70 bg-panel/55 p-4">
+            <p className="text-xs uppercase tracking-[0.18em] text-muted">Design score</p>
+            <p className="mt-2 font-display text-4xl font-semibold text-accent">
+              {(scan?.designScore ?? reference.measuredScore ?? reference.targetScore).toFixed(1)}
+            </p>
+          </div>
+          <div className="rounded-[10px] border border-border/70 bg-panel/55 p-4">
+            <p className="text-xs uppercase tracking-[0.18em] text-muted">Animation score</p>
+            <p className="mt-2 font-display text-4xl font-semibold text-foreground">
+              {(scan?.animationScore ?? reference.measuredAnimationScore ?? 0).toFixed(1)}
+            </p>
+          </div>
         </div>
       </div>
 

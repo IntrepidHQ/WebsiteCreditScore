@@ -4,11 +4,16 @@ import Link from "next/link";
 import { ArrowUpRight, Compass, Palette, ScanSearch, Target } from "lucide-react";
 
 import { BenchmarkSiteCard } from "@/features/benchmarks/components/benchmark-site-card";
+import { PreviewImage } from "@/components/common/preview-image";
 import { SectionHeading } from "@/components/common/section-heading";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import {
+  selectFeaturedBenchmarkReferences,
+  sortBenchmarkReferencesByScore,
+} from "@/lib/benchmarks/scans";
 import type {
   BenchmarkReference,
   BenchmarkScan,
@@ -35,6 +40,14 @@ function averageScores<Key extends string>(
       score: Number(average.toFixed(1)),
     };
   });
+}
+
+function formatTimestamp(input: string) {
+  return new Intl.DateTimeFormat("en-US", {
+    month: "short",
+    day: "numeric",
+    year: "numeric",
+  }).format(new Date(input));
 }
 
 function ScoreRows<Key extends string>({
@@ -131,7 +144,7 @@ export function BenchmarkLibraryPage({
       <SectionHeading
         eyebrow="Benchmark library"
         title="2026 Web Design Benchmarks"
-        description="These are live-measured reference sites, paired with curated notes about what makes them reusable benchmarks instead of just attractive examples."
+        description="Live-measured references first. Only the strongest examples get featured at the top; the rest stay cataloged below as scan history."
       />
       <div className="flex flex-wrap items-center gap-3">
         <Button asChild size="sm" variant="secondary">
@@ -147,7 +160,7 @@ export function BenchmarkLibraryPage({
           </Link>
         </Button>
         <p className="max-w-2xl text-sm leading-6 text-muted">
-          Animation is folded into the benchmark score so purposeful motion can lift a site without requiring theatrical movement. The gated SEO add-on sits beside it for keyword and AI searchability scoring.
+          Purposeful motion lifts the score. The gated SEO add-on covers keyword ranking and AI searchability.
         </p>
       </div>
 
@@ -161,6 +174,7 @@ export function BenchmarkLibraryPage({
         </TabsList>
 
         {snapshots.map((snapshot) => {
+          const scanBySiteId = new Map(snapshot.scans.map((scan) => [scan.siteId, scan]));
           const designElementScores = averageScores<DesignElementKey>(
             snapshot.scans,
             (scan) => scan.designElementScores,
@@ -179,17 +193,26 @@ export function BenchmarkLibraryPage({
             : 0;
           const averageAnimationScore = snapshot.scans.length
             ? Number(
-                (
+              (
                   snapshot.scans.reduce((sum, scan) => sum + scan.animationScore, 0) /
                   snapshot.scans.length
                 ).toFixed(1),
               )
             : 0;
-          const woodworkingReferences = snapshot.references.filter(
-            (reference) => reference.focusArea === "woodworking",
+          const featuredReferences = selectFeaturedBenchmarkReferences(
+            snapshot.references,
+            snapshot.scans,
+            {
+              limit: 3,
+              minScore: 9,
+              ...(snapshot.vertical === "service-providers"
+                ? { focusArea: "woodworking" as const }
+                : {}),
+            },
           );
-          const generalReferences = snapshot.references.filter(
-            (reference) => reference.focusArea !== "woodworking",
+          const historyReferences = sortBenchmarkReferencesByScore(
+            snapshot.references,
+            snapshot.scans,
           );
 
           return (
@@ -274,53 +297,86 @@ export function BenchmarkLibraryPage({
                 </Card>
               </div>
 
-              {snapshot.vertical === "service-providers" && woodworkingReferences.length ? (
-                <div className="grid gap-4">
-                  <div className="flex flex-col gap-2">
-                    <p className="text-xs uppercase tracking-[0.18em] text-muted">
-                      Woodworking references
-                    </p>
-                    <p className="max-w-3xl text-sm leading-6 text-muted">
-                      These are the three strongest-looking woodworking sites we could surface from Google search results. They are selected for design quality and craft clarity, not ranking position.
-                    </p>
-                  </div>
+              <div className="grid gap-4">
+                <div className="flex flex-col gap-2">
+                  <p className="text-xs uppercase tracking-[0.18em] text-muted">Featured examples</p>
+                  <p className="max-w-3xl text-sm leading-6 text-muted">
+                    These are the 9+ benchmarks we want clients to beat. We scan a broader pool, then only surface the strongest examples here.
+                  </p>
+                </div>
+                {featuredReferences.length ? (
                   <div className="grid gap-5 xl:grid-cols-3">
-                    {woodworkingReferences.map((reference) => (
+                    {featuredReferences.map((reference) => (
                       <BenchmarkSiteCard
                         fallbackImage={fallbackImage}
                         key={reference.id}
                         reference={reference}
-                        scan={snapshot.scans.find((scan) => scan.siteId === reference.siteId)}
+                        scan={scanBySiteId.get(reference.siteId)}
                       />
                     ))}
                   </div>
-                </div>
-              ) : null}
+                ) : (
+                  <Card>
+                    <CardContent className="p-5 text-sm leading-6 text-muted">
+                      We’re still scanning enough high-quality candidates to keep this section at 9+ only.
+                    </CardContent>
+                  </Card>
+                )}
+              </div>
 
-              {generalReferences.length ? (
-                <div className="grid gap-4">
-                  {snapshot.vertical === "service-providers" ? (
-                    <div className="flex flex-col gap-2">
-                      <p className="text-xs uppercase tracking-[0.18em] text-muted">
-                        Service benchmarks
-                      </p>
-                      <p className="max-w-3xl text-sm leading-6 text-muted">
-                        These are the broader service-business references that set the general bar alongside the woodworking set.
-                      </p>
-                    </div>
-                  ) : null}
-                  <div className="grid gap-5 xl:grid-cols-2">
-                    {generalReferences.map((reference) => (
-                      <BenchmarkSiteCard
-                        fallbackImage={fallbackImage}
-                        key={reference.id}
-                        reference={reference}
-                        scan={snapshot.scans.find((scan) => scan.siteId === reference.siteId)}
-                      />
-                    ))}
-                  </div>
+              <div className="grid gap-4">
+                <div className="flex flex-col gap-2">
+                  <p className="text-xs uppercase tracking-[0.18em] text-muted">Public scan history</p>
+                  <p className="max-w-3xl text-sm leading-6 text-muted">
+                    Every scanned site stays cataloged here so the library feels alive and the bar gets harder to ignore over time.
+                  </p>
                 </div>
-              ) : null}
+                <div className="grid gap-3">
+                  {historyReferences.map((reference) => {
+                    const scan = scanBySiteId.get(reference.siteId);
+                    const score = scan?.overallScore ?? reference.measuredScore ?? reference.targetScore;
+
+                    return (
+                      <Card key={reference.id}>
+                        <div className="grid gap-0 lg:grid-cols-[10rem_minmax(0,1fr)_18rem]">
+                          <div className="overflow-hidden border-b border-border/70 lg:border-b-0 lg:border-r">
+                            <PreviewImage
+                              alt={`${reference.name} scan preview`}
+                              className="aspect-[16/10] h-full min-h-32"
+                              fallbackSrc={fallbackImage}
+                              loadingLabel="Capturing benchmark screenshot"
+                              src={reference.previewImage}
+                            />
+                          </div>
+                          <CardHeader className="space-y-2">
+                            <div className="flex flex-wrap items-center gap-2">
+                              <Badge variant="accent">
+                                {scan?.scoreSource === "measured" ? "Scanned" : "Reference"} {score.toFixed(1)}
+                              </Badge>
+                              <Badge variant="neutral">{reference.tier}</Badge>
+                            </div>
+                            <CardTitle className="text-2xl">{reference.name}</CardTitle>
+                            <p className="text-sm leading-6 text-muted">{reference.note}</p>
+                            <p className="text-xs uppercase tracking-[0.18em] text-muted">
+                              {reference.sourceLabel}
+                            </p>
+                            <p className="text-xs uppercase tracking-[0.18em] text-muted">
+                              Scanned {formatTimestamp(scan?.scannedAt ?? new Date().toISOString())}
+                            </p>
+                          </CardHeader>
+                          <CardContent className="flex flex-wrap items-start gap-2 lg:justify-end lg:pt-6">
+                            {reference.strengths.map((strength) => (
+                              <Badge className="normal-case tracking-normal" key={strength} variant="neutral">
+                                {strength.replace(/-/g, " ")}
+                              </Badge>
+                            ))}
+                          </CardContent>
+                        </div>
+                      </Card>
+                    );
+                  })}
+                </div>
+              </div>
 
               <PatternNotes notes={snapshot.notes} />
             </TabsContent>

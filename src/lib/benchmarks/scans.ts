@@ -193,6 +193,48 @@ export function getBenchmarkReferenceRange(references: BenchmarkReference[]) {
   };
 }
 
+export function sortBenchmarkReferencesByScore(
+  references: BenchmarkReference[],
+  scans: BenchmarkScan[],
+) {
+  const scanMap = new Map(scans.map((scan) => [scan.siteId, scan]));
+
+  return [...references].sort((left, right) => {
+    const leftScore =
+      scanMap.get(left.siteId)?.overallScore ?? getMeasuredBenchmarkScore(left);
+    const rightScore =
+      scanMap.get(right.siteId)?.overallScore ?? getMeasuredBenchmarkScore(right);
+
+    return rightScore - leftScore;
+  });
+}
+
+export function selectFeaturedBenchmarkReferences(
+  references: BenchmarkReference[],
+  scans: BenchmarkScan[],
+  options?: {
+    limit?: number;
+    minScore?: number;
+    focusArea?: NonNullable<BenchmarkReference["focusArea"]>;
+  },
+) {
+  const limit = options?.limit ?? 3;
+  const minScore = options?.minScore ?? 9;
+  const scanMap = new Map(scans.map((scan) => [scan.siteId, scan]));
+
+  return sortBenchmarkReferencesByScore(references, scans)
+    .filter((reference) =>
+      options?.focusArea ? reference.focusArea === options.focusArea : true,
+    )
+    .filter((reference) => {
+      const scanScore =
+        scanMap.get(reference.siteId)?.overallScore ?? getMeasuredBenchmarkScore(reference);
+
+      return scanScore >= minScore;
+    })
+    .slice(0, limit);
+}
+
 export function buildBenchmarkFocusSummary(vertical: BenchmarkVertical) {
   const rubric = getBenchmarkRubric(vertical);
 

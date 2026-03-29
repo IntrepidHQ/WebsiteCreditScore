@@ -15,11 +15,25 @@ export function LandingHeroSection() {
               </span>
             </h1>
             <p className="max-w-3xl text-lg leading-8 text-muted sm:text-xl">
-              Built for agencies and website providers serving service businesses.
+              Built for business owners who want a clearer score, a better plan, and a site that sells itself faster.
             </p>
           </div>
           <div className="max-w-4xl">
             <LandingForm />
+          </div>
+          <div className="grid gap-3 rounded-[calc(var(--theme-radius-lg))] border border-accent/20 bg-accent/8 p-4 sm:grid-cols-[minmax(0,1fr)_auto] sm:items-center">
+            <div>
+              <p className="text-xs uppercase tracking-[0.18em] text-muted">Launch offer</p>
+              <p className="mt-2 text-sm leading-6 text-foreground">
+                Use code <span className="font-semibold text-accent">FIFTEEN</span> for 15% off your first build. 100 redemptions total.
+              </p>
+              <p className="mt-1 text-sm leading-6 text-muted">
+                Claim now or request changes later. The preview stays familiar by pulling from your existing site and brand assets.
+              </p>
+            </div>
+            <Badge className="w-fit" variant="accent">
+              15% off
+            </Badge>
           </div>
         </div>
       </div>

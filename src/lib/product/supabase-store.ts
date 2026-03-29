@@ -262,12 +262,14 @@ export async function ensureSupabaseWorkspace(session: WorkspaceSession) {
   };
   const promo: ProductPromoRecord = {
     id: createId("promo"),
-    code: "FOUNDING10",
-    label: "Founding provider discount",
-    description: "Prepared for billing activation once checkout is turned on.",
+    code: "FIFTEEN",
+    label: "Launch coupon",
+    description: "15% off the checkout total for early buyers.",
     type: "percentage",
-    value: 10,
+    value: 15,
     active: true,
+    maxRedemptions: 100,
+    redemptionsUsed: 0,
   };
   await upsertPayloadRecord("workspaces", {
     id: workspace.id,

@@ -49,24 +49,45 @@ export default async function AppSettingsPage() {
         </CardContent>
       </Card>
 
-      <Card>
-        <CardHeader>
-          <p className="text-xs uppercase tracking-[0.24em] text-muted">Billing prep</p>
-          <CardTitle className="mt-2 text-3xl">Subscription placeholder</CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-3">
-          <div className="rounded-[10px] border border-border/70 bg-background-alt/60 p-4">
-            <p className="text-xs uppercase tracking-[0.18em] text-muted">Status</p>
-            <p className="mt-2 font-semibold text-foreground">{workspace.billingStatus}</p>
-          </div>
-          <div className="rounded-[10px] border border-border/70 bg-background-alt/60 p-4">
-            <p className="text-xs uppercase tracking-[0.18em] text-muted">Workspace credits</p>
-            <p className="mt-2 font-display text-4xl font-semibold text-accent">
-              {workspace.creditBalance}
-            </p>
-          </div>
-        </CardContent>
-      </Card>
+      <div className="space-y-6">
+        <Card>
+          <CardHeader>
+            <p className="text-xs uppercase tracking-[0.24em] text-muted">Billing prep</p>
+            <CardTitle className="mt-2 text-3xl">Subscription placeholder</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-3">
+            <div className="rounded-[10px] border border-border/70 bg-background-alt/60 p-4">
+              <p className="text-xs uppercase tracking-[0.18em] text-muted">Status</p>
+              <p className="mt-2 font-semibold text-foreground">{workspace.billingStatus}</p>
+            </div>
+            <div className="rounded-[10px] border border-border/70 bg-background-alt/60 p-4">
+              <p className="text-xs uppercase tracking-[0.18em] text-muted">Workspace credits</p>
+              <p className="mt-2 font-display text-4xl font-semibold text-accent">
+                {workspace.creditBalance}
+              </p>
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader>
+            <p className="text-xs uppercase tracking-[0.24em] text-muted">Launch controls</p>
+            <CardTitle className="mt-2 text-3xl">Keep product experiments internal</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-3">
+            {[
+              "Coupon code FIFTEEN: 15% off, limited to 100 redemptions.",
+              "Referral payout target: 5% of the checkout total on closed work.",
+              "Use Lovable prompts and asset pointers here when the product needs a generated starting point.",
+              "Cap the build conversation at $9,995 so pricing stays simple to sell.",
+            ].map((item) => (
+              <div className="rounded-[10px] border border-border/70 bg-background-alt/60 p-4" key={item}>
+                <p className="text-sm leading-6 text-muted">{item}</p>
+              </div>
+            ))}
+          </CardContent>
+        </Card>
+      </div>
     </div>
   );
 }

@@ -326,6 +326,17 @@ async function createSeedStore(ownerUserId: string): Promise<LocalProductStore> 
     promos: [
       {
         id: createId("promo"),
+        code: "FIFTEEN",
+        label: "Launch coupon",
+        description: "15% off the checkout total for early buyers.",
+        type: "percentage",
+        value: 15,
+        active: true,
+        maxRedemptions: 100,
+        redemptionsUsed: 0,
+      },
+      {
+        id: createId("promo"),
         code: "FOUNDING10",
         label: "Founding provider discount",
         description: "Reserved for the first few studios using Craydl internally.",
@@ -345,6 +356,23 @@ async function readStore(ownerUserId: string) {
 
     if (!parsed.workspaces.length) {
       throw new Error("Empty local product store");
+    }
+
+    const needsPromoSeed = !parsed.promos.some((promo) => promo.code === "FIFTEEN");
+
+    if (needsPromoSeed) {
+      parsed.promos.unshift({
+        id: createId("promo"),
+        code: "FIFTEEN",
+        label: "Launch coupon",
+        description: "15% off the checkout total for early buyers.",
+        type: "percentage",
+        value: 15,
+        active: true,
+        maxRedemptions: 100,
+        redemptionsUsed: 0,
+      });
+      await fs.writeFile(STORE_PATH, JSON.stringify(parsed, null, 2), "utf8");
     }
 
     return parsed;
