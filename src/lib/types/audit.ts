@@ -43,6 +43,7 @@ export type BenchmarkVertical =
   | "private-healthcare"
   | "product-saas";
 export type BenchmarkTier = "flagship" | "reference" | "specialist";
+export type BenchmarkFocusArea = "woodworking";
 export type DesignElementKey =
   | "line"
   | "shape"
@@ -323,6 +324,7 @@ export interface DesignPatternNote {
 export interface BenchmarkSite {
   id: string;
   vertical: BenchmarkVertical;
+  focusArea?: BenchmarkFocusArea;
   tier: BenchmarkTier;
   name: string;
   url: string;
@@ -365,6 +367,7 @@ export interface BenchmarkReference {
   id: string;
   siteId: string;
   vertical: BenchmarkVertical;
+  focusArea?: BenchmarkFocusArea;
   tier: BenchmarkTier;
   name: string;
   url: string;

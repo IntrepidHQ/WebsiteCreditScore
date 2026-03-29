@@ -4,6 +4,7 @@ import {
   buildBenchmarkReferencesForProfile,
   getBenchmarkRubricForProfile,
   getPrimaryBenchmarkVerticals,
+  getBenchmarkSitesByFocus,
 } from "@/lib/benchmarks/library";
 
 describe("benchmark library", () => {
@@ -35,8 +36,19 @@ describe("benchmark library", () => {
   it("returns reusable measured benchmark references per profile", () => {
     const references = buildBenchmarkReferencesForProfile("local-service");
 
-    expect(references.length).toBeGreaterThanOrEqual(4);
+    expect(references.length).toBeGreaterThanOrEqual(7);
     expect(references.every((reference) => reference.mobilePreviewImage)).toBe(true);
     expect(references.every((reference) => reference.reusablePatterns.length >= 2)).toBe(true);
+  });
+
+  it("groups woodworking references for the service-provider benchmark set", () => {
+    const woodworkingSites = getBenchmarkSitesByFocus("service-providers", "woodworking");
+
+    expect(woodworkingSites).toHaveLength(3);
+    expect(woodworkingSites.map((site) => site.name)).toEqual([
+      "Design In Wood",
+      "Woodworks & Design",
+      "Wolfe Custom Woodworking",
+    ]);
   });
 });

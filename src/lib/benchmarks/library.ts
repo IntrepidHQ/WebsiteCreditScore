@@ -382,6 +382,81 @@ const benchmarkSites: BenchmarkSite[] = [
     curatedWeight: 0.98,
   },
   {
+    id: "site-design-in-wood",
+    vertical: "service-providers",
+    focusArea: "woodworking",
+    tier: "flagship",
+    name: "Design In Wood",
+    url: "https://www.designinwoodinc.com",
+    sourceLabel: "Woodworking benchmark",
+    note: "A strong craft portfolio with a premium presentation bar and a clearer sense of specialty.",
+    desktopPreviewImage: createWebsiteScreenshotUrl("https://www.designinwoodinc.com", "desktop"),
+    mobilePreviewImage: createWebsiteScreenshotUrl("https://www.designinwoodinc.com", "mobile"),
+    strengths: ["visual-design", "trust-credibility", "ux-conversion"],
+    whatWorks: [
+      "Project imagery does the heavy lifting before the copy has to explain the craft.",
+      "The page feels curated enough to support higher-end custom work.",
+      "The presentation reads more like a studio portfolio than a generic service template.",
+    ],
+    bestFor: "Custom woodworking brands that need a premium craft portfolio bar.",
+    reusablePatterns: [
+      "Let project photography establish the quality baseline.",
+      "Use restrained page rhythm so the work feels elevated.",
+      "Keep specialty and portfolio proof close to each other.",
+    ],
+    curatedWeight: 1.07,
+  },
+  {
+    id: "site-woodworks-build",
+    vertical: "service-providers",
+    focusArea: "woodworking",
+    tier: "reference",
+    name: "Woodworks & Design",
+    url: "https://woodworksbuild.com",
+    sourceLabel: "Woodworking benchmark",
+    note: "Clear project taxonomy and strong proof for cabinetry, built-ins, and millwork.",
+    desktopPreviewImage: createWebsiteScreenshotUrl("https://woodworksbuild.com", "desktop"),
+    mobilePreviewImage: createWebsiteScreenshotUrl("https://woodworksbuild.com", "mobile"),
+    strengths: ["ux-conversion", "seo-readiness", "trust-credibility"],
+    whatWorks: [
+      "The site organizes a wide range of custom work into usable categories.",
+      "Proof appears in the form of actual project types instead of only broad claims.",
+      "The structure supports both browsing and direct inquiry without feeling scattered.",
+    ],
+    bestFor: "Cabinetry and millwork teams that need organized proof and service coverage.",
+    reusablePatterns: [
+      "Group work by category so visitors can self-select quickly.",
+      "Use a service taxonomy that maps to real buying intent.",
+      "Balance workshop credibility with project-led presentation.",
+    ],
+    curatedWeight: 1.03,
+  },
+  {
+    id: "site-wolfe-custom-woodworking",
+    vertical: "service-providers",
+    focusArea: "woodworking",
+    tier: "specialist",
+    name: "Wolfe Custom Woodworking",
+    url: "https://www.wolfecustomwoodworking.com",
+    sourceLabel: "Woodworking benchmark",
+    note: "Polished custom furniture presentation with direct contact paths and a strong project gallery.",
+    desktopPreviewImage: createWebsiteScreenshotUrl("https://www.wolfecustomwoodworking.com", "desktop"),
+    mobilePreviewImage: createWebsiteScreenshotUrl("https://www.wolfecustomwoodworking.com", "mobile"),
+    strengths: ["visual-design", "ux-conversion", "mobile-experience"],
+    whatWorks: [
+      "Featured work is easy to scan and the site quickly communicates the kind of craftsmanship on offer.",
+      "The contact path is direct enough to support high-intent visitors.",
+      "The portfolio feels more bespoke than a generic local trades site.",
+    ],
+    bestFor: "Custom woodworking shops that want a cleaner portfolio and direct contact flow.",
+    reusablePatterns: [
+      "Use featured work as the proof layer, not as filler.",
+      "Keep the contact ask visible without reducing the premium feel.",
+      "Let the project gallery define the brand’s craft ceiling.",
+    ],
+    curatedWeight: 1.01,
+  },
+  {
     id: "site-one-medical",
     vertical: "private-healthcare",
     tier: "flagship",
@@ -700,6 +775,13 @@ export function getBenchmarkSites(vertical: BenchmarkVertical) {
   return benchmarkSites.filter((site) => site.vertical === vertical);
 }
 
+export function getBenchmarkSitesByFocus(
+  vertical: BenchmarkVertical,
+  focusArea: NonNullable<BenchmarkSite["focusArea"]>,
+) {
+  return getBenchmarkSites(vertical).filter((site) => site.focusArea === focusArea);
+}
+
 export function getBenchmarkDesignNotes(vertical: BenchmarkVertical) {
   return patternNotes[vertical];
 }
@@ -725,6 +807,7 @@ export function buildBenchmarkReferencesForProfile(
     id: site.id,
     siteId: site.id,
     vertical: site.vertical,
+    focusArea: site.focusArea,
     tier: site.tier,
     name: site.name,
     url: site.url,

@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { CreditCard, Gauge, HandCoins, Mail, Settings2, Target } from "lucide-react";
+import { CreditCard, Gauge, HandCoins, Mail, ScanSearch, Settings2, Target } from "lucide-react";
 
 import { cn } from "@/lib/utils/cn";
 
@@ -10,6 +10,7 @@ const navItems = [
   { href: "/app", label: "Dashboard", icon: Gauge },
   { href: "/app/leads", label: "Leads", icon: HandCoins },
   { href: "/app/benchmarks", label: "Benchmarks", icon: Target },
+  { href: "/app/seo", label: "SEO", icon: ScanSearch },
   { href: "/app/templates", label: "Templates", icon: Mail },
   { href: "/app/referrals", label: "Referrals", icon: CreditCard },
   { href: "/app/settings", label: "Settings", icon: Settings2 },

@@ -24,66 +24,65 @@ export function BenchmarkSiteCard({
 
   return (
     <Card className="overflow-hidden">
-      <div className="grid gap-0 border-b border-border/70 lg:grid-cols-[minmax(0,1fr)_15rem]">
+      <Tabs defaultValue="desktop" className="block">
         <div className="relative">
-          <Tabs defaultValue="desktop">
-            <div className="absolute left-3 top-3 z-10">
-              <TabsList className="bg-background/70 backdrop-blur-md">
-                <TabsTrigger value="desktop">
-                  <Monitor className="size-4" />
-                  Desktop
-                </TabsTrigger>
-                <TabsTrigger value="mobile">
-                  <Smartphone className="size-4" />
-                  Mobile
-                </TabsTrigger>
-              </TabsList>
-            </div>
-            <TabsContent value="desktop">
-              <PreviewImage
-                alt={`${reference.name} desktop benchmark preview`}
-                className="aspect-[16/10]"
-                fallbackSrc={fallbackImage}
-                loadingLabel="Capturing desktop screenshot"
-                src={reference.previewImage}
-              />
-            </TabsContent>
-            <TabsContent value="mobile">
-              <PreviewImage
-                alt={`${reference.name} mobile benchmark preview`}
-                className="aspect-[16/10]"
-                fallbackSrc={fallbackImage}
-                loadingLabel="Capturing mobile screenshot"
-                src={reference.mobilePreviewImage}
-              />
-            </TabsContent>
-          </Tabs>
+          <div className="absolute left-3 top-3 z-10">
+            <TabsList className="bg-background/70 backdrop-blur-md">
+              <TabsTrigger value="desktop">
+                <Monitor className="size-4" />
+                Desktop
+              </TabsTrigger>
+              <TabsTrigger value="mobile">
+                <Smartphone className="size-4" />
+                Mobile
+              </TabsTrigger>
+            </TabsList>
+          </div>
+          <TabsContent value="desktop" className="m-0">
+            <PreviewImage
+              alt={`${reference.name} desktop benchmark preview`}
+              className="aspect-[16/10]"
+              fallbackSrc={fallbackImage}
+              loadingLabel="Capturing desktop screenshot"
+              src={reference.previewImage}
+            />
+          </TabsContent>
+          <TabsContent value="mobile" className="m-0">
+            <PreviewImage
+              alt={`${reference.name} mobile benchmark preview`}
+              className="aspect-[16/10]"
+              fallbackSrc={fallbackImage}
+              loadingLabel="Capturing mobile screenshot"
+              src={reference.mobilePreviewImage}
+            />
+          </TabsContent>
         </div>
-        <div className="grid gap-3 bg-background-alt/60 p-4">
-          <div>
-            <p className="text-xs uppercase tracking-[0.18em] text-muted">Scanned score</p>
-            <p className="mt-2 font-display text-4xl font-semibold text-foreground">
-              {(scan?.overallScore ?? reference.measuredScore ?? reference.targetScore).toFixed(1)}
-            </p>
-          </div>
-          <div>
-            <p className="text-xs uppercase tracking-[0.18em] text-muted">Design score</p>
-            <p className="mt-2 font-display text-4xl font-semibold text-accent">
-              {(scan?.designScore ?? reference.measuredScore ?? reference.targetScore).toFixed(1)}
-            </p>
-          </div>
-          <div>
-            <p className="text-xs uppercase tracking-[0.18em] text-muted">Animation score</p>
-            <p className="mt-2 font-display text-4xl font-semibold text-foreground">
-              {(scan?.animationScore ?? reference.measuredAnimationScore ?? 0).toFixed(1)}
-            </p>
-          </div>
-          <div>
-            <p className="text-xs uppercase tracking-[0.18em] text-muted">Tier</p>
-            <Badge className="mt-2 w-fit" variant="accent">
-              {reference.tier}
-            </Badge>
-          </div>
+      </Tabs>
+
+      <div className="grid gap-3 border-y border-border/70 bg-background-alt/60 p-4 sm:grid-cols-2 xl:grid-cols-4">
+        <div className="rounded-[10px] border border-border/70 bg-panel/55 p-4">
+          <p className="text-xs uppercase tracking-[0.18em] text-muted">Scanned score</p>
+          <p className="mt-2 font-display text-4xl font-semibold text-foreground">
+            {(scan?.overallScore ?? reference.measuredScore ?? reference.targetScore).toFixed(1)}
+          </p>
+        </div>
+        <div className="rounded-[10px] border border-border/70 bg-panel/55 p-4">
+          <p className="text-xs uppercase tracking-[0.18em] text-muted">Design score</p>
+          <p className="mt-2 font-display text-4xl font-semibold text-accent">
+            {(scan?.designScore ?? reference.measuredScore ?? reference.targetScore).toFixed(1)}
+          </p>
+        </div>
+        <div className="rounded-[10px] border border-border/70 bg-panel/55 p-4">
+          <p className="text-xs uppercase tracking-[0.18em] text-muted">Animation score</p>
+          <p className="mt-2 font-display text-4xl font-semibold text-foreground">
+            {(scan?.animationScore ?? reference.measuredAnimationScore ?? 0).toFixed(1)}
+          </p>
+        </div>
+        <div className="rounded-[10px] border border-border/70 bg-panel/55 p-4">
+          <p className="text-xs uppercase tracking-[0.18em] text-muted">Tier</p>
+          <Badge className="mt-2 w-fit" variant="accent">
+            {reference.tier}
+          </Badge>
         </div>
       </div>
 

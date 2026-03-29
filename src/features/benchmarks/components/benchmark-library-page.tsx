@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { ArrowUpRight, Compass, Palette, Target } from "lucide-react";
+import { ArrowUpRight, Compass, Palette, ScanSearch, Target } from "lucide-react";
 
 import { BenchmarkSiteCard } from "@/features/benchmarks/components/benchmark-site-card";
 import { SectionHeading } from "@/components/common/section-heading";
@@ -140,8 +140,14 @@ export function BenchmarkLibraryPage({
             Animation
           </Link>
         </Button>
+        <Button asChild size="sm" variant="ghost">
+          <Link href="/app/seo">
+            <ScanSearch className="size-4" />
+            SEO
+          </Link>
+        </Button>
         <p className="max-w-2xl text-sm leading-6 text-muted">
-          Animation is folded into the benchmark score so purposeful motion can lift a site without requiring theatrical movement.
+          Animation is folded into the benchmark score so purposeful motion can lift a site without requiring theatrical movement. The gated SEO add-on sits beside it for keyword and AI searchability scoring.
         </p>
       </div>
 
@@ -179,6 +185,12 @@ export function BenchmarkLibraryPage({
                 ).toFixed(1),
               )
             : 0;
+          const woodworkingReferences = snapshot.references.filter(
+            (reference) => reference.focusArea === "woodworking",
+          );
+          const generalReferences = snapshot.references.filter(
+            (reference) => reference.focusArea !== "woodworking",
+          );
 
           return (
             <TabsContent className="grid gap-8 pt-4" key={snapshot.vertical} value={snapshot.vertical}>
@@ -262,16 +274,53 @@ export function BenchmarkLibraryPage({
                 </Card>
               </div>
 
-              <div className="grid gap-5 xl:grid-cols-2">
-                {snapshot.references.map((reference) => (
-                  <BenchmarkSiteCard
-                    fallbackImage={fallbackImage}
-                    key={reference.id}
-                    reference={reference}
-                    scan={snapshot.scans.find((scan) => scan.siteId === reference.siteId)}
-                  />
-                ))}
-              </div>
+              {snapshot.vertical === "service-providers" && woodworkingReferences.length ? (
+                <div className="grid gap-4">
+                  <div className="flex flex-col gap-2">
+                    <p className="text-xs uppercase tracking-[0.18em] text-muted">
+                      Woodworking references
+                    </p>
+                    <p className="max-w-3xl text-sm leading-6 text-muted">
+                      These are the three strongest-looking woodworking sites we could surface from Google search results. They are selected for design quality and craft clarity, not ranking position.
+                    </p>
+                  </div>
+                  <div className="grid gap-5 xl:grid-cols-3">
+                    {woodworkingReferences.map((reference) => (
+                      <BenchmarkSiteCard
+                        fallbackImage={fallbackImage}
+                        key={reference.id}
+                        reference={reference}
+                        scan={snapshot.scans.find((scan) => scan.siteId === reference.siteId)}
+                      />
+                    ))}
+                  </div>
+                </div>
+              ) : null}
+
+              {generalReferences.length ? (
+                <div className="grid gap-4">
+                  {snapshot.vertical === "service-providers" ? (
+                    <div className="flex flex-col gap-2">
+                      <p className="text-xs uppercase tracking-[0.18em] text-muted">
+                        Service benchmarks
+                      </p>
+                      <p className="max-w-3xl text-sm leading-6 text-muted">
+                        These are the broader service-business references that set the general bar alongside the woodworking set.
+                      </p>
+                    </div>
+                  ) : null}
+                  <div className="grid gap-5 xl:grid-cols-2">
+                    {generalReferences.map((reference) => (
+                      <BenchmarkSiteCard
+                        fallbackImage={fallbackImage}
+                        key={reference.id}
+                        reference={reference}
+                        scan={snapshot.scans.find((scan) => scan.siteId === reference.siteId)}
+                      />
+                    ))}
+                  </div>
+                </div>
+              ) : null}
 
               <PatternNotes notes={snapshot.notes} />
             </TabsContent>
