@@ -90,8 +90,8 @@ export function SettingsPanel() {
   }
 
   return (
-    <main className="presentation-section" id="main-content">
-      <div className="mx-auto grid w-full max-w-7xl gap-8 px-4 sm:px-6 lg:grid-cols-[minmax(0,1fr)_24rem] lg:px-8">
+    <section className="space-y-8" id="settings-panel">
+      <div className="grid gap-8 xl:grid-cols-[minmax(0,1fr)_24rem]">
         <div className="space-y-8">
           <SectionHeading
             eyebrow="Studio settings"
@@ -443,6 +443,6 @@ export function SettingsPanel() {
           </Card>
         </aside>
       </div>
-    </main>
+    </section>
   );
 }

@@ -68,7 +68,7 @@ export function LandingForm() {
     >
       <div className="space-y-2">
         <label className="text-sm font-semibold text-foreground" htmlFor={inputId}>
-          Prospect website URL
+          Try the app!
         </label>
         <p className="text-sm leading-6 text-muted" id={helperId}>
           Paste a public site URL to generate the audit, packet, and brief.

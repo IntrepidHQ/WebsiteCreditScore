@@ -27,6 +27,8 @@ import { calculatePricingSummary, calculateProjectedScore, getDefaultSelectedIds
 import { createThemeTokens } from "@/lib/utils/theme";
 import { slugFromUrl } from "@/lib/utils/url";
 
+const LEGACY_BRAND_PATTERN = new RegExp(["C", "r", "a", "y", "d", "l"].join(""), "i");
+
 function createId(prefix: string) {
   return `${prefix}-${randomUUID().slice(0, 8)}`;
 }
@@ -62,13 +64,13 @@ function buildWorkspace(ownerUserId: string, session: WorkspaceSession): Workspa
     billingStatus: "trial",
     creditBalance: 0,
     branding: {
-      agencyName: "Craydl Web Design Agency",
-      logoMark: "/brand/craydl-light.png",
+      agencyName: "WebsiteCreditScore.com",
+      logoMark: "WCS",
       contactName: session.name,
       contactTitle: "Founder",
       contactEmail: session.email,
       contactPhone: "",
-      headshot: session.avatarUrl ?? "/brand/craydl-light.png",
+      headshot: session.avatarUrl ?? "/previews/agency-avatar.svg",
       accentOverride: "#f7b21b",
     },
     savedTheme: createThemeTokens({
@@ -78,9 +80,46 @@ function buildWorkspace(ownerUserId: string, session: WorkspaceSession): Workspa
   };
 }
 
+function normalizeWorkspaceRecord(workspace: WorkspaceRecord) {
+  const usesLegacyBrand = [
+    workspace.name,
+    workspace.slug,
+    workspace.branding.agencyName,
+    workspace.branding.logoMark,
+    workspace.branding.contactName,
+    workspace.branding.contactEmail,
+    workspace.branding.headshot,
+  ].some((value) => LEGACY_BRAND_PATTERN.test(value));
+
+  return {
+    ...workspace,
+    name: workspace.name.toLowerCase().includes("internal workspace")
+      ? "WebsiteCreditScore.com workspace"
+      : workspace.name,
+    slug: usesLegacyBrand ? "websitecreditscore" : workspace.slug,
+    branding: {
+      ...workspace.branding,
+      agencyName: usesLegacyBrand ? "WebsiteCreditScore.com" : workspace.branding.agencyName,
+      logoMark: usesLegacyBrand || workspace.branding.logoMark === "CR" ? "WCS" : workspace.branding.logoMark,
+      contactName: usesLegacyBrand ? "WebsiteCreditScore.com team" : workspace.branding.contactName,
+      contactEmail: usesLegacyBrand ? "hello@websitecreditscore.com" : workspace.branding.contactEmail,
+      headshot: usesLegacyBrand ? "/previews/agency-avatar.svg" : workspace.branding.headshot,
+    },
+  };
+}
+
 function buildSeededLead(workspaceId: string, reportId: string) {
   const createdAt = new Date().toISOString();
-  const report = prepareReportForStorage(buildAuditReportById(reportId)!);
+  const sourceReport =
+    buildAuditReportById(reportId) ??
+    buildAuditReportFromUrl(
+      reportId === "mark-deford-md"
+        ? "https://markdeford.dr-leonardo.com"
+        : reportId === "saunders-woodworks"
+          ? "https://www.saunderswoodworkllc.com/about"
+          : "https://www.onemedical.com",
+    );
+  const report = prepareReportForStorage(sourceReport);
   const summary = calculatePricingSummary(
     report.pricingBundle,
     getDefaultSelectedIds(report.pricingBundle),
@@ -141,7 +180,7 @@ function buildSeededLead(workspaceId: string, reportId: string) {
     leadId,
     type: "audit-created",
     title: "Audit created",
-    detail: "Seeded starter lead from the Craydl sample library.",
+    detail: "Seeded starter lead from the WebsiteCreditScore.com sample library.",
     occurredAt: createdAt,
   };
 
@@ -204,6 +243,52 @@ async function listPayloadRecords<T>(
   return (data ?? []).map((row) => row.payload as T);
 }
 
+async function ensurePromoCatalog(workspaceId: string) {
+  const promos = await listPayloadRecords<ProductPromoRecord>("product_promos", "workspace_id", workspaceId);
+  const now = new Date().toISOString();
+
+  const seeds: ProductPromoRecord[] = [];
+
+  if (!promos.some((promo) => promo.code === "FIFTEEN")) {
+    seeds.push({
+      id: createId("promo"),
+      code: "FIFTEEN",
+      label: "Launch coupon",
+      description: "15% off the checkout total for early buyers.",
+      type: "percentage",
+      value: 15,
+      active: true,
+      maxRedemptions: 100,
+      redemptionsUsed: 0,
+    });
+  }
+
+  if (!promos.some((promo) => promo.code === "RUSH24")) {
+    seeds.push({
+      id: createId("promo"),
+      code: "RUSH24",
+      label: "24-Hour Turnaround",
+      description: "Priority turnaround for a $250 fee.",
+      type: "fixed",
+      value: 250,
+      active: true,
+      maxRedemptions: 100,
+      redemptionsUsed: 0,
+    });
+  }
+
+  for (const promo of seeds) {
+    await upsertPayloadRecord("product_promos", {
+      id: promo.id,
+      workspace_id: workspaceId,
+      payload: {
+        ...promo,
+        createdAt: now,
+      },
+    });
+  }
+}
+
 async function getWorkspacePayload(workspaceId: string) {
   const supabase = await createSupabaseServerClient();
   const { data, error } = await supabase
@@ -232,15 +317,25 @@ export async function ensureSupabaseWorkspace(session: WorkspaceSession) {
   }
 
   if (data?.payload) {
-    return data.payload as WorkspaceRecord;
+    const currentWorkspace = data.payload as WorkspaceRecord;
+    const workspace = normalizeWorkspaceRecord(currentWorkspace);
+    if (JSON.stringify(workspace) !== JSON.stringify(currentWorkspace)) {
+      await upsertPayloadRecord("workspaces", {
+        id: workspace.id,
+        owner_user_id: session.userId,
+        payload: workspace,
+      });
+    }
+    await ensurePromoCatalog(workspace.id);
+    return workspace;
   }
 
   const workspace = buildWorkspace(session.userId, session);
   const referralCode: ReferralCodeRecord = {
     id: createId("referral"),
     workspaceId: workspace.id,
-    code: `CRAYDL-${session.name.replace(/[^A-Z0-9]/gi, "").slice(0, 6).toUpperCase() || "WORK"}`,
-    shareUrl: "https://craydl.pro/app/login",
+    code: `WCS-${session.name.replace(/[^A-Z0-9]/gi, "").slice(0, 6).toUpperCase() || "WORK"}`,
+    shareUrl: "https://websitecreditscore.com/app/login",
     rewardLabel: "2 workspace credits per activated provider account",
     createdAt: workspace.createdAt,
   };
@@ -259,17 +354,6 @@ export async function ensureSupabaseWorkspace(session: WorkspaceSession) {
     amount: 3,
     label: "Founding workspace balance",
     createdAt: workspace.createdAt,
-  };
-  const promo: ProductPromoRecord = {
-    id: createId("promo"),
-    code: "FIFTEEN",
-    label: "Launch coupon",
-    description: "15% off the checkout total for early buyers.",
-    type: "percentage",
-    value: 15,
-    active: true,
-    maxRedemptions: 100,
-    redemptionsUsed: 0,
   };
   await upsertPayloadRecord("workspaces", {
     id: workspace.id,
@@ -291,13 +375,9 @@ export async function ensureSupabaseWorkspace(session: WorkspaceSession) {
     workspace_id: workspace.id,
     payload: creditEntry,
   });
-  await upsertPayloadRecord("product_promos", {
-    id: promo.id,
-    workspace_id: workspace.id,
-    payload: promo,
-  });
+  await ensurePromoCatalog(workspace.id);
 
-  for (const reportId of ["mark-deford-md", "saunders-woodworks", "provider-pages"]) {
+  for (const reportId of ["mark-deford-md", "saunders-woodworks", "one-medical"]) {
     const seeded = buildSeededLead(workspace.id, reportId);
     await upsertPayloadRecord("saved_reports", {
       id: seeded.savedReport.id,

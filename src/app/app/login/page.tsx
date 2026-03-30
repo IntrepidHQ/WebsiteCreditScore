@@ -27,8 +27,8 @@ export default async function AppLoginPage({
       <div className="mx-auto grid w-full max-w-5xl gap-6 px-4 sm:px-6 lg:grid-cols-[minmax(0,1.05fr)_24rem] lg:px-8">
         <Card>
           <CardHeader>
-            <p className="text-xs uppercase tracking-[0.24em] text-accent">Internal-first SaaS</p>
-            <CardTitle className="text-5xl">Sign in to the Craydl workspace</CardTitle>
+            <p className="text-xs uppercase tracking-[0.24em] text-accent">Workspace access</p>
+            <CardTitle className="text-5xl">Sign in to WebsiteCreditScore.com</CardTitle>
           </CardHeader>
           <CardContent className="space-y-5 text-muted">
             <p className="max-w-2xl text-base leading-8">
@@ -108,7 +108,7 @@ export default async function AppLoginPage({
               </div>
             )}
             <Button asChild className="w-full" variant="secondary">
-              <a href="/auth/demo">Continue in local workspace</a>
+              <a href="/auth/demo">Continue in demo workspace</a>
             </Button>
           </CardContent>
         </Card>

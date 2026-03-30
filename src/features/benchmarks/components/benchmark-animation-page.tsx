@@ -22,7 +22,7 @@ export function BenchmarkAnimationPage() {
       <SectionHeading
         eyebrow="Benchmark library"
         title="Animation"
-        description="Craydl scores motion by usefulness, restraint, and accessibility. A site can score a 10 without being flashy, but it should not score well if motion is absent or distracting."
+        description="WebsiteCreditScore.com scores motion by usefulness, restraint, and accessibility. A site can score a 10 without being flashy, but it should not score well if motion is absent or distracting."
       />
 
       <div className="flex flex-wrap items-center gap-3">

@@ -6,11 +6,9 @@ export default async function WorkspaceLayout({
 }: {
   children: React.ReactNode;
 }) {
-  const { session, workspace } = await getWorkspaceAppContext();
+  await getWorkspaceAppContext();
 
   return (
-    <AppShell session={session} workspace={workspace}>
-      {children}
-    </AppShell>
+    <AppShell>{children}</AppShell>
   );
 }

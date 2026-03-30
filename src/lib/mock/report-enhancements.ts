@@ -80,7 +80,7 @@ function createFinding({
             ? "Google Search Central"
             : section === "security-posture"
               ? "MDN header guidance"
-              : "Craydl heuristic review",
+              : "WebsiteCreditScore.com heuristic review",
         benchmarkType:
           section === "technical-seo" || section === "security-posture"
             ? "platform-observation"

@@ -4,6 +4,13 @@ export function clampScore(value: number) {
   return Math.max(1, Math.min(10, Number(value.toFixed(1))));
 }
 
+export type ScoreBandVariant = "danger" | "warning" | "accent" | "success";
+
+export interface ScoreBand {
+  label: string;
+  variant: ScoreBandVariant;
+}
+
 export function aggregateOverallScore(categoryScores: AuditCategoryScore[]) {
   const totalWeight = categoryScores.reduce((sum, item) => sum + item.weight, 0);
 
@@ -27,38 +34,77 @@ export function aggregateOverallScore(categoryScores: AuditCategoryScore[]) {
 }
 
 export function describeScore(score: number) {
+  if (score >= 9.5) {
+    return "Elite foundation with very little left to fix.";
+  }
+
   if (score >= 8) {
-    return "Strong foundation with a clear premium upside.";
+    return "Strong foundation with room to polish.";
   }
 
   if (score >= 6) {
-    return "Promising base, but the experience is leaking trust and clarity.";
+    return "Good bones, but clarity still leaves value on the table.";
   }
 
-  if (score >= 4.5) {
-    return "Credible business signals are present, but the site is under-selling the value.";
+  if (score >= 4) {
+    return "Clarity is weak and likely working against the business.";
   }
 
-  return "The current site is likely creating drag before prospects ever reach out.";
+  return "The first impression is working against the business.";
 }
 
 export function getScoreTone(score: number) {
-  if (score >= 7.5) {
+  if (score >= 8.1) {
     return "success" as const;
   }
 
-  if (score >= 5) {
+  if (score >= 6.1) {
+    return "accent" as const;
+  }
+
+  if (score >= 4.1) {
     return "warning" as const;
   }
 
   return "danger" as const;
 }
 
+export function getScoreBand(score: number): ScoreBand {
+  if (score >= 10) {
+    return { label: "Perfect", variant: "success" };
+  }
+
+  if (score >= 8.1) {
+    return { label: "Excellent", variant: "success" };
+  }
+
+  if (score >= 6.1) {
+    return { label: "Great", variant: "accent" };
+  }
+
+  if (score >= 4.1) {
+    return { label: "Average", variant: "warning" };
+  }
+
+  if (score >= 2.1) {
+    return { label: "Poor", variant: "danger" };
+  }
+
+  return { label: "Awful", variant: "danger" };
+}
+
+export function getScoreBandLabel(score: number) {
+  return getScoreBand(score).label;
+}
+
+export function getScoreBandVariant(score: number) {
+  return getScoreBand(score).variant;
+}
+
 export function getScoreMethodologyNotes() {
   return [
-    "This audit uses a weighted heuristic model across design, conversion, mobile clarity, search readiness, accessibility, trust, and security posture.",
-    "The total is not a straight average. Multiple weak categories still lower the final score together, but consistently strong categories now earn a small lift instead of being flattened.",
-    "A 10/10 is rare. Most strong commercial sites land in the high-7 to low-9 range because there is usually still room to improve clarity, accessibility, speed, or trust.",
-    "Another evaluator can score lower or higher if it weights code-level performance, accessibility, or brand polish differently.",
+    "Weighted across design, conversion, mobile clarity, search, accessibility, trust, and security.",
+    "Weak categories drag the total down; strong ones add only a modest lift.",
+    "A 10 is rare, and another evaluator may weight code, accessibility, or polish differently.",
   ];
 }

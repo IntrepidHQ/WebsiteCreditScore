@@ -28,7 +28,7 @@ const sectionMeta: Record<
     icon: BadgeCheck,
   },
   "costing-leads": {
-    title: "What’s Costing You Leads",
+    title: "Lead friction",
     description:
       "These are the areas where the current site is creating friction, hesitation, or a weaker first impression than the business deserves.",
     icon: AlertTriangle,
@@ -134,23 +134,23 @@ export function FindingsSection({
                     <Badge variant="neutral">{finding.confidenceLevel}</Badge>
                     <Badge variant="neutral">{finding.category.replace("-", " ")}</Badge>
                   </div>
-                  <CardTitle className="text-3xl">{finding.title}</CardTitle>
+                  <CardTitle className="font-display text-[2.15rem]">{finding.title}</CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-5">
-                  <p className="text-sm leading-7 text-muted">{finding.summary}</p>
+                  <p className="text-base leading-8 text-muted">{finding.summary}</p>
                   <div className="rounded-[calc(var(--theme-radius)-2px)] border border-border/70 bg-background-alt/70 p-4">
-                    <p className="text-xs uppercase tracking-[0.18em] text-muted">
+                    <p className="text-xs font-semibold uppercase tracking-[0.12em] text-muted">
                       Business impact
                     </p>
-                    <p className="mt-2 text-sm leading-6 text-foreground">
+                    <p className="mt-2 text-base leading-7 text-foreground">
                       {finding.businessImpact}
                     </p>
                   </div>
                   <div className="rounded-[calc(var(--theme-radius)-2px)] border border-accent/20 bg-accent/8 p-4">
-                    <p className="text-xs uppercase tracking-[0.18em] text-accent">
+                    <p className="text-xs font-semibold uppercase tracking-[0.12em] text-accent">
                       Recommendation
                     </p>
-                    <p className="mt-2 text-sm leading-6 text-foreground">
+                    <p className="mt-2 text-base leading-7 text-foreground">
                       {finding.recommendation}
                     </p>
                   </div>
@@ -162,7 +162,7 @@ export function FindingsSection({
                           <div className="space-y-2">
                             {finding.evidence.map((evidence) => (
                               <div
-                                className="rounded-[calc(var(--theme-radius)-6px)] border border-border/70 bg-panel/55 px-4 py-3 text-sm leading-6 text-muted"
+                                className="rounded-[calc(var(--theme-radius)-6px)] border border-border/70 bg-panel/55 px-4 py-3 text-base leading-7 text-muted"
                                 key={evidence.id}
                               >
                                 <span className="font-semibold text-foreground">
@@ -184,10 +184,10 @@ export function FindingsSection({
                                     {item.sourceLabel}
                                   </span>
                                 </div>
-                                <p className="mt-3 text-sm leading-6 text-foreground">
+                                <p className="mt-3 text-base leading-7 text-foreground">
                                   {item.claim}
                                 </p>
-                                <p className="mt-2 text-xs leading-5 text-muted">{item.notes}</p>
+                                <p className="mt-2 text-sm leading-6 text-muted">{item.notes}</p>
                               </div>
                             ))}
                           </div>

@@ -29,6 +29,7 @@ import { createThemeTokens } from "@/lib/utils/theme";
 import { slugFromUrl } from "@/lib/utils/url";
 
 const STORE_PATH = path.join("/tmp", "craydl-product-store.json");
+const LEGACY_BRAND_PATTERN = new RegExp(["C", "r", "a", "y", "d", "l"].join(""), "i");
 
 interface LocalProductStore {
   workspaces: WorkspaceRecord[];
@@ -76,28 +77,61 @@ function getWorkspaceDefaults(ownerUserId: string) {
   const createdAt = new Date().toISOString();
 
   return {
-    id: "workspace-craydl",
+    id: "workspace-websitecreditscore",
     ownerUserId,
-    name: "Craydl internal workspace",
-    slug: "craydl",
+    name: "WebsiteCreditScore.com workspace",
+    slug: "websitecreditscore",
     createdAt,
     updatedAt: createdAt,
     billingStatus: "trial" as const,
     creditBalance: 8,
     branding: {
-      agencyName: "Craydl Web Design Agency",
-      logoMark: "/brand/craydl-light.png",
-      contactName: "Craydl team",
+      agencyName: "WebsiteCreditScore.com",
+      logoMark: "WCS",
+      contactName: "WebsiteCreditScore.com team",
       contactTitle: "Founder",
-      contactEmail: "hello@craydl.pro",
+      contactEmail: "hello@websitecreditscore.com",
       contactPhone: "(843) 555-0198",
-      headshot: "/brand/craydl-light.png",
+      headshot: "/previews/agency-avatar.svg",
       accentOverride: "#f7b21b",
     },
     savedTheme: createThemeTokens({
       mode: "dark",
       accentColor: "#f7b21b",
     }),
+  };
+}
+
+function normalizeWorkspaceRecord(workspace: WorkspaceRecord) {
+  const usesLegacyBrand = [
+    workspace.name,
+    workspace.slug,
+    workspace.branding.agencyName,
+    workspace.branding.logoMark,
+    workspace.branding.contactName,
+    workspace.branding.contactEmail,
+    workspace.branding.headshot,
+  ].some((value) => LEGACY_BRAND_PATTERN.test(value));
+
+  const branding = {
+    ...workspace.branding,
+    agencyName: usesLegacyBrand ? "WebsiteCreditScore.com" : workspace.branding.agencyName,
+    logoMark: usesLegacyBrand || workspace.branding.logoMark === "CR" ? "WCS" : workspace.branding.logoMark,
+    contactName: usesLegacyBrand ? "WebsiteCreditScore.com team" : workspace.branding.contactName,
+    contactEmail: usesLegacyBrand ? "hello@websitecreditscore.com" : workspace.branding.contactEmail,
+    headshot: usesLegacyBrand ? "/previews/agency-avatar.svg" : workspace.branding.headshot,
+  };
+
+  const name = workspace.name.toLowerCase().includes("internal workspace")
+    ? "WebsiteCreditScore.com workspace"
+    : workspace.name;
+  const slug = usesLegacyBrand ? "websitecreditscore" : workspace.slug;
+
+  return {
+    ...workspace,
+    name,
+    slug,
+    branding,
   };
 }
 
@@ -146,7 +180,7 @@ function createSavedLeadFromReport(
     companyName: report.title,
     normalizedUrl,
     previewImage: report.previewSet.current.desktop,
-    stage: reportId === "provider-pages" ? "audit-ready" : "follow-up-due",
+    stage: reportId === "one-medical" ? "audit-ready" : "follow-up-due",
     createdAt,
     updatedAt: createdAt,
     currentScore: report.overallScore,
@@ -241,9 +275,9 @@ async function createSeedStore(ownerUserId: string): Promise<LocalProductStore> 
     ),
     createSavedLeadFromReport(
       workspace.id,
-      "provider-pages",
-      "Provider Pages",
-      "https://provider-pages.com",
+      "one-medical",
+      "One Medical",
+      "https://www.onemedical.com",
       provider.toISOString(),
     ),
   ];
@@ -280,8 +314,8 @@ async function createSeedStore(ownerUserId: string): Promise<LocalProductStore> 
       {
         id: referralCodeId,
         workspaceId: workspace.id,
-        code: "CRAYDL-FOUNDING",
-        shareUrl: "https://craydl.pro/app/login?ref=CRAYDL-FOUNDING",
+        code: "WCS-FOUNDING",
+        shareUrl: "https://websitecreditscore.com/app/login?ref=WCS-FOUNDING",
         rewardLabel: "2 workspace credits per activated provider account",
         createdAt: now.toISOString(),
       },
@@ -337,9 +371,20 @@ async function createSeedStore(ownerUserId: string): Promise<LocalProductStore> 
       },
       {
         id: createId("promo"),
+        code: "RUSH24",
+        label: "24-Hour Turnaround",
+        description: "Priority turnaround for a $250 fee.",
+        type: "fixed",
+        value: 250,
+        active: true,
+        maxRedemptions: 100,
+        redemptionsUsed: 0,
+      },
+      {
+        id: createId("promo"),
         code: "FOUNDING10",
         label: "Founding provider discount",
-        description: "Reserved for the first few studios using Craydl internally.",
+        description: "Reserved for the first few studios using WebsiteCreditScore.com internally.",
         type: "percentage",
         value: 10,
         active: true,
@@ -358,9 +403,30 @@ async function readStore(ownerUserId: string) {
       throw new Error("Empty local product store");
     }
 
-    const needsPromoSeed = !parsed.promos.some((promo) => promo.code === "FIFTEEN");
+    let mutated = false;
+    const normalizedWorkspaces = parsed.workspaces.map(normalizeWorkspaceRecord);
+    const normalizedReferralCodes = parsed.referralCodes.map((entry) =>
+      entry.code === "CRAYDL-FOUNDING"
+        ? {
+            ...entry,
+            code: "WCS-FOUNDING",
+            shareUrl: "https://websitecreditscore.com/app/login?ref=WCS-FOUNDING",
+          }
+        : entry,
+    );
+    if (JSON.stringify(normalizedWorkspaces) !== JSON.stringify(parsed.workspaces)) {
+      parsed.workspaces = normalizedWorkspaces;
+      mutated = true;
+    }
+    if (JSON.stringify(normalizedReferralCodes) !== JSON.stringify(parsed.referralCodes)) {
+      parsed.referralCodes = normalizedReferralCodes;
+      mutated = true;
+    }
 
-    if (needsPromoSeed) {
+    const needsFifteenSeed = !parsed.promos.some((promo) => promo.code === "FIFTEEN");
+    const needsRushSeed = !parsed.promos.some((promo) => promo.code === "RUSH24");
+
+    if (needsFifteenSeed) {
       parsed.promos.unshift({
         id: createId("promo"),
         code: "FIFTEEN",
@@ -372,6 +438,25 @@ async function readStore(ownerUserId: string) {
         maxRedemptions: 100,
         redemptionsUsed: 0,
       });
+      mutated = true;
+    }
+
+    if (needsRushSeed) {
+      parsed.promos.splice(1, 0, {
+        id: createId("promo"),
+        code: "RUSH24",
+        label: "24-Hour Turnaround",
+        description: "Priority turnaround for a $250 fee.",
+        type: "fixed",
+        value: 250,
+        active: true,
+        maxRedemptions: 100,
+        redemptionsUsed: 0,
+      });
+      mutated = true;
+    }
+
+    if (mutated) {
       await fs.writeFile(STORE_PATH, JSON.stringify(parsed, null, 2), "utf8");
     }
 

@@ -15,8 +15,7 @@ export function generateOutreachEmail(report: AuditReport): OutreachEmailTemplat
 
   return {
     subject: `${report.title}: a few quick website observations`,
-    previewLine:
-      "A short website review with the clearest friction points, a tighter direction, and a sensible next step.",
-    body: `Hi team,\n\nI reviewed ${report.title} and attached a short website review. The clearest patterns were ${findingLine}.\n\nThe opportunity is to make the site easier to trust, easier to understand, and easier to act on without losing what already works.\n\nThe review stays concise: what is working now, what is likely holding response back, and the scope I would start with first.\n\nIf helpful, I can walk through it live and show what I would prioritize first.\n\nBest,\nCraydl Web Design Agency`,
+    previewLine: "A short review with the clearest friction points and next-step direction.",
+    body: `Hi team,\n\nI reviewed ${report.title} and attached a short audit. The clearest patterns were ${findingLine}.\n\nThe goal is simple: make the site easier to trust, easier to understand, and easier to act on.\n\nIf helpful, I can walk through the top priorities live.\n\nBest,\nWebsiteCreditScore.com`,
   };
 }

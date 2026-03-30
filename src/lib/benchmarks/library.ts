@@ -805,7 +805,7 @@ const patternNotes: Record<BenchmarkVertical, DesignPatternNote[]> = {
         "Use skills to separate exploration, critique, and implementation.",
         "Capture repeatable UI judgment as reusable notes, not one-off opinions.",
       ],
-      applicability: "Best for making Craydl’s future audits more consistent across projects.",
+      applicability: "Best for making WebsiteCreditScore.com’s future audits more consistent across projects.",
     },
   ],
   "product-saas": [
@@ -920,7 +920,7 @@ export function getAllThemePresetSeeds() {
       id: "signal-dark",
       name: "Signal Dark",
       mode: "dark" as const,
-      accentFamily: "Craydl amber",
+      accentFamily: "WebsiteCreditScore amber",
       mood: "Confident, warm, and premium.",
       recommendedUseCase: "Default audit and packet workspace.",
       options: { accentColor: "#f7b21b", fontScale: 1.02, radius: 10, shadowIntensity: 0.88, spacingDensity: 0.98 },

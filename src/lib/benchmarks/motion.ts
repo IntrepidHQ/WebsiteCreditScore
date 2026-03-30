@@ -1,5 +1,8 @@
 import type { SiteObservation } from "@/lib/types/audit";
-import { clampScore } from "@/lib/utils/scores";
+
+function clampMotionScore(value: number) {
+  return Math.max(0, Math.min(10, Number(value.toFixed(1))));
+}
 
 export interface AnimationPattern {
   id: string;
@@ -175,7 +178,7 @@ export function calculateAnimationScore(observation: SiteObservation) {
     0,
   );
 
-  return clampScore(score);
+  return clampMotionScore(score);
 }
 
 export function getAnimationPatternMatches(observation: SiteObservation) {

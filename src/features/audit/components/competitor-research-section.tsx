@@ -3,6 +3,7 @@
 import { Medal, TrendingUp } from "lucide-react";
 
 import { PreviewImage } from "@/components/common/preview-image";
+import { ScoreMeter } from "@/components/common/score-meter";
 import { SectionHeading } from "@/components/common/section-heading";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -76,7 +77,7 @@ function CompetitorCard({
 }) {
   const lift = getLargestLift(currentSnapshot, referenceSnapshot);
   const referenceScore = referenceSnapshot?.overallScore ?? getBenchmarkReferenceScore(reference);
-  const scoreLabel = reference.scoreSource === "measured" || referenceSnapshot ? "Scanned" : "Reference";
+  const scoreLabel = reference.scoreSource === "measured" || referenceSnapshot ? "Scored" : "Reference";
 
   return (
     <Card className="overflow-hidden">
@@ -90,22 +91,22 @@ function CompetitorCard({
           <Badge className="whitespace-nowrap" variant="accent">
             {scoreLabel} {referenceScore.toFixed(1)}
           </Badge>
-          <span className="block text-[11px] uppercase tracking-[0.18em] text-muted">
+          <span className="block text-[11px] font-semibold uppercase tracking-[0.12em] text-muted">
             {reference.sourceLabel}
           </span>
         </div>
-        <CardTitle>{reference.name}</CardTitle>
-        <p className="text-sm leading-6 text-muted">{reference.note}</p>
+        <CardTitle className="font-display text-[2.05rem]">{reference.name}</CardTitle>
+        <p className="text-base leading-7 text-muted">{reference.note}</p>
       </CardHeader>
       <CardContent className="space-y-4">
         <div className="grid gap-3">
           <div className="rounded-[calc(var(--theme-radius)-4px)] border border-border/70 bg-background-alt/70 px-4 py-3">
             <p className="text-xs uppercase tracking-[0.18em] text-muted">Best for</p>
-            <p className="mt-2 text-sm leading-6 text-foreground">{reference.bestFor}</p>
+            <p className="mt-2 text-lg leading-8 text-foreground">{reference.bestFor}</p>
           </div>
           <div className="rounded-[calc(var(--theme-radius)-4px)] border border-border/70 bg-background-alt/70 px-4 py-3">
             <p className="text-xs uppercase tracking-[0.18em] text-muted">Largest visible lift</p>
-            <p className="mt-2 text-sm leading-6 text-foreground">
+            <p className="mt-2 text-lg leading-8 text-foreground">
               {lift
                 ? `${lift.label} +${lift.format === "score" ? lift.diff.toFixed(1) : Math.round(lift.diff)}${lift.format === "percent" ? " pts" : ""}`
                 : "High-scoring benchmark"}
@@ -150,7 +151,7 @@ export function CompetitorResearchSection({ report }: { report: AuditReport }) {
         <SectionHeading
           eyebrow="Competitor research"
           title="Three stronger sites worth studying"
-          description="These live-scanned references show what a stronger buying experience looks like when the same scoring model is applied consistently."
+          description="These scored references show what a stronger buying experience looks like when the same model is applied consistently."
         />
 
         <div className="grid gap-5 xl:grid-cols-[20rem_minmax(0,1fr)]">
@@ -164,11 +165,8 @@ export function CompetitorResearchSection({ report }: { report: AuditReport }) {
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="rounded-[calc(var(--theme-radius)-4px)] border border-border/70 bg-background-alt/70 p-4">
-                <p className="text-xs uppercase tracking-[0.18em] text-muted">Current score</p>
-                <p className="mt-2 font-display text-4xl font-semibold text-foreground">
-                  {report.overallScore} / 10
-                </p>
-                <p className="mt-2 text-sm leading-6 text-muted">
+                <ScoreMeter compact label="Current score" score={report.overallScore} />
+                <p className="mt-3 text-base leading-7 text-muted">
                   {currentSnapshot?.note ?? report.executiveSummary}
                 </p>
               </div>

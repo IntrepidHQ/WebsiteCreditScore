@@ -1,24 +1,47 @@
-import type { Metadata } from "next";
-
 import { BenchmarkLibraryPage } from "@/features/benchmarks/components/benchmark-library-page";
-import { buildBenchmarkLibrarySnapshot, getBenchmarkVerticalLabel } from "@/lib/benchmarks/scans";
-import { getPrimaryBenchmarkVerticals, getBenchmarkDesignNotes } from "@/lib/benchmarks/library";
+import { getWorkspaceAppContext } from "@/lib/product/context";
+import {
+  getPrimaryBenchmarkVerticals,
+  getDesignPatternNotesForProfile,
+} from "@/lib/benchmarks/library";
+import { buildBenchmarkLibrarySnapshot } from "@/lib/benchmarks/scans";
 
-export const metadata: Metadata = {
-  title: "2026 Web Design Benchmarks",
-};
+export const dynamic = "force-dynamic";
 
-export default async function AppBenchmarksPage() {
-  const verticals = getPrimaryBenchmarkVerticals();
-  const snapshots = await buildBenchmarkLibrarySnapshot(verticals);
+export default async function BenchmarksRoutePage() {
+  await getWorkspaceAppContext();
+  const snapshots = await buildBenchmarkLibrarySnapshot([
+    ...getPrimaryBenchmarkVerticals(),
+    "product-saas",
+  ]);
 
   return (
     <BenchmarkLibraryPage
       fallbackImage="/previews/fallback-desktop.svg"
       snapshots={snapshots.map((snapshot) => ({
         ...snapshot,
-        label: getBenchmarkVerticalLabel(snapshot.vertical),
-        notes: getBenchmarkDesignNotes(snapshot.vertical),
+        label:
+          snapshot.vertical === "service-providers"
+            ? "Home & Commercial Services"
+            : snapshot.vertical === "private-healthcare"
+              ? "Private Dental & Healthcare"
+              : "Product & SaaS",
+        notes: getDesignPatternNotesForProfile(
+          snapshot.vertical === "service-providers"
+            ? "local-service"
+            : snapshot.vertical === "private-healthcare"
+              ? "healthcare"
+              : "saas",
+        ),
+        rubric: {
+          ...snapshot.rubric,
+          title:
+            snapshot.vertical === "service-providers"
+              ? "Home and Commercial Services"
+              : snapshot.vertical === "private-healthcare"
+                ? "Private Dental and Healthcare"
+                : snapshot.rubric.title,
+        },
       }))}
     />
   );

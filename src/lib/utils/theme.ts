@@ -212,11 +212,11 @@ function ensureAccessibleAccent(tokens: ThemeTokens) {
 }
 
 export const defaultBranding: AgencyBranding = {
-  agencyName: "Craydl Web Design Agency",
-  logoMark: "CR",
-  contactName: "Craydl Team",
+  agencyName: "WebsiteCreditScore.com",
+  logoMark: "WCS",
+  contactName: "WebsiteCreditScore.com Team",
   contactTitle: "Website Strategy",
-  contactEmail: "hello@craydl.pro",
+  contactEmail: "hello@websitecreditscore.com",
   contactPhone: "(555) 019-2093",
   headshot: "/previews/agency-avatar.svg",
   accentOverride: "",

@@ -35,7 +35,7 @@ export function createDefaultQuestionnaire(
           ? "Booking flow, insurance clarity, FAQ, trust modules"
           : "Estimate funnel, service area proof, review modules",
     contentReadiness: "Partial. We have some content, but key pages need rewriting.",
-    launchTiming: "Within the next 6 to 8 weeks.",
+    launchTiming: "Day 1 to Day 6.",
     successMetric: "Higher-quality leads and a clearer conversion path.",
     internalNotes: "",
   };

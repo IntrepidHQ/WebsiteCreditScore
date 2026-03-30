@@ -961,7 +961,7 @@ function buildRebuildPhases(profile: ReportProfileType): RebuildPhase[] {
       id: "strategy",
       title: "Strategy",
       summary: `Clarify the core narrative around ${profileLens} before a single screen is redesigned.`,
-      timeline: "Week 1",
+      timeline: "Day 1",
       deliverables: [
         "Stakeholder workshop",
         "Offer and audience positioning",
@@ -974,7 +974,7 @@ function buildRebuildPhases(profile: ReportProfileType): RebuildPhase[] {
       title: "Design System",
       summary:
         "Build a modular visual system that feels expensive, consistent, and ready to scale across the full site.",
-      timeline: "Week 2",
+      timeline: "Day 2",
       deliverables: [
         "Tokenized UI system",
         "Type and color direction",
@@ -987,7 +987,7 @@ function buildRebuildPhases(profile: ReportProfileType): RebuildPhase[] {
       title: "Content / Messaging",
       summary:
         "Rewrite key pages around clarity, reassurance, and outcome-focused persuasion.",
-      timeline: "Week 2-3",
+      timeline: "Day 3",
       deliverables: [
         "Headline framework",
         "CTA ladder",
@@ -998,9 +998,8 @@ function buildRebuildPhases(profile: ReportProfileType): RebuildPhase[] {
     {
       id: "development",
       title: "Development",
-      summary:
-        "Build a fast, modern front end with thoughtful animation and a cleaner content architecture.",
-      timeline: "Week 3-4",
+      summary: "Build a fast front end with deliberate motion and a cleaner content architecture.",
+      timeline: "Day 4",
       deliverables: [
         "Responsive front-end build",
         "CMS-ready sections",
@@ -1013,7 +1012,7 @@ function buildRebuildPhases(profile: ReportProfileType): RebuildPhase[] {
       title: "SEO Foundation",
       summary:
         "Restructure technical SEO and content architecture so organic traffic and conversion support each other.",
-      timeline: "Week 4",
+      timeline: "Day 5",
       deliverables: [
         "Metadata templates",
         "Schema opportunities",
@@ -1024,9 +1023,8 @@ function buildRebuildPhases(profile: ReportProfileType): RebuildPhase[] {
     {
       id: "launch-optimization",
       title: "Launch / Optimization",
-      summary:
-        "Ship with confidence, then tune based on conversion behavior instead of assumptions.",
-      timeline: "Week 5+",
+      summary: "Ship with confidence, then tune based on real conversion behavior.",
+      timeline: "Day 6",
       deliverables: [
         "Launch checklist",
         "Analytics QA",
@@ -1655,11 +1653,18 @@ async function enrichReportBenchmarks(report: AuditReport): Promise<AuditReport>
 }
 
 export function getSampleAuditCards() {
-  return sampleAudits.map((sample) => ({
-    ...sample,
-    previewImage: createWebsiteScreenshotUrl(sample.previewUrl ?? sample.url, "desktop"),
-    score: buildAuditReport(sample.url, sample).overallScore,
-  }));
+  return [...sampleAudits]
+    .sort((left, right) => {
+      const leftTime = left.scannedAt ? new Date(left.scannedAt).getTime() : 0;
+      const rightTime = right.scannedAt ? new Date(right.scannedAt).getTime() : 0;
+
+      return rightTime - leftTime;
+    })
+    .map((sample) => ({
+      ...sample,
+      previewImage: createWebsiteScreenshotUrl(sample.previewUrl ?? sample.url, "desktop"),
+      score: buildAuditReport(sample.url, sample).overallScore,
+    }));
 }
 
 export function buildAuditReportById(id: string) {

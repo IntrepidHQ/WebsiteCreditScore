@@ -4,7 +4,7 @@ import { SeoProductPage } from "@/features/seo/components/seo-product-page";
 import { getWorkspaceAppContext } from "@/lib/product/context";
 
 export const metadata: Metadata = {
-  title: "SEO | Craydl Workspace",
+  title: "SEO | WebsiteCreditScore.com",
 };
 
 export default async function AppSeoPage() {

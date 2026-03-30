@@ -486,6 +486,7 @@ export interface SampleAuditCard {
   previewImage: string;
   fallbackPreviewImage?: string;
   score?: number;
+  scannedAt?: string;
   executiveSummary?: string;
   highlights?: string[];
   scoreOverrides?: Partial<Record<AuditCategoryKey, number>>;

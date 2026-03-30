@@ -65,6 +65,9 @@ dependencies:
   tailwind-merge:
     specifier: ^3.5.0
     version: 3.5.0
+  unicornstudio-react:
+    specifier: 2.1.4-1
+    version: 2.1.4-1(next@16.1.6)(react-dom@19.2.3)(react@19.2.3)
   zustand:
     specifier: ^5.0.11
     version: 5.0.11(@types/react@19.2.14)(react@19.2.3)
@@ -5973,6 +5976,22 @@ packages:
     resolution: {integrity: sha512-eJdUmK/Wrx2d+mnWWmwwLRyA7OQCkLap60sk3dOK4ViZR7DKwwptwuIvFBg2HaiP9ESaEdhtpSymQPvytpmkCA==}
     engines: {node: '>=20.18.1'}
     dev: true
+
+  /unicornstudio-react@2.1.4-1(next@16.1.6)(react-dom@19.2.3)(react@19.2.3):
+    resolution: {integrity: sha512-k1SLWsUlac8IZAczEP6heGxLTlSgogLvUL6vqmYtJtePJXzV/EUwNXqWkxwcz+WGILFaFa9cVKUDZh2vSkOJow==}
+    engines: {node: '>=20.0.0'}
+    peerDependencies:
+      next: '*'
+      react: '>=18.0.0'
+      react-dom: '>=18.0.0'
+    peerDependenciesMeta:
+      next:
+        optional: true
+    dependencies:
+      next: 16.1.6(@babel/core@7.29.0)(react-dom@19.2.3)(react@19.2.3)
+      react: 19.2.3
+      react-dom: 19.2.3(react@19.2.3)
+    dev: false
 
   /unrs-resolver@1.11.1:
     resolution: {integrity: sha512-bSjt9pjaEBnNiGgc9rUiHGKv5l4/TGzDmYw3RhnkJGtLhbnnA/5qJj7x3dNDCRx/PJxu774LlH8lCOlB4hEfKg==}

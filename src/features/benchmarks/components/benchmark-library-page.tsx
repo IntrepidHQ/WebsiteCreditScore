@@ -12,7 +12,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
   selectFeaturedBenchmarkReferences,
-  sortBenchmarkReferencesByScore,
+  sortBenchmarkReferencesByRecentScan,
 } from "@/lib/benchmarks/scans";
 import type {
   BenchmarkReference,
@@ -68,9 +68,11 @@ function ScoreRows<Key extends string>({
           >
             <div className="min-w-0">
               <p className="text-sm font-semibold text-foreground">{item.label}</p>
-              <p className="mt-1 text-sm leading-6 text-muted">{item.description}</p>
+              <p className="mt-1 text-base leading-7 text-muted">{item.description}</p>
             </div>
-            <p className="font-display text-2xl font-semibold text-accent">{item.score}</p>
+            <p className="font-sans text-[2.05rem] font-semibold tracking-[-0.04em] text-accent">
+              {item.score}
+            </p>
           </div>
         ))}
       </div>
@@ -144,7 +146,7 @@ export function BenchmarkLibraryPage({
       <SectionHeading
         eyebrow="Benchmark library"
         title="2026 Web Design Benchmarks"
-        description="Live-measured references first. Only the strongest examples get featured at the top; the rest stay cataloged below as scan history."
+        description="Live-measured references first. The 9+ examples stay at the top and the scan feed stays newest-first."
       />
       <div className="flex flex-wrap items-center gap-3">
         <Button asChild size="sm" variant="secondary">
@@ -210,7 +212,7 @@ export function BenchmarkLibraryPage({
                 : {}),
             },
           );
-          const historyReferences = sortBenchmarkReferencesByScore(
+          const historyReferences = sortBenchmarkReferencesByRecentScan(
             snapshot.references,
             snapshot.scans,
           );
@@ -273,7 +275,7 @@ export function BenchmarkLibraryPage({
                     </div>
                     <CardTitle className="text-3xl">Quantifying the subjective parts of UI</CardTitle>
                     <p className="text-sm leading-6 text-muted">
-                      Craydl averages the elements of art and the principles of design into a benchmark-side Design Score so visual quality can be discussed with named criteria instead of taste alone.
+                      WebsiteCreditScore.com averages the elements of art and the principles of design into a benchmark-side Design Score so visual quality can be discussed with named criteria instead of taste alone.
                     </p>
                   </CardHeader>
                   <CardContent className="space-y-4">
@@ -282,10 +284,10 @@ export function BenchmarkLibraryPage({
                       <p className="mt-2 font-display text-5xl font-semibold text-accent">
                         {averageDesignScore}
                       </p>
-                      <p className="mt-2 text-sm leading-6 text-foreground">
+                      <p className="mt-2 text-base leading-7 text-foreground">
                         This is the average design benchmark score across the measured reference set for this vertical.
                       </p>
-                      <p className="mt-2 text-sm leading-6 text-muted">
+                      <p className="mt-2 text-base leading-7 text-muted">
                         Animation average: {averageAnimationScore}. Purposeful motion is counted as part of the design score, not as a decorative extra.
                       </p>
                     </div>
@@ -328,7 +330,7 @@ export function BenchmarkLibraryPage({
                 <div className="flex flex-col gap-2">
                   <p className="text-xs uppercase tracking-[0.18em] text-muted">Public scan history</p>
                   <p className="max-w-3xl text-sm leading-6 text-muted">
-                    Every scanned site stays cataloged here so the library feels alive and the bar gets harder to ignore over time.
+                    Newest scans first. Every live reference stays cataloged here.
                   </p>
                 </div>
                 <div className="grid gap-3">
@@ -350,18 +352,18 @@ export function BenchmarkLibraryPage({
                           </div>
                           <CardHeader className="space-y-2">
                             <div className="flex flex-wrap items-center gap-2">
-                              <Badge variant="accent">
-                                {scan?.scoreSource === "measured" ? "Scanned" : "Reference"} {score.toFixed(1)}
-                              </Badge>
-                              <Badge variant="neutral">{reference.tier}</Badge>
-                            </div>
-                            <CardTitle className="text-2xl">{reference.name}</CardTitle>
-                            <p className="text-sm leading-6 text-muted">{reference.note}</p>
+                    <Badge variant="accent">
+                      {scan?.scoreSource === "measured" ? "Scored" : "Reference"} {score.toFixed(1)}
+                    </Badge>
+                    <Badge variant="neutral">{reference.tier}</Badge>
+                  </div>
+                            <CardTitle className="font-display text-[2rem]">{reference.name}</CardTitle>
+                            <p className="text-base leading-7 text-muted">{reference.note}</p>
                             <p className="text-xs uppercase tracking-[0.18em] text-muted">
                               {reference.sourceLabel}
                             </p>
                             <p className="text-xs uppercase tracking-[0.18em] text-muted">
-                              Scanned {formatTimestamp(scan?.scannedAt ?? new Date().toISOString())}
+                              Scored {formatTimestamp(scan?.scannedAt ?? new Date().toISOString())}
                             </p>
                           </CardHeader>
                           <CardContent className="flex flex-wrap items-start gap-2 lg:justify-end lg:pt-6">

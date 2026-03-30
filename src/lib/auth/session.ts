@@ -43,8 +43,8 @@ export async function getOptionalWorkspaceSession(): Promise<WorkspaceSession | 
   return {
     mode: "demo",
     userId: "demo-owner",
-    email: "hello@craydl.pro",
-    name: "Craydl",
+    email: "hello@websitecreditscore.com",
+    name: "WebsiteCreditScore",
   };
 }
 

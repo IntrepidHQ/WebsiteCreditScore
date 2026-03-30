@@ -27,7 +27,7 @@ export function LeadStageBadge({ stage }: { stage: LeadStage }) {
   return (
     <span
       className={cn(
-        "inline-flex rounded-full border px-2.5 py-1 text-[11px] font-semibold uppercase tracking-[0.18em]",
+        "inline-flex rounded-full border px-2.5 py-1 text-[11px] font-bold uppercase tracking-[0.06em]",
         stageClassMap[stage],
       )}
     >

@@ -53,11 +53,11 @@ export default function PlatformPage() {
         <div className="mx-auto grid w-full max-w-7xl gap-8 px-4 sm:px-6 lg:grid-cols-[minmax(0,1.05fr)_minmax(0,0.95fr)] lg:px-8">
           <div className="space-y-6">
             <Badge variant="accent">Platform</Badge>
-            <h1 className="font-display text-5xl font-semibold tracking-[-0.05em] text-foreground sm:text-6xl">
+            <h1 className="font-display text-[clamp(4rem,2.75rem+4vw,7.75rem)] font-semibold tracking-[-0.055em] text-foreground">
               One workflow for auditing, pitching, and scoping service-business sites.
             </h1>
             <p className="max-w-3xl text-lg leading-8 text-muted">
-              Keep the explanation short. Let the live examples carry the proof.
+              Live examples carry the proof.
             </p>
             <div className="flex flex-wrap gap-3">
               <Button asChild size="lg">
@@ -104,9 +104,9 @@ export default function PlatformPage() {
           <SectionHeading
             eyebrow="Example reports"
             title="Use real sites to show the workflow"
-            description="The product explanation is brief. The examples do the selling."
+            description="Real sites do the selling."
           />
-          <div className="grid gap-5 lg:grid-cols-3">
+          <div className="grid gap-5 xl:grid-cols-2">
             {samples.map((audit) => (
               <SampleAuditCard audit={audit} key={audit.id} />
             ))}

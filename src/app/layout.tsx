@@ -1,8 +1,9 @@
 import { Suspense } from "react";
 import type { Metadata } from "next";
-import { Manrope, Space_Grotesk } from "next/font/google";
+import { Instrument_Serif, Manrope, Space_Grotesk } from "next/font/google";
 
 import { ContactModal } from "@/components/common/contact-modal";
+import { UnicornBackground } from "@/components/common/unicorn-background";
 import { RouteScrollReset } from "@/components/common/route-scroll-reset";
 import { SiteFooter } from "@/components/common/site-footer";
 import { SiteHeader } from "@/components/common/site-header";
@@ -20,10 +21,16 @@ const spaceGrotesk = Space_Grotesk({
   subsets: ["latin"],
 });
 
+const instrumentSerif = Instrument_Serif({
+  variable: "--font-instrument-serif",
+  subsets: ["latin"],
+  weight: "400",
+});
+
 export const metadata: Metadata = {
-  title: "Craydl Web Design Agency",
+  title: "WebsiteCreditScore.com",
   description:
-    "Craydl helps web product providers turn prospect sites into sharper outreach packets, scoped proposals, and approved web engagements.",
+    "WebsiteCreditScore.com turns prospect sites into sharper audits, clearer redesign direction, and measurable design benchmarks.",
 };
 
 export default function RootLayout({
@@ -34,20 +41,21 @@ export default function RootLayout({
   return (
     <html lang="en" suppressHydrationWarning>
       <body
-        className={`${manrope.variable} ${spaceGrotesk.variable} min-h-screen bg-background text-foreground antialiased`}
+        className={`${manrope.variable} ${spaceGrotesk.variable} ${instrumentSerif.variable} min-h-screen bg-background text-foreground antialiased`}
       >
         <ThemeStyleProvider>
-          <div className="relative min-h-screen overflow-x-hidden">
-            <div aria-hidden="true" className="ambient-orb left-0 top-16" />
-            <div aria-hidden="true" className="ambient-orb ambient-orb-2 right-0 top-[28rem]" />
-            <Suspense fallback={null}>
-              <SiteHeader />
-            </Suspense>
-            <Suspense fallback={null}>
-              <RouteScrollReset />
-            </Suspense>
-            {children}
-            <SiteFooter />
+          <div className="relative isolate min-h-screen overflow-x-hidden">
+            <UnicornBackground />
+            <div className="relative z-10 flex min-h-screen flex-col">
+              <Suspense fallback={null}>
+                <SiteHeader />
+              </Suspense>
+              <Suspense fallback={null}>
+                <RouteScrollReset />
+              </Suspense>
+              {children}
+              <SiteFooter />
+            </div>
             <ContactModal />
           </div>
         </ThemeStyleProvider>

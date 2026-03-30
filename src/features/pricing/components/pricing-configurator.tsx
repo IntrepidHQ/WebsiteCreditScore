@@ -14,6 +14,7 @@ import {
 } from "lucide-react";
 
 import { SectionHeading } from "@/components/common/section-heading";
+import { ScoreMeter } from "@/components/common/score-meter";
 import {
   Accordion,
   AccordionContent,
@@ -426,10 +427,10 @@ export function PricingConfigurator({ report }: { report: AuditReport }) {
               </CardHeader>
               <CardContent className="space-y-4">
                 <div className="rounded-[calc(var(--theme-radius)-2px)] border border-border/70 bg-background-alt/70 p-4">
-                  <p className="text-xs uppercase tracking-[0.18em] text-muted">Total investment</p>
+                  <p className="text-xs font-semibold uppercase tracking-[0.12em] text-muted">Total investment</p>
                   <p
                     aria-live="polite"
-                    className="mt-2 font-display text-[2.8rem] font-semibold leading-none text-accent"
+                    className="mt-2 font-display text-[2.4rem] font-semibold leading-none text-accent"
                   >
                     ${offerSummary.finalTotal.toLocaleString()}
                   </p>
@@ -451,22 +452,18 @@ export function PricingConfigurator({ report }: { report: AuditReport }) {
                   <p className="mt-2 text-sm leading-6 text-muted">
                     {report.pricingBundle.stickyNote}
                   </p>
-                  <div className="mt-4 grid gap-3 sm:grid-cols-2 xl:grid-cols-1">
-                    <div className="rounded-[calc(var(--theme-radius)-4px)] border border-border/70 bg-panel/50 px-3 py-3">
-                      <p className="text-xs uppercase tracking-[0.18em] text-muted">Current score</p>
-                      <p className="mt-2 font-display text-3xl font-semibold text-foreground">
-                        {report.overallScore}
-                      </p>
-                    </div>
-                    <div className="rounded-[calc(var(--theme-radius)-4px)] border border-accent/25 bg-accent/10 px-3 py-3">
-                      <p className="text-xs uppercase tracking-[0.18em] text-muted">Projected score</p>
-                      <p className="mt-2 font-display text-3xl font-semibold text-accent">
-                        {projectedScore}
-                      </p>
-                      <p className="text-xs leading-5 text-muted">
-                        Includes +{summary.projectedScoreLift.toFixed(1)} potential lift from the selected package.
-                      </p>
-                    </div>
+                  <div className="mt-4 rounded-[calc(var(--theme-radius)-4px)] border border-border/70 bg-background-alt/70 p-4">
+                    <ScoreMeter
+                      className="max-w-full"
+                      compact
+                      label="Projected impact"
+                      projectedScore={projectedScore}
+                      score={report.overallScore}
+                      valueClassName="text-[2.25rem] sm:text-[2.35rem]"
+                    />
+                    <p className="mt-3 text-sm leading-7 text-muted">
+                      Current score on the left, projected impact in yellow. Add-ons update the meter so the lift is visible on every device.
+                    </p>
                   </div>
                 </div>
 

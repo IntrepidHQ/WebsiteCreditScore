@@ -10,6 +10,7 @@ export const sampleAudits: SampleAuditCard[] = [
     profile: "healthcare",
     summary:
       "Provider details are present, but the first impression still feels generic.",
+    scannedAt: new Date("2026-03-27T14:00:00-04:00").toISOString(),
     previewImage: createWebsiteScreenshotUrl("https://markdeford.dr-leonardo.com", "desktop"),
     executiveSummary:
       "This example is based on the live Mark Deford M.D. profile page. The site includes real provider metadata and health-information depth, but the templated presentation weakens trust at first glance.",
@@ -36,6 +37,7 @@ export const sampleAudits: SampleAuditCard[] = [
     profile: "local-service",
     summary:
       "The story is credible, but the page still makes visitors read too much before acting.",
+    scannedAt: new Date("2026-03-28T10:30:00-04:00").toISOString(),
     previewImage: createWebsiteScreenshotUrl("https://www.saunderswoodworkllc.com/about", "desktop"),
     executiveSummary:
       "This example is based on the live Saunders Wood Work LLC About page. The business story is credible and detailed, but the page asks visitors to read a lot before it creates a clear next step.",
@@ -52,32 +54,6 @@ export const sampleAudits: SampleAuditCard[] = [
       accessibility: 5.5,
       "trust-credibility": 6.7,
       "security-posture": 6.1,
-    },
-  },
-  {
-    id: "provider-pages",
-    title: "Provider Pages",
-    url: "https://provider-pages.com",
-    previewUrl: "https://provider-pages.com",
-    profile: "saas",
-    summary:
-      "The offer is visible, but the page still feels denser than it needs to.",
-    previewImage: createWebsiteScreenshotUrl("https://provider-pages.com", "desktop"),
-    executiveSummary:
-      "This example is based on the live Provider Pages homepage. The offer is specific, but the page leans hard on ranking language and dense explanation before clarifying package choice.",
-    highlights: [
-      "The homepage description references patient reviews, appointment scheduling, chat, telehealth, and email integrations.",
-      "Primary homepage CTA language centers on 'CLAIM Your Provider-Page'.",
-      "The page relies on large ranking and search-position claims before clearer product comparison or pricing context.",
-    ],
-    scoreOverrides: {
-      "visual-design": 5.8,
-      "ux-conversion": 5.3,
-      "mobile-experience": 5,
-      "seo-readiness": 6.4,
-      accessibility: 5.2,
-      "trust-credibility": 5.6,
-      "security-posture": 6.2,
     },
   },
 ];

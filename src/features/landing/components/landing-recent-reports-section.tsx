@@ -11,7 +11,7 @@ export function LandingRecentReportsSection() {
         <SectionHeading
           eyebrow="Recent scans"
           title="Live examples from the scan catalog"
-          description="Open a few recent sites and see the score, the evidence, and the next step."
+          description="Newest public scans. Score, evidence, and the next step."
         />
         <div aria-label="Recent reports" className="horizontal-rail gap-5" tabIndex={0}>
           {samples.map((audit) => (

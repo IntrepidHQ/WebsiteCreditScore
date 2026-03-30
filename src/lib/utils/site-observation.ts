@@ -741,7 +741,7 @@ async function fetchObservation(normalizedUrl: string): Promise<SiteObservation>
     const response = await fetch(normalizedUrl, {
       headers: {
         "user-agent":
-          "Mozilla/5.0 (compatible; CraydlAudit/1.0; +https://craydl.pro)",
+          "Mozilla/5.0 (compatible; WebsiteCreditScoreAudit/1.0; +https://websitecreditscore.com)",
         accept: "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
       },
       redirect: "follow",

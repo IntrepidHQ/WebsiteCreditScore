@@ -41,7 +41,8 @@
   --color-warning: var(--theme-warning);
   --color-danger: var(--theme-danger);
   --font-sans: var(--font-manrope);
-  --font-display: var(--font-space-grotesk);
+  --font-display: var(--font-instrument-serif);
+  --font-headline: var(--font-instrument-serif);
 }
 
 * {
@@ -52,15 +53,14 @@ html {
   scroll-behavior: smooth;
 }
 
-h1,
-h2,
-h3,
-h4,
-h5,
-h6 {
-  line-height: 0.96;
+.font-display,
+.font-headline {
+  font-family: "Instrument Serif", var(--font-instrument-serif), serif !important;
+  font-size: 1.25em;
+  font-weight: 400 !important;
+  font-optical-sizing: auto;
   letter-spacing: -0.03em;
-  text-wrap: balance;
+  line-height: 0.98;
 }
 
 p,

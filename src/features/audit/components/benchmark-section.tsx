@@ -74,15 +74,15 @@ export function BenchmarkSection({ report }: { report: AuditReport }) {
                 />
                 <CardHeader className="space-y-3">
                   <div className="flex items-center justify-between gap-3">
-                    <Badge variant="accent">
-                      {reference.scoreSource === "measured" ? "Scanned" : "Reference"} score{" "}
+                <Badge variant="accent">
+                      {reference.scoreSource === "measured" ? "Scored" : "Reference"} score{" "}
                       {getBenchmarkReferenceScore(reference).toFixed(1)}
                     </Badge>
                     <span className="text-xs uppercase tracking-[0.18em] text-muted">
                       {reference.sourceLabel}
                     </span>
                   </div>
-                  <CardTitle>{reference.name}</CardTitle>
+                  <CardTitle className="font-display text-3xl">{reference.name}</CardTitle>
                   <p className="text-sm leading-6 text-muted">{reference.note}</p>
                   <p className="text-xs uppercase tracking-[0.18em] text-muted">{reference.url}</p>
                 </CardHeader>

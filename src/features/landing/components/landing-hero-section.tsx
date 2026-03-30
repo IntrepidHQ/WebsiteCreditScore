@@ -6,34 +6,31 @@ export function LandingHeroSection() {
     <section className="presentation-section pb-8 pt-12 sm:pt-16" id="generate">
       <div className="mx-auto w-full max-w-7xl px-4 sm:px-6 lg:px-8">
         <div className="space-y-8">
-          <Badge variant="accent">Craydl for designers, developers, and web product providers</Badge>
+          <Badge variant="accent">Website Audits, Reviews, and Redesigns</Badge>
           <div className="space-y-6">
-            <h1 className="max-w-5xl font-display text-5xl font-semibold tracking-[-0.06em] text-foreground sm:text-7xl">
-              Turn a live website into a{" "}
-              <span className="gradient-type">
-                sendable audit and scoped <span className="whitespace-nowrap">web deal.</span>
-              </span>
+            <h1 className="max-w-5xl font-display text-[clamp(4.4rem,3rem+4.8vw,8.6rem)] font-semibold tracking-[-0.06em] text-foreground">
+              A clear score for your website—backed by what actually matters.
             </h1>
             <p className="max-w-3xl text-lg leading-8 text-muted sm:text-xl">
-              Built for business owners who want a clearer score, a better plan, and a site that sells itself faster.
+              Quality and performance ratings you can trust, grounded in consistent benchmarks.
             </p>
           </div>
           <div className="max-w-4xl">
             <LandingForm />
           </div>
-          <div className="grid gap-3 rounded-[calc(var(--theme-radius-lg))] border border-accent/20 bg-accent/8 p-4 sm:grid-cols-[minmax(0,1fr)_auto] sm:items-center">
-            <div>
-              <p className="text-xs uppercase tracking-[0.18em] text-muted">Launch offer</p>
+          <div className="grid gap-3 rounded-[calc(var(--theme-radius-lg))] border border-accent/20 bg-accent/8 p-4 sm:grid-cols-2">
+            <div className="rounded-[10px] border border-border/70 bg-background/40 p-4">
+              <p className="text-xs uppercase tracking-[0.18em] text-muted">Launch coupon</p>
               <p className="mt-2 text-sm leading-6 text-foreground">
-                Use code <span className="font-semibold text-accent">FIFTEEN</span> for 15% off your first build. 100 redemptions total.
+                Use code <span className="font-semibold text-accent">FIFTEEN</span> for 15% off.
               </p>
-              <p className="mt-1 text-sm leading-6 text-muted">
-                Claim now or request changes later. The preview stays familiar by pulling from your existing site and brand assets.
-              </p>
+              <p className="mt-1 text-sm leading-6 text-muted">100 redemptions total.</p>
             </div>
-            <Badge className="w-fit" variant="accent">
-              15% off
-            </Badge>
+            <div className="rounded-[10px] border border-border/70 bg-background/40 p-4">
+              <p className="text-xs uppercase tracking-[0.18em] text-muted">Additional offer</p>
+              <p className="mt-2 text-sm leading-6 text-foreground">24-Hour Turnaround</p>
+              <p className="mt-1 text-sm leading-6 text-muted">$250 fee.</p>
+            </div>
           </div>
         </div>
       </div>

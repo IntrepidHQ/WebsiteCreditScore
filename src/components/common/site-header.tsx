@@ -5,15 +5,13 @@ import {
   ArrowUpRight,
   Compass,
   FileText,
-  LayoutDashboard,
   Menu,
-  Palette,
   ScanSearch,
 } from "lucide-react";
 import { usePathname, useSearchParams } from "next/navigation";
 import { useEffect, useMemo, useState } from "react";
 
-import { CraydlLogo } from "@/components/common/craydl-logo";
+import { WebsiteCreditScoreLogo } from "@/components/common/website-credit-score-logo";
 import {
   Dialog,
   DialogClose,
@@ -33,11 +31,10 @@ type NavItem = {
 
 function getPrimaryNavigation() {
   return [
-    { href: "/", label: "Home" },
     { href: "/platform", label: "Platform" },
     { href: "/examples", label: "Examples" },
     { href: "/app/benchmarks", label: "Benchmarks" },
-    { href: "/app", label: "Workspace" },
+    { href: "/docs", label: "Docs" },
   ] satisfies NavItem[];
 }
 
@@ -157,12 +154,12 @@ export function SiteHeader() {
       ? [
           { href: auditHref, label: "Open audit", icon: ScanSearch },
           { href: packetHref, label: "Packet PDF", icon: FileText },
-          { href: "/settings", label: "Settings", icon: Palette },
+          { href: "/app/login", label: "Sign in" },
         ]
       : [
           { href: "/examples", label: "Examples", icon: Compass },
           { href: "/audit/mark-deford-md", label: "Sample audit", icon: ScanSearch },
-          { href: "/app", label: "Workspace", icon: LayoutDashboard },
+          { href: "/app/login", label: "Sign in" },
         ];
 
   if (isAppPath) {
@@ -172,66 +169,46 @@ export function SiteHeader() {
   return (
     <header
       className={cn(
-        "sticky top-0 z-50 border-b border-border/60 print:hidden transition-all duration-300",
-        scrolled
-          ? "bg-background/92 shadow-[0_16px_52px_rgba(0,0,0,0.22)] backdrop-blur-2xl"
-          : "bg-background/76 backdrop-blur-xl",
+        "sticky top-0 z-50 bg-transparent transition-all duration-300 print:hidden",
       )}
     >
       <div className="mx-auto w-full max-w-7xl px-4 sm:px-6 lg:px-8">
-        <div
-          className={cn(
-            "flex items-center justify-between gap-4 transition-[padding] duration-300",
-            scrolled ? "py-3" : "py-4",
-          )}
-        >
-          <div className="flex min-w-0 items-center gap-3">
-            <Link href="/" className="min-w-0">
-              <CraydlLogo compact={scrolled} />
+          <div className={cn("flex flex-col gap-3 transition-[padding] duration-300", scrolled ? "py-3" : "py-4")}>
+          <div className="flex flex-wrap items-center justify-between gap-3">
+            <Link href="/" className="min-w-0 shrink-0">
+              <WebsiteCreditScoreLogo className="w-[18.5rem] sm:w-[20.5rem]" />
             </Link>
-            {!isWorkspacePath ? (
-              <nav aria-label="Primary" className="hidden lg:flex items-center gap-2">
-                {primaryNavigation.map((item) => (
-                  <HeaderLink
-                    active={isActiveItem(pathname, activeHash, item)}
-                    item={item}
-                    key={item.href}
-                  />
-                ))}
-              </nav>
-            ) : null}
-          </div>
 
-          <div className="hidden items-center gap-2 sm:flex">
-            {quickActions.map((action, index) => {
-              const variant = index === 1 ? "secondary" : index === 2 ? "outline" : "ghost";
+            <div className="hidden flex-wrap items-center justify-end gap-2 sm:flex">
+              {quickActions.map((action, index) => {
+                const variant = index === 1 ? "secondary" : index === 2 ? "outline" : "ghost";
 
-              return (
-                <Button asChild className="shrink-0" key={action.href} size="sm" variant={variant}>
-                  <Link href={action.href}>
-                    {action.icon ? <action.icon className="size-4" /> : null}
-                    {action.label}
-                  </Link>
+                return (
+                  <Button asChild className="shrink-0" key={action.href} size="sm" variant={variant}>
+                    <Link href={action.href}>
+                      {action.icon ? <action.icon className="size-4" /> : null}
+                      {action.label}
+                    </Link>
+                  </Button>
+                );
+              })}
+            </div>
+
+            <div className="flex items-center gap-2 sm:hidden">
+              {isAuditPath ? (
+                <Button asChild size="sm" variant="secondary">
+                  <Link href="#pricing">Pricing</Link>
                 </Button>
-              );
-            })}
-          </div>
-
-          <div className="flex items-center gap-2 sm:hidden">
-            {isAuditPath ? (
-              <Button asChild size="sm" variant="secondary">
-                <Link href="#pricing">Pricing</Link>
-              </Button>
-            ) : null}
-            <Dialog>
-              <DialogTrigger asChild>
-                <Button aria-label="Open navigation" size="icon" variant="outline">
-                  <Menu className="size-4" />
-                </Button>
-              </DialogTrigger>
-              <DialogContent className="w-[min(92vw,28rem)] p-5">
+              ) : null}
+              <Dialog>
+                <DialogTrigger asChild>
+                  <Button aria-label="Open navigation" size="icon" variant="outline">
+                    <Menu className="size-4" />
+                  </Button>
+                </DialogTrigger>
+                <DialogContent className="w-[min(92vw,28rem)] p-5">
                 <DialogHeader>
-                  <DialogTitle>Navigate Craydl</DialogTitle>
+                  <DialogTitle>Navigate WebsiteCreditScore.com</DialogTitle>
                   <DialogDescription>
                     Move between pages and jump to the most useful part of the current screen.
                   </DialogDescription>
@@ -317,28 +294,47 @@ export function SiteHeader() {
                     </div>
                   </div>
                 </div>
-              </DialogContent>
-            </Dialog>
+                </DialogContent>
+              </Dialog>
+            </div>
           </div>
-        </div>
 
-        {sectionNavigation.length ? (
-          <nav
-            aria-label="Section navigation"
-            className={cn(
-              "hidden gap-2 overflow-x-auto pb-3 md:flex",
-              scrolled ? "pt-0" : "pt-1",
-            )}
-          >
-            {sectionNavigation.map((item) => (
-              <HeaderLink
-                active={isActiveItem(pathname, activeHash, item)}
-                item={item}
-                key={item.href}
-              />
-            ))}
-          </nav>
-        ) : null}
+          {!isWorkspacePath ? (
+            <nav
+              aria-label="Primary"
+              className={cn(
+                "hidden flex-wrap items-center gap-2 pb-1 lg:flex",
+                scrolled ? "pt-0" : "pt-1",
+              )}
+            >
+              {primaryNavigation.map((item) => (
+                <HeaderLink
+                  active={isActiveItem(pathname, activeHash, item)}
+                  item={item}
+                  key={item.href}
+                />
+              ))}
+            </nav>
+          ) : null}
+
+          {sectionNavigation.length ? (
+            <nav
+              aria-label="Section navigation"
+              className={cn(
+                "hidden gap-2 overflow-x-auto pb-1 md:flex",
+                scrolled ? "pt-0" : "pt-1",
+              )}
+            >
+              {sectionNavigation.map((item) => (
+                <HeaderLink
+                  active={isActiveItem(pathname, activeHash, item)}
+                  item={item}
+                  key={item.href}
+                />
+              ))}
+            </nav>
+          ) : null}
+        </div>
       </div>
     </header>
   );

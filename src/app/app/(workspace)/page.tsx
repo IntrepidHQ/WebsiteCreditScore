@@ -6,6 +6,7 @@ import { PreviewImage } from "@/components/common/preview-image";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
+import { ScoreMeter } from "@/components/common/score-meter";
 import { LeadStageBadge } from "@/features/app/components/lead-stage-badge";
 import { ScanHistorySection } from "@/features/app/components/scan-history-section";
 import { getWorkspaceAppContext } from "@/lib/product/context";
@@ -125,12 +126,14 @@ export default async function AppDashboardPage() {
                       </Link>
                     </Button>
                   </div>
-                  <div className="text-left md:text-right">
-                    <p className="text-xs uppercase tracking-[0.18em] text-muted">Score</p>
-                    <p className="mt-2 text-xl font-semibold text-foreground">
-                      {lead.currentScore} → {lead.projectedScore}
-                    </p>
-                  </div>
+                  <ScoreMeter
+                    className="max-w-[12.5rem] md:ml-auto"
+                    compact
+                    label="Current score"
+                    projectedScore={lead.projectedScore}
+                    score={lead.currentScore}
+                    valueClassName="text-[2rem] sm:text-[2.15rem]"
+                  />
                 </div>
               </div>
             ))}

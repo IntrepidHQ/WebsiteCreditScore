@@ -209,6 +209,29 @@ export function sortBenchmarkReferencesByScore(
   });
 }
 
+export function sortBenchmarkReferencesByRecentScan(
+  references: BenchmarkReference[],
+  scans: BenchmarkScan[],
+) {
+  const scanMap = new Map(scans.map((scan) => [scan.siteId, scan]));
+
+  return [...references].sort((left, right) => {
+    const leftScan = scanMap.get(left.siteId);
+    const rightScan = scanMap.get(right.siteId);
+    const leftTime = leftScan?.scannedAt ? new Date(leftScan.scannedAt).getTime() : 0;
+    const rightTime = rightScan?.scannedAt ? new Date(rightScan.scannedAt).getTime() : 0;
+
+    if (rightTime !== leftTime) {
+      return rightTime - leftTime;
+    }
+
+    const leftScore = leftScan?.overallScore ?? getMeasuredBenchmarkScore(left);
+    const rightScore = rightScan?.overallScore ?? getMeasuredBenchmarkScore(right);
+
+    return rightScore - leftScore;
+  });
+}
+
 export function selectFeaturedBenchmarkReferences(
   references: BenchmarkReference[],
   scans: BenchmarkScan[],

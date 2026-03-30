@@ -11,6 +11,7 @@ import { getScoreTone } from "@/lib/utils/scores";
 
 const barClasses = {
   success: "bg-success",
+  accent: "bg-accent",
   warning: "bg-warning",
   danger: "bg-danger",
 } as const;

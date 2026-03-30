@@ -1,22 +1,23 @@
 "use client";
 
 import Link from "next/link";
-import { ScanSearch, Settings } from "lucide-react";
+import { ScanSearch, BookOpen } from "lucide-react";
 import { usePathname } from "next/navigation";
 
-import { CraydlLogo } from "@/components/common/craydl-logo";
+import { WebsiteCreditScoreLogo } from "@/components/common/website-credit-score-logo";
 import { Button } from "@/components/ui/button";
 
 const primaryLinks = [
-  { href: "/", label: "Home" },
   { href: "/platform", label: "Platform" },
   { href: "/examples", label: "Examples" },
+  { href: "/app/benchmarks", label: "Benchmarks" },
+  { href: "/docs", label: "Docs" },
   { href: "/audit/mark-deford-md", label: "Sample Audit" },
 ];
 
 const toolLinks = [
   { href: "/brief/mark-deford-md", label: "Discovery Brief" },
-  { href: "/settings", label: "Theme Settings" },
+  { href: "/app/login", label: "Sign in" },
 ];
 
 export function SiteFooter() {
@@ -31,7 +32,7 @@ export function SiteFooter() {
       <div className="mx-auto grid w-full max-w-7xl gap-10 px-4 py-10 sm:px-6 lg:grid-cols-[minmax(0,1.2fr)_minmax(0,0.8fr)] lg:px-8">
         <div className="space-y-5">
           <Link href="/" className="inline-flex">
-            <CraydlLogo compact />
+            <WebsiteCreditScoreLogo compact />
           </Link>
           <p className="max-w-2xl text-sm leading-7 text-muted">
             Audit the live site, package the opportunity, and scope the redesign.
@@ -44,9 +45,9 @@ export function SiteFooter() {
               </Link>
             </Button>
             <Button asChild className="w-full sm:w-auto" size="sm" variant="secondary">
-              <Link href="/settings">
-                <Settings className="size-4" />
-                Theme settings
+              <Link href="/docs">
+                <BookOpen className="size-4" />
+                Docs
               </Link>
             </Button>
           </div>

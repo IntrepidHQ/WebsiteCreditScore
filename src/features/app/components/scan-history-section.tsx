@@ -4,6 +4,7 @@ import Link from "next/link";
 import { ArrowUpRight, ClipboardList } from "lucide-react";
 
 import { PreviewImage } from "@/components/common/preview-image";
+import { ScoreMeter } from "@/components/common/score-meter";
 import { Button } from "@/components/ui/button";
 import { DeleteLeadButton } from "@/features/app/components/delete-lead-button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -70,7 +71,7 @@ export function ScanHistorySection({
                 </p>
                 <div className="mt-3 flex flex-wrap items-center gap-x-4 gap-y-1 text-xs uppercase tracking-[0.16em] text-muted">
                   <span>{savedReport.normalizedUrl.replace(/^https?:\/\//, "")}</span>
-                  <span>Scanned {formatTimestamp(savedReport.createdAt)}</span>
+                  <span>Scored {formatTimestamp(savedReport.createdAt)}</span>
                 </div>
               </div>
 
@@ -92,14 +93,14 @@ export function ScanHistorySection({
                     </Link>
                   </Button>
                 </div>
-                <div className="text-left md:text-right">
-                  <p className="text-xs uppercase tracking-[0.18em] text-muted">Score</p>
-                  <p className="mt-2 text-xl font-semibold text-foreground">
-                    {lead?.currentScore ?? report.overallScore}
-                    {" → "}
-                    {lead?.projectedScore ?? report.overallScore}
-                  </p>
-                </div>
+                <ScoreMeter
+                  className="max-w-[12.5rem] md:ml-auto"
+                  compact
+                  label="Current score"
+                  projectedScore={lead?.projectedScore ?? report.overallScore}
+                  score={lead?.currentScore ?? report.overallScore}
+                  valueClassName="text-[2rem] sm:text-[2.15rem]"
+                />
               </div>
             </div>
           );

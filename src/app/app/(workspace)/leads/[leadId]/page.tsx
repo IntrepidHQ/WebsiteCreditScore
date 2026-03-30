@@ -4,6 +4,7 @@ import { History, LayoutPanelLeft, Sparkles } from "lucide-react";
 
 import { completeReminderAction, updateLeadStageAction } from "@/app/app/actions";
 import { AuditReportSections } from "@/features/audit/components/audit-report-sections";
+import { ScoreMeter } from "@/components/common/score-meter";
 import { Button } from "@/components/ui/button";
 import { DeleteLeadButton } from "@/features/app/components/delete-lead-button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -61,9 +62,16 @@ export default async function LeadDetailPage({
             </CardHeader>
             <CardContent className="grid gap-4 md:grid-cols-[minmax(0,1fr)_16rem]">
               <div className="space-y-3">
+                <ScoreMeter
+                  className="max-w-[14rem]"
+                  compact
+                  label="Current score"
+                  projectedScore={detail.lead.projectedScore}
+                  score={detail.lead.currentScore}
+                  valueClassName="text-[2rem] sm:text-[2.15rem]"
+                />
                 <p className="text-sm leading-7 text-muted">{detail.lead.summary}</p>
                 <div className="grid gap-2 text-sm text-muted">
-                  <p>Current score: {detail.lead.currentScore}</p>
                   <p>Projected score: {detail.lead.projectedScore}</p>
                   <p>{detail.lead.normalizedUrl}</p>
                 </div>
