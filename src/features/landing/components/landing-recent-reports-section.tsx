@@ -5,8 +5,14 @@ import type { SampleAuditCard as SampleAuditCardType } from "@/lib/types/audit";
 
 export function LandingRecentReportsSection({
   samples,
+  eyebrow = "Recent scans",
+  title = "Recent scans that show what stronger websites do differently",
+  description = "Each scan starts with a live site and ends with a clearer view of what is helping, what is hurting, and what to fix first.",
 }: {
   samples: SampleAuditCardType[];
+  eyebrow?: string;
+  title?: string;
+  description?: string;
 }) {
   const scoredSamples = samples.filter((sample) => typeof sample.score === "number");
   const averageScore = scoredSamples.length
@@ -21,18 +27,18 @@ export function LandingRecentReportsSection({
       <div className="mx-auto w-full max-w-7xl space-y-8 px-4 sm:px-6 lg:px-8">
         <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_auto] lg:items-end">
           <SectionHeading
-            description="These examples prove the score is grounded in live sites, not abstract advice. Each one is there to show how the review becomes a stronger redesign conversation."
-            eyebrow="Recent scans"
-            title="Real scored examples, kept public on purpose"
+            description={description}
+            eyebrow={eyebrow}
+            title={title}
           />
           <div className="flex flex-wrap gap-3">
             <div className="rounded-full border border-border/60 bg-panel/40 px-4 py-2 text-sm text-foreground">
-              {samples.length} public samples
+              {samples.length} recent scans
             </div>
             <div className="rounded-full border border-border/60 bg-panel/40 px-4 py-2 text-sm text-foreground">
               Average score {averageScore}
             </div>
-            <Badge variant="accent">Live site grounded</Badge>
+            <Badge variant="accent">Built from live sites</Badge>
           </div>
         </div>
 

@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 
 import { buildBenchmarkReferences, getBenchmarkReferenceScore } from "@/lib/mock/report-enhancements";
-import { getSampleAuditCards, selectBenchmarkReferencesForReport } from "@/lib/mock/report-builder";
+import { getPublicScanHistoryCards, getSampleAuditCards, selectBenchmarkReferencesForReport } from "@/lib/mock/report-builder";
 
 describe("report builder benchmark selection", () => {
   it("filters the current domain out of the stronger-site set", () => {
@@ -39,12 +39,16 @@ describe("report builder benchmark selection", () => {
 
   it("returns the public scan cards newest-first and omits provider pages", () => {
     const cards = getSampleAuditCards();
+    const publicHistory = getPublicScanHistoryCards();
 
     expect(cards.some((card) => card.title === "Provider Pages")).toBe(false);
+    expect(cards.length).toBeGreaterThan(3);
+    expect(cards.some((card) => card.id === "one-medical")).toBe(true);
     expect(cards[0]?.scannedAt).toBeDefined();
     expect(cards[1]?.scannedAt).toBeDefined();
     expect(new Date(cards[0]!.scannedAt!).getTime()).toBeGreaterThanOrEqual(
       new Date(cards[1]!.scannedAt!).getTime(),
     );
+    expect(publicHistory.map((card) => card.id)).toEqual(cards.map((card) => card.id));
   });
 });

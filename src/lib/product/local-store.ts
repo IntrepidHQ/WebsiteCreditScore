@@ -3,6 +3,7 @@ import path from "node:path";
 import { randomUUID } from "node:crypto";
 
 import { buildAuditReportById, buildAuditReportFromUrl, buildLiveAuditReportFromUrl } from "@/lib/mock/report-builder";
+import { sampleAudits } from "@/lib/mock/sample-audits";
 import { prepareReportForStorage, passesReportQualityCheck } from "@/lib/product/report-quality";
 import type {
   DashboardSnapshot,
@@ -314,36 +315,25 @@ function createSavedLeadFromReport(
 async function createSeedStore(ownerUserId: string): Promise<LocalProductStore> {
   const workspace = getWorkspaceDefaults(ownerUserId);
   const now = new Date();
-  const mark = new Date(now);
-  mark.setDate(now.getDate() - 4);
-  const saunders = new Date(now);
-  saunders.setDate(now.getDate() - 2);
-  const provider = new Date(now);
-  provider.setDate(now.getDate() - 1);
+  const seededLeads = sampleAudits.map((sample) =>
+    createSavedLeadFromReport(
+      workspace.id,
+      sample.id,
+      sample.title,
+      sample.url,
+      sample.scannedAt ?? now.toISOString(),
+    ),
+  );
+  const latestSeedDate = seededLeads.reduce((latest, entry) => {
+    const createdAt = new Date(entry.savedReport.createdAt);
 
-  const seededLeads = [
-    createSavedLeadFromReport(
-      workspace.id,
-      "mark-deford-md",
-      "Mark Deford M.D.",
-      "https://markdeford.dr-leonardo.com",
-      mark.toISOString(),
-    ),
-    createSavedLeadFromReport(
-      workspace.id,
-      "saunders-woodworks",
-      "Saunders Wood Work LLC",
-      "https://www.saunderswoodworkllc.com/about",
-      saunders.toISOString(),
-    ),
-    createSavedLeadFromReport(
-      workspace.id,
-      "one-medical",
-      "One Medical",
-      "https://www.onemedical.com",
-      provider.toISOString(),
-    ),
-  ];
+    return createdAt.getTime() > latest.getTime() ? createdAt : latest;
+  }, now);
+  const earliestSeedDate = seededLeads.reduce((earliest, entry) => {
+    const createdAt = new Date(entry.savedReport.createdAt);
+
+    return createdAt.getTime() < earliest.getTime() ? createdAt : earliest;
+  }, latestSeedDate);
 
   const referralCodeId = createId("referral");
 
@@ -361,7 +351,7 @@ async function createSeedStore(ownerUserId: string): Promise<LocalProductStore> 
         subject: "Quick site review and redesign direction",
         body: "I pulled together a short review of the current site, the biggest friction points, and the fastest path to a better first impression. If helpful, I can send over the short packet and walk you through it in fifteen minutes.",
         kind: "intro",
-        updatedAt: provider.toISOString(),
+        updatedAt: latestSeedDate.toISOString(),
       },
       {
         id: createId("template"),
@@ -370,7 +360,7 @@ async function createSeedStore(ownerUserId: string): Promise<LocalProductStore> 
         subject: "Following up on the site packet",
         body: "Wanted to follow up on the review I sent over. If the direction feels relevant, I can tighten this into a scoped brief and recommended package before any design work starts.",
         kind: "follow-up",
-        updatedAt: provider.toISOString(),
+        updatedAt: latestSeedDate.toISOString(),
       },
     ],
     referralCodes: [
@@ -400,8 +390,8 @@ async function createSeedStore(ownerUserId: string): Promise<LocalProductStore> 
         inviteeEmail: "ops@example.com",
         status: "credited",
         creditAmount: 2,
-        createdAt: saunders.toISOString(),
-        convertedAt: provider.toISOString(),
+        createdAt: seededLeads[1]?.savedReport.createdAt ?? now.toISOString(),
+        convertedAt: latestSeedDate.toISOString(),
       },
     ],
     workspaceCredits: [
@@ -410,14 +400,14 @@ async function createSeedStore(ownerUserId: string): Promise<LocalProductStore> 
         workspaceId: workspace.id,
         amount: 5,
         label: "Founding workspace balance",
-        createdAt: mark.toISOString(),
+        createdAt: earliestSeedDate.toISOString(),
       },
       {
         id: createId("credit"),
         workspaceId: workspace.id,
         amount: 2,
         label: "Referral reward",
-        createdAt: provider.toISOString(),
+        createdAt: latestSeedDate.toISOString(),
       },
     ],
     promos: [
@@ -535,6 +525,33 @@ async function readStore(ownerUserId: string) {
         active: true,
       });
       mutated = true;
+    }
+
+    const workspaceId = parsed.workspaces[0]?.id;
+
+    if (workspaceId) {
+      for (const sample of sampleAudits) {
+        const exists = parsed.savedReports.some((report) => report.id === sample.id);
+
+        if (exists) {
+          continue;
+        }
+
+        const seeded = createSavedLeadFromReport(
+          workspaceId,
+          sample.id,
+          sample.title,
+          sample.url,
+          sample.scannedAt ?? new Date().toISOString(),
+        );
+
+        parsed.savedReports.push(seeded.savedReport);
+        parsed.leads.push(seeded.lead);
+        parsed.activities.push(...seeded.activities);
+        parsed.reminders.push(...seeded.reminders);
+        parsed.shareLinks.push(...seeded.shareLinks);
+        mutated = true;
+      }
     }
 
     if (mutated) {

@@ -1667,6 +1667,10 @@ export function getSampleAuditCards() {
     }));
 }
 
+export function getPublicScanHistoryCards() {
+  return getSampleAuditCards();
+}
+
 export function buildAuditReportById(id: string) {
   const sample = sampleAudits.find((entry) => entry.id === id);
 

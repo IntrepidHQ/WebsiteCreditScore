@@ -129,7 +129,7 @@ export function ScoreDial({
                 {resolvedDisplayScore.toFixed(1)}
               </p>
               <p className="text-[11px] font-semibold uppercase tracking-[0.2em] text-muted">
-                Website Credit Score
+                Score
               </p>
             </div>
           </div>
@@ -137,7 +137,7 @@ export function ScoreDial({
       </div>
 
       <div className="mt-5 flex items-center justify-between gap-3">
-        <p className="text-sm leading-6 text-muted">Benchmark-ready work generally clears 8.8.</p>
+        <p className="text-sm leading-6 text-muted">Benchmark-ready work generally clears 8.</p>
         {showProjected ? (
           <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-accent">
             Target {projectedScore.toFixed(1)}

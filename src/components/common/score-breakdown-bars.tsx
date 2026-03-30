@@ -85,7 +85,7 @@ export function ScoreBreakdownBars({
             <div key={item.key}>
               <div className="mb-2 flex flex-wrap items-center justify-between gap-3">
                 <div className="flex min-w-0 items-center gap-2">
-                  <p className="truncate text-sm font-semibold text-foreground">{item.label}</p>
+                  <h3 className="truncate text-sm font-semibold text-foreground">{item.label}</h3>
                   {showWeights ? (
                     <Badge className="normal-case tracking-normal" variant="neutral">
                       {item.weight.toFixed(2)}x

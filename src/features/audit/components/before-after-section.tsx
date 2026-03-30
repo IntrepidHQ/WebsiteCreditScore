@@ -19,9 +19,11 @@ function OpportunityCard({
 }) {
   return (
     <Card className="h-full w-full min-w-0">
-      <CardHeader className="space-y-3">
+      <CardHeader className="space-y-2">
         <Badge variant="accent">{opportunity.impactLabel}</Badge>
-        <CardTitle>{opportunity.title}</CardTitle>
+        <CardTitle className="text-[clamp(2.25rem,2rem+0.45vw,2.85rem)] leading-[0.98] tracking-[-0.04em]">
+          {opportunity.title}
+        </CardTitle>
       </CardHeader>
       <CardContent className="space-y-4">
         <p className="text-sm leading-6 text-muted">{opportunity.summary}</p>

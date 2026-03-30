@@ -35,7 +35,7 @@ export function SiteFooter() {
             <WebsiteCreditScoreLogo compact />
           </Link>
           <p className="max-w-2xl text-sm leading-7 text-muted">
-            Audit the live site, package the opportunity, and scope the redesign.
+            Audit the live site, see what is costing trust, and decide what to fix first.
           </p>
           <div className="grid gap-3 sm:flex sm:flex-wrap">
             <Button asChild className="w-full sm:w-auto" size="sm">

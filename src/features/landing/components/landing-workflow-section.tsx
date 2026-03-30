@@ -17,12 +17,12 @@ const workflowSteps = [
   },
   {
     label: "Packet",
-    detail: "Turn the score into a narrative the prospect can read as a premium redesign case, not a generic teardown.",
+    detail: "Turn the score into a clear explanation of what the site is costing you and why the redesign is worth doing.",
     icon: FileText,
   },
   {
     label: "Brief",
-    detail: "Carry the same reasoning into scope so discovery and production start with cleaner priorities.",
+    detail: "Turn that reasoning into a cleaner plan so the rebuild starts with the right priorities instead of guesswork.",
     icon: ClipboardList,
   },
 ] as const;
@@ -40,9 +40,9 @@ export function LandingWorkflowSection({
     <section className="presentation-section py-8" id="workflow">
       <div className="mx-auto w-full max-w-7xl space-y-8 px-4 sm:px-6 lg:px-8">
         <SectionHeading
-          description="The score is useful because it turns premium design judgment into something repeatable enough to explain, defend, and scope against."
-          eyebrow="How the score works"
-          title="A design review system with evidence, weights, and reusable principles"
+          description="Use the review to see where your site is losing trust, where good leads are stalling, and what to fix first if you want the next version to perform better."
+          eyebrow="How it works"
+          title="Find the weak spots, frame the opportunity, and move into scope faster"
         />
 
         <div className="grid gap-5 xl:grid-cols-[minmax(0,0.82fr)_minmax(0,1.18fr)]">
@@ -71,7 +71,7 @@ export function LandingWorkflowSection({
             </div>
             <Button asChild variant="secondary">
               <Link href="/benchmarks">
-                Open the public benchmark method
+                See the benchmark method
                 <ArrowRight className="size-4" />
               </Link>
             </Button>
@@ -81,12 +81,11 @@ export function LandingWorkflowSection({
             <div className="space-y-3">
               <Badge variant="accent">Weighted categories</Badge>
               <h3 className="font-display text-[clamp(3rem,2.4rem+1vw,4.3rem)] leading-[0.92] tracking-[-0.05em] text-foreground">
-                The score favors conversion clarity and trust over decorative polish
+                The score rewards clarity, trust, and momentum, not just polish
               </h3>
               <p className="text-base leading-7 text-muted">
-                This is the part generic audit tools miss: a page can look cleaner and still
-                fail the pitch if the proof, reassurance, and next step do not land in the
-                right order.
+                A better-looking redesign is not the point. The point is to see where your
+                current site is hiding value, weakening trust, or making ready buyers hesitate.
               </p>
             </div>
 
@@ -101,7 +100,7 @@ export function LandingWorkflowSection({
                 <Card className="h-full rounded-[22px] border-border/60 bg-panel/35 shadow-none" key={note.id}>
                   <CardHeader className="space-y-3">
                     <Badge variant="neutral">{note.category}</Badge>
-                    <CardTitle className="text-[clamp(2.1rem,1.8rem+0.4vw,2.7rem)]">
+                    <CardTitle className="text-[clamp(1.95rem,1.72rem+0.35vw,2.35rem)] leading-[0.98] tracking-[-0.04em]">
                       {note.title}
                     </CardTitle>
                   </CardHeader>

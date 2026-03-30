@@ -9,7 +9,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { SampleAuditCard } from "@/features/landing/components/sample-audit-card";
 import { getBenchmarkRubricForProfile } from "@/lib/benchmarks/library";
-import { buildAuditReportById, getSampleAuditCards } from "@/lib/mock/report-builder";
+import { buildAuditReportById, getPublicScanHistoryCards } from "@/lib/mock/report-builder";
 import { buildBenchmarkTargetCategoryScores } from "@/lib/utils/score-visuals";
 
 const workflowCards = [
@@ -22,22 +22,22 @@ const workflowCards = [
   },
   {
     step: "02",
-    title: "Package the redesign case",
+    title: "Turn the findings into a clearer plan",
     detail:
-      "Turn the score and findings into a sendable packet and intro narrative that already feels considered.",
+      "Turn the score and findings into a packet that explains what the site is costing and which upgrades matter most.",
     icon: FileText,
   },
   {
     step: "03",
-    title: "Tighten scope before build",
+    title: "Move into the right rebuild scope",
     detail:
-      "Carry the same logic into the brief so discovery starts with sharper priorities and less drift.",
+      "Carry the same logic into the brief so the next version starts with sharper priorities and less drift.",
     icon: ClipboardList,
   },
 ] as const;
 
 export default function PlatformPage() {
-  const samples = getSampleAuditCards();
+  const samples = getPublicScanHistoryCards();
   const featuredAudit = samples.find((sample) => sample.id === "saunders-woodworks") ?? samples[0];
   const featuredReport = featuredAudit ? buildAuditReportById(featuredAudit.id) : null;
   const rubric = getBenchmarkRubricForProfile("local-service");
@@ -57,11 +57,11 @@ export default function PlatformPage() {
                 Audit to packet to brief
               </p>
               <h1 className="max-w-5xl font-display text-[clamp(4.1rem,3.2rem+2vw,6.5rem)] leading-[0.9] tracking-[-0.06em] text-foreground">
-                One workflow for turning a weak site into a clearer redesign proposal.
+                One workflow for turning a weak site into a clearer rebuild plan.
               </h1>
               <p className="max-w-3xl text-[1.08rem] leading-8 text-muted sm:text-[1.18rem] sm:leading-9">
-                The platform exists to keep the same reasoning intact from the first score
-                to the client packet to the scoped brief.
+                The platform keeps the same reasoning intact from the first score
+                to the packet to the brief, so you can see what the site is costing and what the next version needs to fix first.
               </p>
             </div>
             <div className="flex flex-wrap gap-3">
@@ -101,9 +101,9 @@ export default function PlatformPage() {
       <section className="presentation-section py-8">
         <div className="mx-auto w-full max-w-7xl space-y-8 px-4 sm:px-6 xl:px-8">
           <SectionHeading
-            description="The point is not to generate more deliverables. It is to preserve one clear argument all the way from critique to scope."
+            description="The point is not to generate more documents. It is to preserve one clear line of reasoning from the score to the decisions that follow."
             eyebrow="Workflow"
-            title="Keep the logic intact from score to proposal"
+            title="Keep the logic intact from score to next step"
           />
 
           <div className="grid gap-5 xl:grid-cols-3">
@@ -137,9 +137,9 @@ export default function PlatformPage() {
 
           <div className="space-y-5 rounded-[28px] border border-border/60 bg-[linear-gradient(180deg,color-mix(in_srgb,var(--theme-panel)_88%,transparent),color-mix(in_srgb,var(--theme-background-alt)_96%,transparent))] p-6 sm:p-7">
             <div className="space-y-3">
-              <Badge variant="accent">Score to proposal module</Badge>
+              <Badge variant="accent">Score to action module</Badge>
               <h2 className="font-display text-[clamp(3rem,2.4rem+1vw,4.3rem)] leading-[0.92] tracking-[-0.05em] text-foreground">
-                The score only matters if it changes the conversation
+                The score only matters if it changes what you do next
               </h2>
               <p className="text-base leading-7 text-muted">
                 {featuredReport.executiveSummary}
@@ -173,7 +173,7 @@ export default function PlatformPage() {
               <div className="space-y-2">
                 <Badge variant="accent">Next step</Badge>
                 <h2 className="font-display text-[clamp(2.8rem,2.2rem+0.7vw,3.7rem)] leading-[0.95] tracking-[-0.05em] text-foreground">
-                  Open the sample audit, then walk the packet and brief in sequence.
+                  Open the sample audit, then see how it turns into a clearer rebuild plan.
                 </h2>
               </div>
               <div className="flex flex-wrap gap-3">

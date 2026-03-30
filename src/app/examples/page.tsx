@@ -7,11 +7,11 @@ import { SectionHeading } from "@/components/common/section-heading";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { SampleAuditCard } from "@/features/landing/components/sample-audit-card";
-import { buildAuditReportById, getSampleAuditCards } from "@/lib/mock/report-builder";
+import { LandingRecentReportsSection } from "@/features/landing/components/landing-recent-reports-section";
+import { buildAuditReportById, getPublicScanHistoryCards } from "@/lib/mock/report-builder";
 
 export default function ExamplesPage() {
-  const samples = getSampleAuditCards();
+  const samples = getPublicScanHistoryCards();
   const featuredAudit = samples.find((sample) => sample.id === "saunders-woodworks") ?? samples[0];
   const featuredReport = featuredAudit ? buildAuditReportById(featuredAudit.id) : null;
 
@@ -27,11 +27,11 @@ export default function ExamplesPage() {
           <div className="grid gap-6 xl:grid-cols-[minmax(0,1fr)_auto] xl:items-end">
             <div className="space-y-4">
               <h1 className="max-w-5xl font-display text-[clamp(4rem,3.1rem+2vw,6.2rem)] leading-[0.9] tracking-[-0.06em] text-foreground">
-                Public audit examples that show the score as proof, not decoration.
+                Examples that show the score as proof, not decoration.
               </h1>
               <p className="max-w-3xl text-[1.08rem] leading-8 text-muted sm:text-[1.18rem] sm:leading-9">
-                Each example starts from a live site, carries a weighted score breakdown,
-                and ends in a stronger redesign recommendation.
+                Each scan starts from a live site, carries a weighted score breakdown,
+                and ends in a clearer redesign recommendation.
               </p>
             </div>
             <div className="flex flex-wrap gap-3">
@@ -49,20 +49,22 @@ export default function ExamplesPage() {
               </Button>
             </div>
           </div>
-          <div className="grid gap-5 xl:grid-cols-2">
-            {samples.map((audit) => (
-              <SampleAuditCard audit={audit} key={audit.id} />
-            ))}
-          </div>
         </div>
       </section>
+
+      <LandingRecentReportsSection
+        description="Examples and scan history are the same thing here: every scan becomes a reference for how the audit reads."
+        eyebrow="Scan history"
+        samples={samples}
+        title="Examples and scan history, in one place"
+      />
 
       <section className="presentation-section py-8">
         <div className="mx-auto w-full max-w-7xl space-y-8 px-4 sm:px-6 xl:px-8">
           <SectionHeading
-            description="These examples are there to make the audit legible. The client should understand what the overall score means, which categories are dragging it down, and why the recommendation follows naturally."
+            description="These examples are there to make the audit legible. You should understand what the overall score means, which categories are dragging it down, and why the recommendation follows naturally."
             eyebrow="How to read one"
-            title="Read the example like a closer, not a browser"
+            title="Read the example like an owner, not a browser"
           />
 
           <div className="grid gap-5 xl:grid-cols-3">
@@ -81,8 +83,7 @@ export default function ExamplesPage() {
               <CardContent className="space-y-4 pt-0">
                 <ScoreDial label={featuredAudit.title} score={featuredReport.overallScore} />
                 <p className="text-sm leading-6 text-muted">
-                  The top-line score is there to frame the conversation quickly, not replace the
-                  underlying evidence.
+                  The top-line score is there to frame what the site is costing, not replace the underlying evidence.
                 </p>
               </CardContent>
             </Card>
@@ -102,9 +103,7 @@ export default function ExamplesPage() {
               <CardContent className="space-y-4 pt-0">
                 <ScoreBreakdownBars items={featuredReport.categoryScores} showWeights />
                 <p className="text-sm leading-6 text-muted">
-                  This is where the redesign case becomes specific: which categories are
-                  underweight, which ones are credible already, and which upgrades will move the
-                  score fastest.
+                  This is where the problem becomes specific: which categories are underweight, which ones are already credible, and which upgrades will move the score fastest.
                 </p>
               </CardContent>
             </Card>
@@ -142,7 +141,7 @@ export default function ExamplesPage() {
               </h2>
               <p className="mt-3 text-sm leading-6 text-muted">
                 The examples page is proof. The full audit and brief show how the same reasoning
-                turns into a pitch asset and a cleaner scope conversation.
+                turns into a clearer action plan and a better decision about what to fix first.
               </p>
               <div className="mt-5 flex flex-wrap gap-3">
                 <Button asChild>

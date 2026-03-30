@@ -334,7 +334,7 @@ export function BenchmarkLibraryPage({
 
               <div className="grid gap-4">
                 <div className="flex flex-col gap-2">
-                  <p className="text-xs uppercase tracking-[0.18em] text-muted">Public scan history</p>
+                  <p className="text-xs uppercase tracking-[0.18em] text-muted">Scan history</p>
                   <p className="max-w-3xl text-sm leading-6 text-muted">
                     Newest scans first. Every live reference stays cataloged here.
                   </p>

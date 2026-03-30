@@ -1,6 +1,7 @@
 import { randomUUID } from "node:crypto";
 
 import { buildAuditReportById, buildAuditReportFromUrl, buildLiveAuditReportFromUrl } from "@/lib/mock/report-builder";
+import { sampleAudits } from "@/lib/mock/sample-audits";
 import { prepareReportForStorage, passesReportQualityCheck } from "@/lib/product/report-quality";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import type {
@@ -131,17 +132,15 @@ function isLegacyProviderPagesLead(lead: LeadRecord, report?: SavedReport) {
   );
 }
 
-function buildSeededLead(workspaceId: string, reportId: string) {
-  const createdAt = new Date().toISOString();
+function buildSeededLead(
+  workspaceId: string,
+  reportId: string,
+  fallbackUrl?: string,
+  createdAt = new Date().toISOString(),
+) {
   const sourceReport =
     buildAuditReportById(reportId) ??
-    buildAuditReportFromUrl(
-      reportId === "mark-deford-md"
-        ? "https://markdeford.dr-leonardo.com"
-        : reportId === "saunders-woodworks"
-          ? "https://www.saunderswoodworkllc.com/about"
-          : "https://www.onemedical.com",
-    );
+    buildAuditReportFromUrl(fallbackUrl ?? "https://www.onemedical.com");
   const report = prepareReportForStorage(sourceReport);
   const summary = calculatePricingSummary(
     report.pricingBundle,
@@ -218,6 +217,62 @@ function buildSeededLead(workspaceId: string, reportId: string) {
   };
 
   return { savedReport, lead, shareLinks, activity, reminder };
+}
+
+async function ensurePublicSampleSeeds(workspaceId: string) {
+  const existingReports = await listPayloadRecords<SavedReport>(
+    "saved_reports",
+    "workspace_id",
+    workspaceId,
+  );
+  const existingReportIds = new Set(existingReports.map((report) => report.id));
+
+  for (const sample of sampleAudits) {
+    if (existingReportIds.has(sample.id)) {
+      continue;
+    }
+
+    const seeded = buildSeededLead(
+      workspaceId,
+      sample.id,
+      sample.url,
+      sample.scannedAt,
+    );
+
+    await upsertPayloadRecord("saved_reports", {
+      id: seeded.savedReport.id,
+      workspace_id: workspaceId,
+      lead_id: seeded.lead.id,
+      payload: seeded.savedReport,
+    });
+    await upsertPayloadRecord("leads", {
+      id: seeded.lead.id,
+      workspace_id: workspaceId,
+      payload: seeded.lead,
+    });
+    for (const shareLink of seeded.shareLinks) {
+      await upsertPayloadRecord("share_links", {
+        id: shareLink.id,
+        workspace_id: workspaceId,
+        lead_id: seeded.lead.id,
+        surface: shareLink.surface,
+        token: shareLink.token,
+        payload: shareLink,
+      });
+    }
+    await upsertPayloadRecord("activities", {
+      id: seeded.activity.id,
+      workspace_id: workspaceId,
+      lead_id: seeded.lead.id,
+      payload: seeded.activity,
+    });
+    await upsertPayloadRecord("reminders", {
+      id: seeded.reminder.id,
+      workspace_id: workspaceId,
+      lead_id: seeded.lead.id,
+      payload: seeded.reminder,
+    });
+  }
 }
 
 async function upsertPayloadRecord(
@@ -364,6 +419,7 @@ export async function ensureSupabaseWorkspace(session: WorkspaceSession) {
       });
     }
     await ensurePromoCatalog(workspace.id);
+    await ensurePublicSampleSeeds(workspace.id);
     return workspace;
   }
 
@@ -413,43 +469,7 @@ export async function ensureSupabaseWorkspace(session: WorkspaceSession) {
     payload: creditEntry,
   });
   await ensurePromoCatalog(workspace.id);
-
-  for (const reportId of ["mark-deford-md", "saunders-woodworks", "one-medical"]) {
-    const seeded = buildSeededLead(workspace.id, reportId);
-    await upsertPayloadRecord("saved_reports", {
-      id: seeded.savedReport.id,
-      workspace_id: workspace.id,
-      lead_id: seeded.lead.id,
-      payload: seeded.savedReport,
-    });
-    await upsertPayloadRecord("leads", {
-      id: seeded.lead.id,
-      workspace_id: workspace.id,
-      payload: seeded.lead,
-    });
-    for (const shareLink of seeded.shareLinks) {
-      await upsertPayloadRecord("share_links", {
-        id: shareLink.id,
-        workspace_id: workspace.id,
-        lead_id: seeded.lead.id,
-        surface: shareLink.surface,
-        token: shareLink.token,
-        payload: shareLink,
-      });
-    }
-    await upsertPayloadRecord("activities", {
-      id: seeded.activity.id,
-      workspace_id: workspace.id,
-      lead_id: seeded.lead.id,
-      payload: seeded.activity,
-    });
-    await upsertPayloadRecord("reminders", {
-      id: seeded.reminder.id,
-      workspace_id: workspace.id,
-      lead_id: seeded.lead.id,
-      payload: seeded.reminder,
-    });
-  }
+  await ensurePublicSampleSeeds(workspace.id);
 
   return workspace;
 }

@@ -53,14 +53,16 @@ export function RebuildStrategySection({ report }: { report: AuditReport }) {
         <div aria-label="Rebuild strategy phases" className="horizontal-rail" tabIndex={0}>
           {report.rebuildPhases.map((phase) => (
             <Card data-phase-card key={phase.id} className="h-full min-w-[19rem] max-w-[23rem]">
-              <CardHeader>
+              <CardHeader className="space-y-2">
                 <div className="flex items-center justify-between gap-3">
                   <Badge variant="accent">{phase.timeline}</Badge>
                   <span className="text-xs uppercase tracking-[0.18em] text-muted">
                     Phase
                   </span>
                 </div>
-                <CardTitle>{phase.title}</CardTitle>
+                <CardTitle className="text-[clamp(2.2rem,1.95rem+0.45vw,2.75rem)] leading-[0.98] tracking-[-0.04em]">
+                  {phase.title}
+                </CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
                 <p className="text-sm leading-6 text-muted">{phase.summary}</p>

@@ -71,7 +71,7 @@ export function LandingForm() {
           Run a live scan
         </label>
         <p className="text-sm leading-6 text-muted" id={helperId}>
-          Paste a public site URL to generate the audit, packet, and discovery brief.
+          Paste the site URL to generate the audit, score breakdown, and action brief.
         </p>
       </div>
       <div className="flex flex-col gap-3 sm:flex-row">
@@ -83,7 +83,7 @@ export function LandingForm() {
           enterKeyHint="go"
           id={inputId}
           onChange={(event) => setUrl(event.target.value)}
-          placeholder="https://prospectsite.com"
+          placeholder="https://yourwebsite.com"
           type="url"
           value={url}
         />
@@ -109,10 +109,10 @@ export function LandingForm() {
       <div className="flex flex-wrap items-center gap-3 text-sm text-muted" id={metaId}>
         <span className="inline-flex items-center gap-2">
           <Sparkles aria-hidden="true" className="size-4 text-accent" />
-          Audit, intro email, packet PDF, and brief
+          Audit, score breakdown, packet PDF, and brief
         </span>
         <span className="hidden text-border sm:inline">•</span>
-        <span>Built for agencies selling redesign work with evidence</span>
+        <span>See what is hurting trust, clarity, and conversion before you rebuild</span>
       </div>
       {error ? (
         <p

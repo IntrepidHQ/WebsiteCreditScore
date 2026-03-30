@@ -1,6 +1,6 @@
-# Craydl Web Design Agency
+# WebsiteCreditScore.com
 
-A Next.js App Router product that turns a single URL into a cinematic redesign audit and proposal workflow. Craydl is built for agencies and website providers who want to package stronger outreach, clearer pricing, and better discovery control before a build begins.
+A Next.js App Router product that turns a single URL into a cinematic redesign audit and proposal workflow. WebsiteCreditScore.com is built for agencies and website providers who want to package stronger outreach, clearer pricing, and better discovery control before a build begins.
 
 ## Stack
 

@@ -47,12 +47,14 @@ export function ContactModal() {
         setOpen(open);
       }}
     >
-        <DialogContent>
+      <DialogContent className="w-[min(92vw,42rem)]">
         <DialogHeader>
-          <DialogTitle>Book a strategy call</DialogTitle>
+          <DialogTitle className="text-[clamp(2.65rem,2.1rem+1.25vw,3.75rem)]">
+            Book a strategy call
+          </DialogTitle>
           <DialogDescription>
-            Share the essentials and keep the project moving while you line up the
-            discovery call, creative brief, and next-step scope conversation.
+            Share the essentials so the first call can focus on what the site is costing,
+            what needs attention first, and what the next version should do better.
           </DialogDescription>
         </DialogHeader>
 
@@ -67,8 +69,8 @@ export function ContactModal() {
               Discovery request saved
             </div>
             <p className="leading-6 text-muted">
-              The request is ready for handoff. From here, the typical next step is
-              to confirm timing, review the packet together, and finalize the brief.
+              The request is ready for follow-up. From here, the typical next step is
+              to confirm timing, review the findings together, and decide what should be fixed first.
             </p>
           </div>
         ) : (
@@ -81,11 +83,11 @@ export function ContactModal() {
             }}
           >
             <p className="text-sm leading-6 text-muted" id={helperId}>
-              Tell us who this is for and what feels most urgent so the first call stays focused.
+              Tell us who you are and what feels most urgent so the first call stays focused.
             </p>
             <div className="space-y-2">
               <label className="text-sm font-semibold text-foreground" htmlFor={nameId}>
-                Client name
+                Your name
               </label>
               <Input
                 autoComplete="name"
@@ -132,12 +134,12 @@ export function ContactModal() {
               />
             </div>
             <Button
-              className="w-full"
+              className="w-full text-base sm:text-lg"
               disabled={!form.name.trim() || !form.email.trim()}
               size="lg"
               type="submit"
             >
-              Book Strategy Call
+              Book a strategy call
             </Button>
           </form>
         )}

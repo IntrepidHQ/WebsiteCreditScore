@@ -12,7 +12,7 @@ import { buildBenchmarkTargetCategoryScores } from "@/lib/utils/score-visuals";
 export const metadata: Metadata = {
   title: "Benchmarks | WebsiteCreditScore.com",
   description:
-    "Public benchmark methodology for WebsiteCreditScore.com, including score thresholds, weighted categories, design principles, and benchmark examples.",
+    "Benchmark methodology for WebsiteCreditScore.com, including score thresholds, weighted categories, design principles, and benchmark examples.",
 };
 
 const benchmarkProfiles = [

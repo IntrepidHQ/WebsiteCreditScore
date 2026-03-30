@@ -32,24 +32,24 @@ export default async function AppLoginPage({
           </CardHeader>
           <CardContent className="space-y-5 text-muted">
             <p className="max-w-2xl text-base leading-8">
-              Save audits, track follow-ups, send share links, and keep the proposal workflow attached to a real lead instead of a one-off packet.
+              Save audits, revisit the score history, send share links, and keep every review tied to a real website instead of a one-off export.
             </p>
             <div className="grid gap-3 sm:grid-cols-3">
               {[
                 {
                   icon: LockKeyhole,
                   title: "Saved workspaces",
-                  detail: "Keep reports, pricing, and share links attached to a lead record.",
+                  detail: "Keep reports, pricing, and share links attached to the same site over time.",
                 },
                 {
                   icon: Rocket,
-                  title: "Lead pipeline",
-                  detail: "Track packet status, reminders, discovery, and approved briefs.",
+                  title: "Clear next steps",
+                  detail: "Track packet status, follow-ups, and the brief that comes out of each review.",
                 },
                 {
                   icon: Sparkles,
-                  title: "Referral growth",
-                  detail: "Use referral codes, workspace credits, and reusable outreach.",
+                  title: "Reusable insights",
+                  detail: "Build a stronger library of examples, benchmark references, and repeatable upgrades.",
                 },
               ].map((item) => (
                 <div
@@ -74,11 +74,11 @@ export default async function AppLoginPage({
               <>
                 <form action="/auth/email" className="space-y-3" method="post">
                   <label className="block space-y-2">
-                    <span className="text-sm font-medium text-foreground">Work email</span>
+                    <span className="text-sm font-medium text-foreground">Email</span>
                     <Input
                       autoComplete="email"
                       name="email"
-                      placeholder="you@agency.com"
+                      placeholder="you@yourbusiness.com"
                       required
                       type="email"
                     />

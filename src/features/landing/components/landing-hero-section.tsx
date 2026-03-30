@@ -35,18 +35,18 @@ export function LandingHeroSection({
         <div className="grid gap-8 xl:grid-cols-[minmax(0,1fr)_minmax(22rem,0.9fr)]">
           <div className="space-y-6">
             <Badge className="tracking-[0.16em]" variant="accent">
-              Premium redesign audit for agencies
+              Website Audits, Reviews, and Redesigns
             </Badge>
             <div className="space-y-4">
               <p className="text-[11px] font-semibold uppercase tracking-[0.3em] text-muted">
-                WebsiteCreditScore.com / Craydl
+                For business owners who want a site that earns more trust
               </p>
               <h1 className="max-w-5xl font-display text-[clamp(4.3rem,3.4rem+2.2vw,7rem)] leading-[0.9] tracking-[-0.06em] text-foreground">
-                Turn a prospect site into a redesign case they can understand fast.
+                Turn your website into a stronger case for more business.
               </h1>
               <p className="max-w-3xl text-[1.08rem] leading-8 text-muted sm:text-[1.2rem] sm:leading-9">
-                Score the live site, show where the design is leaking trust or momentum,
-                and move into a sharper packet and brief before the pitch loses heat.
+                Score the live site, see where it is leaking trust or momentum,
+                and get a clearer plan for what to improve first.
               </p>
             </div>
 
@@ -87,7 +87,7 @@ export function LandingHeroSection({
                   </p>
                 </div>
                 <p className="mt-3 text-sm leading-6 text-foreground">
-                  24-hour turnaround is available when a live pitch cannot wait another week.
+                  24-hour turnaround is available when you need answers before the week is gone.
                 </p>
               </div>
             </div>

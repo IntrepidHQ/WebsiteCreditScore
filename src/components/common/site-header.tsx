@@ -161,6 +161,10 @@ export function SiteHeader() {
           { href: "/audit/mark-deford-md", label: "Sample audit", icon: ScanSearch },
           { href: "/app/login", label: "Sign in" },
         ];
+  const mobileQuickActions =
+    isAuditPath || isBriefPath
+      ? quickActions
+      : [{ href: "/#pricing", label: "Pricing" }, ...quickActions];
 
   if (isAppPath) {
     return null;
@@ -187,148 +191,141 @@ export function SiteHeader() {
               scrolled ? "py-3" : "py-4",
             )}
           >
-          <div className="flex flex-wrap items-center justify-between gap-3">
-            <Link href="/" className="min-w-0 shrink-0">
-              <WebsiteCreditScoreLogo />
-            </Link>
+            <div className="flex items-center justify-between gap-3">
+              <Link href="/" className="min-w-0 flex-1">
+                <WebsiteCreditScoreLogo size="header" />
+              </Link>
 
-            <div className="hidden flex-wrap items-center justify-end gap-2 sm:flex">
-              {quickActions.map((action, index) => {
-                const variant = index === 1 ? "secondary" : index === 2 ? "outline" : "ghost";
+              <div className="hidden flex-wrap items-center justify-end gap-2 sm:flex">
+                {quickActions.map((action, index) => {
+                  const variant = index === 1 ? "secondary" : index === 2 ? "outline" : "ghost";
 
-                return (
-                  <Button asChild className="shrink-0" key={action.href} size="sm" variant={variant}>
-                    <Link href={action.href}>
-                      {action.icon ? <action.icon className="size-4" /> : null}
-                      {action.label}
-                    </Link>
-                  </Button>
-                );
-              })}
-            </div>
+                  return (
+                    <Button asChild className="shrink-0" key={action.href} size="sm" variant={variant}>
+                      <Link href={action.href}>
+                        {action.icon ? <action.icon className="size-4" /> : null}
+                        {action.label}
+                      </Link>
+                    </Button>
+                  );
+                })}
+              </div>
 
-            <div className="flex items-center gap-2 sm:hidden">
-              {isAuditPath ? (
-                <Button asChild size="sm" variant="secondary">
-                  <Link href="#pricing">Pricing</Link>
-                </Button>
-              ) : null}
-              <Dialog>
-                <DialogTrigger asChild>
-                  <Button aria-label="Open navigation" size="icon" variant="outline">
-                    <Menu className="size-4" />
-                  </Button>
-                </DialogTrigger>
-                <DialogContent className="w-[min(92vw,28rem)] p-5">
-                <DialogHeader>
-                  <DialogTitle>Navigate WebsiteCreditScore.com</DialogTitle>
-                  <DialogDescription>
-                    Move between pages and jump to the most useful part of the current screen.
-                  </DialogDescription>
-                </DialogHeader>
+              <div className="shrink-0 sm:hidden">
+                <Dialog>
+                  <DialogTrigger asChild>
+                    <Button aria-label="Open navigation" size="icon" variant="outline">
+                      <Menu className="size-4" />
+                    </Button>
+                  </DialogTrigger>
+                  <DialogContent className="w-[min(92vw,28rem)] p-5">
+                    <DialogHeader>
+                      <DialogTitle>Navigate WebsiteCreditScore.com</DialogTitle>
+                      <DialogDescription>
+                        Move between pages and jump to the most useful part of the current screen.
+                      </DialogDescription>
+                    </DialogHeader>
 
-                <div className="space-y-5">
-                  <div className="space-y-3">
-                    <p className="text-xs font-semibold uppercase tracking-[0.18em] text-muted">
-                      Primary
-                    </p>
-                    <div className="grid gap-2">
-                      {primaryNavigation.map((item) => (
-                        <DialogClose asChild key={item.href}>
-                          <Link
-                            className={cn(
-                              "rounded-[8px] border border-border/70 bg-background-alt/70 px-4 py-3 text-sm font-medium text-foreground transition hover:border-accent/30 hover:bg-elevated",
-                              isActiveItem(pathname, activeHash, item) &&
-                                "border-accent/30 bg-elevated",
-                            )}
-                            href={item.href}
-                          >
-                            {item.label}
-                          </Link>
-                        </DialogClose>
-                      ))}
-                    </div>
-                  </div>
-
-                  {sectionNavigation.length ? (
-                    <div className="space-y-3">
-                      <p className="text-xs font-semibold uppercase tracking-[0.18em] text-muted">
-                        On this page
-                      </p>
-                      <div className="grid gap-2">
-                        {sectionNavigation.map((item) => (
-                          <DialogClose asChild key={item.href}>
-                            <a
-                              className={cn(
-                                "rounded-[8px] border border-border/70 bg-background-alt/70 px-4 py-3 text-sm font-medium text-foreground transition hover:border-accent/30 hover:bg-elevated",
-                                isActiveItem(pathname, activeHash, item) &&
-                                  "border-accent/30 bg-elevated",
-                              )}
-                              href={item.href}
-                            >
-                              {item.label}
-                            </a>
-                          </DialogClose>
-                        ))}
-                      </div>
-                    </div>
-                  ) : null}
-
-                  <div className="space-y-3">
-                    <p className="text-xs font-semibold uppercase tracking-[0.18em] text-muted">
-                      Quick actions
-                    </p>
-                    <div className="grid gap-2">
-                      {quickActions.map((action) => {
-                        return (
-                          action.href.startsWith("#") ? (
-                            <DialogClose asChild key={action.href}>
-                              <a
-                                className="inline-flex items-center gap-2 rounded-[8px] border border-border/70 bg-panel/60 px-4 py-3 text-sm font-medium text-foreground transition hover:border-accent/30 hover:bg-elevated"
-                                href={action.href}
-                              >
-                                {action.icon ? <action.icon className="size-4" /> : null}
-                                {action.label}
-                              </a>
-                            </DialogClose>
-                          ) : (
-                            <DialogClose asChild key={action.href}>
+                    <div className="space-y-5">
+                      <div className="space-y-3">
+                        <p className="text-xs font-semibold uppercase tracking-[0.18em] text-muted">
+                          Primary
+                        </p>
+                        <div className="grid gap-2">
+                          {primaryNavigation.map((item) => (
+                            <DialogClose asChild key={item.href}>
                               <Link
-                                className="inline-flex items-center gap-2 rounded-[8px] border border-border/70 bg-panel/60 px-4 py-3 text-sm font-medium text-foreground transition hover:border-accent/30 hover:bg-elevated"
-                                href={action.href}
+                                className={cn(
+                                  "rounded-[8px] border border-border/70 bg-background-alt/70 px-4 py-3 text-sm font-medium text-foreground transition hover:border-accent/30 hover:bg-elevated",
+                                  isActiveItem(pathname, activeHash, item) &&
+                                    "border-accent/30 bg-elevated",
+                                )}
+                                href={item.href}
                               >
-                                {action.icon ? <action.icon className="size-4" /> : null}
-                                {action.label}
+                                {item.label}
                               </Link>
                             </DialogClose>
-                          )
-                        );
-                      })}
-                    </div>
-                  </div>
-                </div>
-                </DialogContent>
-              </Dialog>
-            </div>
-          </div>
+                          ))}
+                        </div>
+                      </div>
 
-          {!isWorkspacePath ? (
-            <nav
-              aria-label="Primary"
-              className={cn(
-                "hidden flex-wrap items-center gap-2 pb-1 lg:flex",
-                scrolled ? "pt-0" : "pt-1",
-              )}
-            >
-              {primaryNavigation.map((item) => (
-                <HeaderLink
-                  active={isActiveItem(pathname, activeHash, item)}
-                  item={item}
-                  key={item.href}
-                />
-              ))}
-            </nav>
-          ) : null}
+                      {sectionNavigation.length ? (
+                        <div className="space-y-3">
+                          <p className="text-xs font-semibold uppercase tracking-[0.18em] text-muted">
+                            On this page
+                          </p>
+                          <div className="grid gap-2">
+                            {sectionNavigation.map((item) => (
+                              <DialogClose asChild key={item.href}>
+                                <a
+                                  className={cn(
+                                    "rounded-[8px] border border-border/70 bg-background-alt/70 px-4 py-3 text-sm font-medium text-foreground transition hover:border-accent/30 hover:bg-elevated",
+                                    isActiveItem(pathname, activeHash, item) &&
+                                      "border-accent/30 bg-elevated",
+                                  )}
+                                  href={item.href}
+                                >
+                                  {item.label}
+                                </a>
+                              </DialogClose>
+                            ))}
+                          </div>
+                        </div>
+                      ) : null}
+
+                      <div className="space-y-3">
+                        <p className="text-xs font-semibold uppercase tracking-[0.18em] text-muted">
+                          Quick actions
+                        </p>
+                        <div className="grid gap-2">
+                          {mobileQuickActions.map((action) => {
+                            return action.href.startsWith("#") ? (
+                              <DialogClose asChild key={action.href}>
+                                <a
+                                  className="inline-flex items-center gap-2 rounded-[8px] border border-border/70 bg-panel/60 px-4 py-3 text-sm font-medium text-foreground transition hover:border-accent/30 hover:bg-elevated"
+                                  href={action.href}
+                                >
+                                  {action.icon ? <action.icon className="size-4" /> : null}
+                                  {action.label}
+                                </a>
+                              </DialogClose>
+                            ) : (
+                              <DialogClose asChild key={action.href}>
+                                <Link
+                                  className="inline-flex items-center gap-2 rounded-[8px] border border-border/70 bg-panel/60 px-4 py-3 text-sm font-medium text-foreground transition hover:border-accent/30 hover:bg-elevated"
+                                  href={action.href}
+                                >
+                                  {action.icon ? <action.icon className="size-4" /> : null}
+                                  {action.label}
+                                </Link>
+                              </DialogClose>
+                            );
+                          })}
+                        </div>
+                      </div>
+                    </div>
+                  </DialogContent>
+                </Dialog>
+              </div>
+            </div>
+
+            {!isWorkspacePath ? (
+              <nav
+                aria-label="Primary"
+                className={cn(
+                  "hidden flex-wrap items-center gap-2 pb-1 lg:flex",
+                  scrolled ? "pt-0" : "pt-1",
+                )}
+              >
+                {primaryNavigation.map((item) => (
+                  <HeaderLink
+                    active={isActiveItem(pathname, activeHash, item)}
+                    item={item}
+                    key={item.href}
+                  />
+                ))}
+              </nav>
+            ) : null}
 
           {sectionNavigation.length ? (
             <nav

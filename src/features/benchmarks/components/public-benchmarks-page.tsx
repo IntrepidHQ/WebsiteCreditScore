@@ -47,9 +47,9 @@ const faqItems = [
       "The score is weighted toward the parts that actually change whether a redesign gets approved: hierarchy, trust, pacing, proof, and the distance to action. Weaknesses count against the total faster than surface polish helps it.",
   },
   {
-    question: "Why expose benchmarks publicly?",
+    question: "Why include benchmarks on the site?",
     answer:
-      "Prospects need to understand the standard before they can believe the critique. Public methodology makes the score feel like a system, not a black box.",
+      "Because the critique lands faster when the standard is visible. Benchmarks make the score easier to trust and easier to explain.",
   },
   {
     question: "Does a 9 mean the site is perfect?",
@@ -57,9 +57,9 @@ const faqItems = [
       "No. It means the site performs like a strong benchmark example for its category. A 10 is intentionally rare.",
   },
   {
-    question: "How should an agency use this page?",
+    question: "How should a business owner use this page?",
     answer:
-      "Use it to frame the score before the audit review, then open a live example or sample audit to show exactly how the benchmark thinking becomes a scoped redesign conversation.",
+      "Use it to understand what the score is measuring, then open a live example or sample audit to see how those standards translate into practical site improvements.",
   },
 ] as const;
 
@@ -92,18 +92,18 @@ export function PublicBenchmarksPage({
       <section className="pb-8">
         <div className="mx-auto grid w-full max-w-7xl gap-8 px-4 sm:px-6 xl:grid-cols-[minmax(0,0.92fr)_minmax(22rem,0.75fr)] xl:px-8">
           <div className="space-y-6">
-            <Badge variant="accent">Public benchmarks</Badge>
+            <Badge variant="accent">Benchmarks</Badge>
             <div className="space-y-4">
               <p className="text-[11px] font-semibold uppercase tracking-[0.28em] text-muted">
-                The scoring method, not a protected dead-end
+                The standard behind the score
               </p>
               <h1 className="max-w-5xl font-display text-[clamp(4.1rem,3.2rem+2vw,6.7rem)] leading-[0.9] tracking-[-0.06em] text-foreground">
-                Benchmark the page like a design system with rules, not a mood board with opinions.
+                See what benchmark-ready actually looks like.
               </h1>
               <p className="max-w-3xl text-[1.08rem] leading-8 text-muted sm:text-[1.18rem] sm:leading-9">
-                WebsiteCreditScore.com weights message clarity, trust, pacing, mobile
+                WebsiteCreditScore.com weighs message clarity, trust, pacing, mobile
                 polish, search structure, accessibility, and visible competence into one
-                score the client can understand immediately.
+                standard you can understand quickly.
               </p>
             </div>
             <div className="flex flex-wrap gap-3">
@@ -115,7 +115,7 @@ export function PublicBenchmarksPage({
               </Button>
               <Button asChild size="lg" variant="secondary">
                 <Link href="/examples">
-                  Browse live examples
+                  Browse examples
                   <Compass className="size-4" />
                 </Link>
               </Button>
@@ -178,7 +178,7 @@ export function PublicBenchmarksPage({
           <SectionHeading
             description="Different verticals need different proof, but the benchmark logic stays consistent: promise, reassurance, pace, and action."
             eyebrow="10/10 rubrics"
-            title="Rules of thumb the client can actually follow"
+            title="Rules of thumb a business owner can actually use"
           />
           <div className="grid gap-5 xl:grid-cols-3">
             {verticals.map((vertical) => (

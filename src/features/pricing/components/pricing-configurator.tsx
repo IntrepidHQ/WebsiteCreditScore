@@ -67,19 +67,19 @@ function PricingRow({
       className="grid gap-4 border-t border-border/70 px-4 py-4 md:grid-cols-[minmax(0,1.7fr)_9rem_minmax(0,0.95fr)_7rem_3rem] md:items-start"
       role="row"
     >
-      <div className="space-y-3" role="cell">
-        <div className="flex flex-wrap items-center gap-2">
-          <Badge variant={selected ? "accent" : "neutral"}>
-            {selected ? "Selected" : "Optional"}
-          </Badge>
-          <Badge variant={impactVariants[item.impactLevel]}>{impactLabels[item.impactLevel]}</Badge>
-        </div>
-        <div>
-          <p className="text-base font-semibold text-foreground">{item.title}</p>
-          <p className="mt-2 text-sm leading-6 text-muted" id={descriptionId}>
-            {item.description}
-          </p>
-        </div>
+        <div className="space-y-3" role="cell">
+          <div className="flex flex-wrap items-center gap-2">
+            <Badge variant={selected ? "accent" : "neutral"}>
+              {selected ? "Selected" : "Optional"}
+            </Badge>
+            <Badge variant={impactVariants[item.impactLevel]}>{impactLabels[item.impactLevel]}</Badge>
+          </div>
+          <div>
+            <h3 className="text-[1rem] font-semibold text-foreground">{item.title}</h3>
+            <p className="mt-2 text-sm leading-6 text-muted" id={descriptionId}>
+              {item.description}
+            </p>
+          </div>
         <Accordion collapsible type="single">
           <AccordionItem className="bg-background-alt/60 px-4" value={`${item.id}-details`}>
             <AccordionTrigger>Deliverables</AccordionTrigger>
@@ -237,9 +237,11 @@ export function PricingConfigurator({ report }: { report: AuditReport }) {
             </Card>
 
             <Card>
-              <CardHeader>
+              <CardHeader className="space-y-2 pb-5">
                 <Badge variant="neutral">Why this matters now</Badge>
-                <CardTitle className="text-3xl">Objection handling inside the estimate</CardTitle>
+                <CardTitle className="text-[clamp(2.85rem,2.35rem+0.8vw,3.55rem)] leading-[0.96] tracking-[-0.04em]">
+                  Objection handling inside the estimate
+                </CardTitle>
               </CardHeader>
               <CardContent className="grid gap-3 lg:grid-cols-3">
                 {objectionCards.map((item) => (
@@ -251,9 +253,9 @@ export function PricingConfigurator({ report }: { report: AuditReport }) {
                       <div className="rounded-[8px] border border-accent/20 bg-accent/10 p-2 text-accent">
                         <item.icon className="size-4" />
                       </div>
-                      <p className="text-xl font-semibold leading-tight text-foreground">
+                      <h3 className="text-[clamp(1.8rem,1.55rem+0.35vw,2.15rem)] font-semibold leading-[1.08] tracking-[-0.03em] text-foreground">
                         {item.title}
-                      </p>
+                      </h3>
                     </div>
                     <p className="mt-3 text-[11px] uppercase tracking-[0.18em] text-muted">
                       {item.subtitle}
@@ -265,11 +267,13 @@ export function PricingConfigurator({ report }: { report: AuditReport }) {
             </Card>
 
             <Card className="overflow-hidden">
-              <CardHeader className="space-y-3">
+              <CardHeader className="space-y-2 pb-5">
                 <div className="flex flex-wrap items-center justify-between gap-4">
                   <div>
                     <Badge variant="neutral">Proposal line items</Badge>
-                    <CardTitle className="mt-3 text-3xl">Optional upgrades</CardTitle>
+                    <CardTitle className="mt-3 text-[clamp(2.8rem,2.35rem+0.7vw,3.35rem)] leading-[0.96] tracking-[-0.04em]">
+                      Optional upgrades
+                    </CardTitle>
                   </div>
                   <div className="flex flex-wrap gap-2">
                     <Button

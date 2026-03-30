@@ -49,7 +49,7 @@ function DialogContent({
       <DialogOverlay />
       <DialogPrimitive.Content
         className={cn(
-          "fixed left-1/2 top-1/2 z-50 w-[min(92vw,38rem)] -translate-x-1/2 -translate-y-1/2 rounded-[calc(var(--theme-radius-lg))] border border-border bg-panel/95 p-6 shadow-[var(--theme-shadow)] outline-none",
+          "fixed left-1/2 top-1/2 z-50 w-[min(92vw,40rem)] -translate-x-1/2 -translate-y-1/2 rounded-[calc(var(--theme-radius-lg))] border border-border bg-panel/95 p-5 shadow-[var(--theme-shadow)] outline-none sm:p-6",
           className,
         )}
         {...props}
@@ -65,7 +65,7 @@ function DialogContent({
 }
 
 function DialogHeader({ className, ...props }: React.ComponentProps<"div">) {
-  return <div className={cn("space-y-2", className)} {...props} />;
+  return <div className={cn("space-y-3", className)} {...props} />;
 }
 
 function DialogTitle({
@@ -74,7 +74,10 @@ function DialogTitle({
 }: React.ComponentProps<typeof DialogPrimitive.Title>) {
   return (
     <DialogPrimitive.Title
-      className={cn("font-display text-2xl font-semibold", className)}
+      className={cn(
+        "font-display text-[clamp(2rem,1.6rem+1vw,2.9rem)] font-semibold leading-[0.96] tracking-[-0.045em] text-foreground",
+        className,
+      )}
       {...props}
     />
   );
@@ -86,7 +89,7 @@ function DialogDescription({
 }: React.ComponentProps<typeof DialogPrimitive.Description>) {
   return (
     <DialogPrimitive.Description
-      className={cn("text-sm leading-6 text-muted", className)}
+      className={cn("text-[0.98rem] leading-7 text-muted", className)}
       {...props}
     />
   );

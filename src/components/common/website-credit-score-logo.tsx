@@ -8,9 +8,11 @@ import { useThemeStore } from "@/store/theme-store";
 
 export function WebsiteCreditScoreLogo({
   compact = false,
+  size,
   className,
 }: {
   compact?: boolean;
+  size?: "default" | "compact" | "header";
   className?: string;
 }) {
   const branding = useThemeStore((state) => state.branding);
@@ -22,7 +24,13 @@ export function WebsiteCreditScoreLogo({
       ? preferredLogoColor
       : pickReadableTextColor(tokens.surfaces.background);
   const logoScale = branding.logoScale || 1;
-  const baseWidth = compact ? "11.5rem" : "18.75rem";
+  const resolvedSize = size ?? (compact ? "compact" : "default");
+  const baseWidth =
+    resolvedSize === "compact"
+      ? "11.5rem"
+      : resolvedSize === "header"
+        ? "clamp(11.75rem, 52vw, 18.75rem)"
+        : "18.75rem";
 
   return (
     <span
