@@ -10,7 +10,7 @@ import { Button } from "@/components/ui/button";
 const primaryLinks = [
   { href: "/platform", label: "Platform" },
   { href: "/examples", label: "Examples" },
-  { href: "/app/benchmarks", label: "Benchmarks" },
+  { href: "/benchmarks", label: "Benchmarks" },
   { href: "/docs", label: "Docs" },
   { href: "/audit/mark-deford-md", label: "Sample Audit" },
 ];

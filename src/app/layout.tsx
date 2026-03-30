@@ -38,7 +38,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" suppressHydrationWarning>
+    <html data-scroll-behavior="smooth" lang="en" suppressHydrationWarning>
       <body
         className={`${manrope.variable} ${spaceGrotesk.variable} ${instrumentSerif.variable} min-h-screen bg-background text-foreground antialiased`}
       >

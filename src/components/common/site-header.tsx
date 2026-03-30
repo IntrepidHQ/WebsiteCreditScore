@@ -33,7 +33,7 @@ function getPrimaryNavigation() {
   return [
     { href: "/platform", label: "Platform" },
     { href: "/examples", label: "Examples" },
-    { href: "/app/benchmarks", label: "Benchmarks" },
+    { href: "/benchmarks", label: "Benchmarks" },
     { href: "/docs", label: "Docs" },
   ] satisfies NavItem[];
 }

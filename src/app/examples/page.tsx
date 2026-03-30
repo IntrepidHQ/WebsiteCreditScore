@@ -1,25 +1,54 @@
 import Link from "next/link";
-import { ArrowRight, FileText } from "lucide-react";
+import { ArrowRight, Eye, FileText, Layers3 } from "lucide-react";
 
+import { ScoreBreakdownBars } from "@/components/common/score-breakdown-bars";
+import { ScoreDial } from "@/components/common/score-dial";
 import { SectionHeading } from "@/components/common/section-heading";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent } from "@/components/ui/card";
-import { getSampleAuditCards } from "@/lib/mock/report-builder";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { SampleAuditCard } from "@/features/landing/components/sample-audit-card";
+import { buildAuditReportById, getSampleAuditCards } from "@/lib/mock/report-builder";
 
 export default function ExamplesPage() {
   const samples = getSampleAuditCards();
+  const featuredAudit = samples.find((sample) => sample.id === "saunders-woodworks") ?? samples[0];
+  const featuredReport = featuredAudit ? buildAuditReportById(featuredAudit.id) : null;
+
+  if (!featuredAudit || !featuredReport) {
+    return null;
+  }
 
   return (
-    <main className="presentation-section pt-10" id="main-content">
+    <main className="presentation-section pt-10 sm:pt-14" id="main-content">
       <section className="pb-8">
-        <div className="mx-auto w-full max-w-7xl space-y-8 px-4 sm:px-6 lg:px-8">
-          <SectionHeading
-            eyebrow="Examples"
-            title="Real website examples"
-            description="Each sample is grounded in a live site."
-          />
+        <div className="mx-auto w-full max-w-7xl space-y-6 px-4 sm:px-6 xl:px-8">
+          <Badge variant="accent">Examples</Badge>
+          <div className="grid gap-6 xl:grid-cols-[minmax(0,1fr)_auto] xl:items-end">
+            <div className="space-y-4">
+              <h1 className="max-w-5xl font-display text-[clamp(4rem,3.1rem+2vw,6.2rem)] leading-[0.9] tracking-[-0.06em] text-foreground">
+                Public audit examples that show the score as proof, not decoration.
+              </h1>
+              <p className="max-w-3xl text-[1.08rem] leading-8 text-muted sm:text-[1.18rem] sm:leading-9">
+                Each example starts from a live site, carries a weighted score breakdown,
+                and ends in a stronger redesign recommendation.
+              </p>
+            </div>
+            <div className="flex flex-wrap gap-3">
+              <Button asChild size="sm" variant="secondary">
+                <Link href="/benchmarks">
+                  Read the benchmark method
+                  <ArrowRight className="size-4" />
+                </Link>
+              </Button>
+              <Button asChild size="sm" variant="ghost">
+                <Link href={`/audit/${featuredAudit.id}`}>
+                  Open featured audit
+                  <Eye className="size-4" />
+                </Link>
+              </Button>
+            </div>
+          </div>
           <div className="grid gap-5 xl:grid-cols-2">
             {samples.map((audit) => (
               <SampleAuditCard audit={audit} key={audit.id} />
@@ -29,39 +58,108 @@ export default function ExamplesPage() {
       </section>
 
       <section className="presentation-section py-8">
-        <div className="mx-auto w-full max-w-7xl space-y-8 px-4 sm:px-6 lg:px-8">
+        <div className="mx-auto w-full max-w-7xl space-y-8 px-4 sm:px-6 xl:px-8">
           <SectionHeading
-            eyebrow="Open the workflow"
-            title="Review the audit, packet, and brief together"
-            description="Open the sample flow and review the pieces together."
+            description="These examples are there to make the audit legible. The client should understand what the overall score means, which categories are dragging it down, and why the recommendation follows naturally."
+            eyebrow="How to read one"
+            title="Read the example like a closer, not a browser"
           />
-          <Card className="overflow-hidden">
-            <CardContent className="flex flex-col gap-5 p-8 lg:flex-row lg:items-center lg:justify-between">
-              <div className="space-y-3">
-                <Badge variant="accent">Next step</Badge>
-                <h2 className="font-display text-4xl font-semibold tracking-[-0.03em] text-foreground">
-                  Open the sample audit, packet, and brief together
-                </h2>
-                <p className="max-w-3xl text-base leading-7 text-muted">
-                  The audit shows the full review. The packet and brief show the shorter client-facing path that follows.
+
+          <div className="grid gap-5 xl:grid-cols-3">
+            <Card className="rounded-[24px] border-border/60 bg-panel/40 shadow-none">
+              <CardHeader className="space-y-4">
+                <div className="flex items-center gap-2 text-accent">
+                  <Eye className="size-4" />
+                  <span className="text-[11px] font-semibold uppercase tracking-[0.22em]">
+                    Overall score
+                  </span>
+                </div>
+                <CardTitle className="text-[clamp(2.2rem,1.9rem+0.4vw,2.9rem)]">
+                  Start with the first impression summary
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4 pt-0">
+                <ScoreDial label={featuredAudit.title} score={featuredReport.overallScore} />
+                <p className="text-sm leading-6 text-muted">
+                  The top-line score is there to frame the conversation quickly, not replace the
+                  underlying evidence.
                 </p>
-              </div>
-              <div className="flex flex-wrap gap-3">
+              </CardContent>
+            </Card>
+
+            <Card className="rounded-[24px] border-border/60 bg-panel/40 shadow-none xl:col-span-2">
+              <CardHeader className="space-y-4">
+                <div className="flex items-center gap-2 text-accent">
+                  <Layers3 className="size-4" />
+                  <span className="text-[11px] font-semibold uppercase tracking-[0.22em]">
+                    Weighted categories
+                  </span>
+                </div>
+                <CardTitle className="text-[clamp(2.2rem,1.9rem+0.4vw,2.9rem)]">
+                  Then read the gap between current performance and benchmark-ready work
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4 pt-0">
+                <ScoreBreakdownBars items={featuredReport.categoryScores} showWeights />
+                <p className="text-sm leading-6 text-muted">
+                  This is where the redesign case becomes specific: which categories are
+                  underweight, which ones are credible already, and which upgrades will move the
+                  score fastest.
+                </p>
+              </CardContent>
+            </Card>
+          </div>
+
+          <div className="grid gap-5 xl:grid-cols-[minmax(0,1.05fr)_minmax(0,0.95fr)]">
+            <Card className="rounded-[24px] border-border/60 bg-panel/40 shadow-none">
+              <CardHeader className="space-y-3">
+                <div className="flex items-center gap-2 text-accent">
+                  <FileText className="size-4" />
+                  <span className="text-[11px] font-semibold uppercase tracking-[0.22em]">
+                    Evidence beats opinion
+                  </span>
+                </div>
+                <CardTitle className="text-[clamp(2.4rem,2rem+0.6vw,3rem)]">
+                  What the example proves
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-3 pt-0">
+                {featuredAudit.highlights?.map((item) => (
+                  <div
+                    className="rounded-[18px] border border-border/50 bg-background/30 px-4 py-3 text-sm leading-6 text-foreground"
+                    key={item}
+                  >
+                    {item}
+                  </div>
+                ))}
+              </CardContent>
+            </Card>
+
+            <div className="rounded-[24px] border border-border/60 bg-[linear-gradient(180deg,color-mix(in_srgb,var(--theme-panel)_84%,transparent),color-mix(in_srgb,var(--theme-background-alt)_96%,transparent))] px-5 py-6 sm:px-6">
+              <Badge variant="accent">Next step</Badge>
+              <h2 className="mt-4 font-display text-[clamp(2.8rem,2.3rem+0.6vw,3.5rem)] leading-[0.95] tracking-[-0.05em] text-foreground">
+                Open the audit, then review the brief that follows from it.
+              </h2>
+              <p className="mt-3 text-sm leading-6 text-muted">
+                The examples page is proof. The full audit and brief show how the same reasoning
+                turns into a pitch asset and a cleaner scope conversation.
+              </p>
+              <div className="mt-5 flex flex-wrap gap-3">
                 <Button asChild>
-                  <Link href="/audit/mark-deford-md">
-                    Open sample audit
+                  <Link href={`/audit/${featuredAudit.id}`}>
+                    Open featured audit
                     <ArrowRight className="size-4" />
                   </Link>
                 </Button>
                 <Button asChild variant="secondary">
                   <Link href="/brief/mark-deford-md">
-                    <FileText className="size-4" />
                     Open brief
+                    <ArrowRight className="size-4" />
                   </Link>
                 </Button>
               </div>
-            </CardContent>
-          </Card>
+            </div>
+          </div>
         </div>
       </section>
     </main>

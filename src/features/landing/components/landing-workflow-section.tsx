@@ -1,158 +1,116 @@
-import {
-  ArrowRight,
-  Eye,
-  KeyRound,
-  Pointer,
-  ScanSearch,
-  Search,
-  ShieldCheck,
-  Smartphone,
-  SwatchBook,
-} from "lucide-react";
 import Link from "next/link";
+import { ArrowRight, ClipboardList, FileText, ScanSearch } from "lucide-react";
 
+import { ScoreBreakdownBars } from "@/components/common/score-breakdown-bars";
+import { ScoreDial } from "@/components/common/score-dial";
+import { SectionHeading } from "@/components/common/section-heading";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { getScoreMethodologyNotes } from "@/lib/utils/scores";
-import { cn } from "@/lib/utils/cn";
+import type { AuditCategoryScore, DesignPatternNote } from "@/lib/types/audit";
 
-const scorePillars = [
+const workflowSteps = [
   {
-    title: "Visual Design",
-    description:
-      "Hierarchy, spacing, and first-impression confidence. Does the site look intentional or assembled?",
-    icon: SwatchBook,
+    label: "Audit",
+    detail: "Score the live site and name the exact gaps in hierarchy, trust, pacing, and mobile clarity.",
+    icon: ScanSearch,
   },
   {
-    title: "UX / Conversion",
-    description:
-      "Page flow, CTA clarity, and friction. Where does the journey support action and where does it leak intent?",
-    icon: Pointer,
+    label: "Packet",
+    detail: "Turn the score into a narrative the prospect can read as a premium redesign case, not a generic teardown.",
+    icon: FileText,
   },
   {
-    title: "Mobile Experience",
-    description:
-      "Most first visits are small-screen. We check whether the message still holds together where trust usually drops fastest.",
-    icon: Smartphone,
-  },
-  {
-    title: "SEO Readiness",
-    description:
-      "Search visibility depends on structure, metadata, and depth, not just a headline that sounds good.",
-    icon: Search,
-  },
-  {
-    title: "Trust / Credibility",
-    description:
-      "Proof, process, and reassurance shape whether higher-value decisions feel safe enough to make.",
-    icon: ShieldCheck,
-  },
-  {
-    title: "Accessibility",
-    description:
-      "Contrast, usable controls, readable structure, and fewer avoidable dead ends for every visitor.",
-    icon: Eye,
-  },
-  {
-    title: "Security Posture",
-    description:
-      "Observable hardening signals and the basic competence cues that keep avoidable risk from showing through.",
-    icon: KeyRound,
+    label: "Brief",
+    detail: "Carry the same reasoning into scope so discovery and production start with cleaner priorities.",
+    icon: ClipboardList,
   },
 ] as const;
 
-const methodologyNotes = getScoreMethodologyNotes();
-
-const pillarSpans = [
-  "md:col-span-7",
-  "md:col-span-5",
-  "md:col-span-4",
-  "md:col-span-4",
-  "md:col-span-4",
-  "md:col-span-6",
-  "md:col-span-6",
-] as const;
-
-export function LandingWorkflowSection() {
+export function LandingWorkflowSection({
+  currentBreakdown,
+  targetBreakdown,
+  notes,
+}: {
+  currentBreakdown: AuditCategoryScore[];
+  targetBreakdown: AuditCategoryScore[];
+  notes: DesignPatternNote[];
+}) {
   return (
     <section className="presentation-section py-8" id="workflow">
-      <div className="mx-auto w-full max-w-7xl px-4 sm:px-6 lg:px-8">
-        <div className="grid gap-8 xl:grid-cols-[minmax(0,0.92fr)_minmax(0,1.08fr)]">
-          <div className="space-y-6">
-            <Badge className="tracking-[0.16em]" variant="accent">
-              What The Score Sees
-            </Badge>
-            <div className="space-y-4">
-              <h2 className="max-w-4xl font-display text-[clamp(4rem,3.25rem+1.7vw,6rem)] font-semibold leading-[0.9] tracking-[-0.055em] text-foreground">
-                The audit looks at the parts that actually change whether a redesign gets approved.
-              </h2>
-              <p className="max-w-2xl text-[1.08rem] leading-8 text-muted sm:text-[1.14rem] sm:leading-9">
-                It is not a decorative score. It is a way to turn design quality, trust,
-                and conversion friction into a conversation that feels concrete enough to
-                price and prioritize.
-              </p>
-            </div>
+      <div className="mx-auto w-full max-w-7xl space-y-8 px-4 sm:px-6 lg:px-8">
+        <SectionHeading
+          description="The score is useful because it turns premium design judgment into something repeatable enough to explain, defend, and scope against."
+          eyebrow="How the score works"
+          title="A design review system with evidence, weights, and reusable principles"
+        />
 
+        <div className="grid gap-5 xl:grid-cols-[minmax(0,0.82fr)_minmax(0,1.18fr)]">
+          <div className="space-y-5 rounded-[28px] border border-border/60 bg-[linear-gradient(180deg,color-mix(in_srgb,var(--theme-panel)_88%,transparent),color-mix(in_srgb,var(--theme-background-alt)_96%,transparent))] p-6 sm:p-7">
+            <ScoreDial bandLabel="Benchmark-ready" label="Target range" score={8.9} />
             <div className="grid gap-3">
-              {methodologyNotes.map((note, index) => (
+              {workflowSteps.map((item, index) => (
                 <div
-                  className="rounded-[22px] border border-border/65 bg-panel/55 px-5 py-4"
-                  key={note}
+                  className="rounded-[22px] border border-border/60 bg-background/30 px-5 py-4"
+                  key={item.label}
                 >
-                  <p className="text-[11px] font-semibold uppercase tracking-[0.28em] text-muted">
-                    0{index + 1}
-                  </p>
-                  <p className="mt-2 text-sm leading-7 text-foreground">{note}</p>
+                  <div className="flex items-center gap-3">
+                    <div className="inline-flex size-11 items-center justify-center rounded-[14px] border border-accent/20 bg-accent/10 text-accent">
+                      <item.icon className="size-4" />
+                    </div>
+                    <div>
+                      <p className="text-[11px] font-semibold uppercase tracking-[0.24em] text-muted">
+                        0{index + 1}
+                      </p>
+                      <p className="text-base font-semibold text-foreground">{item.label}</p>
+                    </div>
+                  </div>
+                  <p className="mt-3 text-sm leading-6 text-muted">{item.detail}</p>
                 </div>
               ))}
             </div>
-
-            <div className="grid gap-3 sm:flex sm:flex-wrap">
-              <Button asChild className="w-full sm:w-auto" variant="secondary">
-                <Link href="/app/benchmarks">
-                  Open benchmarks
-                  <ArrowRight className="size-4" />
-                </Link>
-              </Button>
-              <Button asChild className="w-full sm:w-auto" variant="ghost">
-                <Link href="/docs">
-                  Read the docs
-                  <ScanSearch className="size-4" />
-                </Link>
-              </Button>
-            </div>
+            <Button asChild variant="secondary">
+              <Link href="/benchmarks">
+                Open the public benchmark method
+                <ArrowRight className="size-4" />
+              </Link>
+            </Button>
           </div>
 
-          <div className="grid gap-4 md:grid-cols-12">
-            {scorePillars.map((card, index) => (
-              <Card
-                className={cn(
-                  "h-full overflow-hidden rounded-[26px] border-border/65 bg-[linear-gradient(180deg,color-mix(in_srgb,var(--theme-panel)_90%,transparent),color-mix(in_srgb,var(--theme-background-alt)_88%,transparent))]",
-                  pillarSpans[index],
-                )}
-                key={card.title}
-              >
-                <CardHeader className="space-y-4">
-                  <div className="flex items-start justify-between gap-4">
-                    <div className="inline-flex size-12 items-center justify-center rounded-[14px] border border-accent/20 bg-accent/10 text-accent">
-                      <card.icon className="size-5" />
-                    </div>
-                    <span className="text-[11px] font-semibold uppercase tracking-[0.24em] text-muted">
-                      Signal {index + 1}
-                    </span>
-                  </div>
-                  <CardTitle className="text-[clamp(2.35rem,2rem+0.7vw,3.2rem)]">
-                    {card.title}
-                  </CardTitle>
-                </CardHeader>
-                <CardContent className="pt-0">
-                  <p className="text-sm leading-7 text-muted sm:text-[0.98rem]">
-                    {card.description}
-                  </p>
-                </CardContent>
-              </Card>
-            ))}
+          <div className="space-y-5 rounded-[28px] border border-border/60 bg-[linear-gradient(180deg,color-mix(in_srgb,var(--theme-panel)_88%,transparent),color-mix(in_srgb,var(--theme-background-alt)_96%,transparent))] p-6 sm:p-7">
+            <div className="space-y-3">
+              <Badge variant="accent">Weighted categories</Badge>
+              <h3 className="font-display text-[clamp(3rem,2.4rem+1vw,4.3rem)] leading-[0.92] tracking-[-0.05em] text-foreground">
+                The score favors conversion clarity and trust over decorative polish
+              </h3>
+              <p className="text-base leading-7 text-muted">
+                This is the part generic audit tools miss: a page can look cleaner and still
+                fail the pitch if the proof, reassurance, and next step do not land in the
+                right order.
+              </p>
+            </div>
+
+            <ScoreBreakdownBars
+              items={currentBreakdown}
+              showWeights
+              targetItems={targetBreakdown}
+            />
+
+            <div className="grid gap-4 md:grid-cols-3">
+              {notes.map((note) => (
+                <Card className="h-full rounded-[22px] border-border/60 bg-panel/35 shadow-none" key={note.id}>
+                  <CardHeader className="space-y-3">
+                    <Badge variant="neutral">{note.category}</Badge>
+                    <CardTitle className="text-[clamp(2.1rem,1.8rem+0.4vw,2.7rem)]">
+                      {note.title}
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent className="pt-0">
+                    <p className="text-sm leading-6 text-muted">{note.takeaways[0]}</p>
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
           </div>
         </div>
       </div>

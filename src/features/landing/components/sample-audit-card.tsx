@@ -22,10 +22,11 @@ function formatScannedAt(input?: string) {
 
 export function SampleAuditCard({ audit }: { audit: SampleAuditCardType }) {
   const scannedAt = formatScannedAt(audit.scannedAt);
+  const summary = audit.executiveSummary ?? audit.summary;
 
   return (
     <Link href={`/audit/${audit.id}`} className="block h-full">
-      <Card className="group h-full overflow-hidden transition duration-300 hover:-translate-y-1 hover:border-accent/30">
+      <Card className="group h-full overflow-hidden rounded-[24px] border-border/60 bg-[linear-gradient(180deg,color-mix(in_srgb,var(--theme-panel)_88%,transparent),color-mix(in_srgb,var(--theme-background-alt)_96%,transparent))] shadow-[0_20px_60px_rgba(0,0,0,0.18)] transition duration-300 hover:-translate-y-1 hover:border-accent/30">
         <PreviewImage
           alt={`${audit.title} preview`}
           className="aspect-[21/10]"
@@ -37,12 +38,12 @@ export function SampleAuditCard({ audit }: { audit: SampleAuditCardType }) {
         >
           <div className="pointer-events-none absolute inset-x-0 top-0 h-28 bg-gradient-to-b from-background/35 via-transparent to-transparent" />
         </PreviewImage>
-        <CardHeader className="space-y-3">
+        <CardHeader className="space-y-4">
           <div className="flex items-center justify-between gap-3">
             <Badge variant="accent">{audit.profile.replace("-", " ")}</Badge>
-          <div className="flex items-center gap-3">
-            {typeof audit.score === "number" ? (
-              <span className="font-sans text-xl font-semibold tracking-[-0.03em] text-foreground">
+            <div className="flex items-center gap-3">
+              {typeof audit.score === "number" ? (
+                <span className="font-sans text-xl font-semibold tracking-[-0.03em] text-foreground">
                   {audit.score} / 10
                 </span>
               ) : null}
@@ -54,7 +55,7 @@ export function SampleAuditCard({ audit }: { audit: SampleAuditCardType }) {
           </CardTitle>
         </CardHeader>
         <CardContent className="space-y-2">
-          <p className="line-clamp-2 text-[1.05rem] leading-[1.9rem] text-muted">{audit.summary}</p>
+          <p className="line-clamp-3 text-[1rem] leading-7 text-muted">{summary}</p>
           <p className="truncate text-xs uppercase tracking-[0.18em] text-muted">{audit.url}</p>
           {scannedAt ? (
             <p className="text-xs uppercase tracking-[0.18em] text-muted">
