@@ -88,6 +88,8 @@ function getWorkspaceDefaults(ownerUserId: string) {
     branding: {
       agencyName: "WebsiteCreditScore.com",
       logoMark: "WCS",
+      logoColor: "",
+      logoScale: 1,
       contactName: "WebsiteCreditScore.com team",
       contactTitle: "Founder",
       contactEmail: "hello@websitecreditscore.com",
@@ -117,6 +119,8 @@ function normalizeWorkspaceRecord(workspace: WorkspaceRecord) {
     ...workspace.branding,
     agencyName: usesLegacyBrand ? "WebsiteCreditScore.com" : workspace.branding.agencyName,
     logoMark: usesLegacyBrand || workspace.branding.logoMark === "CR" ? "WCS" : workspace.branding.logoMark,
+    logoColor: workspace.branding.logoColor ?? "",
+    logoScale: workspace.branding.logoScale ?? 1,
     contactName: usesLegacyBrand ? "WebsiteCreditScore.com team" : workspace.branding.contactName,
     contactEmail: usesLegacyBrand ? "hello@websitecreditscore.com" : workspace.branding.contactEmail,
     headshot: usesLegacyBrand ? "/previews/agency-avatar.svg" : workspace.branding.headshot,

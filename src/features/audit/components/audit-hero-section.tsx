@@ -106,7 +106,7 @@ export function AuditHeroSection({ report }: { report: AuditReport }) {
           <div className="space-y-5">
             <Badge variant="accent">Live audit</Badge>
             <div className="space-y-3">
-              <h1 className="font-display text-[clamp(4.25rem,2.8rem+4.6vw,8.2rem)] font-semibold tracking-[-0.055em] text-foreground">
+              <h1 className="font-display text-[clamp(4rem,3.35rem+1.2vw,5.1rem)] font-semibold tracking-[-0.055em] text-foreground">
                 {report.title}
               </h1>
               <p className="max-w-3xl text-lg leading-8 text-muted">
@@ -327,7 +327,7 @@ export function AuditHeroSection({ report }: { report: AuditReport }) {
                           {score.label}
                         </p>
                         <span
-                          className={`block font-sans text-[2.2rem] font-semibold leading-none tracking-[-0.04em] tabular-nums ${scoreTextClasses[tone]}`}
+                          className={`block font-display text-[2.45rem] font-semibold leading-none tracking-[-0.04em] ${scoreTextClasses[tone]}`}
                         >
                           {score.score}
                         </span>

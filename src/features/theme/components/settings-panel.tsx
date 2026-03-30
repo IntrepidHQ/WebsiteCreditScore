@@ -11,6 +11,7 @@ import { Input } from "@/components/ui/input";
 import { Slider } from "@/components/ui/slider";
 import { Switch } from "@/components/ui/switch";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { WebsiteCreditScoreLogo } from "@/components/common/website-credit-score-logo";
 import { getThemePresets } from "@/lib/utils/theme";
 import { useThemeStore } from "@/store/theme-store";
 
@@ -56,6 +57,8 @@ function BrandingField({
 export function SettingsPanel() {
   const modeLabelId = useId();
   const accentLabelId = useId();
+  const logoColorLabelId = useId();
+  const logoScaleLabelId = useId();
   const fontScaleLabelId = useId();
   const radiusLabelId = useId();
   const shadowLabelId = useId();
@@ -67,6 +70,8 @@ export function SettingsPanel() {
   const presetId = useThemeStore((state) => state.presetId);
   const setMode = useThemeStore((state) => state.setMode);
   const setAccentColor = useThemeStore((state) => state.setAccentColor);
+  const setLogoColor = useThemeStore((state) => state.setLogoColor);
+  const setLogoScale = useThemeStore((state) => state.setLogoScale);
   const setFontScale = useThemeStore((state) => state.setFontScale);
   const setRadius = useThemeStore((state) => state.setRadius);
   const setShadowIntensity = useThemeStore((state) => state.setShadowIntensity);
@@ -300,12 +305,6 @@ export function SettingsPanel() {
                     onChange={(event) => updateBranding({ agencyName: event.target.value })}
                   />
                 </BrandingField>
-                <BrandingField label="Logo mark">
-                  <Input
-                    value={branding.logoMark}
-                    onChange={(event) => updateBranding({ logoMark: event.target.value.slice(0, 3) })}
-                  />
-                </BrandingField>
                 <BrandingField label="Contact name">
                   <Input
                     autoComplete="name"
@@ -351,6 +350,43 @@ export function SettingsPanel() {
                   />
                 </BrandingField>
               </div>
+              <div className="grid gap-4 sm:grid-cols-2">
+                <SettingRow
+                  titleId={logoColorLabelId}
+                  label="Logo color"
+                  description="Keep the wordmark high-contrast while matching the current theme."
+                >
+                  <div className="flex items-center gap-3">
+                    <Input
+                      aria-labelledby={logoColorLabelId}
+                      className="max-w-44"
+                      type="color"
+                      value={branding.logoColor || tokens.surfaces.foreground}
+                      onChange={(event) => setLogoColor(event.target.value)}
+                    />
+                    <span className="text-sm text-muted">
+                      {branding.logoColor || tokens.surfaces.foreground}
+                    </span>
+                  </div>
+                </SettingRow>
+                <SettingRow
+                  titleId={logoScaleLabelId}
+                  label="Logo size"
+                  description="Scale the logo up or down without changing the header layout."
+                >
+                  <Slider
+                    aria-labelledby={logoScaleLabelId}
+                    max={1.5}
+                    min={0.75}
+                    onValueChange={(value) => setLogoScale(value[0] ?? 1)}
+                    step={0.01}
+                    value={[branding.logoScale ?? 1]}
+                  />
+                  <p className="mt-2 text-sm text-muted">
+                    Current value: {((branding.logoScale ?? 1) * 100).toFixed(0)}%
+                  </p>
+                </SettingRow>
+              </div>
             </CardContent>
           </Card>
         </div>
@@ -367,13 +403,11 @@ export function SettingsPanel() {
             <CardContent className="space-y-4">
               <div className="rounded-[calc(var(--theme-radius-lg))] border border-border/70 bg-panel/70 p-5 shadow-[var(--theme-shadow)]">
                 <div className="rounded-[calc(var(--theme-radius))] border border-accent/20 bg-accent/8 p-4">
-                  <div className="flex items-center gap-3">
-                    <div className="flex size-12 items-center justify-center rounded-[calc(var(--theme-radius)-2px)] border border-accent/30 bg-panel/75 font-display font-semibold text-accent">
-                      {branding.logoMark}
-                    </div>
+                  <div className="space-y-3">
+                    <WebsiteCreditScoreLogo compact />
                     <div>
                       <p className="font-semibold text-foreground">{branding.agencyName}</p>
-                      <p className="text-xs uppercase tracking-[0.18em] text-muted">
+                      <p className="text-xs uppercase tracking-[0.16em] text-muted">
                         packet preview
                       </p>
                     </div>

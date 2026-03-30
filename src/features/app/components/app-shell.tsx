@@ -12,7 +12,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
         <div className="mx-auto flex w-full max-w-7xl flex-col gap-3 px-4 py-4 sm:px-6 lg:px-8">
           <div className="flex flex-wrap items-center justify-between gap-3">
             <Link className="min-w-0 shrink-0" href="/">
-              <WebsiteCreditScoreLogo className="w-[18.5rem] sm:w-[20.5rem]" />
+              <WebsiteCreditScoreLogo />
             </Link>
             <div className="flex flex-wrap items-center gap-2 sm:justify-end">
               <Button asChild className="shrink-0" size="sm">

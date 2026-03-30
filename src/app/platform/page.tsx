@@ -53,7 +53,7 @@ export default function PlatformPage() {
         <div className="mx-auto grid w-full max-w-7xl gap-8 px-4 sm:px-6 lg:grid-cols-[minmax(0,1.05fr)_minmax(0,0.95fr)] lg:px-8">
           <div className="space-y-6">
             <Badge variant="accent">Platform</Badge>
-            <h1 className="font-display text-[clamp(4rem,2.75rem+4vw,7.75rem)] font-semibold tracking-[-0.055em] text-foreground">
+            <h1 className="font-display text-[clamp(4rem,3.35rem+1.2vw,5.1rem)] font-semibold tracking-[-0.055em] text-foreground">
               One workflow for auditing, pitching, and scoping service-business sites.
             </h1>
             <p className="max-w-3xl text-lg leading-8 text-muted">

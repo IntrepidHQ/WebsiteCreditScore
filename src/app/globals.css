@@ -56,11 +56,11 @@ html {
 .font-display,
 .font-headline {
   font-family: "Instrument Serif", var(--font-instrument-serif), serif !important;
-  font-size: 1.25em;
   font-weight: 400 !important;
   font-optical-sizing: auto;
   letter-spacing: -0.03em;
   line-height: 0.98;
+  text-wrap: balance;
 }
 
 p,

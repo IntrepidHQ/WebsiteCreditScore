@@ -8,7 +8,7 @@ export function LandingHeroSection() {
         <div className="space-y-8">
           <Badge variant="accent">Website Audits, Reviews, and Redesigns</Badge>
           <div className="space-y-6">
-            <h1 className="max-w-5xl font-display text-[clamp(4.4rem,3rem+4.8vw,8.6rem)] font-semibold tracking-[-0.06em] text-foreground">
+            <h1 className="max-w-5xl font-display text-[clamp(4rem,3.35rem+1.2vw,5.1rem)] font-semibold tracking-[-0.055em] text-foreground">
               A clear score for your website—backed by what actually matters.
             </h1>
             <p className="max-w-3xl text-lg leading-8 text-muted sm:text-xl">

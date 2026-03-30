@@ -70,7 +70,7 @@ function rgbChannelToLinear(value: number) {
     : ((normalized + 0.055) / 1.055) ** 2.4;
 }
 
-function contrastRatio(hexA: string, hexB: string) {
+export function contrastRatio(hexA: string, hexB: string) {
   const colorA = hexToRgb(hexA);
   const colorB = hexToRgb(hexB);
 
@@ -89,7 +89,7 @@ function contrastRatio(hexA: string, hexB: string) {
   return Number(((lighter + 0.05) / (darker + 0.05)).toFixed(2));
 }
 
-function pickReadableTextColor(
+export function pickReadableTextColor(
   backgroundHex: string,
   light = "#ffffff",
   dark = "#08111b",
@@ -214,6 +214,8 @@ function ensureAccessibleAccent(tokens: ThemeTokens) {
 export const defaultBranding: AgencyBranding = {
   agencyName: "WebsiteCreditScore.com",
   logoMark: "WCS",
+  logoColor: "",
+  logoScale: 1,
   contactName: "WebsiteCreditScore.com Team",
   contactTitle: "Website Strategy",
   contactEmail: "hello@websitecreditscore.com",

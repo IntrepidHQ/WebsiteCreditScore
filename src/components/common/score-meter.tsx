@@ -268,8 +268,8 @@ export function ScoreMeter({
             <div className="flex items-end gap-1.5 rounded-full border border-border/55 bg-background/86 px-4 py-2 shadow-[0_10px_28px_rgba(0,0,0,0.15)] backdrop-blur-sm">
               <p
                 className={cn(
-                  "font-sans text-[clamp(2.35rem,2rem+1vw,2.85rem)] font-semibold leading-none tracking-[-0.05em] text-foreground tabular-nums",
-                  compact && "text-[clamp(2.05rem,1.8rem+0.85vw,2.45rem)]",
+                  "font-display text-[clamp(2.55rem,2.05rem+0.95vw,3.1rem)] font-semibold leading-none tracking-[-0.04em] text-foreground",
+                  compact && "text-[clamp(2.25rem,1.9rem+0.8vw,2.75rem)]",
                   valueClassName,
                 )}
                 ref={currentValueRef}

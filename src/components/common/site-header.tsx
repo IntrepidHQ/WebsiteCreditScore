@@ -176,7 +176,7 @@ export function SiteHeader() {
           <div className={cn("flex flex-col gap-3 transition-[padding] duration-300", scrolled ? "py-3" : "py-4")}>
           <div className="flex flex-wrap items-center justify-between gap-3">
             <Link href="/" className="min-w-0 shrink-0">
-              <WebsiteCreditScoreLogo className="w-[18.5rem] sm:w-[20.5rem]" />
+              <WebsiteCreditScoreLogo />
             </Link>
 
             <div className="hidden flex-wrap items-center justify-end gap-2 sm:flex">

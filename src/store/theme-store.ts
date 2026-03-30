@@ -26,11 +26,17 @@ interface ThemeState {
   setShadowIntensity: (shadowIntensity: number) => void;
   setSpacingDensity: (spacingDensity: number) => void;
   setMotionPreference: (preference: MotionPreference) => void;
+  setLogoColor: (logoColor: string) => void;
+  setLogoScale: (logoScale: number) => void;
   applyPreset: (presetId: string) => void;
   randomizeTheme: () => void;
   restoreDefaults: () => void;
   updateBranding: (patch: Partial<AgencyBranding>) => void;
   exportThemeJson: () => string;
+}
+
+function clamp(value: number, min: number, max: number) {
+  return Math.min(max, Math.max(min, value));
 }
 
 const defaultTokens = createThemeTokens();
@@ -93,6 +99,17 @@ export const useThemeStore = create<ThemeState>()(
           }),
         })),
       setMotionPreference: (motionPreference) => set({ motionPreference }),
+      setLogoColor: (logoColor) =>
+        set((state) => ({
+          branding: { ...state.branding, logoColor },
+        })),
+      setLogoScale: (logoScale) =>
+        set((state) => ({
+          branding: {
+            ...state.branding,
+            logoScale: clamp(logoScale, 0.75, 1.5),
+          },
+        })),
       applyPreset: (presetId) =>
         set((state) => {
           const preset = themePresets.find((item) => item.id === presetId);
@@ -141,10 +158,19 @@ export const useThemeStore = create<ThemeState>()(
       name: "premium-audit-theme-store",
       merge: (persistedState, currentState) => {
         const persisted = persistedState as Partial<ThemeState>;
+        const persistedBranding = persisted.branding
+          ? {
+              ...defaultBranding,
+              ...persisted.branding,
+              logoColor: persisted.branding.logoColor ?? defaultBranding.logoColor,
+              logoScale: persisted.branding.logoScale ?? defaultBranding.logoScale,
+            }
+          : currentState.branding;
 
         return {
           ...currentState,
           ...persisted,
+          branding: persistedBranding,
           tokens: persisted.tokens
             ? createThemeTokens(persisted.tokens)
             : currentState.tokens,

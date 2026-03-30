@@ -210,6 +210,8 @@ export interface ThemePreset {
 export interface AgencyBranding {
   agencyName: string;
   logoMark: string;
+  logoColor: string;
+  logoScale: number;
   contactName: string;
   contactTitle: string;
   contactEmail: string;

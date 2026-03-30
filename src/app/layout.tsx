@@ -3,7 +3,6 @@ import type { Metadata } from "next";
 import { Instrument_Serif, Manrope, Space_Grotesk } from "next/font/google";
 
 import { ContactModal } from "@/components/common/contact-modal";
-import { UnicornBackground } from "@/components/common/unicorn-background";
 import { RouteScrollReset } from "@/components/common/route-scroll-reset";
 import { SiteFooter } from "@/components/common/site-footer";
 import { SiteHeader } from "@/components/common/site-header";
@@ -45,7 +44,6 @@ export default function RootLayout({
       >
         <ThemeStyleProvider>
           <div className="relative isolate min-h-screen overflow-x-hidden">
-            <UnicornBackground />
             <div className="relative z-10 flex min-h-screen flex-col">
               <Suspense fallback={null}>
                 <SiteHeader />
