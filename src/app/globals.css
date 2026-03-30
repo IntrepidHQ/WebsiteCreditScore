@@ -140,6 +140,30 @@ a {
   backdrop-filter: blur(22px);
 }
 
+.editorial-shell {
+  border: 1px solid color-mix(in srgb, var(--theme-border) 80%, transparent);
+  background:
+    radial-gradient(circle at top left, color-mix(in srgb, var(--theme-glow) 12%, transparent), transparent 30%),
+    linear-gradient(180deg, color-mix(in srgb, var(--theme-panel) 94%, transparent), color-mix(in srgb, var(--theme-background-alt) 96%, transparent));
+  box-shadow: var(--theme-shadow);
+  backdrop-filter: blur(18px);
+}
+
+.luxury-panel {
+  border: 1px solid color-mix(in srgb, var(--theme-border) 76%, transparent);
+  background:
+    linear-gradient(180deg, color-mix(in srgb, var(--theme-elevated) 90%, transparent), color-mix(in srgb, var(--theme-panel) 88%, transparent));
+  box-shadow: 0 28px 90px rgba(0, 0, 0, 0.24), 0 10px 30px rgba(0, 0, 0, 0.14);
+  backdrop-filter: blur(18px);
+}
+
+.signal-grid {
+  background-image:
+    linear-gradient(to right, color-mix(in srgb, var(--theme-border) 26%, transparent) 1px, transparent 1px),
+    linear-gradient(to bottom, color-mix(in srgb, var(--theme-border) 22%, transparent) 1px, transparent 1px);
+  background-size: 28px 28px;
+}
+
 .presentation-section {
   position: relative;
   padding-block: calc(3.5rem * var(--theme-spacing-density));

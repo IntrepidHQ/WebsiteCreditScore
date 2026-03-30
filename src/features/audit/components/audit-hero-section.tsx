@@ -14,6 +14,7 @@ import { ScrollTrigger } from "gsap/ScrollTrigger";
 
 import { DevicePreview } from "@/components/common/device-preview";
 import { ScoreMeter } from "@/components/common/score-meter";
+import { CategoryRadarBreakdown } from "@/features/audit/components/category-radar-breakdown";
 import {
   Accordion,
   AccordionContent,
@@ -27,7 +28,6 @@ import type { AuditReport } from "@/lib/types/audit";
 import { useMotionSettings } from "@/hooks/use-motion-settings";
 import {
   describeScore,
-  getScoreBandLabel,
   getScoreMethodologyNotes,
   getScoreTone,
 } from "@/lib/utils/scores";
@@ -38,13 +38,6 @@ const scoreSurfaceClasses = {
   accent: "border-accent/25 bg-accent/10",
   warning: "border-warning/25 bg-warning/10",
   danger: "border-danger/25 bg-danger/10",
-} as const;
-
-const scoreTextClasses = {
-  success: "text-success",
-  accent: "text-accent",
-  warning: "text-warning",
-  danger: "text-danger",
 } as const;
 
 export function AuditHeroSection({ report }: { report: AuditReport }) {
@@ -106,10 +99,10 @@ export function AuditHeroSection({ report }: { report: AuditReport }) {
           <div className="space-y-5">
             <Badge variant="accent">Live audit</Badge>
             <div className="space-y-3">
-              <h1 className="font-display text-[clamp(4rem,3.35rem+1.2vw,5.1rem)] font-semibold tracking-[-0.055em] text-foreground">
+              <h1 className="font-display text-[clamp(4.5rem,3.9rem+1vw,6rem)] font-semibold leading-[0.94] tracking-[-0.055em] text-foreground">
                 {report.title}
               </h1>
-              <p className="max-w-3xl text-lg leading-8 text-muted">
+              <p className="max-w-3xl text-[1.18rem] leading-[2rem] text-muted">
                 {report.executiveSummary}
               </p>
             </div>
@@ -148,11 +141,10 @@ export function AuditHeroSection({ report }: { report: AuditReport }) {
             >
               <ScoreMeter
                 className="max-w-none"
-                compact
                 label="Overall score"
                 score={report.overallScore}
               />
-              <p className="mt-4 max-w-[34rem] text-[1.15rem] leading-9 text-muted sm:text-[1.25rem]">
+              <p className="mt-4 max-w-[34rem] text-[1.2rem] leading-[2.1rem] text-muted sm:text-[1.3rem]">
                 {describeScore(report.overallScore)}
               </p>
 
@@ -161,20 +153,20 @@ export function AuditHeroSection({ report }: { report: AuditReport }) {
                   value="overall-methodology"
                   className="border-0 bg-transparent px-0"
                 >
-                  <AccordionTrigger className="py-0 pr-8 text-[1.7rem] font-semibold leading-tight [&>svg]:right-0 [&>svg]:top-1/2 [&>svg]:-translate-y-1/2 sm:text-[1.9rem]">
-                    How this score was calculated
-                  </AccordionTrigger>
+                <AccordionTrigger className="py-0 pr-8 text-[2.15rem] font-semibold leading-tight [&>svg]:right-0 [&>svg]:top-1/2 [&>svg]:-translate-y-1/2 sm:text-[2.4rem]">
+                  How this score was calculated
+                </AccordionTrigger>
                   <AccordionContent className="pt-4">
                     <div className="space-y-3">
                       {methodologyNotes.map((note) => (
                         <div
-                          className="rounded-[calc(var(--theme-radius)-4px)] bg-panel/40 px-4 py-3 text-[1.1rem] leading-9 text-muted sm:text-[1.2rem]"
+                          className="rounded-[calc(var(--theme-radius)-4px)] bg-panel/40 px-4 py-3 text-[1.1rem] leading-[2rem] text-muted sm:text-[1.2rem]"
                           key={note}
                         >
                           {note}
                         </div>
                       ))}
-                      <div className="flex items-start gap-3 rounded-[calc(var(--theme-radius)-4px)] bg-accent/8 px-4 py-3 text-[1.1rem] leading-9 text-foreground sm:text-[1.2rem]">
+                      <div className="flex items-start gap-3 rounded-[calc(var(--theme-radius)-4px)] bg-accent/8 px-4 py-3 text-[1.1rem] leading-[2rem] text-foreground sm:text-[1.2rem]">
                         <Info className="mt-0.5 size-4 shrink-0 text-accent" />
                         <p>
                           Heuristic score, not a lab measurement. Another evaluator may
@@ -306,53 +298,15 @@ export function AuditHeroSection({ report }: { report: AuditReport }) {
               </div>
             </div>
 
-            <Accordion
-              aria-label="Category score breakdown"
-              className="grid gap-3 xl:grid-cols-2"
-              type="multiple"
-            >
-              {report.categoryScores.map((score) => {
-                const tone = getScoreTone(score.score);
-
-                return (
-                  <AccordionItem
-                    className="rounded-[10px] border-border/70 bg-panel/72"
-                    data-hero-chip
-                    key={score.key}
-                    value={score.key}
-                  >
-                    <AccordionTrigger className="relative flex flex-col items-start gap-4 py-5 pr-10 text-left [&>svg]:absolute [&>svg]:bottom-5 [&>svg]:right-0 [&>svg]:top-auto">
-                      <div className="grid w-full gap-3">
-                        <p className="font-display text-[2.15rem] font-semibold leading-[1] text-foreground">
-                          {score.label}
-                        </p>
-                        <span
-                          className={`block font-display text-[2.45rem] font-semibold leading-none tracking-[-0.04em] ${scoreTextClasses[tone]}`}
-                        >
-                          {score.score}
-                        </span>
-                        <p className="text-lg font-normal leading-8 text-muted">{score.summary}</p>
-                        <div className="flex items-center gap-3">
-                          <Badge variant={tone}>{getScoreBandLabel(score.score)}</Badge>
-                        </div>
-                      </div>
-                    </AccordionTrigger>
-                    <AccordionContent className="pt-0">
-                      <div className="space-y-3">
-                        {score.details.map((detail) => (
-                          <div
-                            className="rounded-[calc(var(--theme-radius)-4px)] border border-border/70 bg-background-alt/70 px-4 py-3 text-lg leading-8 text-muted"
-                            key={detail}
-                          >
-                            {detail}
-                          </div>
-                        ))}
-                      </div>
-                    </AccordionContent>
-                  </AccordionItem>
-                );
-              })}
-            </Accordion>
+            <div className="glass-panel rounded-[10px] border border-border/70 p-5 sm:p-6">
+              <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
+                <p className="text-xs uppercase tracking-[0.18em] text-muted">Point breakdown</p>
+                <p className="text-[11px] font-semibold uppercase tracking-[0.12em] text-muted">
+                  Visual, UX, mobile, search, accessibility, trust, security
+                </p>
+              </div>
+              <CategoryRadarBreakdown scores={report.categoryScores} />
+            </div>
           </div>
         </div>
       </div>

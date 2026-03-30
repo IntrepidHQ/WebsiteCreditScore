@@ -61,7 +61,7 @@ export default async function ReferralsPage() {
     .filter((entry) => entry.status === "pending")
     .reduce((sum, entry) => sum + entry.creditAmount, 0);
   const earnedCredits = dashboard.credits.reduce((sum, entry) => sum + entry.amount, 0);
-  const featuredPromoCodes = ["FIFTEEN", "RUSH24"] as const;
+  const featuredPromoCodes = ["FIFTEEN", "STARTUP"] as const;
   const featuredPromos = featuredPromoCodes
     .map((code) => dashboard.promos.find((promo) => promo.code === code))
     .filter((promo): promo is (typeof dashboard.promos)[number] => Boolean(promo));
@@ -77,7 +77,9 @@ export default async function ReferralsPage() {
             <HandCoins className="size-4" />
             Referral program
           </div>
-          <CardTitle className="text-4xl">Workspace credits</CardTitle>
+          <CardTitle className="text-[clamp(3.8rem,3rem+1vw,5rem)] leading-[0.92]">
+            Workspace credits
+          </CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
           {referralCode ? (
@@ -118,7 +120,9 @@ export default async function ReferralsPage() {
             <TicketPercent className="size-4" />
             Product promotions
           </div>
-          <CardTitle className="text-4xl">Founding offers</CardTitle>
+          <CardTitle className="text-[clamp(3.8rem,3rem+1vw,5rem)] leading-[0.92]">
+            Startup offers
+          </CardTitle>
         </CardHeader>
         <CardContent className="grid gap-4">
           <div className="grid gap-3 md:grid-cols-2">

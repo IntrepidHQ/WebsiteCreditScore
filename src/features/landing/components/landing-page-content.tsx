@@ -6,8 +6,8 @@ export function LandingPageContent() {
   return (
     <main id="main-content">
       <LandingHeroSection />
-      <LandingRecentReportsSection />
       <LandingWorkflowSection />
+      <LandingRecentReportsSection />
     </main>
   );
 }

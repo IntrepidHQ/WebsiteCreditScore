@@ -41,7 +41,7 @@ export function BenchmarkSiteCard({
           <TabsContent value="desktop" className="m-0">
             <PreviewImage
               alt={`${reference.name} desktop benchmark preview`}
-              className="aspect-[16/10]"
+              className="aspect-[16/7]"
               fallbackSrc={fallbackImage}
               loadingLabel="Capturing desktop screenshot"
               src={reference.previewImage}
@@ -50,7 +50,7 @@ export function BenchmarkSiteCard({
           <TabsContent value="mobile" className="m-0">
             <PreviewImage
               alt={`${reference.name} mobile benchmark preview`}
-              className="aspect-[16/10]"
+              className="aspect-[16/7]"
               fallbackSrc={fallbackImage}
               loadingLabel="Capturing mobile screenshot"
               src={reference.mobilePreviewImage}
@@ -60,17 +60,19 @@ export function BenchmarkSiteCard({
       </Tabs>
 
       <div className="space-y-3 border-y border-border/70 bg-background-alt/60 p-4">
-        <div className="flex flex-wrap items-center justify-between gap-3">
-          <p className="text-xs font-semibold uppercase tracking-[0.12em] text-muted">Selected benchmark</p>
-          <span className="text-xs font-semibold uppercase tracking-[0.12em] text-muted">
-            {reference.sourceLabel}
-          </span>
-        </div>
-        <div className="flex flex-wrap items-center gap-2">
-          <span className="text-xs font-semibold uppercase tracking-[0.12em] text-muted">Tier</span>
-          <Badge variant="accent">{reference.tier}</Badge>
-        </div>
-        <div className="grid gap-3 sm:grid-cols-3">
+          <div className="flex flex-wrap items-center justify-between gap-3">
+            <p className="text-xs font-semibold uppercase tracking-[0.12em] text-muted">Selected benchmark</p>
+            <span className="text-xs font-semibold uppercase tracking-[0.12em] text-muted">
+              {reference.sourceLabel}
+            </span>
+          </div>
+          <div className="flex flex-wrap items-center gap-2">
+            <span className="text-xs font-semibold uppercase tracking-[0.12em] text-muted">Tier</span>
+            <Badge className="whitespace-nowrap" variant="accent">
+              {reference.tier}
+            </Badge>
+          </div>
+          <div className="grid gap-3 sm:grid-cols-3">
           <div className="rounded-[10px] border border-border/70 bg-panel/55 p-4">
             <p className="text-xs font-semibold uppercase tracking-[0.12em] text-muted">Scored</p>
             <p className="mt-2 font-sans text-[2.25rem] font-semibold tracking-[-0.04em] text-foreground tabular-nums">
@@ -89,7 +91,7 @@ export function BenchmarkSiteCard({
               {(scan?.animationScore ?? reference.measuredAnimationScore ?? 0).toFixed(1)}
             </p>
           </div>
-        </div>
+          </div>
       </div>
 
       <CardHeader className="space-y-3">
@@ -97,8 +99,8 @@ export function BenchmarkSiteCard({
           <Badge variant="neutral">{reference.sourceLabel}</Badge>
           <Badge variant="accent">Why this is still a benchmark</Badge>
         </div>
-        <CardTitle className="font-display text-[2.1rem]">{reference.name}</CardTitle>
-        <p className="text-lg leading-8 text-muted">{reference.note}</p>
+        <CardTitle className="font-display text-[clamp(2.8rem,2.1rem+1vw,4rem)] leading-[0.92]">{reference.name}</CardTitle>
+        <p className="text-[1.08rem] leading-[1.95rem] text-muted">{reference.note}</p>
       </CardHeader>
 
       <CardContent className="space-y-5">

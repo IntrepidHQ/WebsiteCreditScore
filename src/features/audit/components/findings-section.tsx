@@ -110,10 +110,10 @@ export function FindingsSection({
             <div className="inline-flex size-14 items-center justify-center rounded-2xl border border-accent/25 bg-accent/10 text-accent">
               <Icon className="size-6" />
             </div>
-            <h2 className="font-display text-4xl font-semibold tracking-[-0.03em]">
+            <h2 className="font-display text-[clamp(3.25rem,2.6rem+1vw,4.8rem)] font-semibold tracking-[-0.04em] leading-[0.9]">
               {meta.title}
             </h2>
-            <p className="text-base leading-7 text-muted">{meta.description}</p>
+            <p className="text-[1.08rem] leading-[1.95rem] text-muted">{meta.description}</p>
           </div>
         </div>
 
@@ -134,15 +134,17 @@ export function FindingsSection({
                     <Badge variant="neutral">{finding.confidenceLevel}</Badge>
                     <Badge variant="neutral">{finding.category.replace("-", " ")}</Badge>
                   </div>
-                  <CardTitle className="font-display text-[2.15rem]">{finding.title}</CardTitle>
+                  <CardTitle className="font-display text-[clamp(2.4rem,1.9rem+0.8vw,3.6rem)] leading-[0.9]">
+                    {finding.title}
+                  </CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-5">
-                  <p className="text-base leading-8 text-muted">{finding.summary}</p>
+                  <p className="text-[1.08rem] leading-[1.95rem] text-muted">{finding.summary}</p>
                   <div className="rounded-[calc(var(--theme-radius)-2px)] border border-border/70 bg-background-alt/70 p-4">
                     <p className="text-xs font-semibold uppercase tracking-[0.12em] text-muted">
                       Business impact
                     </p>
-                    <p className="mt-2 text-base leading-7 text-foreground">
+                    <p className="mt-2 text-[1.04rem] leading-[1.9rem] text-foreground">
                       {finding.businessImpact}
                     </p>
                   </div>
@@ -150,7 +152,7 @@ export function FindingsSection({
                     <p className="text-xs font-semibold uppercase tracking-[0.12em] text-accent">
                       Recommendation
                     </p>
-                    <p className="mt-2 text-base leading-7 text-foreground">
+                    <p className="mt-2 text-[1.04rem] leading-[1.9rem] text-foreground">
                       {finding.recommendation}
                     </p>
                   </div>
@@ -184,10 +186,10 @@ export function FindingsSection({
                                     {item.sourceLabel}
                                   </span>
                                 </div>
-                                <p className="mt-3 text-base leading-7 text-foreground">
+                                <p className="mt-3 text-[1.04rem] leading-[1.9rem] text-foreground">
                                   {item.claim}
                                 </p>
-                                <p className="mt-2 text-sm leading-6 text-muted">{item.notes}</p>
+                                <p className="mt-2 text-[1rem] leading-[1.85rem] text-muted">{item.notes}</p>
                               </div>
                             ))}
                           </div>

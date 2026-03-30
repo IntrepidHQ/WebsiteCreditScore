@@ -169,11 +169,24 @@ export function SiteHeader() {
   return (
     <header
       className={cn(
-        "sticky top-0 z-50 bg-transparent transition-all duration-300 print:hidden",
+        "sticky top-0 z-50 bg-transparent px-4 pt-3 transition-all duration-300 print:hidden sm:px-6 lg:px-8",
       )}
     >
-      <div className="mx-auto w-full max-w-7xl px-4 sm:px-6 lg:px-8">
-          <div className={cn("flex flex-col gap-3 transition-[padding] duration-300", scrolled ? "py-3" : "py-4")}>
+      <div className="mx-auto w-full max-w-7xl">
+        <div
+          className={cn(
+            "rounded-[24px] border px-4 backdrop-blur-xl transition-all duration-300 sm:px-5",
+            scrolled
+              ? "border-border/70 bg-background/76 shadow-[var(--theme-shadow)]"
+              : "border-border/35 bg-background/36",
+          )}
+        >
+          <div
+            className={cn(
+              "flex flex-col gap-3 transition-[padding] duration-300",
+              scrolled ? "py-3" : "py-4",
+            )}
+          >
           <div className="flex flex-wrap items-center justify-between gap-3">
             <Link href="/" className="min-w-0 shrink-0">
               <WebsiteCreditScoreLogo />
@@ -334,6 +347,7 @@ export function SiteHeader() {
               ))}
             </nav>
           ) : null}
+          </div>
         </div>
       </div>
     </header>

@@ -21,7 +21,7 @@ function BenchmarkPreview({
   return (
     <PreviewImage
       alt={alt}
-      className="aspect-[16/10] border-b border-border/70"
+      className="aspect-[21/10] border-b border-border/70"
       fallbackSrc={fallbackImage}
       loadingLabel="Capturing desktop screenshot"
       src={image}
@@ -50,12 +50,14 @@ export function BenchmarkSection({ report }: { report: AuditReport }) {
                 <Target className="size-4" />
                 10/10 benchmark
               </div>
-              <CardTitle className="text-3xl">Aspirational, not imaginary</CardTitle>
+              <CardTitle className="text-[clamp(3.4rem,2.7rem+1vw,4.8rem)] leading-[0.9]">
+                Aspirational, not imaginary
+              </CardTitle>
             </CardHeader>
             <CardContent className="space-y-3">
               {notes.map((note) => (
                 <div
-                  className="rounded-[calc(var(--theme-radius)-4px)] border border-border/70 bg-background-alt/70 px-4 py-3 text-sm leading-6 text-muted"
+                  className="rounded-[calc(var(--theme-radius)-4px)] border border-border/70 bg-background-alt/70 px-4 py-4 text-[1.05rem] leading-[1.9rem] text-muted"
                   key={note}
                 >
                   {note}
@@ -74,7 +76,7 @@ export function BenchmarkSection({ report }: { report: AuditReport }) {
                 />
                 <CardHeader className="space-y-3">
                   <div className="flex items-center justify-between gap-3">
-                <Badge variant="accent">
+                    <Badge variant="accent">
                       {reference.scoreSource === "measured" ? "Scored" : "Reference"} score{" "}
                       {getBenchmarkReferenceScore(reference).toFixed(1)}
                     </Badge>
@@ -82,8 +84,10 @@ export function BenchmarkSection({ report }: { report: AuditReport }) {
                       {reference.sourceLabel}
                     </span>
                   </div>
-                  <CardTitle className="font-display text-3xl">{reference.name}</CardTitle>
-                  <p className="text-sm leading-6 text-muted">{reference.note}</p>
+                  <CardTitle className="font-display text-[clamp(3rem,2.25rem+1vw,4.4rem)] leading-[0.9]">
+                    {reference.name}
+                  </CardTitle>
+                  <p className="text-[1.05rem] leading-[1.9rem] text-muted">{reference.note}</p>
                   <p className="text-xs uppercase tracking-[0.18em] text-muted">{reference.url}</p>
                 </CardHeader>
                 <CardContent className="flex flex-wrap gap-2">

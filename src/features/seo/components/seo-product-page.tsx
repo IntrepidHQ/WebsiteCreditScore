@@ -40,10 +40,10 @@ export function SeoProductPage({
               <SearchCheck className="size-4" />
               <span className="text-xs uppercase tracking-[0.18em]">SEO benchmark product</span>
             </div>
-            <CardTitle className="text-3xl">
+            <CardTitle className="text-[clamp(3rem,2.3rem+1vw,4.4rem)] leading-[0.9]">
               {accessGranted ? "Full SEO scoring is unlocked" : "Unlock the SEO add-on for $20"}
             </CardTitle>
-            <p className="text-sm leading-6 text-muted">
+            <p className="text-[1.02rem] leading-[1.9rem] text-muted">
               The paid layer adds keyword ranking analysis, AI searchability scoring, and the next-step guidance that turns audit findings into search work.
             </p>
           </CardHeader>
@@ -69,11 +69,11 @@ export function SeoProductPage({
               </div>
             ) : (
               <div className="rounded-[12px] border border-border/70 bg-background-alt/60 p-5">
-                <div className="flex items-center gap-2 text-accent">
-                  <Lock className="size-4" />
-                  <p className="text-xs uppercase tracking-[0.18em]">Locked preview</p>
-                </div>
-                <p className="mt-3 text-sm leading-6 text-muted">
+              <div className="flex items-center gap-2 text-accent">
+                <Lock className="size-4" />
+                <p className="text-xs uppercase tracking-[0.18em]">Locked preview</p>
+              </div>
+                <p className="mt-3 text-[1.02rem] leading-[1.9rem] text-muted">
                   The SEO product stays behind a paid gate until checkout is added. The design layer stays open so prospects can see the quality of the feedback before they upgrade.
                 </p>
                 <div className="mt-4 flex flex-wrap gap-2">
@@ -106,7 +106,9 @@ export function SeoProductPage({
               <ArrowUpRight className="size-4" />
               <span className="text-xs uppercase tracking-[0.18em]">What unlocks</span>
             </div>
-            <CardTitle className="text-2xl">The paid SEO layer adds deeper scoring and lift notes</CardTitle>
+            <CardTitle className="text-[clamp(2.8rem,2.1rem+0.9vw,4rem)] leading-[0.9]">
+              The paid SEO layer adds deeper scoring and lift notes
+            </CardTitle>
           </CardHeader>
           <CardContent className="space-y-3">
             {unlockBenefits.map((benefit) => (
@@ -114,7 +116,7 @@ export function SeoProductPage({
                 className="rounded-[10px] border border-border/70 bg-background-alt/70 p-4"
                 key={benefit}
               >
-                <p className="text-sm leading-6 text-foreground">{benefit}</p>
+                <p className="text-[1.02rem] leading-[1.9rem] text-foreground">{benefit}</p>
               </div>
             ))}
           </CardContent>
@@ -123,19 +125,21 @@ export function SeoProductPage({
 
       {accessGranted && report ? (
         <div className="grid gap-5 lg:grid-cols-2">
-          {seoCards.map((card) => (
-            <Card key={card.id}>
-              <CardHeader className="space-y-3">
-                <Badge className="w-fit" variant="accent">
-                  {card.label}
-                </Badge>
-                <CardTitle className="text-3xl">{card.score.toFixed(1)}</CardTitle>
-                <p className="text-sm leading-6 text-muted">{card.summary}</p>
-              </CardHeader>
-              <CardContent className="space-y-3">
-                <div className="grid gap-2">
-                  {card.signals.map((signal) => (
-                    <div
+            {seoCards.map((card) => (
+              <Card key={card.id}>
+                <CardHeader className="space-y-3">
+                  <Badge className="w-fit" variant="accent">
+                    {card.label}
+                  </Badge>
+                  <CardTitle className="text-[clamp(3rem,2.4rem+0.95vw,4.2rem)] leading-[0.9]">
+                    {card.score.toFixed(1)}
+                  </CardTitle>
+                  <p className="text-[1.02rem] leading-[1.9rem] text-muted">{card.summary}</p>
+                </CardHeader>
+                <CardContent className="space-y-3">
+                  <div className="grid gap-2">
+                    {card.signals.map((signal) => (
+                      <div
                       className="rounded-[10px] border border-border/70 bg-panel/55 px-4 py-3 text-sm leading-6 text-foreground"
                       key={signal}
                     >

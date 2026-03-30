@@ -55,7 +55,9 @@ export default async function LeadDetailPage({
               <div className="flex flex-wrap items-center justify-between gap-4">
                 <div>
                   <p className="text-xs uppercase tracking-[0.24em] text-accent">Lead record</p>
-                  <CardTitle className="mt-2 text-4xl">{detail.lead.title}</CardTitle>
+                  <CardTitle className="mt-2 text-[clamp(4rem,3.2rem+1vw,5.4rem)] leading-[0.92]">
+                    {detail.lead.title}
+                  </CardTitle>
                 </div>
                 <LeadStageBadge stage={detail.lead.stage} />
               </div>
@@ -63,14 +65,13 @@ export default async function LeadDetailPage({
             <CardContent className="grid gap-4 md:grid-cols-[minmax(0,1fr)_16rem]">
               <div className="space-y-3">
                 <ScoreMeter
-                  className="max-w-[14rem]"
-                  compact
+                  className="max-w-[18rem]"
                   label="Current score"
                   projectedScore={detail.lead.projectedScore}
                   score={detail.lead.currentScore}
                   valueClassName="text-[2rem] sm:text-[2.15rem]"
                 />
-                <p className="text-sm leading-7 text-muted">{detail.lead.summary}</p>
+                <p className="text-[1.08rem] leading-[1.95rem] text-muted">{detail.lead.summary}</p>
                 <div className="grid gap-2 text-sm text-muted">
                   <p>Projected score: {detail.lead.projectedScore}</p>
                   <p>{detail.lead.normalizedUrl}</p>
@@ -113,7 +114,7 @@ export default async function LeadDetailPage({
                 <Sparkles className="size-4" />
                 Proposal offer
               </div>
-              <CardTitle className="text-3xl">
+              <CardTitle className="text-[clamp(3rem,2.4rem+0.95vw,4.4rem)] leading-[0.92]">
                 {report.proposalOffer?.label ?? "No active offer"}
               </CardTitle>
             </CardHeader>
@@ -124,13 +125,13 @@ export default async function LeadDetailPage({
                   <div className="grid gap-3 sm:grid-cols-2">
                     <div className="rounded-[10px] border border-border/70 bg-background-alt/60 p-4">
                       <p className="text-xs uppercase tracking-[0.18em] text-muted">Original scope</p>
-                      <p className="mt-2 font-display text-3xl font-semibold text-foreground">
+                      <p className="mt-2 font-display text-[clamp(3rem,2.4rem+0.95vw,4.4rem)] font-semibold text-foreground">
                         ${offerSummary.originalTotal.toLocaleString()}
                       </p>
                     </div>
                     <div className="rounded-[10px] border border-accent/30 bg-accent/10 p-4">
                       <p className="text-xs uppercase tracking-[0.18em] text-muted">Current offer</p>
-                      <p className="mt-2 font-display text-3xl font-semibold text-accent">
+                      <p className="mt-2 font-display text-[clamp(3rem,2.4rem+0.95vw,4.4rem)] font-semibold text-accent">
                         ${offerSummary.finalTotal.toLocaleString()}
                       </p>
                     </div>
@@ -158,7 +159,9 @@ export default async function LeadDetailPage({
                 <LayoutPanelLeft className="size-4" />
                 Workflow
               </div>
-              <CardTitle className="text-3xl">Reminders and activity</CardTitle>
+              <CardTitle className="text-[clamp(3rem,2.4rem+0.95vw,4.4rem)] leading-[0.92]">
+                Reminders and activity
+              </CardTitle>
             </CardHeader>
             <CardContent className="grid gap-4 lg:grid-cols-[minmax(0,0.8fr)_minmax(0,1.2fr)]">
               <div className="space-y-3">

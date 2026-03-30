@@ -104,7 +104,7 @@ export function getScoreBandVariant(score: number) {
 export function getScoreMethodologyNotes() {
   return [
     "Weighted across design, conversion, mobile clarity, search, accessibility, trust, and security.",
-    "Weak categories drag the total down; strong ones add only a modest lift.",
-    "A 10 is rare, and another evaluator may weight code, accessibility, or polish differently.",
+    "Weaknesses hurt more than strengths help.",
+    "A 10 is rare; another evaluator may weight the same site differently.",
   ];
 }

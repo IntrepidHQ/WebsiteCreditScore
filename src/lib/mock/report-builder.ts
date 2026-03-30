@@ -689,7 +689,7 @@ function buildFindings(
             type: "positive",
             title: "The offer is already more specific than a generic marketing site",
             summary:
-              "The page makes it clear that the product is for provider pages, reviews, scheduling, and telehealth-oriented workflows.",
+              "The page makes it clear that the product is for specialty pages, reviews, scheduling, and telehealth-oriented workflows.",
             severity: "low",
             category: "visual-design",
             section: "what-working",
@@ -702,7 +702,7 @@ function buildFindings(
               {
                 id: "modern-ui",
                 label: "Offer scope is explicit",
-                detail: "The homepage description references provider pages, patient reviews, scheduling, chat, telehealth, and email integrations.",
+                detail: "The homepage description references specialty pages, patient reviews, scheduling, chat, telehealth, and email integrations.",
                 kind: "content",
               },
             ],

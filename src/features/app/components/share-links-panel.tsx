@@ -32,7 +32,9 @@ export function ShareLinksPanel({
   return (
     <Card>
       <CardHeader>
-        <CardTitle className="text-2xl">Public share links</CardTitle>
+        <CardTitle className="text-[clamp(2.8rem,2.1rem+0.9vw,4rem)] leading-[0.9]">
+          Public share links
+        </CardTitle>
       </CardHeader>
       <CardContent className="grid gap-3">
         {shareLinks.map((shareLink) => {

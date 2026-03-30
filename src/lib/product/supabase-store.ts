@@ -28,6 +28,7 @@ import { createThemeTokens } from "@/lib/utils/theme";
 import { slugFromUrl } from "@/lib/utils/url";
 
 const LEGACY_BRAND_PATTERN = new RegExp(["C", "r", "a", "y", "d", "l"].join(""), "i");
+const LEGACY_PROVIDER_PAGES_PATTERN = /provider pages/i;
 
 function createId(prefix: string) {
   return `${prefix}-${randomUUID().slice(0, 8)}`;
@@ -110,6 +111,24 @@ function normalizeWorkspaceRecord(workspace: WorkspaceRecord) {
       headshot: usesLegacyBrand ? "/previews/agency-avatar.svg" : workspace.branding.headshot,
     },
   };
+}
+
+function isLegacyProviderPagesText(value: string | undefined | null) {
+  return typeof value === "string" && LEGACY_PROVIDER_PAGES_PATTERN.test(value);
+}
+
+function isLegacyProviderPagesLead(lead: LeadRecord, report?: SavedReport) {
+  return (
+    isLegacyProviderPagesText(lead.title) ||
+    isLegacyProviderPagesText(lead.companyName) ||
+    isLegacyProviderPagesText(lead.summary) ||
+    isLegacyProviderPagesText(lead.contactName) ||
+    isLegacyProviderPagesText(lead.normalizedUrl) ||
+    isLegacyProviderPagesText(report?.title) ||
+    isLegacyProviderPagesText(report?.normalizedUrl) ||
+    isLegacyProviderPagesText(report?.reportSnapshot.title) ||
+    isLegacyProviderPagesText(report?.reportSnapshot.executiveSummary)
+  );
 }
 
 function buildSeededLead(workspaceId: string, reportId: string) {
@@ -281,6 +300,20 @@ async function ensurePromoCatalog(workspaceId: string) {
     });
   }
 
+  if (!promos.some((promo) => promo.code === "STARTUP")) {
+    seeds.push({
+      id: createId("promo"),
+      code: "STARTUP",
+      label: "Startup discount",
+      description: "10% off for new business owners who need a website.",
+      type: "percentage",
+      value: 10,
+      active: true,
+      maxRedemptions: 100,
+      redemptionsUsed: 0,
+    });
+  }
+
   for (const promo of seeds) {
     await upsertPayloadRecord("product_promos", {
       id: promo.id,
@@ -338,9 +371,9 @@ export async function ensureSupabaseWorkspace(session: WorkspaceSession) {
   const referralCode: ReferralCodeRecord = {
     id: createId("referral"),
     workspaceId: workspace.id,
-    code: `WCS-${session.name.replace(/[^A-Z0-9]/gi, "").slice(0, 6).toUpperCase() || "WORK"}`,
-    shareUrl: "https://websitecreditscore.com/app/login",
-    rewardLabel: "2 workspace credits per activated provider account",
+    code: "STARTUP",
+    shareUrl: "https://websitecreditscore.com/app/login?ref=STARTUP",
+    rewardLabel: "10% off for new business owners who need a website",
     createdAt: workspace.createdAt,
   };
   const template: EmailTemplateRecord = {
@@ -440,16 +473,39 @@ export async function getSupabaseDashboard(workspaceId: string): Promise<Dashboa
       listPayloadRecords<ProductPromoRecord>("product_promos", "workspace_id", workspaceId),
     ]);
 
+  const reportByLeadId = new Map(savedReports.map((report) => [report.leadId, report]));
+  const filteredLeads = leads.filter((lead) => !isLegacyProviderPagesLead(lead, reportByLeadId.get(lead.id)));
+  const filteredLeadIds = new Set(filteredLeads.map((lead) => lead.id));
+  const filteredSavedReports = savedReports.filter(
+    (report) =>
+      filteredLeadIds.has(report.leadId) &&
+      !isLegacyProviderPagesText(report.title) &&
+      !isLegacyProviderPagesText(report.normalizedUrl) &&
+      !isLegacyProviderPagesText(report.reportSnapshot.title) &&
+      !isLegacyProviderPagesText(report.reportSnapshot.executiveSummary),
+  );
+
   return {
     workspace,
-    savedReports: sortNewestFirst(savedReports),
-    leads: sortNewestFirst(leads),
-    reminders: sortNewestFirst(reminders.filter((reminder) => reminder.status === "open")),
-    templates: sortNewestFirst(templates),
+    savedReports: sortNewestFirst(filteredSavedReports),
+    leads: sortNewestFirst(filteredLeads),
+    reminders: sortNewestFirst(
+      reminders.filter(
+        (reminder) => reminder.status === "open" && filteredLeadIds.has(reminder.leadId),
+      ),
+    ),
+    templates: sortNewestFirst(
+      templates.filter(
+        (template) =>
+          !isLegacyProviderPagesText(template.name) &&
+          !isLegacyProviderPagesText(template.subject) &&
+          !isLegacyProviderPagesText(template.body),
+      ),
+    ),
     referralCode: referralCodes[0] ?? null,
     referralEvents: sortNewestFirst(referralEvents),
     credits: sortNewestFirst(credits),
-    promos,
+    promos: promos.filter((promo) => promo.active),
   };
 }
 
@@ -477,10 +533,17 @@ export async function getSupabaseLeadDetail(
     return null;
   }
 
+  const lead = leadRow.payload as LeadRecord;
+  const savedReport = reportRow.payload as SavedReport;
+
+  if (isLegacyProviderPagesLead(lead, savedReport)) {
+    return null;
+  }
+
   return {
     workspace,
-    lead: leadRow.payload as LeadRecord,
-    savedReport: reportRow.payload as SavedReport,
+    lead,
+    savedReport,
     activities: (activityRows ?? []).map((row) => row.payload as LeadActivity),
     reminders: (reminderRows ?? []).map((row) => row.payload as ReminderRecord),
     shareLinks: (shareRows ?? []).map((row) => row.payload as ShareLinkRecord),

@@ -30,6 +30,7 @@ import { slugFromUrl } from "@/lib/utils/url";
 
 const STORE_PATH = path.join("/tmp", "craydl-product-store.json");
 const LEGACY_BRAND_PATTERN = new RegExp(["C", "r", "a", "y", "d", "l"].join(""), "i");
+const LEGACY_PROVIDER_PAGES_PATTERN = /provider pages/i;
 
 interface LocalProductStore {
   workspaces: WorkspaceRecord[];
@@ -137,6 +138,64 @@ function normalizeWorkspaceRecord(workspace: WorkspaceRecord) {
     slug,
     branding,
   };
+}
+
+function isLegacyProviderPagesText(value: string | undefined | null) {
+  return typeof value === "string" && LEGACY_PROVIDER_PAGES_PATTERN.test(value);
+}
+
+function pruneLegacyProviderPages(store: LocalProductStore) {
+  const leadIdsToRemove = new Set(
+    store.leads
+      .filter(
+        (lead) =>
+          isLegacyProviderPagesText(lead.title) ||
+          isLegacyProviderPagesText(lead.companyName) ||
+          isLegacyProviderPagesText(lead.summary) ||
+          isLegacyProviderPagesText(lead.contactName) ||
+          isLegacyProviderPagesText(lead.normalizedUrl),
+      )
+      .map((lead) => lead.id),
+  );
+
+  const reportIdsToRemove = new Set(
+    store.savedReports
+      .filter(
+        (report) =>
+          leadIdsToRemove.has(report.leadId) ||
+          isLegacyProviderPagesText(report.title) ||
+          isLegacyProviderPagesText(report.normalizedUrl) ||
+          isLegacyProviderPagesText(report.reportSnapshot.title) ||
+          isLegacyProviderPagesText(report.reportSnapshot.executiveSummary),
+      )
+      .map((report) => report.id),
+  );
+
+  const activityCount = store.activities.length;
+  const reminderCount = store.reminders.length;
+  const shareCount = store.shareLinks.length;
+  const templateCount = store.emailTemplates.length;
+
+  store.savedReports = store.savedReports.filter((report) => !reportIdsToRemove.has(report.id));
+  store.leads = store.leads.filter((lead) => !leadIdsToRemove.has(lead.id));
+  store.activities = store.activities.filter((activity) => !leadIdsToRemove.has(activity.leadId));
+  store.reminders = store.reminders.filter((reminder) => !leadIdsToRemove.has(reminder.leadId));
+  store.shareLinks = store.shareLinks.filter((shareLink) => !leadIdsToRemove.has(shareLink.leadId));
+  store.emailTemplates = store.emailTemplates.filter(
+    (template) =>
+      !isLegacyProviderPagesText(template.name) &&
+      !isLegacyProviderPagesText(template.subject) &&
+      !isLegacyProviderPagesText(template.body),
+  );
+
+  return (
+    leadIdsToRemove.size > 0 ||
+    reportIdsToRemove.size > 0 ||
+    store.activities.length !== activityCount ||
+    store.reminders.length !== reminderCount ||
+    store.shareLinks.length !== shareCount ||
+    store.emailTemplates.length !== templateCount
+  );
 }
 
 function createSavedLeadFromReport(
@@ -318,9 +377,9 @@ async function createSeedStore(ownerUserId: string): Promise<LocalProductStore> 
       {
         id: referralCodeId,
         workspaceId: workspace.id,
-        code: "WCS-FOUNDING",
-        shareUrl: "https://websitecreditscore.com/app/login?ref=WCS-FOUNDING",
-        rewardLabel: "2 workspace credits per activated provider account",
+        code: "STARTUP",
+        shareUrl: "https://websitecreditscore.com/app/login?ref=STARTUP",
+        rewardLabel: "10% off for new business owners who need a website",
         createdAt: now.toISOString(),
       },
     ],
@@ -386,9 +445,9 @@ async function createSeedStore(ownerUserId: string): Promise<LocalProductStore> 
       },
       {
         id: createId("promo"),
-        code: "FOUNDING10",
-        label: "Founding provider discount",
-        description: "Reserved for the first few studios using WebsiteCreditScore.com internally.",
+        code: "STARTUP",
+        label: "Startup discount",
+        description: "10% off for new business owners who need a website.",
         type: "percentage",
         value: 10,
         active: true,
@@ -410,11 +469,11 @@ async function readStore(ownerUserId: string) {
     let mutated = false;
     const normalizedWorkspaces = parsed.workspaces.map(normalizeWorkspaceRecord);
     const normalizedReferralCodes = parsed.referralCodes.map((entry) =>
-      entry.code === "CRAYDL-FOUNDING"
+      entry.code === "CRAYDL-FOUNDING" || entry.code === "WCS-FOUNDING" || entry.code === "FOUNDING"
         ? {
             ...entry,
-            code: "WCS-FOUNDING",
-            shareUrl: "https://websitecreditscore.com/app/login?ref=WCS-FOUNDING",
+            code: "STARTUP",
+            shareUrl: "https://websitecreditscore.com/app/login?ref=STARTUP",
           }
         : entry,
     );
@@ -427,8 +486,13 @@ async function readStore(ownerUserId: string) {
       mutated = true;
     }
 
+    if (pruneLegacyProviderPages(parsed)) {
+      mutated = true;
+    }
+
     const needsFifteenSeed = !parsed.promos.some((promo) => promo.code === "FIFTEEN");
     const needsRushSeed = !parsed.promos.some((promo) => promo.code === "RUSH24");
+    const needsStartupSeed = !parsed.promos.some((promo) => promo.code === "STARTUP");
 
     if (needsFifteenSeed) {
       parsed.promos.unshift({
@@ -456,6 +520,19 @@ async function readStore(ownerUserId: string) {
         active: true,
         maxRedemptions: 100,
         redemptionsUsed: 0,
+      });
+      mutated = true;
+    }
+
+    if (needsStartupSeed) {
+      parsed.promos.push({
+        id: createId("promo"),
+        code: "STARTUP",
+        label: "Startup discount",
+        description: "10% off for new business owners who need a website.",
+        type: "percentage",
+        value: 10,
+        active: true,
       });
       mutated = true;
     }

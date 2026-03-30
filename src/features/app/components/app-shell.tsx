@@ -38,7 +38,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
           <AppShellNav />
         </div>
       </section>
-      <div className="mx-auto flex w-full max-w-7xl flex-col gap-8 px-4 py-8 sm:px-6 lg:px-8">
+      <div className="mx-auto flex w-full max-w-7xl flex-col gap-8 px-4 pt-2 pb-8 sm:px-6 lg:px-8">
         {children}
       </div>
     </main>

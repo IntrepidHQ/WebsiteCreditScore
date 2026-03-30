@@ -58,19 +58,19 @@ function ScoreRows<Key extends string>({
   items: DesignDimensionScore<Key>[];
 }) {
   return (
-    <div className="rounded-[10px] border border-border/70 bg-background-alt/70 p-4">
-      <p className="text-xs uppercase tracking-[0.18em] text-muted">{title}</p>
+    <div className="rounded-[10px] border border-border/70 bg-background-alt/70 p-5">
+      <p className="text-[0.82rem] font-semibold uppercase tracking-[0.18em] text-muted">{title}</p>
       <div className="mt-4 grid gap-2">
         {items.map((item) => (
           <div
-            className="flex items-start justify-between gap-4 rounded-[8px] border border-border/60 bg-panel/55 px-3 py-2.5"
+            className="flex items-start justify-between gap-4 rounded-[8px] border border-border/60 bg-panel/55 px-3.5 py-3"
             key={item.key}
           >
             <div className="min-w-0">
-              <p className="text-sm font-semibold text-foreground">{item.label}</p>
-              <p className="mt-1 text-base leading-7 text-muted">{item.description}</p>
+              <p className="text-[1.02rem] font-semibold text-foreground">{item.label}</p>
+              <p className="mt-1 text-[1.12rem] leading-[1.95rem] text-muted">{item.description}</p>
             </div>
-            <p className="font-sans text-[2.05rem] font-semibold tracking-[-0.04em] text-accent">
+            <p className="font-sans text-[2.2rem] font-semibold tracking-[-0.04em] text-accent">
               {item.score}
             </p>
           </div>
@@ -86,7 +86,7 @@ function PatternNotes({
   notes: DesignPatternNote[];
 }) {
   return (
-    <div className="grid gap-4 lg:grid-cols-3">
+      <div className="grid gap-4 lg:grid-cols-3">
       {notes.map((note) => (
         <Card key={note.id}>
           <CardHeader className="space-y-3">
@@ -94,13 +94,15 @@ function PatternNotes({
               <Compass className="size-4" />
               <span className="text-xs uppercase tracking-[0.18em]">{note.source}</span>
             </div>
-            <CardTitle className="text-2xl">{note.title}</CardTitle>
-            <p className="text-sm leading-6 text-muted">{note.summary}</p>
+            <CardTitle className="text-[clamp(3rem,2.3rem+0.9vw,4.2rem)] leading-[0.9]">
+              {note.title}
+            </CardTitle>
+            <p className="text-[1.08rem] leading-[1.95rem] text-muted">{note.summary}</p>
           </CardHeader>
           <CardContent className="space-y-3">
             <div className="space-y-2">
               {note.takeaways.map((takeaway) => (
-                <p className="text-sm leading-6 text-foreground" key={takeaway}>
+                <p className="text-[1.08rem] leading-[1.95rem] text-foreground" key={takeaway}>
                   {takeaway}
                 </p>
               ))}
@@ -226,7 +228,9 @@ export function BenchmarkLibraryPage({
                       <Target className="size-4" />
                       <span className="text-xs uppercase tracking-[0.18em]">10/10 rubric</span>
                     </div>
-                    <CardTitle className="text-3xl">{snapshot.rubric.title}</CardTitle>
+                    <CardTitle className="text-[clamp(3.2rem,2.5rem+1vw,4.6rem)] leading-[0.92]">
+                      {snapshot.rubric.title}
+                    </CardTitle>
                     <p className="text-sm leading-6 text-muted">{snapshot.rubric.summary}</p>
                   </CardHeader>
                   <CardContent className="space-y-4">
@@ -273,7 +277,9 @@ export function BenchmarkLibraryPage({
                       <Palette className="size-4" />
                       <span className="text-xs uppercase tracking-[0.18em]">Design score framework</span>
                     </div>
-                    <CardTitle className="text-3xl">Quantifying the subjective parts of UI</CardTitle>
+                    <CardTitle className="text-[clamp(3.2rem,2.5rem+1vw,4.6rem)] leading-[0.92]">
+                      Quantifying the subjective parts of UI
+                    </CardTitle>
                     <p className="text-sm leading-6 text-muted">
                       WebsiteCreditScore.com averages the elements of art and the principles of design into a benchmark-side Design Score so visual quality can be discussed with named criteria instead of taste alone.
                     </p>
@@ -334,31 +340,35 @@ export function BenchmarkLibraryPage({
                   </p>
                 </div>
                 <div className="grid gap-3">
-                  {historyReferences.map((reference) => {
-                    const scan = scanBySiteId.get(reference.siteId);
-                    const score = scan?.overallScore ?? reference.measuredScore ?? reference.targetScore;
+                {historyReferences.map((reference) => {
+                  const scan = scanBySiteId.get(reference.siteId);
+                  const score = scan?.overallScore ?? reference.measuredScore ?? reference.targetScore;
 
-                    return (
-                      <Card key={reference.id}>
-                        <div className="grid gap-0 lg:grid-cols-[10rem_minmax(0,1fr)_18rem]">
-                          <div className="overflow-hidden border-b border-border/70 lg:border-b-0 lg:border-r">
-                            <PreviewImage
-                              alt={`${reference.name} scan preview`}
-                              className="aspect-[16/10] h-full min-h-32"
-                              fallbackSrc={fallbackImage}
-                              loadingLabel="Capturing benchmark screenshot"
-                              src={reference.previewImage}
-                            />
-                          </div>
+                  return (
+                    <Card key={reference.id}>
+                      <div className="grid gap-0 lg:grid-cols-[14rem_minmax(0,1fr)_16rem]">
+                        <div className="overflow-hidden border-b border-border/70 lg:border-b-0 lg:border-r">
+                          <PreviewImage
+                            alt={`${reference.name} scan preview`}
+                            className="aspect-[4/3] h-full min-h-40"
+                            fallbackSrc={fallbackImage}
+                            loadingLabel="Capturing benchmark screenshot"
+                            src={reference.previewImage}
+                          />
+                        </div>
                           <CardHeader className="space-y-2">
                             <div className="flex flex-wrap items-center gap-2">
-                    <Badge variant="accent">
-                      {scan?.scoreSource === "measured" ? "Scored" : "Reference"} {score.toFixed(1)}
-                    </Badge>
-                    <Badge variant="neutral">{reference.tier}</Badge>
-                  </div>
-                            <CardTitle className="font-display text-[2rem]">{reference.name}</CardTitle>
-                            <p className="text-base leading-7 text-muted">{reference.note}</p>
+                              <Badge variant="accent">
+                                {scan?.scoreSource === "measured" ? "Scored" : "Reference"} {score.toFixed(1)}
+                              </Badge>
+                              <Badge className="whitespace-nowrap" variant="neutral">
+                                {reference.tier}
+                              </Badge>
+                            </div>
+                            <CardTitle className="font-display text-[clamp(2.9rem,2.2rem+0.9vw,4.1rem)] leading-[0.9]">
+                              {reference.name}
+                            </CardTitle>
+                            <p className="text-[1.08rem] leading-[1.95rem] text-muted">{reference.note}</p>
                             <p className="text-xs uppercase tracking-[0.18em] text-muted">
                               {reference.sourceLabel}
                             </p>

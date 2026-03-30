@@ -462,7 +462,7 @@ export function PricingConfigurator({ report }: { report: AuditReport }) {
                       valueClassName="text-[2.25rem] sm:text-[2.35rem]"
                     />
                     <p className="mt-3 text-sm leading-7 text-muted">
-                      Current score on the left, projected impact in yellow. Add-ons update the meter so the lift is visible on every device.
+                      Current score first, projected score underneath. Add-ons update the values so the lift stays obvious on every device.
                     </p>
                   </div>
                 </div>

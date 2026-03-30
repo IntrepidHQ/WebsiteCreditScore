@@ -2,21 +2,24 @@ import Link from "next/link";
 import { ArrowRight, BellDot, CircleCheckBig, FolderKanban, Send, ArrowUpRight } from "lucide-react";
 
 import { createLeadAction, completeReminderAction } from "@/app/app/actions";
-import { PreviewImage } from "@/components/common/preview-image";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { ScoreMeter } from "@/components/common/score-meter";
 import { LeadStageBadge } from "@/features/app/components/lead-stage-badge";
+import { LeadOverviewCard } from "@/features/app/components/lead-overview-card";
 import { ScanHistorySection } from "@/features/app/components/scan-history-section";
 import { getWorkspaceAppContext } from "@/lib/product/context";
 
 export default async function AppDashboardPage() {
   const { repository, session, workspace } = await getWorkspaceAppContext();
   const dashboard = await repository.getDashboard(workspace.id, session);
-  const wonCount = dashboard.leads.filter((lead) => lead.stage === "won").length;
+  const visibleLeads = dashboard.leads.filter((lead) => lead.title !== "Provider Pages");
+  const visibleSavedReports = dashboard.savedReports.filter(
+    (savedReport) => savedReport.title !== "Provider Pages",
+  );
+  const wonCount = visibleLeads.filter((lead) => lead.stage === "won").length;
   const openReminderCount = dashboard.reminders.filter((reminder) => reminder.status === "open").length;
-  const packetReadyCount = dashboard.leads.filter(
+  const packetReadyCount = visibleLeads.filter(
     (lead) => lead.stage === "audit-ready" || lead.stage === "packet-sent",
   ).length;
 
@@ -26,7 +29,9 @@ export default async function AppDashboardPage() {
         <Card id="new-lead">
           <CardHeader className="pb-2">
             <p className="text-xs uppercase tracking-[0.24em] text-accent">Create and save</p>
-            <CardTitle className="text-4xl">Turn a live site into a saved lead</CardTitle>
+            <CardTitle className="text-[clamp(4.2rem,3.4rem+1vw,5.8rem)] leading-[0.92]">
+              Turn a live site into a saved lead
+            </CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
             <p className="max-w-3xl text-sm leading-7 text-muted">
@@ -53,7 +58,7 @@ export default async function AppDashboardPage() {
             {
               icon: FolderKanban,
               label: "Saved leads",
-              value: dashboard.leads.length,
+                  value: visibleLeads.length,
               detail: "Audits now tied to real opportunities",
             },
             {
@@ -70,7 +75,7 @@ export default async function AppDashboardPage() {
             },
           ].map((item) => (
             <Card key={item.label}>
-              <CardContent className="flex items-start gap-3 p-5">
+              <CardContent className="flex items-start gap-3">
                 <div className="rounded-[8px] border border-accent/30 bg-accent/10 p-2 text-accent">
                   <item.icon className="size-4" />
                 </div>
@@ -92,50 +97,38 @@ export default async function AppDashboardPage() {
           <CardHeader className="flex-row items-start justify-between gap-4 space-y-0 pb-2">
             <div>
               <p className="text-xs uppercase tracking-[0.24em] text-muted">Pipeline</p>
-              <CardTitle className="mt-2 text-3xl">Recent leads</CardTitle>
+              <CardTitle className="mt-2 text-[clamp(3.4rem,2.8rem+1.1vw,4.8rem)] leading-[0.92]">
+                Recent leads
+              </CardTitle>
             </div>
             <div className="rounded-[10px] border border-border/70 bg-background-alt/70 px-3 py-2 text-sm text-muted">
               {packetReadyCount} ready to send
             </div>
           </CardHeader>
           <CardContent className="grid gap-3">
-            {dashboard.leads.slice(0, 5).map((lead) => (
-              <div
-                className="grid gap-4 rounded-[10px] border border-border/70 bg-background-alt/60 p-4 md:grid-cols-[8.5rem_minmax(0,1fr)_auto]"
-                key={lead.id}
-              >
-                <div className="overflow-hidden rounded-[8px] border border-border/70 bg-panel/70">
-                  <PreviewImage
-                    alt={`${lead.title} preview`}
-                    className="aspect-[4/3] h-full min-h-28"
-                    fallbackLabel="Using site image"
-                    loadingLabel="Capturing preview"
-                    src={lead.previewImage ?? "/previews/fallback-desktop.svg"}
-                  />
-                </div>
-                <div className="min-w-0">
-                  <p className="font-semibold text-foreground">{lead.title}</p>
-                  <p className="mt-2 text-sm leading-6 text-muted">{lead.summary}</p>
-                </div>
-                <div className="flex min-w-[11rem] flex-col items-stretch gap-4 md:items-end">
-                  <div className="flex items-center justify-end gap-2">
-                    <LeadStageBadge stage={lead.stage} />
-                    <Button asChild aria-label={`Open ${lead.title}`} size="icon" variant="outline">
-                      <Link href={`/app/leads/${lead.id}`}>
-                        <ArrowUpRight className="size-4" />
-                      </Link>
-                    </Button>
-                  </div>
-                  <ScoreMeter
-                    className="max-w-[12.5rem] md:ml-auto"
-                    compact
-                    label="Current score"
-                    projectedScore={lead.projectedScore}
-                    score={lead.currentScore}
-                    valueClassName="text-[2rem] sm:text-[2.15rem]"
-                  />
-                </div>
-              </div>
+          {visibleLeads.slice(0, 5).map((lead) => (
+            <LeadOverviewCard
+              actions={
+                <>
+                  <LeadStageBadge stage={lead.stage} />
+                  <Button asChild aria-label={`Open ${lead.title}`} size="icon" variant="outline">
+                    <Link href={`/app/leads/${lead.id}`}>
+                      <ArrowUpRight className="size-4" />
+                    </Link>
+                  </Button>
+                </>
+              }
+              currentScore={lead.currentScore}
+              fallbackImage="/previews/fallback-desktop.svg"
+              previewAlt={`${lead.title} preview`}
+              previewImage={lead.previewImage ?? "/previews/fallback-desktop.svg"}
+              projectedScore={lead.projectedScore}
+              scoreLabel="Current score"
+              scoreValueClassName="text-[2rem] sm:text-[2.15rem]"
+              summary={lead.summary}
+              title={lead.title}
+              key={lead.id}
+            />
             ))}
           </CardContent>
         </Card>
@@ -143,7 +136,9 @@ export default async function AppDashboardPage() {
         <Card>
           <CardHeader className="pb-2">
             <p className="text-xs uppercase tracking-[0.24em] text-muted">Reminders</p>
-            <CardTitle className="mt-2 text-3xl">What needs follow-up</CardTitle>
+            <CardTitle className="mt-2 text-[clamp(3.1rem,2.6rem+0.9vw,4.4rem)] leading-[0.92]">
+              What needs follow-up
+            </CardTitle>
           </CardHeader>
           <CardContent className="grid gap-3">
             {dashboard.reminders.slice(0, 4).map((reminder) => (
@@ -174,7 +169,7 @@ export default async function AppDashboardPage() {
         </Card>
       </section>
 
-      <ScanHistorySection leads={dashboard.leads} savedReports={dashboard.savedReports} />
+      <ScanHistorySection leads={visibleLeads} savedReports={visibleSavedReports} />
     </div>
   );
 }
