@@ -69,7 +69,9 @@ export function ScoreDial({
       },
     });
 
-    return () => animation.kill();
+    return () => {
+      animation.kill();
+    };
   }, [metrics.circumference, metrics.dashOffset, reduceMotion, score]);
 
   return (

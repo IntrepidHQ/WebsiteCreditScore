@@ -61,6 +61,9 @@ export function AppShell({ children }: { children: React.ReactNode }) {
             <Link className="hover:text-accent" href="/examples">
               Examples
             </Link>
+            <Link className="hover:text-accent" href="/pricing">
+              Pricing
+            </Link>
             <Link className="hover:text-accent" href="/docs">
               Docs
             </Link>

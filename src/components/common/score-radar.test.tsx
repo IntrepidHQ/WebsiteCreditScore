@@ -43,9 +43,10 @@ describe("ScoreRadar", () => {
     render(<ScoreRadar centerLabel="Target" items={items} />);
 
     expect(screen.getByText("Target")).toBeInTheDocument();
-    expect(screen.getByText("1. Visual design")).toBeInTheDocument();
-    expect(screen.getByText("2. UX and conversion")).toBeInTheDocument();
-    expect(screen.getByText("3. Mobile experience")).toBeInTheDocument();
-    expect(screen.getByText("8.1")).toBeInTheDocument();
+    expect(screen.getByText("Average 7.7")).toBeInTheDocument();
+    expect(screen.getByText("Visual design")).toBeInTheDocument();
+    expect(screen.getByText("UX and conversion")).toBeInTheDocument();
+    expect(screen.getByText("Mobile experience")).toBeInTheDocument();
+    expect(screen.getAllByText("8.1").length).toBeGreaterThan(0);
   });
 });

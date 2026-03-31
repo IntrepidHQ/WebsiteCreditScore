@@ -17,9 +17,11 @@ export default async function AppLoginPage({
   const emailSent = resolvedSearchParams.sent === "1";
   const authError =
     typeof resolvedSearchParams.error === "string" ? resolvedSearchParams.error : null;
+  const next =
+    typeof resolvedSearchParams.next === "string" ? resolvedSearchParams.next : "/app";
 
   if (session) {
-    redirect("/app");
+    redirect(next);
   }
 
   return (
@@ -83,7 +85,7 @@ export default async function AppLoginPage({
                       type="email"
                     />
                   </label>
-                  <input name="next" type="hidden" value="/app" />
+                  <input name="next" type="hidden" value={next} />
                   <Button className="w-full" type="submit">
                     <Mail className="size-4" />
                     Email me a sign-in link
@@ -108,7 +110,7 @@ export default async function AppLoginPage({
               </div>
             )}
             <Button asChild className="w-full" variant="secondary">
-              <a href="/auth/demo">Continue in demo workspace</a>
+              <a href={`/auth/demo?next=${encodeURIComponent(next)}`}>Continue in demo workspace</a>
             </Button>
           </CardContent>
         </Card>

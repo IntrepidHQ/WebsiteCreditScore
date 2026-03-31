@@ -41,7 +41,8 @@ export type PreviewDevice = "desktop" | "mobile";
 export type BenchmarkVertical =
   | "service-providers"
   | "private-healthcare"
-  | "product-saas";
+  | "product-saas"
+  | "fintech";
 export type BenchmarkTier = "flagship" | "reference" | "specialist";
 export type BenchmarkFocusArea = "woodworking";
 export type DesignElementKey =

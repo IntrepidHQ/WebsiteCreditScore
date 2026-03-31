@@ -2,11 +2,12 @@ import type { Metadata } from "next";
 
 import { PublicBenchmarksPage } from "@/features/benchmarks/components/public-benchmarks-page";
 import {
-  buildBenchmarkReferencesForProfile,
-  getBenchmarkRubricForProfile,
-  getDesignPatternNotesForProfile,
+  buildBenchmarkReferencesForVertical,
+  getBenchmarkDesignNotes,
+  getBenchmarkRubric,
 } from "@/lib/benchmarks/library";
 import { buildAuditReportById } from "@/lib/mock/report-builder";
+import type { BenchmarkVertical } from "@/lib/types/audit";
 import { buildBenchmarkTargetCategoryScores } from "@/lib/utils/score-visuals";
 
 export const metadata: Metadata = {
@@ -15,21 +16,25 @@ export const metadata: Metadata = {
     "Benchmark methodology for WebsiteCreditScore.com, including score thresholds, weighted categories, design principles, and benchmark examples.",
 };
 
-const benchmarkProfiles = [
+const benchmarkProfiles: Array<{
+  id: BenchmarkVertical;
+  label: string;
+}> = [
   {
     id: "service-providers",
     label: "Home & service",
-    profile: "local-service" as const,
   },
   {
     id: "private-healthcare",
     label: "Private care",
-    profile: "healthcare" as const,
   },
   {
     id: "product-saas",
     label: "Product & SaaS",
-    profile: "saas" as const,
+  },
+  {
+    id: "fintech",
+    label: "Fintech",
   },
 ];
 
@@ -51,19 +56,19 @@ export default function BenchmarksPage() {
       featuredAuditBreakdown={featuredAuditReport.categoryScores}
       featuredExamples={benchmarkProfiles
         .map((item) =>
-          buildBenchmarkReferencesForProfile(item.profile).find(
+          buildBenchmarkReferencesForVertical(item.id).find(
             (reference) => reference.tier === "flagship",
-          ) ?? buildBenchmarkReferencesForProfile(item.profile)[0],
+          ) ?? buildBenchmarkReferencesForVertical(item.id)[0],
         )
         .filter(Boolean)}
-      featuredNotes={getDesignPatternNotesForProfile("local-service").slice(0, 3)}
+      featuredNotes={getBenchmarkDesignNotes("service-providers").slice(0, 3)}
       targetBreakdown={buildBenchmarkTargetCategoryScores(
         featuredAuditReport.categoryScores,
       )}
       verticals={benchmarkProfiles.map((item) => ({
         id: item.id,
         label: item.label,
-        rubric: getBenchmarkRubricForProfile(item.profile),
+        rubric: getBenchmarkRubric(item.id),
       }))}
     />
   );

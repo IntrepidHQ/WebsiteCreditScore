@@ -132,6 +132,8 @@ export async function buildBenchmarkLibrarySnapshot(
           ? "healthcare"
           : vertical === "service-providers"
             ? "local-service"
+            : vertical === "fintech"
+              ? "saas"
             : "saas";
       const { references, scans } = await measureBenchmarkReferences(profile);
 

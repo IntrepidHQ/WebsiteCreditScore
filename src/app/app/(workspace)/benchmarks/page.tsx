@@ -2,7 +2,7 @@ import { BenchmarkLibraryPage } from "@/features/benchmarks/components/benchmark
 import { getWorkspaceAppContext } from "@/lib/product/context";
 import {
   getPrimaryBenchmarkVerticals,
-  getDesignPatternNotesForProfile,
+  getBenchmarkDesignNotes,
 } from "@/lib/benchmarks/library";
 import { buildBenchmarkLibrarySnapshot } from "@/lib/benchmarks/scans";
 
@@ -13,6 +13,7 @@ export default async function BenchmarksRoutePage() {
   const snapshots = await buildBenchmarkLibrarySnapshot([
     ...getPrimaryBenchmarkVerticals(),
     "product-saas",
+    "fintech",
   ]);
 
   return (
@@ -25,14 +26,10 @@ export default async function BenchmarksRoutePage() {
             ? "Home & Commercial Services"
             : snapshot.vertical === "private-healthcare"
               ? "Private Dental & Healthcare"
-              : "Product & SaaS",
-        notes: getDesignPatternNotesForProfile(
-          snapshot.vertical === "service-providers"
-            ? "local-service"
-            : snapshot.vertical === "private-healthcare"
-              ? "healthcare"
-              : "saas",
-        ),
+              : snapshot.vertical === "fintech"
+                ? "Fintech"
+                : "Product & SaaS",
+        notes: getBenchmarkDesignNotes(snapshot.vertical),
         rubric: {
           ...snapshot.rubric,
           title:
@@ -40,6 +37,8 @@ export default async function BenchmarksRoutePage() {
               ? "Home and Commercial Services"
               : snapshot.vertical === "private-healthcare"
                 ? "Private Dental and Healthcare"
+                : snapshot.vertical === "fintech"
+                  ? "Fintech"
                 : snapshot.rubric.title,
         },
       }))}

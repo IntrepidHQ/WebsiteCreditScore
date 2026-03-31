@@ -1,5 +1,4 @@
 "use client";
-
 import { BarChart3, Layers3, Monitor, Smartphone, Sparkles } from "lucide-react";
 
 import { PreviewImage } from "@/components/common/preview-image";
@@ -39,22 +38,26 @@ export function BenchmarkSiteCard({
             </TabsList>
           </div>
           <TabsContent value="desktop" className="m-0">
-            <PreviewImage
-              alt={`${reference.name} desktop benchmark preview`}
-              className="aspect-[16/7]"
-              fallbackSrc={fallbackImage}
-              loadingLabel="Capturing desktop screenshot"
-              src={reference.previewImage}
-            />
+            <a href={reference.url} rel="noreferrer" target="_blank">
+              <PreviewImage
+                alt={`${reference.name} desktop benchmark preview`}
+                className="aspect-[16/7]"
+                fallbackSrc={fallbackImage}
+                loadingLabel="Capturing desktop screenshot"
+                src={reference.previewImage}
+              />
+            </a>
           </TabsContent>
           <TabsContent value="mobile" className="m-0">
-            <PreviewImage
-              alt={`${reference.name} mobile benchmark preview`}
-              className="aspect-[16/7]"
-              fallbackSrc={fallbackImage}
-              loadingLabel="Capturing mobile screenshot"
-              src={reference.mobilePreviewImage}
-            />
+            <a href={reference.url} rel="noreferrer" target="_blank">
+              <PreviewImage
+                alt={`${reference.name} mobile benchmark preview`}
+                className="aspect-[16/7]"
+                fallbackSrc={fallbackImage}
+                loadingLabel="Capturing mobile screenshot"
+                src={reference.mobilePreviewImage}
+              />
+            </a>
           </TabsContent>
         </div>
       </Tabs>
@@ -99,7 +102,16 @@ export function BenchmarkSiteCard({
           <Badge variant="neutral">{reference.sourceLabel}</Badge>
           <Badge variant="accent">Why this is still a benchmark</Badge>
         </div>
-        <CardTitle className="font-display text-[clamp(2.8rem,2.1rem+1vw,4rem)] leading-[0.92]">{reference.name}</CardTitle>
+        <CardTitle className="font-display text-[clamp(2.8rem,2.1rem+1vw,4rem)] leading-[0.92]">
+          <a
+            className="transition hover:text-accent"
+            href={reference.url}
+            rel="noreferrer"
+            target="_blank"
+          >
+            {reference.name}
+          </a>
+        </CardTitle>
         <p className="text-[1.08rem] leading-[1.95rem] text-muted">{reference.note}</p>
       </CardHeader>
 

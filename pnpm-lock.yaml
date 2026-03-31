@@ -62,6 +62,9 @@ dependencies:
   react-dom:
     specifier: 19.2.3
     version: 19.2.3(react@19.2.3)
+  stripe:
+    specifier: ^21.0.1
+    version: 21.0.1(@types/node@20.19.37)
   tailwind-merge:
     specifier: ^3.5.0
     version: 3.5.0
@@ -5749,6 +5752,18 @@ packages:
     dependencies:
       js-tokens: 9.0.1
     dev: true
+
+  /stripe@21.0.1(@types/node@20.19.37):
+    resolution: {integrity: sha512-ocv0j7dWttswDWV2XL/kb6+yiLpDXNXL3RQAOB5OB2kr49z0cEatdQc12+zP/j5nrXk6rAsT4N3y/NUvBbK7Pw==}
+    engines: {node: '>=18'}
+    peerDependencies:
+      '@types/node': '>=18'
+    peerDependenciesMeta:
+      '@types/node':
+        optional: true
+    dependencies:
+      '@types/node': 20.19.37
+    dev: false
 
   /styled-jsx@5.1.6(@babel/core@7.29.0)(react@19.2.3):
     resolution: {integrity: sha512-qSVyDTeMotdvQYoHWLNGwRFJHC+i+ZvdBRYosOFgC+Wg1vx4frN2/RG/NA7SYqqvKNLf39P2LSRA2pu6n0XYZA==}

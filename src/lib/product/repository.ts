@@ -7,10 +7,13 @@ import type {
   PublicShareSnapshot,
   WorkspaceRecord,
   WorkspaceSession,
+  WorkspaceEntitlement,
 } from "@/lib/types/product";
 import { hasSupabaseEnv } from "@/lib/supabase/config";
 import {
+  applyLocalBillingPurchase,
   completeLocalReminder,
+  consumeLocalWorkspaceTokens,
   createLocalLeadFromUrl,
   deleteLocalLead,
   ensureLocalWorkspace,
@@ -21,7 +24,9 @@ import {
   updateLocalLeadStage,
 } from "@/lib/product/local-store";
 import {
+  applySupabaseBillingPurchase,
   completeSupabaseReminder,
+  consumeSupabaseWorkspaceTokens,
   createSupabaseLeadFromUrl,
   deleteSupabaseLead,
   ensureSupabaseWorkspace,
@@ -32,6 +37,7 @@ import {
   updateSupabaseLeadStage,
 } from "@/lib/product/supabase-store";
 import type { ShareSurface } from "@/lib/types/product";
+import type { BillingAddOnId, BillingPlanId, TokenActionId } from "@/lib/billing/catalog";
 
 export interface ProductRepository {
   kind: "local" | "supabase";
@@ -75,6 +81,27 @@ export interface ProductRepository {
     id: string,
     token: string,
   ): Promise<PublicShareSnapshot | null>;
+  applyBillingPurchase(
+    workspaceId: string,
+    session: WorkspaceSession,
+    input: {
+      checkoutSessionId: string;
+      label: string;
+      tokenAmount: number;
+      planId?: BillingPlanId | null;
+      addOnIds?: BillingAddOnId[];
+      entitlements?: WorkspaceEntitlement[];
+    },
+  ): Promise<WorkspaceRecord>;
+  consumeTokenAction(
+    workspaceId: string,
+    session: WorkspaceSession,
+    input: {
+      actionId: TokenActionId;
+      actionKey: string;
+      label: string;
+    },
+  ): Promise<WorkspaceRecord>;
 }
 
 function createLocalRepository(): ProductRepository {
@@ -96,6 +123,10 @@ function createLocalRepository(): ProductRepository {
       saveLocalTemplate(workspaceId, session.userId, input),
     resolvePublicShare: (surface, id, token) =>
       resolveLocalPublicShare(surface, id, token),
+    applyBillingPurchase: (workspaceId, session, input) =>
+      applyLocalBillingPurchase(workspaceId, session.userId, input),
+    consumeTokenAction: (workspaceId, session, input) =>
+      consumeLocalWorkspaceTokens(workspaceId, session.userId, input),
   };
 }
 
@@ -114,6 +145,10 @@ function createSupabaseRepository(): ProductRepository {
     saveTemplate: (workspaceId, _session, input) => saveSupabaseTemplate(workspaceId, input),
     resolvePublicShare: (surface, id, token) =>
       resolveSupabasePublicShare(surface, id, token),
+    applyBillingPurchase: (workspaceId, _session, input) =>
+      applySupabaseBillingPurchase(workspaceId, input),
+    consumeTokenAction: (workspaceId, _session, input) =>
+      consumeSupabaseWorkspaceTokens(workspaceId, input),
   };
 }
 

@@ -14,7 +14,17 @@ export async function createLeadAction(formData: FormData) {
     redirect("/app?error=missing-url");
   }
 
-  const lead = await repository.createLeadFromUrl(workspace.id, rawUrl, session);
+  let lead;
+
+  try {
+    lead = await repository.createLeadFromUrl(workspace.id, rawUrl, session);
+  } catch (error) {
+    if (error instanceof Error && error.message === "INSUFFICIENT_TOKENS") {
+      redirect("/app?error=insufficient-tokens");
+    }
+
+    throw error;
+  }
 
   revalidatePath("/app");
   revalidatePath("/app/leads");

@@ -1,14 +1,24 @@
 "use client";
 
 import Link from "next/link";
-import { ArrowUpRight, Compass, Palette, ScanSearch, Target } from "lucide-react";
+import {
+  ArrowUpRight,
+  LineChart,
+  Palette,
+  ScanSearch,
+  Target,
+} from "lucide-react";
 
-import { BenchmarkSiteCard } from "@/features/benchmarks/components/benchmark-site-card";
 import { PreviewImage } from "@/components/common/preview-image";
+import { ScoreDial } from "@/components/common/score-dial";
+import {
+  scoreCategoryIcons,
+  scoreCategoryPalette,
+} from "@/components/common/score-category-meta";
 import { SectionHeading } from "@/components/common/section-heading";
+import { BenchmarkSiteCard } from "@/features/benchmarks/components/benchmark-site-card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
   selectFeaturedBenchmarkReferences,
@@ -50,7 +60,11 @@ function formatTimestamp(input: string) {
   }).format(new Date(input));
 }
 
-function ScoreRows<Key extends string>({
+function labelize(input: string) {
+  return input.replace(/-/g, " ");
+}
+
+function ScoreInsightCards<Key extends string>({
   title,
   items,
 }: {
@@ -58,62 +72,62 @@ function ScoreRows<Key extends string>({
   items: DesignDimensionScore<Key>[];
 }) {
   return (
-    <div className="rounded-[10px] border border-border/70 bg-background-alt/70 p-5">
-      <p className="text-[0.82rem] font-semibold uppercase tracking-[0.18em] text-muted">{title}</p>
-      <div className="mt-4 grid gap-2">
+    <section className="space-y-3">
+      <div className="flex items-center gap-2 text-accent">
+        <LineChart className="size-4" />
+        <p className="text-xs uppercase tracking-[0.18em] text-muted">{title}</p>
+      </div>
+      <div className="grid gap-3 sm:grid-cols-2">
         {items.map((item) => (
-          <div
-            className="flex items-start justify-between gap-4 rounded-[8px] border border-border/60 bg-panel/55 px-3.5 py-3"
+          <article
+            className="rounded-[22px] border border-border/60 bg-panel/45 p-4"
             key={item.key}
           >
-            <div className="min-w-0">
-              <p className="text-[1.02rem] font-semibold text-foreground">{item.label}</p>
-              <p className="mt-1 text-[1.12rem] leading-[1.95rem] text-muted">{item.description}</p>
+            <div className="flex items-start justify-between gap-3">
+              <Badge variant="neutral">{labelize(item.key)}</Badge>
+              <p className="font-sans text-[1.8rem] font-semibold tracking-[-0.05em] text-accent">
+                {item.score.toFixed(1)}
+              </p>
             </div>
-            <p className="font-sans text-[2.2rem] font-semibold tracking-[-0.04em] text-accent">
-              {item.score}
-            </p>
-          </div>
+            <h3 className="mt-4 text-lg font-semibold leading-6 text-foreground">
+              {item.label}
+            </h3>
+            <p className="mt-2 text-sm leading-6 text-muted">{item.description}</p>
+          </article>
         ))}
       </div>
-    </div>
+    </section>
   );
 }
 
-function PatternNotes({
-  notes,
-}: {
-  notes: DesignPatternNote[];
-}) {
+function PatternNotes({ notes }: { notes: DesignPatternNote[] }) {
   return (
-      <div className="grid gap-4 lg:grid-cols-3">
+    <section className="grid gap-4 lg:grid-cols-3">
       {notes.map((note) => (
-        <Card key={note.id}>
-          <CardHeader className="space-y-3">
-            <div className="flex items-center gap-2 text-accent">
-              <Compass className="size-4" />
-              <span className="text-xs uppercase tracking-[0.18em]">{note.source}</span>
-            </div>
-            <CardTitle className="text-[clamp(3rem,2.3rem+0.9vw,4.2rem)] leading-[0.9]">
+        <article
+          className="rounded-[24px] border border-border/60 bg-[linear-gradient(180deg,color-mix(in_srgb,var(--theme-panel)_84%,transparent),color-mix(in_srgb,var(--theme-background-alt)_95%,transparent))] p-5"
+          key={note.id}
+        >
+          <div className="space-y-3">
+            <Badge variant="neutral">{note.category}</Badge>
+            <h3 className="font-display text-[clamp(2.3rem,1.9rem+0.55vw,3rem)] leading-[0.94] tracking-[-0.04em] text-foreground">
               {note.title}
-            </CardTitle>
-            <p className="text-[1.08rem] leading-[1.95rem] text-muted">{note.summary}</p>
-          </CardHeader>
-          <CardContent className="space-y-3">
-            <div className="space-y-2">
-              {note.takeaways.map((takeaway) => (
-                <p className="text-[1.08rem] leading-[1.95rem] text-foreground" key={takeaway}>
-                  {takeaway}
-                </p>
-              ))}
-            </div>
-            <p className="text-xs uppercase tracking-[0.18em] text-muted">
-              {note.applicability}
-            </p>
-          </CardContent>
-        </Card>
+            </h3>
+            <p className="text-sm leading-6 text-muted">{note.summary}</p>
+          </div>
+          <div className="mt-5 space-y-2">
+            {note.takeaways.map((takeaway) => (
+              <p className="text-sm leading-6 text-foreground" key={takeaway}>
+                {takeaway}
+              </p>
+            ))}
+          </div>
+          <p className="mt-5 text-[11px] font-semibold uppercase tracking-[0.18em] text-muted">
+            {note.applicability}
+          </p>
+        </article>
       ))}
-    </div>
+    </section>
   );
 }
 
@@ -145,11 +159,14 @@ export function BenchmarkLibraryPage({
 }) {
   return (
     <div className="grid gap-8">
-      <SectionHeading
-        eyebrow="Benchmark library"
-        title="2026 Web Design Benchmarks"
-        description="Live-measured references first. The 9+ examples stay at the top and the scan feed stays newest-first."
-      />
+      <div className="pt-2">
+        <SectionHeading
+          eyebrow="Benchmark library"
+          title="2026 Web Design Benchmarks"
+          description="Measured standouts stay pinned at the top. The full scan feed below stays current so the benchmark set keeps earning its place."
+        />
+      </div>
+
       <div className="flex flex-wrap items-center gap-3">
         <Button asChild size="sm" variant="secondary">
           <Link href="/app/benchmarks/animation">
@@ -163,9 +180,6 @@ export function BenchmarkLibraryPage({
             SEO
           </Link>
         </Button>
-        <p className="max-w-2xl text-sm leading-6 text-muted">
-          Purposeful motion lifts the score. The gated SEO add-on covers keyword ranking and AI searchability.
-        </p>
       </div>
 
       <Tabs defaultValue={snapshots[0]?.vertical}>
@@ -197,18 +211,18 @@ export function BenchmarkLibraryPage({
             : 0;
           const averageAnimationScore = snapshot.scans.length
             ? Number(
-              (
+                (
                   snapshot.scans.reduce((sum, scan) => sum + scan.animationScore, 0) /
                   snapshot.scans.length
                 ).toFixed(1),
               )
             : 0;
-          const featuredReferences = selectFeaturedBenchmarkReferences(
+          const strictFeaturedReferences = selectFeaturedBenchmarkReferences(
             snapshot.references,
             snapshot.scans,
             {
               limit: 3,
-              minScore: 9,
+              minScore: snapshot.vertical === "fintech" ? 8.8 : 9,
               ...(snapshot.vertical === "service-providers"
                 ? { focusArea: "woodworking" as const }
                 : {}),
@@ -218,98 +232,199 @@ export function BenchmarkLibraryPage({
             snapshot.references,
             snapshot.scans,
           );
+          const featuredReferences = strictFeaturedReferences.length
+            ? strictFeaturedReferences
+            : historyReferences.slice(0, 3);
+          const heroReference = featuredReferences[0] ?? historyReferences[0];
 
           return (
-            <TabsContent className="grid gap-8 pt-4" key={snapshot.vertical} value={snapshot.vertical}>
-              <div className="grid gap-5 xl:grid-cols-[minmax(0,0.9fr)_minmax(0,1.1fr)]">
-                <Card>
-                  <CardHeader className="space-y-3">
+            <TabsContent
+              className="grid gap-10 pt-5"
+              key={snapshot.vertical}
+              value={snapshot.vertical}
+            >
+              <div className="grid gap-8 xl:grid-cols-[minmax(0,0.78fr)_minmax(0,1.22fr)]">
+                <div className="space-y-8">
+                  <section className="space-y-4 border-l border-accent/20 pl-4 sm:pl-5">
                     <div className="flex items-center gap-2 text-accent">
                       <Target className="size-4" />
-                      <span className="text-xs uppercase tracking-[0.18em]">10/10 rubric</span>
-                    </div>
-                    <CardTitle className="text-[clamp(3.2rem,2.5rem+1vw,4.6rem)] leading-[0.92]">
-                      {snapshot.rubric.title}
-                    </CardTitle>
-                    <p className="text-sm leading-6 text-muted">{snapshot.rubric.summary}</p>
-                  </CardHeader>
-                  <CardContent className="space-y-4">
-                    <div className="rounded-[10px] border border-accent/25 bg-accent/8 p-4">
                       <p className="text-xs uppercase tracking-[0.18em] text-muted">
-                        What raises score fastest
+                        10/10 rubric
                       </p>
-                      <div className="mt-3 space-y-2">
-                        {snapshot.rubric.fastLifts.map((item) => (
-                          <p className="text-sm leading-6 text-foreground" key={item}>
-                            {item}
-                          </p>
-                        ))}
-                      </div>
+                    </div>
+                    <div className="space-y-3">
+                      <h2 className="font-display text-[clamp(3rem,2.45rem+0.9vw,4.4rem)] leading-[0.92] tracking-[-0.05em] text-foreground">
+                        {snapshot.rubric.title}
+                      </h2>
+                      <p className="max-w-2xl text-[1.02rem] leading-7 text-muted">
+                        {snapshot.rubric.summary}
+                      </p>
                     </div>
                     <div className="grid gap-3">
-                      {snapshot.rubric.criteria.map((criterion) => (
+                      {snapshot.rubric.fastLifts.map((item) => (
                         <div
-                          className="rounded-[10px] border border-border/70 bg-background-alt/60 p-4"
-                          key={criterion.id}
+                          className="rounded-[18px] border border-border/60 bg-background-alt/55 px-4 py-3 text-sm leading-6 text-foreground"
+                          key={item}
                         >
-                          <div className="flex flex-wrap items-center gap-2">
-                            <Badge variant="neutral">{criterion.category.replace(/-/g, " ")}</Badge>
-                            <p className="text-sm font-semibold text-foreground">{criterion.title}</p>
-                          </div>
-                          <p className="mt-3 text-sm leading-6 text-muted">{criterion.description}</p>
-                          <p className="mt-2 text-sm leading-6 text-foreground">{criterion.whyItMatters}</p>
-                          <div className="mt-3 flex flex-wrap gap-2">
-                            {criterion.signals.map((signal) => (
-                              <Badge className="normal-case tracking-normal" key={signal} variant="neutral">
-                                {signal}
-                              </Badge>
-                            ))}
-                          </div>
+                          {item}
                         </div>
                       ))}
                     </div>
-                  </CardContent>
-                </Card>
+                  </section>
 
-                <Card>
-                  <CardHeader className="space-y-3">
-                    <div className="flex items-center gap-2 text-accent">
-                      <Palette className="size-4" />
-                      <span className="text-xs uppercase tracking-[0.18em]">Design score framework</span>
-                    </div>
-                    <CardTitle className="text-[clamp(3.2rem,2.5rem+1vw,4.6rem)] leading-[0.92]">
-                      Quantifying the subjective parts of UI
-                    </CardTitle>
-                    <p className="text-sm leading-6 text-muted">
-                      WebsiteCreditScore.com averages the elements of art and the principles of design into a benchmark-side Design Score so visual quality can be discussed with named criteria instead of taste alone.
-                    </p>
-                  </CardHeader>
-                  <CardContent className="space-y-4">
-                    <div className="rounded-[10px] border border-accent/25 bg-accent/8 p-4">
-                      <p className="text-xs uppercase tracking-[0.18em] text-muted">Average design score</p>
-                      <p className="mt-2 font-display text-5xl font-semibold text-accent">
-                        {averageDesignScore}
+                  <section className="space-y-4">
+                    <div className="space-y-2">
+                      <p className="text-xs uppercase tracking-[0.18em] text-muted">
+                        What the score rewards
                       </p>
-                      <p className="mt-2 text-base leading-7 text-foreground">
-                        This is the average design benchmark score across the measured reference set for this vertical.
-                      </p>
-                      <p className="mt-2 text-base leading-7 text-muted">
-                        Animation average: {averageAnimationScore}. Purposeful motion is counted as part of the design score, not as a decorative extra.
-                      </p>
+                      <h2 className="font-display text-[clamp(2.7rem,2.2rem+0.8vw,3.6rem)] leading-[0.94] tracking-[-0.04em] text-foreground">
+                        The criteria that decide whether a site really clears the bar
+                      </h2>
                     </div>
-                    <div className="grid gap-4 xl:grid-cols-2">
-                      <ScoreRows items={designElementScores} title="Elements of art" />
-                      <ScoreRows items={designPrincipleScores} title="Principles of design" />
+                    <div className="grid gap-3 md:grid-cols-2">
+                      {snapshot.rubric.criteria.map((criterion) => {
+                        const Icon =
+                          scoreCategoryIcons[criterion.category as keyof typeof scoreCategoryIcons];
+                        const color =
+                          scoreCategoryPalette[
+                            criterion.category as keyof typeof scoreCategoryPalette
+                          ];
+
+                        return (
+                          <article
+                            className="rounded-[24px] border border-border/60 bg-panel/45 p-5"
+                            key={criterion.id}
+                          >
+                            <div className="space-y-4">
+                              <Badge variant="neutral">
+                                {criterion.category.replace(/-/g, " ")}
+                              </Badge>
+                              <div className="flex items-start gap-3">
+                                <span
+                                  className="inline-flex size-11 shrink-0 items-center justify-center rounded-[14px] border"
+                                  style={{
+                                    backgroundColor: `${color}18`,
+                                    borderColor: `${color}55`,
+                                    color,
+                                  }}
+                                >
+                                  <Icon className="size-4.5" />
+                                </span>
+                                <div className="min-w-0">
+                                  <h3 className="text-xl font-semibold leading-7 text-foreground">
+                                    {criterion.title}
+                                  </h3>
+                                </div>
+                              </div>
+                              <p className="text-sm leading-6 text-muted">
+                                {criterion.description}
+                              </p>
+                              <p className="text-sm leading-6 text-foreground">
+                                {criterion.whyItMatters}
+                              </p>
+                              <div className="flex flex-wrap gap-2">
+                                {criterion.signals.map((signal) => (
+                                  <Badge
+                                    className="normal-case tracking-normal"
+                                    key={signal}
+                                    variant="neutral"
+                                  >
+                                    {signal}
+                                  </Badge>
+                                ))}
+                              </div>
+                            </div>
+                          </article>
+                        );
+                      })}
                     </div>
-                  </CardContent>
-                </Card>
+                  </section>
+                </div>
+
+                <div className="space-y-5">
+                  <section className="overflow-hidden rounded-[28px] border border-border/60 bg-[linear-gradient(180deg,color-mix(in_srgb,var(--theme-panel)_84%,transparent),color-mix(in_srgb,var(--theme-background-alt)_96%,transparent))]">
+                    {heroReference ? (
+                      <a href={heroReference.url} rel="noreferrer" target="_blank">
+                        <PreviewImage
+                          alt={`${heroReference.name} benchmark preview`}
+                          className="aspect-[16/8.8]"
+                          fallbackLabel="Benchmark example"
+                          fallbackSrc={fallbackImage}
+                          loadingLabel="Capturing benchmark screenshot"
+                          src={heroReference.previewImage}
+                        />
+                      </a>
+                    ) : null}
+                    <div className="space-y-5 p-5 sm:p-6">
+                      <div className="space-y-3">
+                        <div className="flex items-center gap-2 text-accent">
+                          <Palette className="size-4" />
+                          <p className="text-xs uppercase tracking-[0.18em] text-muted">
+                            Design score framework
+                          </p>
+                        </div>
+                        <h2 className="font-display text-[clamp(2.8rem,2.2rem+0.9vw,3.9rem)] leading-[0.94] tracking-[-0.04em] text-foreground">
+                          Quantifying the subjective parts of UI
+                        </h2>
+                        <p className="text-sm leading-6 text-muted">
+                          The design score averages the elements of art and principles of design into something named, comparable, and easier to critique than taste alone.
+                        </p>
+                      </div>
+
+                      <div className="grid gap-4 xl:grid-cols-[15.5rem_minmax(0,1fr)]">
+                        <ScoreDial
+                          bandLabel={`${snapshot.label} avg`}
+                          label="Average design score"
+                          score={averageDesignScore}
+                        />
+                        <div className="grid gap-3 sm:grid-cols-2">
+                          <div className="rounded-[22px] border border-border/60 bg-background-alt/60 p-4">
+                            <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-muted">
+                              Animation average
+                            </p>
+                            <p className="mt-3 font-display text-[2.8rem] leading-[0.92] tracking-[-0.05em] text-foreground">
+                              {averageAnimationScore.toFixed(1)}
+                            </p>
+                            <p className="mt-2 text-sm leading-6 text-muted">
+                              Motion is scored for usefulness, restraint, and accessibility.
+                            </p>
+                          </div>
+                          <div className="rounded-[22px] border border-border/60 bg-background-alt/60 p-4">
+                            <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-muted">
+                              Reference set
+                            </p>
+                            <p className="mt-3 font-display text-[2.8rem] leading-[0.92] tracking-[-0.05em] text-foreground">
+                              {snapshot.scans.length}
+                            </p>
+                            <p className="mt-2 text-sm leading-6 text-muted">
+                              Live-scored references grounding this vertical right now.
+                            </p>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </section>
+
+                  <div className="grid gap-4 xl:grid-cols-2">
+                    <ScoreInsightCards
+                      items={designElementScores}
+                      title="Elements of art"
+                    />
+                    <ScoreInsightCards
+                      items={designPrincipleScores}
+                      title="Principles of design"
+                    />
+                  </div>
+                </div>
               </div>
 
-              <div className="grid gap-4">
+              <section className="grid gap-4">
                 <div className="flex flex-col gap-2">
-                  <p className="text-xs uppercase tracking-[0.18em] text-muted">Featured examples</p>
+                  <p className="text-xs uppercase tracking-[0.18em] text-muted">
+                    Featured examples
+                  </p>
                   <p className="max-w-3xl text-sm leading-6 text-muted">
-                    These are the 9+ benchmarks we want clients to beat. We scan a broader pool, then only surface the strongest examples here.
+                    These are the strongest measured references in this vertical right now. They stay featured because they still outperform the broader scan set.
                   </p>
                 </div>
                 {featuredReferences.length ? (
@@ -324,39 +439,49 @@ export function BenchmarkLibraryPage({
                     ))}
                   </div>
                 ) : (
-                  <Card>
-                    <CardContent className="p-5 text-sm leading-6 text-muted">
-                      We’re still scanning enough high-quality candidates to keep this section at 9+ only.
-                    </CardContent>
-                  </Card>
+                  <div className="rounded-[22px] border border-border/60 bg-panel/45 p-5 text-sm leading-6 text-muted">
+                    We’re still scanning enough high-quality candidates to keep this section limited to the strongest references.
+                  </div>
                 )}
-              </div>
+              </section>
 
-              <div className="grid gap-4">
+              <section className="grid gap-4">
                 <div className="flex flex-col gap-2">
-                  <p className="text-xs uppercase tracking-[0.18em] text-muted">Scan history</p>
+                  <p className="text-xs uppercase tracking-[0.18em] text-muted">
+                    Measured scan feed
+                  </p>
                   <p className="max-w-3xl text-sm leading-6 text-muted">
-                    Newest scans first. Every live reference stays cataloged here.
+                    Newest-first reference scans. The benchmark set stays honest by showing the measured history, not just a polished shortlist.
                   </p>
                 </div>
-                <div className="grid gap-3">
-                {historyReferences.map((reference) => {
-                  const scan = scanBySiteId.get(reference.siteId);
-                  const score = scan?.overallScore ?? reference.measuredScore ?? reference.targetScore;
 
-                  return (
-                    <Card key={reference.id}>
-                      <div className="grid gap-0 lg:grid-cols-[14rem_minmax(0,1fr)_16rem]">
-                        <div className="overflow-hidden border-b border-border/70 lg:border-b-0 lg:border-r">
-                          <PreviewImage
-                            alt={`${reference.name} scan preview`}
-                            className="aspect-[4/3] h-full min-h-40"
-                            fallbackSrc={fallbackImage}
-                            loadingLabel="Capturing benchmark screenshot"
-                            src={reference.previewImage}
-                          />
-                        </div>
-                          <CardHeader className="space-y-2">
+                <div className="grid gap-3">
+                  {historyReferences.map((reference) => {
+                    const scan = scanBySiteId.get(reference.siteId);
+                    const score = scan?.overallScore ?? reference.measuredScore ?? reference.targetScore;
+
+                    return (
+                      <article
+                        className="overflow-hidden rounded-[22px] border border-border/60 bg-panel/45"
+                        key={reference.id}
+                      >
+                        <div className="grid gap-0 lg:grid-cols-[14rem_minmax(0,1fr)_17rem]">
+                          <a
+                            className="block overflow-hidden border-b border-border/70 lg:border-b-0 lg:border-r"
+                            href={reference.url}
+                            rel="noreferrer"
+                            target="_blank"
+                          >
+                            <PreviewImage
+                              alt={`${reference.name} scan preview`}
+                              className="aspect-[4/3] h-full min-h-40"
+                              fallbackSrc={fallbackImage}
+                              loadingLabel="Capturing benchmark screenshot"
+                              src={reference.previewImage}
+                            />
+                          </a>
+
+                          <div className="space-y-2 p-5">
                             <div className="flex flex-wrap items-center gap-2">
                               <Badge variant="accent">
                                 {scan?.scoreSource === "measured" ? "Scored" : "Reference"} {score.toFixed(1)}
@@ -365,32 +490,54 @@ export function BenchmarkLibraryPage({
                                 {reference.tier}
                               </Badge>
                             </div>
-                            <CardTitle className="font-display text-[clamp(2.9rem,2.2rem+0.9vw,4.1rem)] leading-[0.9]">
-                              {reference.name}
-                            </CardTitle>
-                            <p className="text-[1.08rem] leading-[1.95rem] text-muted">{reference.note}</p>
-                            <p className="text-xs uppercase tracking-[0.18em] text-muted">
-                              {reference.sourceLabel}
-                            </p>
-                            <p className="text-xs uppercase tracking-[0.18em] text-muted">
-                              Scored {formatTimestamp(scan?.scannedAt ?? new Date().toISOString())}
-                            </p>
-                          </CardHeader>
-                          <CardContent className="flex flex-wrap items-start gap-2 lg:justify-end lg:pt-6">
+                            <h3 className="font-display text-[clamp(2.45rem,1.95rem+0.7vw,3.4rem)] leading-[0.92] tracking-[-0.04em] text-foreground">
+                              <a
+                                className="transition hover:text-accent"
+                                href={reference.url}
+                                rel="noreferrer"
+                                target="_blank"
+                              >
+                                {reference.name}
+                              </a>
+                            </h3>
+                            <p className="text-sm leading-6 text-muted">{reference.note}</p>
+                            <div className="flex flex-wrap items-center gap-x-4 gap-y-2 text-[11px] font-semibold uppercase tracking-[0.18em] text-muted">
+                              <span>{reference.sourceLabel}</span>
+                              <span>
+                                Scored {formatTimestamp(scan?.scannedAt ?? new Date().toISOString())}
+                              </span>
+                            </div>
+                          </div>
+
+                          <div className="flex flex-wrap items-start gap-2 border-t border-border/70 p-5 lg:justify-end lg:border-l lg:border-t-0">
                             {reference.strengths.map((strength) => (
-                              <Badge className="normal-case tracking-normal" key={strength} variant="neutral">
-                                {strength.replace(/-/g, " ")}
+                              <Badge
+                                className="normal-case tracking-normal"
+                                key={strength}
+                                variant="neutral"
+                              >
+                                {labelize(strength)}
                               </Badge>
                             ))}
-                          </CardContent>
+                          </div>
                         </div>
-                      </Card>
+                      </article>
                     );
                   })}
                 </div>
-              </div>
+              </section>
 
-              <PatternNotes notes={snapshot.notes} />
+              <section className="space-y-4">
+                <div className="flex flex-col gap-2">
+                  <p className="text-xs uppercase tracking-[0.18em] text-muted">
+                    Design history and style notes
+                  </p>
+                  <p className="max-w-3xl text-sm leading-6 text-muted">
+                    These notes keep the benchmark set from turning into a template pack. They connect the examples to repeatable design judgment.
+                  </p>
+                </div>
+                <PatternNotes notes={snapshot.notes} />
+              </section>
             </TabsContent>
           );
         })}

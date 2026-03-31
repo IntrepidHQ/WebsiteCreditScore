@@ -1,5 +1,7 @@
 import { randomUUID } from "node:crypto";
 
+import type { BillingAddOnId, BillingPlanId, TokenActionId } from "@/lib/billing/catalog";
+import { getTokenActionCost } from "@/lib/billing/catalog";
 import { buildAuditReportById, buildAuditReportFromUrl, buildLiveAuditReportFromUrl } from "@/lib/mock/report-builder";
 import { sampleAudits } from "@/lib/mock/sample-audits";
 import { prepareReportForStorage, passesReportQualityCheck } from "@/lib/product/report-quality";
@@ -20,6 +22,7 @@ import type {
   ShareLinkRecord,
   ShareSurface,
   WorkspaceCreditEntry,
+  WorkspaceEntitlement,
   WorkspaceRecord,
   WorkspaceSession,
 } from "@/lib/types/product";
@@ -64,7 +67,10 @@ function buildWorkspace(ownerUserId: string, session: WorkspaceSession): Workspa
     createdAt,
     updatedAt: createdAt,
     billingStatus: "trial",
-    creditBalance: 0,
+    billingPlan: "free",
+    creditBalance: 10,
+    tokenBalance: 10,
+    entitlements: [],
     branding: {
       agencyName: "WebsiteCreditScore.com",
       logoMark: "WCS",
@@ -94,6 +100,10 @@ function normalizeWorkspaceRecord(workspace: WorkspaceRecord) {
     workspace.branding.contactEmail,
     workspace.branding.headshot,
   ].some((value) => LEGACY_BRAND_PATTERN.test(value));
+  const usesLegacyBilling = workspace.tokenBalance == null && workspace.billingPlan == null;
+  const normalizedTokenBalance = usesLegacyBilling
+    ? 10
+    : workspace.tokenBalance ?? workspace.creditBalance ?? 10;
 
   return {
     ...workspace,
@@ -101,6 +111,12 @@ function normalizeWorkspaceRecord(workspace: WorkspaceRecord) {
       ? "WebsiteCreditScore.com workspace"
       : workspace.name,
     slug: usesLegacyBrand ? "websitecreditscore" : workspace.slug,
+    billingPlan: workspace.billingPlan ?? (workspace.billingStatus === "active" ? "pro" : "free"),
+    creditBalance: usesLegacyBilling
+      ? 10
+      : workspace.creditBalance ?? normalizedTokenBalance,
+    tokenBalance: normalizedTokenBalance,
+    entitlements: workspace.entitlements ?? [],
     branding: {
       ...workspace.branding,
       agencyName: usesLegacyBrand ? "WebsiteCreditScore.com" : workspace.branding.agencyName,
@@ -112,6 +128,38 @@ function normalizeWorkspaceRecord(workspace: WorkspaceRecord) {
       headshot: usesLegacyBrand ? "/previews/agency-avatar.svg" : workspace.branding.headshot,
     },
   };
+}
+
+function createBalanceEntry(
+  workspaceId: string,
+  amount: number,
+  label: string,
+  options?: Partial<
+    Pick<
+      WorkspaceCreditEntry,
+      "type" | "source" | "checkoutSessionId" | "actionId" | "actionKey"
+    >
+  >,
+): WorkspaceCreditEntry {
+  return {
+    id: createId("credit"),
+    workspaceId,
+    amount,
+    label,
+    type: options?.type,
+    source: options?.source,
+    checkoutSessionId: options?.checkoutSessionId,
+    actionId: options?.actionId,
+    actionKey: options?.actionKey,
+    createdAt: new Date().toISOString(),
+  };
+}
+
+function mergeEntitlements(
+  current: WorkspaceEntitlement[],
+  next: WorkspaceEntitlement[],
+) {
+  return Array.from(new Set([...current, ...next]));
 }
 
 function isLegacyProviderPagesText(value: string | undefined | null) {
@@ -442,10 +490,10 @@ export async function ensureSupabaseWorkspace(session: WorkspaceSession) {
     updatedAt: workspace.createdAt,
   };
   const creditEntry: WorkspaceCreditEntry = {
-    id: createId("credit"),
-    workspaceId: workspace.id,
-    amount: 3,
-    label: "Founding workspace balance",
+    ...createBalanceEntry(workspace.id, 10, "Free tier included tokens", {
+      type: "grant",
+      source: "system",
+    }),
     createdAt: workspace.createdAt,
   };
   await upsertPayloadRecord("workspaces", {
@@ -571,6 +619,18 @@ export async function getSupabaseLeadDetail(
 }
 
 export async function createSupabaseLeadFromUrl(workspaceId: string, rawUrl: string) {
+  const workspace = await getWorkspacePayload(workspaceId);
+
+  if (!workspace) {
+    throw new Error("Workspace not found.");
+  }
+
+  const tokenCost = getTokenActionCost("scan-site");
+
+  if ((workspace.tokenBalance ?? workspace.creditBalance ?? 0) < tokenCost) {
+    throw new Error("INSUFFICIENT_TOKENS");
+  }
+
   const createdAt = new Date().toISOString();
   let liveReport;
 
@@ -664,8 +724,144 @@ export async function createSupabaseLeadFromUrl(workspaceId: string, rawUrl: str
       occurredAt: createdAt,
     } satisfies LeadActivity,
   });
+  await upsertPayloadRecord("workspaces", {
+    id: workspace.id,
+    owner_user_id: workspace.ownerUserId,
+    payload: {
+      ...workspace,
+      tokenBalance: (workspace.tokenBalance ?? workspace.creditBalance ?? 0) - tokenCost,
+      creditBalance: (workspace.tokenBalance ?? workspace.creditBalance ?? 0) - tokenCost,
+      updatedAt: createdAt,
+    } satisfies WorkspaceRecord,
+  });
+  await upsertPayloadRecord("workspace_credits", {
+    id: createId("credit"),
+    workspace_id: workspaceId,
+    payload: {
+      ...createBalanceEntry(workspaceId, -tokenCost, "Live site scan", {
+        type: "spend",
+        source: "workspace",
+        actionId: "scan-site",
+        actionKey: `lead:${leadId}:scan`,
+      }),
+      createdAt,
+    } satisfies WorkspaceCreditEntry,
+  });
 
   return lead;
+}
+
+export async function applySupabaseBillingPurchase(
+  workspaceId: string,
+  input: {
+    checkoutSessionId: string;
+    label: string;
+    tokenAmount: number;
+    planId?: BillingPlanId | null;
+    addOnIds?: BillingAddOnId[];
+    entitlements?: WorkspaceEntitlement[];
+  },
+) {
+  const workspace = await getWorkspacePayload(workspaceId);
+
+  if (!workspace) {
+    throw new Error("Workspace not found.");
+  }
+
+  const credits = await listPayloadRecords<WorkspaceCreditEntry>("workspace_credits", "workspace_id", workspaceId);
+  const purchaseAlreadyApplied = credits.some(
+    (entry) => entry.checkoutSessionId === input.checkoutSessionId,
+  );
+
+  if (purchaseAlreadyApplied) {
+    return workspace;
+  }
+
+  const nextTokenBalance = (workspace.tokenBalance ?? workspace.creditBalance ?? 0) + input.tokenAmount;
+  const updatedWorkspace: WorkspaceRecord = {
+    ...workspace,
+    tokenBalance: nextTokenBalance,
+    creditBalance: nextTokenBalance,
+    billingPlan: input.planId === "pro" ? "pro" : workspace.billingPlan,
+    billingStatus: input.planId === "pro" ? "active" : workspace.billingStatus,
+    entitlements: mergeEntitlements(workspace.entitlements ?? [], input.entitlements ?? []),
+    updatedAt: new Date().toISOString(),
+  };
+
+  await upsertPayloadRecord("workspaces", {
+    id: updatedWorkspace.id,
+    owner_user_id: updatedWorkspace.ownerUserId,
+    payload: updatedWorkspace,
+  });
+  await upsertPayloadRecord("workspace_credits", {
+    id: createId("credit"),
+    workspace_id: workspaceId,
+    payload: createBalanceEntry(workspaceId, input.tokenAmount, input.label, {
+      type: "purchase",
+      source: "stripe",
+      checkoutSessionId: input.checkoutSessionId,
+    }),
+  });
+
+  return updatedWorkspace;
+}
+
+export async function consumeSupabaseWorkspaceTokens(
+  workspaceId: string,
+  input: {
+    actionId: TokenActionId;
+    actionKey: string;
+    label: string;
+  },
+) {
+  const workspace = await getWorkspacePayload(workspaceId);
+
+  if (!workspace) {
+    throw new Error("Workspace not found.");
+  }
+
+  const tokenCost = getTokenActionCost(input.actionId);
+  const credits = await listPayloadRecords<WorkspaceCreditEntry>("workspace_credits", "workspace_id", workspaceId);
+  const spendAlreadyLogged = credits.some(
+    (entry) =>
+      entry.type === "spend" &&
+      entry.actionId === input.actionId &&
+      entry.actionKey === input.actionKey,
+  );
+
+  if (spendAlreadyLogged || tokenCost <= 0) {
+    return workspace;
+  }
+
+  if ((workspace.tokenBalance ?? workspace.creditBalance ?? 0) < tokenCost) {
+    throw new Error("INSUFFICIENT_TOKENS");
+  }
+
+  const nextTokenBalance = (workspace.tokenBalance ?? workspace.creditBalance ?? 0) - tokenCost;
+  const updatedWorkspace: WorkspaceRecord = {
+    ...workspace,
+    tokenBalance: nextTokenBalance,
+    creditBalance: nextTokenBalance,
+    updatedAt: new Date().toISOString(),
+  };
+
+  await upsertPayloadRecord("workspaces", {
+    id: updatedWorkspace.id,
+    owner_user_id: updatedWorkspace.ownerUserId,
+    payload: updatedWorkspace,
+  });
+  await upsertPayloadRecord("workspace_credits", {
+    id: createId("credit"),
+    workspace_id: workspaceId,
+    payload: createBalanceEntry(workspaceId, -tokenCost, input.label, {
+      type: "spend",
+      source: "workspace",
+      actionId: input.actionId,
+      actionKey: input.actionKey,
+    }),
+  });
+
+  return updatedWorkspace;
 }
 
 export async function deleteSupabaseLead(workspaceId: string, leadId: string) {

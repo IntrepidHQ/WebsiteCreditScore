@@ -4,6 +4,7 @@ import Link from "next/link";
 import { ScanSearch, BookOpen } from "lucide-react";
 import { usePathname } from "next/navigation";
 
+import { StripeWordmark } from "@/components/common/stripe-wordmark";
 import { WebsiteCreditScoreLogo } from "@/components/common/website-credit-score-logo";
 import { Button } from "@/components/ui/button";
 
@@ -11,6 +12,7 @@ const primaryLinks = [
   { href: "/platform", label: "Platform" },
   { href: "/examples", label: "Examples" },
   { href: "/benchmarks", label: "Benchmarks" },
+  { href: "/pricing", label: "Pricing" },
   { href: "/docs", label: "Docs" },
   { href: "/audit/mark-deford-md", label: "Sample Audit" },
 ];
@@ -37,6 +39,12 @@ export function SiteFooter() {
           <p className="max-w-2xl text-sm leading-7 text-muted">
             Audit the live site, see what is costing trust, and decide what to fix first.
           </p>
+          <div className="inline-flex items-center gap-3 rounded-full border border-border/60 bg-panel/45 px-3 py-2">
+            <span className="text-[11px] font-semibold uppercase tracking-[0.18em] text-muted">
+              Payments by
+            </span>
+            <StripeWordmark className="h-5" />
+          </div>
           <div className="grid gap-3 sm:flex sm:flex-wrap">
             <Button asChild className="w-full sm:w-auto" size="sm">
               <Link href="/audit/mark-deford-md">

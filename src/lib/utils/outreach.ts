@@ -12,10 +12,18 @@ export function generateOutreachEmail(report: AuditReport): OutreachEmailTemplat
   const findingLine = topFindings.length
     ? topFindings.join("; ")
     : "the first impression, response path, and trust sequence";
+  const scoreLine = `${report.title} scored ${report.overallScore.toFixed(1)} in my review`;
+  const opportunityLine =
+    report.categoryScores
+      .slice()
+      .sort((left, right) => left.score - right.score)
+      .slice(0, 2)
+      .map((item) => item.label.toLowerCase())
+      .join(" and ") || "clarity and trust";
 
   return {
-    subject: `${report.title}: a few quick website observations`,
-    previewLine: "A short review with the clearest friction points and next-step direction.",
-    body: `Hi team,\n\nI reviewed ${report.title} and attached a short audit. The clearest patterns were ${findingLine}.\n\nThe goal is simple: make the site easier to trust, easier to understand, and easier to act on.\n\nIf helpful, I can walk through the top priorities live.\n\nBest,\nWebsiteCreditScore.com`,
+    subject: `${report.title}: scored ${report.overallScore.toFixed(1)} in review`,
+    previewLine: `Lead with the score, then frame the clearest gains in ${opportunityLine}.`,
+    body: `Hi team,\n\n${scoreLine}. The clearest opportunity is in ${opportunityLine}.\n\nI attached a short audit showing where the site is creating friction around ${findingLine}.\n\nThe goal is simple: make the site easier to trust, easier to understand, and easier to act on.\n\nIf helpful, I can walk through the highest-leverage fixes live.\n\nBest,\nWebsiteCreditScore.com`,
   };
 }

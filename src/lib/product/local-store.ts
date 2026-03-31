@@ -2,6 +2,8 @@ import { promises as fs } from "node:fs";
 import path from "node:path";
 import { randomUUID } from "node:crypto";
 
+import type { BillingAddOnId, BillingPlanId, TokenActionId } from "@/lib/billing/catalog";
+import { getTokenActionCost } from "@/lib/billing/catalog";
 import { buildAuditReportById, buildAuditReportFromUrl, buildLiveAuditReportFromUrl } from "@/lib/mock/report-builder";
 import { sampleAudits } from "@/lib/mock/sample-audits";
 import { prepareReportForStorage, passesReportQualityCheck } from "@/lib/product/report-quality";
@@ -21,6 +23,7 @@ import type {
   ShareLinkRecord,
   ShareSurface,
   WorkspaceCreditEntry,
+  WorkspaceEntitlement,
   WorkspaceRecord,
   WorkspaceSession,
 } from "@/lib/types/product";
@@ -86,7 +89,10 @@ function getWorkspaceDefaults(ownerUserId: string) {
     createdAt,
     updatedAt: createdAt,
     billingStatus: "trial" as const,
-    creditBalance: 8,
+    billingPlan: "free" as const,
+    creditBalance: 10,
+    tokenBalance: 10,
+    entitlements: [] as WorkspaceEntitlement[],
     branding: {
       agencyName: "WebsiteCreditScore.com",
       logoMark: "WCS",
@@ -132,13 +138,55 @@ function normalizeWorkspaceRecord(workspace: WorkspaceRecord) {
     ? "WebsiteCreditScore.com workspace"
     : workspace.name;
   const slug = usesLegacyBrand ? "websitecreditscore" : workspace.slug;
+  const usesLegacyBilling = workspace.tokenBalance == null && workspace.billingPlan == null;
+  const normalizedTokenBalance = usesLegacyBilling
+    ? 10
+    : workspace.tokenBalance ?? workspace.creditBalance ?? 10;
 
   return {
     ...workspace,
     name,
     slug,
+    billingPlan: workspace.billingPlan ?? (workspace.billingStatus === "active" ? "pro" : "free"),
+    creditBalance: usesLegacyBilling
+      ? 10
+      : workspace.creditBalance ?? normalizedTokenBalance,
+    tokenBalance: normalizedTokenBalance,
+    entitlements: workspace.entitlements ?? [],
     branding,
   };
+}
+
+function createBalanceEntry(
+  workspaceId: string,
+  amount: number,
+  label: string,
+  options?: Partial<
+    Pick<
+      WorkspaceCreditEntry,
+      "type" | "source" | "checkoutSessionId" | "actionId" | "actionKey"
+    >
+  >,
+): WorkspaceCreditEntry {
+  return {
+    id: createId("credit"),
+    workspaceId,
+    amount,
+    label,
+    type: options?.type,
+    source: options?.source,
+    checkoutSessionId: options?.checkoutSessionId,
+    actionId: options?.actionId,
+    actionKey: options?.actionKey,
+    createdAt: new Date().toISOString(),
+  };
+}
+
+function mergeEntitlements(
+  current: WorkspaceEntitlement[],
+  next: WorkspaceEntitlement[],
+) {
+  return Array.from(new Set([...current, ...next]));
 }
 
 function isLegacyProviderPagesText(value: string | undefined | null) {
@@ -396,18 +444,11 @@ async function createSeedStore(ownerUserId: string): Promise<LocalProductStore> 
     ],
     workspaceCredits: [
       {
-        id: createId("credit"),
-        workspaceId: workspace.id,
-        amount: 5,
-        label: "Founding workspace balance",
+        ...createBalanceEntry(workspace.id, 10, "Free tier included tokens", {
+          type: "grant",
+          source: "system",
+        }),
         createdAt: earliestSeedDate.toISOString(),
-      },
-      {
-        id: createId("credit"),
-        workspaceId: workspace.id,
-        amount: 2,
-        label: "Referral reward",
-        createdAt: latestSeedDate.toISOString(),
       },
     ],
     promos: [
@@ -682,7 +723,13 @@ export async function createLocalLeadFromUrl(
   ownerUserId: string,
 ) {
   return updateStore(ownerUserId, async (store) => {
-    getWorkspaceOrThrow(store, workspaceId);
+    const workspace = getWorkspaceOrThrow(store, workspaceId);
+    const tokenCost = getTokenActionCost("scan-site");
+
+    if (workspace.tokenBalance < tokenCost) {
+      throw new Error("INSUFFICIENT_TOKENS");
+    }
+
     const createdAt = new Date().toISOString();
 
     let liveReport;
@@ -784,8 +831,113 @@ export async function createLocalLeadFromUrl(
       dueAt: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString(),
       status: "open",
     });
+    workspace.tokenBalance -= tokenCost;
+    workspace.creditBalance = workspace.tokenBalance;
+    workspace.updatedAt = createdAt;
+    store.workspaceCredits.push({
+      ...createBalanceEntry(workspaceId, -tokenCost, "Live site scan", {
+        type: "spend",
+        source: "workspace",
+        actionId: "scan-site",
+        actionKey: `lead:${leadId}:scan`,
+      }),
+      createdAt,
+    });
 
     return lead;
+  });
+}
+
+export async function applyLocalBillingPurchase(
+  workspaceId: string,
+  ownerUserId: string,
+  input: {
+    checkoutSessionId: string;
+    label: string;
+    tokenAmount: number;
+    planId?: BillingPlanId | null;
+    addOnIds?: BillingAddOnId[];
+    entitlements?: WorkspaceEntitlement[];
+  },
+) {
+  return updateStore(ownerUserId, (store) => {
+    const workspace = getWorkspaceOrThrow(store, workspaceId);
+    const purchaseAlreadyApplied = store.workspaceCredits.some(
+      (entry) => entry.workspaceId === workspaceId && entry.checkoutSessionId === input.checkoutSessionId,
+    );
+
+    if (purchaseAlreadyApplied) {
+      return workspace;
+    }
+
+    if (input.tokenAmount > 0) {
+      workspace.tokenBalance += input.tokenAmount;
+      workspace.creditBalance = workspace.tokenBalance;
+    }
+
+    if (input.planId === "pro") {
+      workspace.billingPlan = "pro";
+      workspace.billingStatus = "active";
+    }
+
+    workspace.entitlements = mergeEntitlements(
+      workspace.entitlements,
+      input.entitlements ?? [],
+    );
+    workspace.updatedAt = new Date().toISOString();
+    store.workspaceCredits.push(
+      createBalanceEntry(workspaceId, input.tokenAmount, input.label, {
+        type: "purchase",
+        source: "stripe",
+        checkoutSessionId: input.checkoutSessionId,
+      }),
+    );
+
+    return workspace;
+  });
+}
+
+export async function consumeLocalWorkspaceTokens(
+  workspaceId: string,
+  ownerUserId: string,
+  input: {
+    actionId: TokenActionId;
+    actionKey: string;
+    label: string;
+  },
+) {
+  return updateStore(ownerUserId, (store) => {
+    const workspace = getWorkspaceOrThrow(store, workspaceId);
+    const tokenCost = getTokenActionCost(input.actionId);
+    const spendAlreadyLogged = store.workspaceCredits.some(
+      (entry) =>
+        entry.workspaceId === workspaceId &&
+        entry.type === "spend" &&
+        entry.actionId === input.actionId &&
+        entry.actionKey === input.actionKey,
+    );
+
+    if (spendAlreadyLogged || tokenCost <= 0) {
+      return workspace;
+    }
+
+    if (workspace.tokenBalance < tokenCost) {
+      throw new Error("INSUFFICIENT_TOKENS");
+    }
+
+    workspace.tokenBalance -= tokenCost;
+    workspace.creditBalance = workspace.tokenBalance;
+    workspace.updatedAt = new Date().toISOString();
+    store.workspaceCredits.push(
+      createBalanceEntry(workspaceId, -tokenCost, input.label, {
+        type: "spend",
+        source: "workspace",
+        actionId: input.actionId,
+        actionKey: input.actionKey,
+      }),
+    );
+
+    return workspace;
   });
 }
 

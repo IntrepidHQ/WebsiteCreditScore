@@ -34,6 +34,7 @@ function getPrimaryNavigation() {
     { href: "/platform", label: "Platform" },
     { href: "/examples", label: "Examples" },
     { href: "/benchmarks", label: "Benchmarks" },
+    { href: "/pricing", label: "Pricing" },
     { href: "/docs", label: "Docs" },
   ] satisfies NavItem[];
 }
@@ -94,7 +95,7 @@ function HeaderLink({
     <Link
       aria-current={active ? "page" : undefined}
       className={cn(
-        "whitespace-nowrap rounded-[8px] border border-border/60 bg-panel/50 px-3 py-2 text-sm font-medium text-muted transition hover:bg-elevated hover:text-foreground",
+        "whitespace-nowrap rounded-[10px] border border-border/55 bg-panel/45 px-3 py-1.5 text-sm font-medium text-muted transition hover:border-border/80 hover:bg-elevated hover:text-foreground",
         active && "border-accent/30 bg-elevated text-foreground",
       )}
       href={item.href}
@@ -123,14 +124,22 @@ export function SiteHeader() {
   const auditHref = buildRouteWithOptionalUrl(`/audit/${reportId}`, normalizedUrl);
 
   useEffect(() => {
+    let frame = 0;
+
     const updateScrolled = () => {
-      setScrolled(window.scrollY > 12);
+      cancelAnimationFrame(frame);
+      frame = window.requestAnimationFrame(() => {
+        setScrolled(window.scrollY > 12);
+      });
     };
 
     updateScrolled();
     window.addEventListener("scroll", updateScrolled, { passive: true });
 
-    return () => window.removeEventListener("scroll", updateScrolled);
+    return () => {
+      cancelAnimationFrame(frame);
+      window.removeEventListener("scroll", updateScrolled);
+    };
   }, []);
 
   useEffect(() => {
@@ -146,7 +155,6 @@ export function SiteHeader() {
 
   const quickActions = isAuditPath
     ? [
-        { href: "#pricing", label: "Pricing" },
         { href: packetHref, label: "Packet PDF", icon: FileText },
         { href: briefHref, label: "Brief", icon: ArrowUpRight },
       ]
@@ -161,28 +169,22 @@ export function SiteHeader() {
           { href: "/audit/mark-deford-md", label: "Sample audit", icon: ScanSearch },
           { href: "/app/login", label: "Sign in" },
         ];
-  const mobileQuickActions =
-    isAuditPath || isBriefPath
-      ? quickActions
-      : [{ href: "/#pricing", label: "Pricing" }, ...quickActions];
+  const mobileQuickActions = quickActions;
 
   if (isAppPath) {
     return null;
   }
 
   return (
-    <header
-      className={cn(
-        "sticky top-0 z-50 bg-transparent px-4 pt-3 transition-all duration-300 print:hidden sm:px-6 lg:px-8",
-      )}
-    >
-      <div className="mx-auto w-full max-w-7xl">
+    <header className="sticky top-0 z-50 print:hidden">
+      <div className="px-4 pt-3 sm:px-6 lg:px-8">
+        <div className="mx-auto w-full max-w-7xl">
         <div
           className={cn(
-            "rounded-[24px] border px-4 backdrop-blur-xl transition-all duration-300 sm:px-5",
+            "rounded-[24px] px-4 transition-[background-color,border-color,box-shadow,backdrop-filter] duration-200 sm:px-5",
             scrolled
-              ? "border-border/70 bg-background/76 shadow-[var(--theme-shadow)]"
-              : "border-border/35 bg-background/36",
+              ? "border border-border/70 bg-background/76 shadow-[var(--theme-shadow)] backdrop-blur-xl"
+              : "border border-transparent !bg-transparent !shadow-none backdrop-blur-none",
           )}
         >
           <div
@@ -191,12 +193,32 @@ export function SiteHeader() {
               scrolled ? "py-3" : "py-4",
             )}
           >
-            <div className="flex items-center justify-between gap-3">
-              <Link href="/" className="min-w-0 flex-1">
+            <div className="flex items-center justify-between gap-3 lg:gap-5">
+              <Link href="/" className="min-w-0 flex-1 lg:max-w-[19rem] xl:max-w-[20rem]">
                 <WebsiteCreditScoreLogo size="header" />
               </Link>
 
-              <div className="hidden flex-wrap items-center justify-end gap-2 sm:flex">
+              {!isWorkspacePath ? (
+                <nav
+                  aria-label="Primary"
+                  className={cn(
+                    "hidden min-w-0 flex-1 items-center justify-center gap-2 lg:flex",
+                    scrolled ? "pt-0" : "pt-0.5",
+                  )}
+                >
+                  {primaryNavigation.map((item) => (
+                    <HeaderLink
+                      active={isActiveItem(pathname, activeHash, item)}
+                      item={item}
+                      key={item.href}
+                    />
+                  ))}
+                </nav>
+              ) : (
+                <div className="hidden flex-1 lg:block" />
+              )}
+
+              <div className="hidden flex-wrap items-center justify-end gap-2 lg:flex">
                 {quickActions.map((action, index) => {
                   const variant = index === 1 ? "secondary" : index === 2 ? "outline" : "ghost";
 
@@ -211,7 +233,7 @@ export function SiteHeader() {
                 })}
               </div>
 
-              <div className="shrink-0 sm:hidden">
+              <div className="shrink-0 lg:hidden">
                 <Dialog>
                   <DialogTrigger asChild>
                     <Button aria-label="Open navigation" size="icon" variant="outline">
@@ -309,24 +331,6 @@ export function SiteHeader() {
               </div>
             </div>
 
-            {!isWorkspacePath ? (
-              <nav
-                aria-label="Primary"
-                className={cn(
-                  "hidden flex-wrap items-center gap-2 pb-1 lg:flex",
-                  scrolled ? "pt-0" : "pt-1",
-                )}
-              >
-                {primaryNavigation.map((item) => (
-                  <HeaderLink
-                    active={isActiveItem(pathname, activeHash, item)}
-                    item={item}
-                    key={item.href}
-                  />
-                ))}
-              </nav>
-            ) : null}
-
           {sectionNavigation.length ? (
             <nav
               aria-label="Section navigation"
@@ -346,6 +350,7 @@ export function SiteHeader() {
           ) : null}
           </div>
         </div>
+      </div>
       </div>
     </header>
   );

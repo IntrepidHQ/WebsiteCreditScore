@@ -1,13 +1,14 @@
 "use client";
 
 import Link from "next/link";
-import { ArrowUpRight, ClipboardList } from "lucide-react";
+import { ArrowUpRight, CalendarDays, ClipboardList, Globe2, History } from "lucide-react";
 
+import { PreviewImage } from "@/components/common/preview-image";
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { DeleteLeadButton } from "@/features/app/components/delete-lead-button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { DeleteLeadButton } from "@/features/app/components/delete-lead-button";
 import { LeadStageBadge } from "@/features/app/components/lead-stage-badge";
-import { LeadOverviewCard } from "@/features/app/components/lead-overview-card";
 import type { LeadRecord, SavedReport } from "@/lib/types/product";
 
 function formatTimestamp(input: string) {
@@ -15,9 +16,88 @@ function formatTimestamp(input: string) {
     month: "short",
     day: "numeric",
     year: "numeric",
-    hour: "numeric",
-    minute: "2-digit",
   }).format(new Date(input));
+}
+
+function WorkspaceScanHistoryCard({
+  savedReport,
+  lead,
+}: {
+  savedReport: SavedReport;
+  lead?: LeadRecord;
+}) {
+  const report = savedReport.reportSnapshot;
+  const score = lead?.currentScore ?? report.overallScore;
+  const domain = savedReport.normalizedUrl.replace(/^https?:\/\//, "");
+  const auditHref = `/audit/${report.id}?url=${encodeURIComponent(report.normalizedUrl)}`;
+
+  return (
+    <Card className="group h-full overflow-hidden rounded-[24px] border-border/60 bg-[linear-gradient(180deg,color-mix(in_srgb,var(--theme-panel)_88%,transparent),color-mix(in_srgb,var(--theme-background-alt)_96%,transparent))] shadow-[0_20px_60px_rgba(0,0,0,0.18)] transition duration-300 hover:-translate-y-1 hover:border-accent/30">
+      <Link href={auditHref}>
+        <PreviewImage
+          alt={`${savedReport.title} preview`}
+          className="aspect-[21/10]"
+          fallbackLabel="Preview unavailable"
+          fallbackSrc={report.previewSet.fallbackCurrent.desktop}
+          imageClassName="transition duration-500 group-hover:scale-[1.02]"
+          loadingLabel="Capturing desktop screenshot"
+          src={report.previewSet.current.desktop}
+        >
+          <div className="pointer-events-none absolute inset-x-0 top-0 h-28 bg-gradient-to-b from-background/35 via-transparent to-transparent" />
+        </PreviewImage>
+      </Link>
+
+      <CardHeader className="space-y-4 pb-4">
+        <div className="flex items-start justify-between gap-3">
+          <div className="flex min-w-0 flex-wrap items-center gap-2">
+            {lead ? <LeadStageBadge stage={lead.stage} /> : null}
+            <Badge variant="accent">{score.toFixed(1)}</Badge>
+          </div>
+
+          <div className="flex items-center gap-2">
+            <DeleteLeadButton
+              label={`Delete ${savedReport.title}`}
+              leadId={savedReport.leadId}
+              returnTo="/app"
+            />
+            <Button asChild aria-label={`Open lead detail for ${savedReport.title}`} size="icon" variant="outline">
+              <Link href={`/app/leads/${savedReport.leadId}`}>
+                <ClipboardList className="size-4" />
+              </Link>
+            </Button>
+            <Button asChild aria-label={`Open audit for ${savedReport.title}`} size="icon" variant="outline">
+              <Link href={auditHref}>
+                <ArrowUpRight className="size-4" />
+              </Link>
+            </Button>
+          </div>
+        </div>
+
+        <CardTitle className="font-display text-[clamp(2.35rem,1.95rem+0.6vw,3.1rem)] leading-[0.92]">
+          <Link className="transition hover:text-accent" href={auditHref}>
+            {savedReport.title}
+          </Link>
+        </CardTitle>
+      </CardHeader>
+
+      <CardContent className="space-y-3 pt-0">
+        <p className="line-clamp-3 text-[1rem] leading-7 text-muted">
+          {report.executiveSummary}
+        </p>
+
+        <div className="flex flex-wrap items-center gap-x-4 gap-y-2 text-xs uppercase tracking-[0.16em] text-muted">
+          <span className="inline-flex items-center gap-2">
+            <Globe2 className="size-3.5" />
+            <span className="truncate">{domain}</span>
+          </span>
+          <span className="inline-flex items-center gap-2">
+            <CalendarDays className="size-3.5" />
+            Scored {formatTimestamp(savedReport.createdAt)}
+          </span>
+        </div>
+      </CardContent>
+    </Card>
+  );
 }
 
 export function ScanHistorySection({
@@ -31,9 +111,12 @@ export function ScanHistorySection({
 
   return (
     <Card>
-      <CardHeader className="flex-row items-start justify-between gap-4 space-y-0 pb-3">
+      <CardHeader className="flex-row items-start justify-between gap-4 space-y-0 pb-4">
         <div>
-          <p className="text-xs uppercase tracking-[0.24em] text-muted">Scan history</p>
+          <div className="flex items-center gap-2 text-accent">
+            <History className="size-4" />
+            <p className="text-xs uppercase tracking-[0.24em] text-muted">Scan history</p>
+          </div>
           <CardTitle className="mt-2 text-[clamp(3.1rem,2.6rem+0.9vw,4.4rem)] leading-[0.92]">
             Every site scanned in this workspace
           </CardTitle>
@@ -42,53 +125,14 @@ export function ScanHistorySection({
           {savedReports.length} total scans
         </div>
       </CardHeader>
-      <CardContent className="grid gap-4">
-        {savedReports.map((savedReport) => {
-          const lead = leadById.get(savedReport.leadId);
-          const report = savedReport.reportSnapshot;
-
-          return (
-            <LeadOverviewCard
-              actions={
-                <>
-                  {lead ? <LeadStageBadge stage={lead.stage} /> : null}
-                  <DeleteLeadButton
-                    label={`Delete ${savedReport.title}`}
-                    leadId={savedReport.leadId}
-                    returnTo="/app"
-                  />
-                  <Button asChild aria-label={`Open lead detail for ${savedReport.title}`} size="icon" variant="outline">
-                    <Link href={`/app/leads/${savedReport.leadId}`}>
-                      <ClipboardList className="size-4" />
-                    </Link>
-                  </Button>
-                  <Button asChild aria-label={`Open audit for ${savedReport.title}`} size="icon" variant="outline">
-                    <Link href={`/audit/${report.id}?url=${encodeURIComponent(report.normalizedUrl)}`}>
-                      <ArrowUpRight className="size-4" />
-                    </Link>
-                  </Button>
-                </>
-              }
-              currentScore={lead?.currentScore ?? report.overallScore}
-              fallbackImage={report.previewSet.fallbackCurrent.desktop}
-              loadingLabel="Capturing preview"
-              meta={
-                <div className="mt-3 flex flex-wrap items-center gap-x-4 gap-y-1 text-xs uppercase tracking-[0.16em] text-muted">
-                  <span>{savedReport.normalizedUrl.replace(/^https?:\/\//, "")}</span>
-                  <span>Scored {formatTimestamp(savedReport.createdAt)}</span>
-                </div>
-              }
-              previewAlt={`${savedReport.title} preview`}
-              previewImage={report.previewSet.current.desktop}
-              projectedScore={lead?.projectedScore ?? report.overallScore}
-              scoreLabel="Current score"
-              scoreValueClassName="text-[2rem] sm:text-[2.15rem]"
-              summary={report.executiveSummary}
-              title={savedReport.title}
-              key={savedReport.id}
-            />
-          );
-        })}
+      <CardContent className="grid gap-4 md:grid-cols-2 2xl:grid-cols-3">
+        {savedReports.map((savedReport) => (
+          <WorkspaceScanHistoryCard
+            key={savedReport.id}
+            lead={leadById.get(savedReport.leadId)}
+            savedReport={savedReport}
+          />
+        ))}
       </CardContent>
     </Card>
   );

@@ -97,7 +97,7 @@ export function AuditHeroSection({ report }: { report: AuditReport }) {
       <div className="mx-auto w-full max-w-7xl space-y-6 px-4 sm:px-6 lg:px-8">
         <div className="grid gap-6 xl:grid-cols-[minmax(0,0.92fr)_minmax(0,1.08fr)] xl:gap-8">
           <div className="space-y-5">
-            <Badge variant="accent">Live audit</Badge>
+            <Badge data-hero-chip variant="accent">Live audit</Badge>
             <div className="space-y-3">
               <h1 className="font-display text-[clamp(4.5rem,3.9rem+1vw,6rem)] font-semibold leading-[0.94] tracking-[-0.055em] text-foreground">
                 {report.title}
@@ -107,7 +107,7 @@ export function AuditHeroSection({ report }: { report: AuditReport }) {
               </p>
             </div>
             <div className="grid gap-2.5 sm:flex sm:flex-wrap">
-              <Button asChild className="w-full sm:w-auto" size="lg">
+              <Button asChild className="w-full sm:w-auto" data-hero-chip size="lg">
                 <a
                   href={`/packet/${report.id}?url=${encodeURIComponent(report.normalizedUrl)}`}
                   target="_blank"
@@ -117,7 +117,7 @@ export function AuditHeroSection({ report }: { report: AuditReport }) {
                   <ArrowRight className="size-4" />
                 </a>
               </Button>
-              <Button asChild className="w-full sm:w-auto" size="lg" variant="secondary">
+              <Button asChild className="w-full sm:w-auto" data-hero-chip size="lg" variant="secondary">
                 <a href={`/brief/${report.id}?url=${encodeURIComponent(report.normalizedUrl)}`}>
                   Open Creative Brief
                   <ArrowRight className="size-4" />
@@ -125,6 +125,7 @@ export function AuditHeroSection({ report }: { report: AuditReport }) {
               </Button>
               <Button
                 className="w-full sm:w-auto"
+                data-hero-chip
                 size="lg"
                 onClick={() => setContactModalOpen(true)}
                 variant="outline"
@@ -137,6 +138,7 @@ export function AuditHeroSection({ report }: { report: AuditReport }) {
 
           <div className="space-y-4">
             <div
+              data-hero-chip
               className={`glass-panel rounded-[10px] border ${scoreSurfaceClasses[overallTone]} p-5 sm:p-6`}
             >
               <ScoreMeter
@@ -222,74 +224,30 @@ export function AuditHeroSection({ report }: { report: AuditReport }) {
           </div>
         </div>
 
-        <div className="grid gap-4 xl:grid-cols-[minmax(0,0.38fr)_minmax(0,0.62fr)]">
-          <div className="space-y-4">
-            <div className="glass-panel rounded-[10px] border border-border/70 p-5 sm:p-6">
-              <p className="text-xs uppercase tracking-[0.18em] text-muted">Profile</p>
-              <p className="mt-3 font-display text-2xl font-semibold">
-                {report.clientProfile.industryLabel}
-              </p>
-              <p className="mt-3 text-sm leading-6 text-muted">
-                Audience: {report.clientProfile.audience}
-              </p>
-              <div className="mt-4 grid gap-3">
-                <div className="rounded-[calc(var(--theme-radius)-2px)] border border-border/70 bg-background-alt/70 px-4 py-3">
-                  <p className="text-xs uppercase tracking-[0.18em] text-muted">Primary goal</p>
-                  <p className="mt-2 text-sm leading-6 text-foreground">
-                    {report.clientProfile.primaryGoal}
-                  </p>
-                </div>
-                <div className="rounded-[calc(var(--theme-radius)-2px)] border border-border/70 bg-background-alt/70 px-4 py-3">
-                  <p className="text-xs uppercase tracking-[0.18em] text-muted">Trust drivers</p>
-                  <div className="mt-2 flex flex-wrap gap-2">
-                    {report.clientProfile.trustDrivers.map((driver) => (
-                      <Badge className="normal-case tracking-normal" key={driver} variant="neutral">
-                        {driver}
-                      </Badge>
-                    ))}
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          <div className="space-y-4">
-            <div className="glass-panel rounded-[10px] border border-border/70 p-5 sm:p-6">
-              <p className="text-xs uppercase tracking-[0.18em] text-muted">Observed on page</p>
-              <div className="mt-3 space-y-4">
-                <p className="text-base leading-8 text-foreground">
-                  {report.siteObservation.aboutSnippet ||
-                    "No high-confidence business summary was detected, so the audit is leaning more heavily on the visible interface and navigation structure."}
+        <div className="space-y-4">
+          <div className="grid gap-4 xl:grid-cols-[minmax(0,0.38fr)_minmax(0,0.62fr)]">
+            <div className="space-y-4">
+              <div className="glass-panel rounded-[10px] border border-border/70 p-5 sm:p-6">
+                <p className="text-xs uppercase tracking-[0.18em] text-muted">Profile</p>
+                <p className="mt-3 font-display text-[clamp(2.8rem,2.25rem+0.75vw,3.8rem)] font-semibold leading-[0.94] tracking-[-0.04em]">
+                  {report.clientProfile.industryLabel}
                 </p>
-                <div className="grid gap-3 lg:grid-cols-2">
-                  {observedFacts.slice(0, 4).map((fact) => (
-                    <div
-                      className="rounded-[calc(var(--theme-radius)-2px)] border border-border/70 bg-background-alt/70 px-4 py-3"
-                      key={fact.id}
-                    >
-                      <div className="flex items-start justify-between gap-3">
-                        <p className="text-xs font-semibold uppercase tracking-[0.12em] text-muted">{fact.label}</p>
-                        <Badge
-                          className="shrink-0"
-                          variant={fact.confidence === "verified" ? "accent" : "neutral"}
-                        >
-                          {fact.confidence}
-                        </Badge>
-                      </div>
-                      <p className="mt-2 text-base leading-8 text-foreground">{fact.value}</p>
-                      <p className="mt-2 text-[11px] font-semibold uppercase tracking-[0.12em] text-muted">
-                        {fact.source.replace(/-/g, " ")}
-                      </p>
-                    </div>
-                  ))}
+                <p className="mt-3 text-sm leading-6 text-muted">
+                  Audience: {report.clientProfile.audience}
+                </p>
+                <div className="mt-4 grid gap-3">
                   <div className="rounded-[calc(var(--theme-radius)-2px)] border border-border/70 bg-background-alt/70 px-4 py-3">
-                    <p className="text-xs font-semibold uppercase tracking-[0.12em] text-muted">Actions seen</p>
+                    <p className="text-xs uppercase tracking-[0.18em] text-muted">Primary goal</p>
+                    <p className="mt-2 text-sm leading-6 text-foreground">
+                      {report.clientProfile.primaryGoal}
+                    </p>
+                  </div>
+                  <div className="rounded-[calc(var(--theme-radius)-2px)] border border-border/70 bg-background-alt/70 px-4 py-3">
+                    <p className="text-xs uppercase tracking-[0.18em] text-muted">Trust drivers</p>
                     <div className="mt-2 flex flex-wrap gap-2">
-                      {(observedActions.length
-                        ? observedActions
-                        : ["No strong CTA detected"]).map((cta) => (
-                        <Badge className="normal-case tracking-normal" key={cta} variant="neutral">
-                          {cta}
+                      {report.clientProfile.trustDrivers.map((driver) => (
+                        <Badge className="normal-case tracking-normal" key={driver} variant="neutral">
+                          {driver}
                         </Badge>
                       ))}
                     </div>
@@ -298,15 +256,61 @@ export function AuditHeroSection({ report }: { report: AuditReport }) {
               </div>
             </div>
 
-            <div className="glass-panel rounded-[10px] border border-border/70 p-5 sm:p-6">
-              <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
-                <p className="text-xs uppercase tracking-[0.18em] text-muted">Point breakdown</p>
-                <p className="text-[11px] font-semibold uppercase tracking-[0.12em] text-muted">
-                  Visual, UX, mobile, search, accessibility, trust, security
-                </p>
+            <div className="space-y-4">
+              <div className="glass-panel rounded-[10px] border border-border/70 p-5 sm:p-6">
+                <p className="text-xs uppercase tracking-[0.18em] text-muted">Observed on page</p>
+                <div className="mt-3 space-y-4">
+                  <p className="text-base leading-8 text-foreground">
+                    {report.siteObservation.aboutSnippet ||
+                      "No high-confidence business summary was detected, so the audit is leaning more heavily on the visible interface and navigation structure."}
+                  </p>
+                  <div className="grid gap-3 lg:grid-cols-2">
+                    {observedFacts.slice(0, 4).map((fact) => (
+                      <div
+                        className="rounded-[calc(var(--theme-radius)-2px)] border border-border/70 bg-background-alt/70 px-4 py-3"
+                        key={fact.id}
+                      >
+                        <div className="flex items-start justify-between gap-3">
+                          <p className="text-xs font-semibold uppercase tracking-[0.12em] text-muted">{fact.label}</p>
+                          <Badge
+                            className="shrink-0"
+                            variant={fact.confidence === "verified" ? "accent" : "neutral"}
+                          >
+                            {fact.confidence}
+                          </Badge>
+                        </div>
+                        <p className="mt-2 text-base leading-8 text-foreground">{fact.value}</p>
+                        <p className="mt-2 text-[11px] font-semibold uppercase tracking-[0.12em] text-muted">
+                          {fact.source.replace(/-/g, " ")}
+                        </p>
+                      </div>
+                    ))}
+                    <div className="rounded-[calc(var(--theme-radius)-2px)] border border-border/70 bg-background-alt/70 px-4 py-3">
+                      <p className="text-xs font-semibold uppercase tracking-[0.12em] text-muted">Actions seen</p>
+                      <div className="mt-2 flex flex-wrap gap-2">
+                        {(observedActions.length
+                          ? observedActions
+                          : ["No strong CTA detected"]).map((cta) => (
+                            <Badge className="normal-case tracking-normal" key={cta} variant="neutral">
+                              {cta}
+                            </Badge>
+                          ))}
+                      </div>
+                    </div>
+                  </div>
+                </div>
               </div>
-              <CategoryRadarBreakdown scores={report.categoryScores} />
             </div>
+          </div>
+
+          <div className="glass-panel rounded-[10px] border border-border/70 p-5 sm:p-6">
+            <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
+              <p className="text-xs uppercase tracking-[0.18em] text-muted">Point breakdown</p>
+              <p className="text-[11px] font-semibold uppercase tracking-[0.12em] text-muted">
+                Visual, UX, mobile, search, accessibility, trust, security
+              </p>
+            </div>
+            <CategoryRadarBreakdown scores={report.categoryScores} />
           </div>
         </div>
       </div>

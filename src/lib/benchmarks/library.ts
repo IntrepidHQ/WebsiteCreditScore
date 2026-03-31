@@ -282,6 +282,76 @@ const benchmarkRubrics: Record<BenchmarkVertical, BenchmarkRubric> = {
       },
     ],
   },
+  fintech: {
+    id: "rubric-fintech",
+    vertical: "fintech",
+    title: "Fintech",
+    summary:
+      "A 10/10 fintech site makes the financial job obvious fast, proves operational maturity early, and explains complexity without adding hesitation.",
+    fastLifts: [
+      "State the money problem being solved before expanding into product detail.",
+      "Move trust, compliance, and operational proof closer to the first CTA.",
+      "Use product visuals and examples to simplify complexity instead of adding more copy.",
+    ],
+    criteria: [
+      {
+        id: "fintech-visual",
+        category: "visual-design",
+        title: "Calm product credibility",
+        description: "The interface should feel precise, current, and expensive without drifting into novelty.",
+        whyItMatters: "Financial trust is inferred from visual control long before compliance copy gets read.",
+        signals: ["Tight hierarchy", "Restrained visual language", "Confident product framing"],
+      },
+      {
+        id: "fintech-conversion",
+        category: "ux-conversion",
+        title: "Guided evaluation",
+        description: "The page should move from value to proof to action with minimal uncertainty.",
+        whyItMatters: "Fintech visitors hesitate when the product path or next step feels risky or vague.",
+        signals: ["Clear CTA path", "Proof before signup", "Low-friction evaluation"],
+      },
+      {
+        id: "fintech-mobile",
+        category: "mobile-experience",
+        title: "Money-task clarity on mobile",
+        description: "The offer, proof, and action path should survive small screens without losing confidence.",
+        whyItMatters: "Decision-makers often first encounter financial products on mobile before returning on desktop.",
+        signals: ["Condensed clarity", "Scannable proof", "Mobile-safe CTA framing"],
+      },
+      {
+        id: "fintech-seo",
+        category: "seo-readiness",
+        title: "Intent and product discoverability",
+        description: "The information architecture should support category, use case, and comparison intent.",
+        whyItMatters: "Fintech evaluation starts with specific, high-intent search behavior.",
+        signals: ["Intent-based pages", "Clear product taxonomy", "Search-visible supporting content"],
+      },
+      {
+        id: "fintech-accessibility",
+        category: "accessibility",
+        title: "Readable high-stakes usability",
+        description: "Dense financial ideas should remain readable, navigable, and low-friction.",
+        whyItMatters: "High-stakes product decisions break down fast when comprehension does.",
+        signals: ["Readable contrast", "Strong semantic structure", "Predictable interaction patterns"],
+      },
+      {
+        id: "fintech-trust",
+        category: "trust-credibility",
+        title: "Operational proof and reassurance",
+        description: "Security, compliance, customer proof, and product maturity should feel visible without becoming theater.",
+        whyItMatters: "Trust needs to be earned before the product asks for account, card, or cashflow access.",
+        signals: ["Customer proof", "Compliance and security cues", "Clear signs of product maturity"],
+      },
+      {
+        id: "fintech-security",
+        category: "security-posture",
+        title: "Visible security maturity",
+        description: "The site should show current hardening and stable operational care.",
+        whyItMatters: "Fintech credibility drops immediately when the surface feels stale or technically rough.",
+        signals: ["HTTPS and modern headers", "Current trust infrastructure", "No stale or risky surface signals"],
+      },
+    ],
+  },
 };
 
 const benchmarkSites: BenchmarkSite[] = [
@@ -723,6 +793,102 @@ const benchmarkSites: BenchmarkSite[] = [
     ],
     curatedWeight: 0.97,
   },
+  {
+    id: "site-mercury",
+    vertical: "fintech",
+    tier: "flagship",
+    name: "Mercury",
+    url: "https://mercury.com",
+    sourceLabel: "Fintech benchmark",
+    note: "Clear positioning, product confidence, and trust cues that stay calm under dense financial detail.",
+    desktopPreviewImage: createWebsiteScreenshotUrl("https://mercury.com", "desktop"),
+    mobilePreviewImage: createWebsiteScreenshotUrl("https://mercury.com", "mobile"),
+    strengths: ["visual-design", "ux-conversion", "trust-credibility"],
+    whatWorks: [
+      "The core use case is obvious quickly instead of hiding behind broad finance language.",
+      "Proof, product framing, and trust cues stay balanced without overloading the first read.",
+      "The page feels premium because the system is controlled, not because it is louder.",
+    ],
+    bestFor: "Fintech products that need stronger first-screen clarity and a calmer trust layer.",
+    reusablePatterns: [
+      "Lead with the financial job to be done, not abstract category copy.",
+      "Keep proof and product visuals close to the CTA path.",
+      "Use restraint to make operational maturity feel credible.",
+    ],
+    curatedWeight: 1.08,
+  },
+  {
+    id: "site-ramp",
+    vertical: "fintech",
+    tier: "reference",
+    name: "Ramp",
+    url: "https://ramp.com",
+    sourceLabel: "Fintech benchmark",
+    note: "A strong bar for proof density, product storytelling, and confident enterprise-finance pacing.",
+    desktopPreviewImage: createWebsiteScreenshotUrl("https://ramp.com", "desktop"),
+    mobilePreviewImage: createWebsiteScreenshotUrl("https://ramp.com", "mobile"),
+    strengths: ["ux-conversion", "trust-credibility", "seo-readiness"],
+    whatWorks: [
+      "The story moves from claim to product proof without losing momentum.",
+      "Logos, evidence, and detail support the pitch instead of suffocating it.",
+      "The supporting architecture makes category and use-case discovery easier.",
+    ],
+    bestFor: "B2B fintech teams that need more proof density without turning the page into clutter.",
+    reusablePatterns: [
+      "Let proof modules carry part of the persuasion instead of only supporting copy.",
+      "Use modular sections to organize dense product detail.",
+      "Keep enterprise reassurance close to decision moments.",
+    ],
+    curatedWeight: 1.04,
+  },
+  {
+    id: "site-brex",
+    vertical: "fintech",
+    tier: "specialist",
+    name: "Brex",
+    url: "https://www.brex.com",
+    sourceLabel: "Fintech benchmark",
+    note: "A useful benchmark for enterprise confidence, platform breadth, and clear financial-product framing.",
+    desktopPreviewImage: createWebsiteScreenshotUrl("https://www.brex.com", "desktop"),
+    mobilePreviewImage: createWebsiteScreenshotUrl("https://www.brex.com", "mobile"),
+    strengths: ["visual-design", "trust-credibility", "mobile-experience"],
+    whatWorks: [
+      "The page looks capable quickly, which matters in high-trust product categories.",
+      "Complex platform breadth is broken into clearer sections instead of one dense slab.",
+      "The mobile experience still keeps the story intact instead of collapsing into noise.",
+    ],
+    bestFor: "Fintech brands that need a more capable enterprise-first presentation.",
+    reusablePatterns: [
+      "Use stronger content grouping when the platform covers multiple jobs.",
+      "Treat trust cues as part of layout, not only as legal copy.",
+      "Keep mobile pacing deliberate even on broad product narratives.",
+    ],
+    curatedWeight: 1,
+  },
+  {
+    id: "site-wise",
+    vertical: "fintech",
+    tier: "specialist",
+    name: "Wise",
+    url: "https://wise.com",
+    sourceLabel: "Fintech benchmark",
+    note: "A strong bar for consumer clarity, practical reassurance, and direct financial-use-case explanation.",
+    desktopPreviewImage: createWebsiteScreenshotUrl("https://wise.com", "desktop"),
+    mobilePreviewImage: createWebsiteScreenshotUrl("https://wise.com", "mobile"),
+    strengths: ["ux-conversion", "mobile-experience", "accessibility"],
+    whatWorks: [
+      "The value proposition is immediately understandable without requiring insider knowledge.",
+      "Practical trust and product detail show up before the visitor needs to commit.",
+      "The smaller-screen experience preserves clarity instead of shrinking everything equally.",
+    ],
+    bestFor: "Fintech products that need cleaner consumer-facing clarity and more practical reassurance.",
+    reusablePatterns: [
+      "Translate financial complexity into direct, plain-language outcomes.",
+      "Use utility-focused structure to support conversion.",
+      "Make mobile read like a designed flow, not a compressed desktop page.",
+    ],
+    curatedWeight: 1.01,
+  },
 ];
 
 const patternNotes: Record<BenchmarkVertical, DesignPatternNote[]> = {
@@ -823,6 +989,47 @@ const patternNotes: Record<BenchmarkVertical, DesignPatternNote[]> = {
       applicability: "Best for product pages, benchmark storytelling, and high-density landing surfaces.",
     },
   ],
+  fintech: [
+    {
+      id: "note-fintech-grid",
+      title: "Financial interfaces need stable layout rhythm",
+      source: "Fintech interface study",
+      category: "grid",
+      summary: "Fintech pages feel safer when the layout is stable, modular, and easy to predict as the story gets denser.",
+      takeaways: [
+        "Use modular section rhythm to keep complexity readable.",
+        "Group proof, compliance, and product detail into deliberate clusters.",
+        "Avoid novelty layouts that make financial information feel less stable.",
+      ],
+      applicability: "Best for fintech homepages, product-overview pages, and trust-heavy comparison surfaces.",
+    },
+    {
+      id: "note-fintech-color",
+      title: "Trust color should stay precise, not theatrical",
+      source: "Color systems review",
+      category: "color",
+      summary: "Fintech UIs work best when color supports confidence and state clarity instead of trying to manufacture excitement.",
+      takeaways: [
+        "Reserve vivid color for emphasis, state, and action.",
+        "Use a restrained neutral system so product visuals carry more weight.",
+        "Avoid over-signaling security through loud or overly literal visual treatment.",
+      ],
+      applicability: "Best for payment, banking, and finance products that need a premium trust layer.",
+    },
+    {
+      id: "note-fintech-icons",
+      title: "Iconography should clarify systems, not decorate them",
+      source: "Product systems review",
+      category: "iconography",
+      summary: "The strongest fintech sites use icons to explain tasks, flows, and product states rather than to fill empty space.",
+      takeaways: [
+        "Keep one coherent icon language across the page.",
+        "Use icons where they remove explanation from dense product blocks.",
+        "Let typography and spacing do most of the premium work.",
+      ],
+      applicability: "Best for dense product storytelling, benchmark docs, and conversion-heavy product marketing.",
+    },
+  ],
 };
 
 export function getPrimaryBenchmarkVerticals() {
@@ -878,7 +1085,13 @@ export function getBenchmarkVerticalForProfile(
 export function buildBenchmarkReferencesForProfile(
   profile: ReportProfileType,
 ): BenchmarkReference[] {
-  return getBenchmarkSites(getBenchmarkVerticalForProfile(profile)).map((site) => ({
+  return buildBenchmarkReferencesForVertical(getBenchmarkVerticalForProfile(profile));
+}
+
+export function buildBenchmarkReferencesForVertical(
+  vertical: BenchmarkVertical,
+): BenchmarkReference[] {
+  return getBenchmarkSites(vertical).map((site) => ({
     id: site.id,
     siteId: site.id,
     vertical: site.vertical,

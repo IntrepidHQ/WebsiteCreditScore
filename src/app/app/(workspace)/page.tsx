@@ -1,41 +1,181 @@
 import Link from "next/link";
-import { ArrowRight, BellDot, CircleCheckBig, FolderKanban, Send, ArrowUpRight } from "lucide-react";
+import {
+  ArrowRight,
+  ArrowUpRight,
+  BellDot,
+  ClipboardList,
+  Coins,
+  FolderKanban,
+  Globe2,
+  MailPlus,
+  ScanSearch,
+  Sparkles,
+} from "lucide-react";
 
 import { createLeadAction, completeReminderAction } from "@/app/app/actions";
+import { ScoreBreakdownBars } from "@/components/common/score-breakdown-bars";
+import { ScoreDial } from "@/components/common/score-dial";
+import { PreviewImage } from "@/components/common/preview-image";
+import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
-import { Button } from "@/components/ui/button";
 import { LeadStageBadge } from "@/features/app/components/lead-stage-badge";
-import { LeadOverviewCard } from "@/features/app/components/lead-overview-card";
 import { ScanHistorySection } from "@/features/app/components/scan-history-section";
+import { WorkspaceTokenLinkButton } from "@/features/app/components/workspace-token-link-button";
 import { getWorkspaceAppContext } from "@/lib/product/context";
+import type { LeadRecord, SavedReport } from "@/lib/types/product";
 
-export default async function AppDashboardPage() {
+function formatTimestamp(input: string) {
+  return new Intl.DateTimeFormat("en-US", {
+    month: "short",
+    day: "numeric",
+    year: "numeric",
+  }).format(new Date(input));
+}
+
+function buildMailtoHref(subject: string, body: string) {
+  return `mailto:?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+}
+
+function SearchRow({
+  savedReport,
+  lead,
+}: {
+  savedReport: SavedReport;
+  lead?: LeadRecord;
+}) {
+  const report = savedReport.reportSnapshot;
+  const auditHref = `/audit/${report.id}?url=${encodeURIComponent(report.normalizedUrl)}`;
+  const leadHref = `/app/leads/${savedReport.leadId}`;
+  const domain = savedReport.normalizedUrl.replace(/^https?:\/\//, "");
+
+  return (
+    <div className="rounded-[18px] border border-border/60 bg-background-alt/60 p-3 sm:p-4">
+      <div className="grid gap-4 md:grid-cols-[8.5rem_minmax(0,1fr)_auto] md:items-center">
+        <Link className="block overflow-hidden rounded-[14px]" href={auditHref}>
+          <PreviewImage
+            alt={`${savedReport.title} preview`}
+            className="aspect-[16/11]"
+            fallbackLabel="Preview unavailable"
+            fallbackSrc={report.previewSet.fallbackCurrent.desktop}
+            loadingLabel="Capturing desktop screenshot"
+            src={report.previewSet.current.desktop}
+          />
+        </Link>
+
+        <div className="min-w-0 space-y-2">
+          <div className="flex flex-wrap items-center gap-2">
+            {lead ? <LeadStageBadge stage={lead.stage} /> : null}
+            <span className="rounded-full border border-accent/25 bg-accent/10 px-2.5 py-1 text-[11px] font-semibold uppercase tracking-[0.16em] text-accent">
+              {report.overallScore.toFixed(1)}
+            </span>
+          </div>
+          <div className="space-y-1">
+            <h3 className="font-display text-[clamp(2rem,1.7rem+0.45vw,2.6rem)] leading-[0.92] tracking-[-0.04em] text-foreground">
+              <Link className="transition hover:text-accent" href={auditHref}>
+                {savedReport.title}
+              </Link>
+            </h3>
+            <p className="line-clamp-2 text-sm leading-6 text-muted">{report.executiveSummary}</p>
+          </div>
+          <div className="flex flex-wrap items-center gap-x-4 gap-y-2 text-[11px] font-semibold uppercase tracking-[0.16em] text-muted">
+            <span className="inline-flex items-center gap-2">
+              <Globe2 className="size-3.5" />
+              {domain}
+            </span>
+            <span>Scored {formatTimestamp(savedReport.createdAt)}</span>
+          </div>
+        </div>
+
+        <div className="flex flex-wrap items-center gap-2 md:justify-end">
+          <Button asChild size="sm" variant="secondary">
+            <Link href={leadHref}>
+              Lead
+              <ClipboardList className="size-4" />
+            </Link>
+          </Button>
+          <Button asChild size="sm" variant="outline">
+            <Link href={auditHref}>
+              Audit
+              <ArrowUpRight className="size-4" />
+            </Link>
+          </Button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+export default async function AppDashboardPage({
+  searchParams,
+}: {
+  searchParams?: Promise<Record<string, string | string[] | undefined>>;
+}) {
+  const resolvedSearchParams = (await searchParams) ?? {};
+  const error =
+    typeof resolvedSearchParams.error === "string" ? resolvedSearchParams.error : null;
   const { repository, session, workspace } = await getWorkspaceAppContext();
   const dashboard = await repository.getDashboard(workspace.id, session);
+  const workspaceState = dashboard.workspace;
   const visibleLeads = dashboard.leads.filter((lead) => lead.title !== "Provider Pages");
   const visibleSavedReports = dashboard.savedReports.filter(
     (savedReport) => savedReport.title !== "Provider Pages",
   );
-  const wonCount = visibleLeads.filter((lead) => lead.stage === "won").length;
-  const openReminderCount = dashboard.reminders.filter((reminder) => reminder.status === "open").length;
-  const packetReadyCount = visibleLeads.filter(
-    (lead) => lead.stage === "audit-ready" || lead.stage === "packet-sent",
+  const latestSavedReport = visibleSavedReports[0];
+  const latestLead = latestSavedReport
+    ? visibleLeads.find((lead) => lead.id === latestSavedReport.leadId)
+    : undefined;
+  const latestReport = latestSavedReport?.reportSnapshot;
+  const lowScoreCount = visibleSavedReports.filter(
+    (savedReport) => savedReport.reportSnapshot.overallScore < 6.5,
   ).length;
+  const openReminderCount = dashboard.reminders.filter((reminder) => reminder.status === "open").length;
+  const averageScore = visibleSavedReports.length
+    ? Number(
+        (
+          visibleSavedReports.reduce(
+            (sum, savedReport) => sum + savedReport.reportSnapshot.overallScore,
+            0,
+          ) / visibleSavedReports.length
+        ).toFixed(1),
+      )
+    : 0;
+  const latestAuditHref = latestReport
+    ? `/audit/${latestReport.id}?url=${encodeURIComponent(latestReport.normalizedUrl)}`
+    : undefined;
+  const latestPacketHref = latestReport
+    ? `/packet/${latestReport.id}?url=${encodeURIComponent(latestReport.normalizedUrl)}`
+    : undefined;
+  const latestPacketPdfHref = latestReport
+    ? `${latestPacketHref}&print=1`
+    : undefined;
+  const emailHref = latestReport
+    ? buildMailtoHref(latestReport.outreachEmail.subject, latestReport.outreachEmail.body)
+    : undefined;
+  const emailPreview = latestReport
+    ? latestReport.outreachEmail.body
+        .split("\n")
+        .map((line) => line.trim())
+        .filter(Boolean)
+        .slice(0, 3)
+    : [];
 
   return (
     <div className="grid gap-6">
-      <section className="grid gap-4 lg:grid-cols-[minmax(0,1.1fr)_24rem]">
+      <section className="grid gap-5 xl:grid-cols-[minmax(0,1.02fr)_minmax(23rem,0.98fr)]">
         <Card id="new-lead">
-          <CardHeader className="pb-2">
-            <p className="text-xs uppercase tracking-[0.24em] text-accent">Create and save</p>
-            <CardTitle className="text-[clamp(4.2rem,3.4rem+1vw,5.8rem)] leading-[0.92]">
-              Turn a live site into a saved lead
+          <CardHeader className="pb-3">
+            <div className="flex items-center gap-2 text-accent">
+              <ScanSearch className="size-4" />
+              <p className="text-xs uppercase tracking-[0.24em] text-accent">Run a new search</p>
+            </div>
+            <CardTitle className="text-[clamp(4rem,3.15rem+1.1vw,5.5rem)] leading-[0.92]">
+              Turn any live site into a score reveal worth sending.
             </CardTitle>
           </CardHeader>
-          <CardContent className="space-y-4">
+          <CardContent className="space-y-5">
             <p className="max-w-3xl text-sm leading-7 text-muted">
-              Generate the audit, preserve the report snapshot, seed the packet and brief share links, and drop the opportunity straight into the pipeline.
+              Save the audit, capture the opportunity, and move straight into the outreach packet and brief. Each new live scan uses a token, so the dashboard keeps the score reveal and the remaining balance in the same place.
             </p>
             <form action={createLeadAction} className="flex flex-col gap-3 sm:flex-row">
               <Input
@@ -50,123 +190,277 @@ export default async function AppDashboardPage() {
                 <ArrowRight className="size-4" />
               </Button>
             </form>
-          </CardContent>
-        </Card>
+            {error === "insufficient-tokens" ? (
+              <div className="rounded-[18px] border border-danger/25 bg-danger/10 px-4 py-3 text-sm leading-6 text-foreground">
+                This workspace is out of tokens. Add more on pricing before running another live scan.
+              </div>
+            ) : null}
+            <div className="flex flex-wrap gap-2">
+              <Button asChild size="sm" variant="secondary">
+                <Link href="/pricing">
+                  Manage pricing
+                  <ArrowUpRight className="size-4" />
+                </Link>
+              </Button>
+            </div>
 
-        <div className="grid gap-4 sm:grid-cols-3 lg:grid-cols-1">
-          {[
-            {
-              icon: FolderKanban,
-              label: "Saved leads",
-                  value: visibleLeads.length,
-              detail: "Audits now tied to real opportunities",
-            },
-            {
-              icon: BellDot,
-              label: "Follow-ups due",
-              value: openReminderCount,
-              detail: "Open reminders waiting on outreach",
-            },
-            {
-              icon: CircleCheckBig,
-              label: "Won or approved",
-              value: wonCount,
-              detail: "Discovery or delivery moving forward",
-            },
-          ].map((item) => (
-            <Card key={item.label}>
-              <CardContent className="flex items-start gap-3">
-                <div className="rounded-[8px] border border-accent/30 bg-accent/10 p-2 text-accent">
-                  <item.icon className="size-4" />
-                </div>
-                <div>
-                  <p className="text-xs uppercase tracking-[0.18em] text-muted">{item.label}</p>
-                  <p className="mt-2 font-display text-4xl font-semibold text-foreground">
+            <div className="grid gap-3 lg:grid-cols-4">
+              {[
+                {
+                  icon: FolderKanban,
+                  label: "Saved searches",
+                  value: visibleSavedReports.length,
+                  detail: "Every scored site in this workspace.",
+                },
+                {
+                  icon: Sparkles,
+                  label: "Big opportunities",
+                  value: lowScoreCount,
+                  detail: "Searches still under 6.5 overall.",
+                },
+                {
+                  icon: Coins,
+                  label: "Tokens available",
+                  value: workspaceState.tokenBalance,
+                  detail: "Enough balance for the next live scan or export.",
+                },
+                {
+                  icon: BellDot,
+                  label: "Follow-ups due",
+                  value: openReminderCount,
+                  detail: "Reminders waiting on you.",
+                },
+              ].map((item) => (
+                <div
+                  className="rounded-[18px] border border-border/60 bg-background-alt/60 p-4"
+                  key={item.label}
+                >
+                  <div className="flex items-center gap-2 text-accent">
+                    <item.icon className="size-4" />
+                    <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-muted">
+                      {item.label}
+                    </p>
+                  </div>
+                  <p className="mt-3 font-display text-[2.8rem] leading-[0.9] tracking-[-0.05em] text-foreground">
                     {item.value}
                   </p>
-                  <p className="mt-2 text-sm text-muted">{item.detail}</p>
+                  <p className="mt-2 text-sm leading-6 text-muted">{item.detail}</p>
                 </div>
-              </CardContent>
-            </Card>
-          ))}
-        </div>
-      </section>
-
-      <section className="grid gap-6 xl:grid-cols-[minmax(0,1.25fr)_minmax(0,0.75fr)]">
-        <Card>
-          <CardHeader className="flex-row items-start justify-between gap-4 space-y-0 pb-2">
-            <div>
-              <p className="text-xs uppercase tracking-[0.24em] text-muted">Pipeline</p>
-              <CardTitle className="mt-2 text-[clamp(3.4rem,2.8rem+1.1vw,4.8rem)] leading-[0.92]">
-                Recent leads
-              </CardTitle>
+              ))}
             </div>
-            <div className="rounded-[10px] border border-border/70 bg-background-alt/70 px-3 py-2 text-sm text-muted">
-              {packetReadyCount} ready to send
-            </div>
-          </CardHeader>
-          <CardContent className="grid gap-3">
-          {visibleLeads.slice(0, 5).map((lead) => (
-            <LeadOverviewCard
-              actions={
-                <>
-                  <LeadStageBadge stage={lead.stage} />
-                  <Button asChild aria-label={`Open ${lead.title}`} size="icon" variant="outline">
-                    <Link href={`/app/leads/${lead.id}`}>
-                      <ArrowUpRight className="size-4" />
-                    </Link>
-                  </Button>
-                </>
-              }
-              currentScore={lead.currentScore}
-              fallbackImage="/previews/fallback-desktop.svg"
-              previewAlt={`${lead.title} preview`}
-              previewImage={lead.previewImage ?? "/previews/fallback-desktop.svg"}
-              projectedScore={lead.projectedScore}
-              scoreLabel="Current score"
-              scoreValueClassName="text-[2rem] sm:text-[2.15rem]"
-              summary={lead.summary}
-              title={lead.title}
-              key={lead.id}
-            />
-            ))}
           </CardContent>
         </Card>
 
+        <Card className="overflow-hidden">
+          <CardHeader className="pb-4">
+            <div className="flex items-center gap-2 text-accent">
+              <Sparkles className="size-4" />
+              <p className="text-xs uppercase tracking-[0.24em] text-muted">Latest score reveal</p>
+            </div>
+            <CardTitle className="mt-2 text-[clamp(3rem,2.45rem+0.8vw,4rem)] leading-[0.92]">
+              {latestSavedReport ? latestSavedReport.title : "No saved searches yet"}
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-5 pt-0">
+            {latestReport ? (
+              <>
+                <div className="grid gap-5 lg:grid-cols-[15rem_minmax(0,1fr)]">
+                  <ScoreDial
+                    className="h-full"
+                    label="Site score"
+                    projectedScore={latestLead?.projectedScore}
+                    score={latestReport.overallScore}
+                  />
+                  <div className="space-y-3 rounded-[22px] border border-border/60 bg-background-alt/60 p-4">
+                    <div className="flex flex-wrap items-center gap-2">
+                      {latestLead ? <LeadStageBadge stage={latestLead.stage} /> : null}
+                      <span className="rounded-full border border-border/60 bg-panel/60 px-2.5 py-1 text-[11px] font-semibold uppercase tracking-[0.16em] text-muted">
+                        Average {averageScore.toFixed(1)}
+                      </span>
+                    </div>
+                    <p className="text-base leading-7 text-foreground">
+                      {latestReport.executiveSummary}
+                    </p>
+                    <div className="flex flex-wrap gap-2">
+                      {latestAuditHref ? (
+                        <Button asChild size="sm" variant="secondary">
+                          <Link href={latestAuditHref}>
+                            Open audit
+                            <ArrowUpRight className="size-4" />
+                          </Link>
+                        </Button>
+                      ) : null}
+                      {latestPacketHref ? (
+                        <Button asChild size="sm" variant="outline">
+                          <Link href={latestPacketHref}>
+                            Open packet
+                            <ArrowUpRight className="size-4" />
+                          </Link>
+                        </Button>
+                      ) : null}
+                    </div>
+                  </div>
+                </div>
+                <ScoreBreakdownBars items={latestReport.categoryScores} showWeights />
+              </>
+            ) : (
+              <div className="rounded-[20px] border border-border/60 bg-background-alt/60 p-5 text-sm leading-7 text-muted">
+                Run the first search and the latest score reveal will show up here with the score, breakdown, and next-step links.
+              </div>
+            )}
+          </CardContent>
+        </Card>
+      </section>
+
+      <section className="grid gap-6 xl:grid-cols-[minmax(0,1.1fr)_minmax(0,0.9fr)]">
         <Card>
-          <CardHeader className="pb-2">
-            <p className="text-xs uppercase tracking-[0.24em] text-muted">Reminders</p>
-            <CardTitle className="mt-2 text-[clamp(3.1rem,2.6rem+0.9vw,4.4rem)] leading-[0.92]">
-              What needs follow-up
+          <CardHeader className="pb-3">
+            <div className="flex items-center gap-2 text-accent">
+              <FolderKanban className="size-4" />
+              <p className="text-xs uppercase tracking-[0.24em] text-muted">Recent searches</p>
+            </div>
+            <CardTitle className="mt-2 text-[clamp(3.2rem,2.55rem+0.95vw,4.3rem)] leading-[0.92]">
+              Your latest scored sites
             </CardTitle>
           </CardHeader>
           <CardContent className="grid gap-3">
-            {dashboard.reminders.slice(0, 4).map((reminder) => (
-              <div
-                className="rounded-[10px] border border-border/70 bg-background-alt/60 p-4"
-                key={reminder.id}
-              >
-                <div className="flex items-start justify-between gap-3">
-                  <div>
-                    <p className="font-semibold text-foreground">{reminder.title}</p>
-                    <p className="mt-2 text-sm leading-6 text-muted">{reminder.detail}</p>
-                    <p className="mt-3 text-xs uppercase tracking-[0.18em] text-muted">
-                      Due {new Date(reminder.dueAt).toLocaleDateString()}
-                    </p>
-                  </div>
-                  <form action={completeReminderAction}>
-                    <input name="reminderId" type="hidden" value={reminder.id} />
-                    <input name="returnTo" type="hidden" value="/app" />
-                    <Button size="sm" type="submit" variant="ghost">
-                      <Send className="size-4" />
-                      Done
-                    </Button>
-                  </form>
-                </div>
-              </div>
+            {visibleSavedReports.slice(0, 4).map((savedReport) => (
+              <SearchRow
+                key={savedReport.id}
+                lead={visibleLeads.find((lead) => lead.id === savedReport.leadId)}
+                savedReport={savedReport}
+              />
             ))}
           </CardContent>
         </Card>
+
+        <div className="grid gap-6">
+          <Card>
+            <CardHeader className="pb-3">
+              <div className="flex items-center gap-2 text-accent">
+                <MailPlus className="size-4" />
+                <p className="text-xs uppercase tracking-[0.24em] text-muted">Outreach draft</p>
+              </div>
+              <CardTitle className="mt-2 text-[clamp(3rem,2.45rem+0.8vw,4rem)] leading-[0.92]">
+                Lead with the score, then frame the upside
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4 pt-0">
+              {latestReport ? (
+                <>
+                  <div className="rounded-[18px] border border-border/60 bg-background-alt/60 p-4">
+                    <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-muted">
+                      Subject
+                    </p>
+                    <p className="mt-2 text-sm font-semibold text-foreground">
+                      {latestReport.outreachEmail.subject}
+                    </p>
+                    <p className="mt-3 text-sm leading-6 text-muted">
+                      {latestReport.outreachEmail.previewLine}
+                    </p>
+                  </div>
+
+                  <div className="rounded-[18px] border border-border/60 bg-panel/55 p-4">
+                    <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-muted">
+                      Opening lines
+                    </p>
+                    <div className="mt-3 space-y-2">
+                      {emailPreview.map((line) => (
+                        <p className="text-sm leading-6 text-foreground" key={line}>
+                          {line}
+                        </p>
+                      ))}
+                    </div>
+                  </div>
+
+                  <div className="flex flex-wrap gap-2">
+                    {emailHref ? (
+                      <WorkspaceTokenLinkButton
+                        actionId="outreach-draft"
+                        actionKey={`lead:${latestSavedReport?.leadId ?? latestReport.id}:outreach`}
+                        href={emailHref}
+                        iconName="mail-plus"
+                        label="Outreach draft"
+                      >
+                        Draft email
+                      </WorkspaceTokenLinkButton>
+                    ) : null}
+                    {latestPacketHref ? (
+                      <Button asChild variant="secondary">
+                        <Link href={latestPacketHref}>
+                          Open packet
+                          <ArrowUpRight className="size-4" />
+                        </Link>
+                      </Button>
+                    ) : null}
+                    {latestPacketPdfHref ? (
+                      <WorkspaceTokenLinkButton
+                        actionId="packet-export"
+                        actionKey={`lead:${latestSavedReport?.leadId ?? latestReport.id}:packet`}
+                        href={latestPacketPdfHref}
+                        iconName="arrow-up-right"
+                        label="Packet PDF export"
+                        newTab
+                        variant="outline"
+                      >
+                        Export PDF
+                      </WorkspaceTokenLinkButton>
+                    ) : null}
+                    {latestAuditHref ? (
+                      <Button asChild variant="outline">
+                        <Link href={latestAuditHref}>
+                          Review audit
+                          <ArrowUpRight className="size-4" />
+                        </Link>
+                      </Button>
+                    ) : null}
+                  </div>
+                </>
+              ) : (
+                <p className="text-sm leading-7 text-muted">
+                  Save a search first and the outreach draft will be generated here automatically.
+                </p>
+              )}
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader className="pb-3">
+              <div className="flex items-center gap-2 text-accent">
+                <BellDot className="size-4" />
+                <p className="text-xs uppercase tracking-[0.24em] text-muted">Reminders</p>
+              </div>
+              <CardTitle className="mt-2 text-[clamp(2.8rem,2.3rem+0.7vw,3.7rem)] leading-[0.92]">
+                What still needs a nudge
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="grid gap-3 pt-0">
+              {dashboard.reminders.slice(0, 4).map((reminder) => (
+                <div
+                  className="rounded-[18px] border border-border/60 bg-background-alt/60 p-4"
+                  key={reminder.id}
+                >
+                  <div className="flex items-start justify-between gap-3">
+                    <div>
+                      <p className="font-semibold text-foreground">{reminder.title}</p>
+                      <p className="mt-2 text-sm leading-6 text-muted">{reminder.detail}</p>
+                      <p className="mt-3 text-[11px] font-semibold uppercase tracking-[0.16em] text-muted">
+                        Due {new Date(reminder.dueAt).toLocaleDateString()}
+                      </p>
+                    </div>
+                    <form action={completeReminderAction}>
+                      <input name="reminderId" type="hidden" value={reminder.id} />
+                      <input name="returnTo" type="hidden" value="/app" />
+                      <Button size="sm" type="submit" variant="ghost">
+                        Done
+                      </Button>
+                    </form>
+                  </div>
+                </div>
+              ))}
+            </CardContent>
+          </Card>
+        </div>
       </section>
 
       <ScanHistorySection leads={visibleLeads} savedReports={visibleSavedReports} />

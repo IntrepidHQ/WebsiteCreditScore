@@ -3,6 +3,7 @@ import { ArrowRight, ClipboardList, FileText, ScanSearch } from "lucide-react";
 
 import { ScoreBreakdownBars } from "@/components/common/score-breakdown-bars";
 import { ScoreDial } from "@/components/common/score-dial";
+import { ScoreRadar } from "@/components/common/score-radar";
 import { SectionHeading } from "@/components/common/section-heading";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -45,36 +46,42 @@ export function LandingWorkflowSection({
           title="Find the weak spots, frame the opportunity, and move into scope faster"
         />
 
-        <div className="grid gap-5 xl:grid-cols-[minmax(0,0.82fr)_minmax(0,1.18fr)]">
-          <div className="space-y-5 rounded-[28px] border border-border/60 bg-[linear-gradient(180deg,color-mix(in_srgb,var(--theme-panel)_88%,transparent),color-mix(in_srgb,var(--theme-background-alt)_96%,transparent))] p-6 sm:p-7">
-            <ScoreDial bandLabel="Benchmark-ready" label="Target range" score={8.9} />
-            <div className="grid gap-3">
-              {workflowSteps.map((item, index) => (
-                <div
-                  className="rounded-[22px] border border-border/60 bg-background/30 px-5 py-4"
-                  key={item.label}
-                >
-                  <div className="flex items-center gap-3">
-                    <div className="inline-flex size-11 items-center justify-center rounded-[14px] border border-accent/20 bg-accent/10 text-accent">
-                      <item.icon className="size-4" />
-                    </div>
-                    <div>
-                      <p className="text-[11px] font-semibold uppercase tracking-[0.24em] text-muted">
-                        0{index + 1}
-                      </p>
-                      <p className="text-base font-semibold text-foreground">{item.label}</p>
-                    </div>
-                  </div>
-                  <p className="mt-3 text-sm leading-6 text-muted">{item.detail}</p>
-                </div>
-              ))}
+        <div className="grid gap-5 xl:grid-cols-[minmax(0,0.84fr)_minmax(0,1.16fr)]">
+          <div className="space-y-5">
+            <div className="rounded-[28px] border border-border/60 bg-[linear-gradient(180deg,color-mix(in_srgb,var(--theme-panel)_88%,transparent),color-mix(in_srgb,var(--theme-background-alt)_96%,transparent))] p-6 sm:p-7">
+              <ScoreRadar centerLabel="Current site" items={currentBreakdown} />
             </div>
-            <Button asChild variant="secondary">
-              <Link href="/benchmarks">
-                See the benchmark method
-                <ArrowRight className="size-4" />
-              </Link>
-            </Button>
+
+            <div className="space-y-5 rounded-[28px] border border-border/60 bg-[linear-gradient(180deg,color-mix(in_srgb,var(--theme-panel)_88%,transparent),color-mix(in_srgb,var(--theme-background-alt)_96%,transparent))] p-6 sm:p-7">
+              <ScoreDial bandLabel="Benchmark-ready" label="Target range" score={8.9} />
+              <div className="grid gap-3">
+                {workflowSteps.map((item, index) => (
+                  <div
+                    className="rounded-[22px] border border-border/60 bg-background/30 px-5 py-4"
+                    key={item.label}
+                  >
+                    <div className="flex items-center gap-3">
+                      <div className="inline-flex size-11 items-center justify-center rounded-[14px] border border-accent/20 bg-accent/10 text-accent">
+                        <item.icon className="size-4" />
+                      </div>
+                      <div>
+                        <p className="text-[11px] font-semibold uppercase tracking-[0.24em] text-muted">
+                          0{index + 1}
+                        </p>
+                        <p className="text-base font-semibold text-foreground">{item.label}</p>
+                      </div>
+                    </div>
+                    <p className="mt-3 text-sm leading-6 text-muted">{item.detail}</p>
+                  </div>
+                ))}
+              </div>
+              <Button asChild variant="secondary">
+                <Link href="/benchmarks">
+                  See the benchmark method
+                  <ArrowRight className="size-4" />
+                </Link>
+              </Button>
+            </div>
           </div>
 
           <div className="space-y-5 rounded-[28px] border border-border/60 bg-[linear-gradient(180deg,color-mix(in_srgb,var(--theme-panel)_88%,transparent),color-mix(in_srgb,var(--theme-background-alt)_96%,transparent))] p-6 sm:p-7">

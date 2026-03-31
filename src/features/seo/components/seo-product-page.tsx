@@ -21,7 +21,8 @@ export function SeoProductPage({
   workspace: WorkspaceRecord;
   report: AuditReport | null;
 }) {
-  const accessGranted = workspace.billingStatus === "active";
+  const accessGranted =
+    workspace.billingPlan === "pro" || workspace.entitlements.includes("seo-benchmark");
   const seoCards = report ? buildSeoScoreCards(report) : [];
   const unlockBenefits = getSeoUnlockBenefits();
 
@@ -74,12 +75,12 @@ export function SeoProductPage({
                 <p className="text-xs uppercase tracking-[0.18em]">Locked preview</p>
               </div>
                 <p className="mt-3 text-[1.02rem] leading-[1.9rem] text-muted">
-                  The SEO product stays behind a paid gate until checkout is added. The design layer stays open so prospects can see the quality of the feedback before they upgrade.
+                  The deeper SEO layer is sold separately so the core score stays focused. Unlock it on pricing when you need search-specific scoring and lift notes.
                 </p>
                 <div className="mt-4 flex flex-wrap gap-2">
-                  <Badge variant="neutral">$20 access</Badge>
-                  <Badge variant="accent">Sign-in gated</Badge>
-                  <Badge variant="neutral">Full product unlock</Badge>
+                  <Badge variant="neutral">$20 unlock</Badge>
+                  <Badge variant="accent">Optional upgrade</Badge>
+                  <Badge variant="neutral">Workspace add-on</Badge>
                 </div>
               </div>
             )}
@@ -91,9 +92,9 @@ export function SeoProductPage({
                 </Link>
               </Button>
               <Button asChild>
-                <Link href="/app/settings">
+                <Link href="/pricing">
                   <BadgeDollarSign className="size-4" />
-                  Manage access
+                  View pricing
                 </Link>
               </Button>
             </div>

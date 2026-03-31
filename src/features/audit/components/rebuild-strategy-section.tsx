@@ -52,8 +52,12 @@ export function RebuildStrategySection({ report }: { report: AuditReport }) {
         </p>
         <div aria-label="Rebuild strategy phases" className="horizontal-rail" tabIndex={0}>
           {report.rebuildPhases.map((phase) => (
-            <Card data-phase-card key={phase.id} className="h-full min-w-[19rem] max-w-[23rem]">
-              <CardHeader className="space-y-2">
+            <Card
+              data-phase-card
+              key={phase.id}
+              className="flex h-full min-w-[19rem] max-w-[23rem] flex-col"
+            >
+              <CardHeader className="space-y-1.5 pb-4">
                 <div className="flex items-center justify-between gap-3">
                   <Badge variant="accent">{phase.timeline}</Badge>
                   <span className="text-xs uppercase tracking-[0.18em] text-muted">
@@ -64,9 +68,9 @@ export function RebuildStrategySection({ report }: { report: AuditReport }) {
                   {phase.title}
                 </CardTitle>
               </CardHeader>
-              <CardContent className="space-y-4">
-                <p className="text-sm leading-6 text-muted">{phase.summary}</p>
-                <div className="space-y-2">
+              <CardContent className="flex flex-1 flex-col gap-4 pt-0">
+                <p className="text-base leading-8 text-muted">{phase.summary}</p>
+                <div className="space-y-2.5">
                   {phase.deliverables.map((deliverable) => (
                     <div
                       className="rounded-[calc(var(--theme-radius)-6px)] border border-border/70 bg-background-alt/70 px-4 py-3 text-sm text-foreground"
@@ -76,7 +80,7 @@ export function RebuildStrategySection({ report }: { report: AuditReport }) {
                     </div>
                   ))}
                 </div>
-                <div className="rounded-[calc(var(--theme-radius)-2px)] border border-accent/20 bg-accent/8 p-4 text-sm leading-6 text-foreground">
+                <div className="mt-auto rounded-[calc(var(--theme-radius)-2px)] border border-accent/20 bg-accent/8 p-4 text-sm leading-6 text-foreground">
                   {phase.outcome}
                 </div>
               </CardContent>

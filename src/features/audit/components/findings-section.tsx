@@ -128,7 +128,7 @@ export function FindingsSection({
                 key={finding.id}
                 className="h-full min-w-[20rem] max-w-[25rem]"
               >
-                <CardHeader className="space-y-4">
+                <CardHeader className="space-y-4 p-6 pb-0 sm:p-7 sm:pb-0">
                   <div className="flex flex-wrap items-center gap-2">
                     <Badge variant={severityBadge(finding.severity)}>{finding.severity}</Badge>
                     <Badge variant="neutral">{finding.confidenceLevel}</Badge>
@@ -138,7 +138,7 @@ export function FindingsSection({
                     {finding.title}
                   </CardTitle>
                 </CardHeader>
-                <CardContent className="space-y-5">
+                <CardContent className="space-y-5 pt-4 sm:pt-4">
                   <p className="text-[1.08rem] leading-[1.95rem] text-muted">{finding.summary}</p>
                   <div className="rounded-[calc(var(--theme-radius)-2px)] border border-border/70 bg-background-alt/70 p-4">
                     <p className="text-xs font-semibold uppercase tracking-[0.12em] text-muted">

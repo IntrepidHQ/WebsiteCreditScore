@@ -77,26 +77,28 @@ export default async function LeadDetailPage({
                   <p>{detail.lead.normalizedUrl}</p>
                 </div>
               </div>
-              <form action={updateLeadStageAction} className="space-y-3">
-                <input name="leadId" type="hidden" value={detail.lead.id} />
-                <input name="returnTo" type="hidden" value={`/app/leads/${detail.lead.id}`} />
-                <label className="grid gap-2 text-sm font-semibold text-foreground">
-                  Stage
-                  <select
-                    className="h-11 rounded-[8px] border border-border/70 bg-panel/80 px-3 text-sm text-foreground"
-                    defaultValue={detail.lead.stage}
-                    name="stage"
-                  >
-                    {stageOptions.map((option) => (
-                      <option key={option} value={option}>
-                        {option.replace(/-/g, " ")}
-                      </option>
-                    ))}
-                  </select>
-                </label>
-                <Button className="w-full" type="submit" variant="secondary">
-                  Update stage
-                </Button>
+              <div className="space-y-3">
+                <form action={updateLeadStageAction} className="space-y-3">
+                  <input name="leadId" type="hidden" value={detail.lead.id} />
+                  <input name="returnTo" type="hidden" value={`/app/leads/${detail.lead.id}`} />
+                  <label className="grid gap-2 text-sm font-semibold text-foreground">
+                    Stage
+                    <select
+                      className="h-11 rounded-[8px] border border-border/70 bg-panel/80 px-3 text-sm text-foreground"
+                      defaultValue={detail.lead.stage}
+                      name="stage"
+                    >
+                      {stageOptions.map((option) => (
+                        <option key={option} value={option}>
+                          {option.replace(/-/g, " ")}
+                        </option>
+                      ))}
+                    </select>
+                  </label>
+                  <Button className="w-full" type="submit" variant="secondary">
+                    Update stage
+                  </Button>
+                </form>
                 <div className="flex justify-end">
                   <DeleteLeadButton
                     label={`Delete ${detail.lead.title}`}
@@ -104,7 +106,7 @@ export default async function LeadDetailPage({
                     returnTo="/app"
                   />
                 </div>
-              </form>
+              </div>
             </CardContent>
           </Card>
 

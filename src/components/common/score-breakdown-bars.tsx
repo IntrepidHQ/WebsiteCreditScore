@@ -63,7 +63,9 @@ export function ScoreBreakdownBars({
       },
     );
 
-    return () => animation.kill();
+    return () => {
+      animation.kill();
+    };
   }, [items, reduceMotion]);
 
   if (!items.length) {

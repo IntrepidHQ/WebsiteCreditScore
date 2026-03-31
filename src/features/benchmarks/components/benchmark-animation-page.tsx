@@ -47,8 +47,8 @@ export function BenchmarkAnimationPage() {
       </div>
 
       <div className="grid gap-5 xl:grid-cols-[minmax(0,1fr)_22rem]">
-        <Card>
-          <CardHeader className="space-y-3">
+        <section className="space-y-6 border-l border-accent/20 pl-4 sm:pl-5">
+          <div className="space-y-3">
             <div className="flex items-center gap-2 text-accent">
               <PlayCircle className="size-4" />
               <span className="text-xs uppercase tracking-[0.18em]">Animation score</span>
@@ -59,8 +59,8 @@ export function BenchmarkAnimationPage() {
             <p className="text-[1.05rem] leading-[1.9rem] text-muted">
               The benchmark score is designed to reward a few high-quality interactions instead of demanding constant movement. No motion is a zero. A calm, well-scoped system can still reach 10.
             </p>
-          </CardHeader>
-          <CardContent className="grid gap-3 md:grid-cols-2">
+          </div>
+          <div className="grid gap-3 md:grid-cols-2">
             <div className="rounded-[10px] border border-accent/25 bg-accent/8 p-4">
               <p className="text-xs uppercase tracking-[0.18em] text-muted">How the score works</p>
               <div className="mt-3 space-y-2 text-[1.02rem] leading-[1.9rem] text-foreground">
@@ -93,8 +93,8 @@ export function BenchmarkAnimationPage() {
                 Use transforms and opacity first. Keep motion short, consistent, and easy to disable.
               </p>
             </div>
-          </CardContent>
-        </Card>
+          </div>
+        </section>
 
         <Card className="h-fit">
           <CardHeader className="space-y-3">
@@ -123,26 +123,36 @@ export function BenchmarkAnimationPage() {
 
       <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
         {patterns.map((pattern) => (
-          <Card key={pattern.id}>
-            <CardHeader className="space-y-3">
-              <div className="flex flex-wrap items-center gap-2">
-                <Badge variant="accent">+{pattern.pointValue} points</Badge>
-                <Badge variant="neutral">{pattern.id.replace(/-/g, " ")}</Badge>
+          <article
+            className="rounded-[24px] border border-border/60 bg-[linear-gradient(180deg,color-mix(in_srgb,var(--theme-panel)_84%,transparent),color-mix(in_srgb,var(--theme-background-alt)_96%,transparent))] p-5"
+            key={pattern.id}
+          >
+            <div className="space-y-4">
+              <div className="flex flex-wrap items-center justify-between gap-3">
+                <div className="flex flex-wrap items-center gap-2">
+                  <Badge variant="accent">+{pattern.pointValue} points</Badge>
+                  <Badge variant="neutral">{pattern.id.replace(/-/g, " ")}</Badge>
+                </div>
+                <span className="text-[11px] font-semibold uppercase tracking-[0.18em] text-muted">
+                  Pattern
+                </span>
               </div>
-              <CardTitle className="text-2xl">{pattern.title}</CardTitle>
-              <p className="text-sm leading-6 text-muted">{pattern.summary}</p>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="rounded-[10px] border border-border/70 bg-background-alt/70 p-4">
+              <div className="space-y-2">
+                <h3 className="font-display text-[clamp(2.2rem,1.8rem+0.45vw,2.9rem)] leading-[0.94] tracking-[-0.04em] text-foreground">
+                  {pattern.title}
+                </h3>
+                <p className="text-sm leading-6 text-muted">{pattern.summary}</p>
+              </div>
+              <div className="rounded-[18px] border border-border/60 bg-background-alt/60 p-4">
                 <p className="text-xs uppercase tracking-[0.18em] text-muted">Example</p>
                 <p className="mt-2 text-sm leading-6 text-foreground">{pattern.example}</p>
               </div>
               <div className="grid gap-3 sm:grid-cols-2">
-                <div className="rounded-[10px] border border-border/70 bg-panel/55 p-4">
+                <div className="rounded-[18px] border border-border/60 bg-panel/45 p-4">
                   <p className="text-xs uppercase tracking-[0.18em] text-muted">Best practice</p>
                   <p className="mt-2 text-sm leading-6 text-foreground">{pattern.bestPractice}</p>
                 </div>
-                <div className="rounded-[10px] border border-border/70 bg-panel/55 p-4">
+                <div className="rounded-[18px] border border-border/60 bg-panel/45 p-4">
                   <p className="text-xs uppercase tracking-[0.18em] text-muted">Watch out for</p>
                   <p className="mt-2 text-sm leading-6 text-foreground">{pattern.caution}</p>
                 </div>
@@ -154,8 +164,8 @@ export function BenchmarkAnimationPage() {
                   </Badge>
                 ))}
               </div>
-            </CardContent>
-          </Card>
+            </div>
+          </article>
         ))}
       </div>
 

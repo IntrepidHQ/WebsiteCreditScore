@@ -24,6 +24,13 @@ export type ActivityType =
   | "share-opened";
 export type ReferralStatus = "pending" | "converted" | "credited";
 export type BillingStatus = "trial" | "active" | "past-due" | "manual";
+export type BillingPlan = "free" | "pro";
+export type WorkspaceEntitlement = "seo-benchmark" | "max-stealth";
+export type WorkspaceBalanceEntryType =
+  | "grant"
+  | "purchase"
+  | "spend"
+  | "referral";
 
 export interface ProposalOffer {
   id: string;
@@ -44,7 +51,10 @@ export interface WorkspaceRecord {
   createdAt: string;
   updatedAt: string;
   billingStatus: BillingStatus;
+  billingPlan: BillingPlan;
   creditBalance: number;
+  tokenBalance: number;
+  entitlements: WorkspaceEntitlement[];
   branding: AgencyBranding;
   savedTheme: ThemeTokens;
 }
@@ -135,6 +145,11 @@ export interface WorkspaceCreditEntry {
   workspaceId: string;
   amount: number;
   label: string;
+  type?: WorkspaceBalanceEntryType;
+  source?: "system" | "stripe" | "workspace" | "referral";
+  checkoutSessionId?: string;
+  actionId?: "scan-site" | "outreach-draft" | "packet-export" | "max-prompt";
+  actionKey?: string;
   createdAt: string;
 }
 

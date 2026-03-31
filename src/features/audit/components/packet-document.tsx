@@ -3,6 +3,10 @@ import Image from "next/image";
 import Link from "next/link";
 import { ArrowLeft } from "lucide-react";
 
+import {
+  scoreCategoryIcons,
+  scoreCategoryPalette,
+} from "@/components/common/score-category-meta";
 import { Button } from "@/components/ui/button";
 import { PacketToolbar } from "@/features/audit/components/packet-toolbar";
 import { applyProposalOffer } from "@/lib/utils/proposal-offers";
@@ -80,15 +84,36 @@ function PacketCategoryCard({ item }: { item: AuditCategoryScore }) {
       : tone === "warning"
         ? "text-[var(--packet-warning)]"
         : "text-[var(--packet-success)]";
+  const Icon = scoreCategoryIcons[item.key];
+  const color = scoreCategoryPalette[item.key];
 
   return (
-    <div className="print-avoid-break rounded-[6px] border border-border/70 bg-panel/72 px-3 py-2.5 text-foreground print:rounded-[4px] print:border-slate-200 print:bg-white print:text-slate-950">
-      <p className="text-sm font-semibold leading-5 text-foreground print:text-slate-700">
-        {item.label}
-      </p>
-      <p className={`mt-1.5 font-display text-2xl font-semibold leading-none ${toneClass}`}>
-        {item.score}
-      </p>
+    <div className="print-avoid-break rounded-[8px] border border-border/70 bg-panel/72 px-3 py-3 text-foreground print:rounded-[4px] print:border-slate-200 print:bg-white print:text-slate-950">
+      <div className="flex items-start justify-between gap-3">
+        <div className="flex items-start gap-2.5">
+          <span
+            className="inline-flex size-8 shrink-0 items-center justify-center rounded-[10px] border print:border-slate-200"
+            style={{
+              backgroundColor: `${color}16`,
+              borderColor: `${color}55`,
+              color,
+            }}
+          >
+            <Icon className="size-4" />
+          </span>
+          <div className="min-w-0">
+            <p className="text-sm font-semibold leading-5 text-foreground print:text-slate-700">
+              {item.label}
+            </p>
+            <p className="mt-1 text-[11px] uppercase tracking-[0.16em] text-muted print:text-slate-500">
+              Weight {item.weight.toFixed(2)}x
+            </p>
+          </div>
+        </div>
+        <p className={`font-display text-2xl font-semibold leading-none ${toneClass}`}>
+          {item.score}
+        </p>
+      </div>
     </div>
   );
 }

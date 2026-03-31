@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useMemo, useState } from "react";
+import { useMemo, useState, useTransition } from "react";
 import {
   ArrowRight,
   CheckCircle2,
@@ -15,6 +15,10 @@ import { SectionHeading } from "@/components/common/section-heading";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  consumeWorkspaceTokenAction,
+  WorkspaceTokenActionError,
+} from "@/lib/billing/client";
 import type { AuditReport } from "@/lib/types/audit";
 import { buildMaxPrompt } from "@/lib/max/prompt";
 
@@ -50,21 +54,53 @@ const providers: Array<{
   },
 ];
 
-export function MaxWorkflowPage({ report }: { report: AuditReport | null }) {
+export function MaxWorkflowPage({
+  availableTokens,
+  hasAccess,
+  report,
+}: {
+  availableTokens: number;
+  hasAccess: boolean;
+  report: AuditReport | null;
+}) {
   const prompt = useMemo(() => buildMaxPrompt(report), [report]);
-  const [unlocked, setUnlocked] = useState(false);
   const [copied, setCopied] = useState(false);
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const [isPending, startTransition] = useTransition();
   const [selectedProvider, setSelectedProvider] = useState<ProviderId>("lovable");
+  const [unlocked] = useState(hasAccess);
 
   async function copyPrompt() {
-    await navigator.clipboard.writeText(prompt);
-    setCopied(true);
-    window.setTimeout(() => setCopied(false), 1800);
-  }
+    if (!report) {
+      return;
+    }
 
-  async function enableMax() {
-    setUnlocked(true);
-    await copyPrompt();
+    startTransition(async () => {
+      setErrorMessage(null);
+
+      try {
+        await consumeWorkspaceTokenAction({
+          actionId: "max-prompt",
+          actionKey: `report:${report.id}:max`,
+          label: "MAX prompt",
+        });
+        await navigator.clipboard.writeText(prompt);
+        setCopied(true);
+        window.setTimeout(() => setCopied(false), 1800);
+      } catch (error) {
+        if (
+          error instanceof WorkspaceTokenActionError &&
+          error.redirectTo
+        ) {
+          window.location.href = error.redirectTo;
+          return;
+        }
+
+        setErrorMessage(
+          error instanceof Error ? error.message : "The prompt could not be copied.",
+        );
+      }
+    });
   }
 
   const selected = providers.find((provider) => provider.id === selectedProvider) ?? providers[2];
@@ -74,7 +110,7 @@ export function MaxWorkflowPage({ report }: { report: AuditReport | null }) {
       <SectionHeading
         eyebrow="MAX workflow"
         title="Generate the prompt and move to build"
-        description="MAX is gated. Unlock it to copy a clean prompt, then move the redesign into Claude, Codex, or Lovable."
+        description="Turn the live audit into a cleaner build handoff for Claude, Codex, or Lovable."
       />
 
       <div className="grid gap-5 xl:grid-cols-[minmax(0,1.05fr)_minmax(0,0.95fr)]">
@@ -94,8 +130,8 @@ export function MaxWorkflowPage({ report }: { report: AuditReport | null }) {
             </p>
           </CardHeader>
           <CardContent className="space-y-4">
-            {unlocked ? (
-              <>
+              {unlocked ? (
+                <>
                 <div className="flex flex-wrap items-center gap-2">
                   {providers.map((provider) => (
                     <button
@@ -121,9 +157,9 @@ export function MaxWorkflowPage({ report }: { report: AuditReport | null }) {
                 </div>
 
                 <div className="flex flex-wrap gap-3">
-                  <Button onClick={copyPrompt} variant="secondary">
+                  <Button disabled={isPending} onClick={copyPrompt} variant="secondary">
                     <ClipboardCopy className="size-4" />
-                    {copied ? "Copied" : "Copy prompt"}
+                    {isPending ? "Unlocking…" : copied ? "Copied" : "Copy prompt"}
                   </Button>
                   {selectedProvider === "lovable" ? (
                     <Button asChild>
@@ -134,6 +170,13 @@ export function MaxWorkflowPage({ report }: { report: AuditReport | null }) {
                     </Button>
                   ) : null}
                 </div>
+                <p className="text-xs leading-6 text-muted">
+                  The first MAX prompt copy for each scored site uses 2 tokens. Current balance:{" "}
+                  {availableTokens}.
+                </p>
+                {errorMessage ? (
+                  <p className="text-sm leading-6 text-danger">{errorMessage}</p>
+                ) : null}
               </>
             ) : (
               <div className="grid gap-4 rounded-[12px] border border-accent/20 bg-accent/8 p-5">
@@ -142,11 +185,13 @@ export function MaxWorkflowPage({ report }: { report: AuditReport | null }) {
                   <p className="text-xs font-bold uppercase tracking-[0.1em]">MAX gated</p>
                 </div>
                 <p className="text-base leading-7 text-foreground">
-                  Unlock MAX to generate the build prompt and copy it straight to your clipboard.
+                  Add the MAX upgrade on pricing to unlock build prompts and private delivery.
                 </p>
-                <Button onClick={enableMax}>
-                  Unlock MAX
-                  <ArrowRight className="size-4" />
+                <Button asChild>
+                  <Link href="/pricing">
+                    Unlock MAX
+                    <ArrowRight className="size-4" />
+                  </Link>
                 </Button>
               </div>
             )}
