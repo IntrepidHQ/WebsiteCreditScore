@@ -2,6 +2,7 @@ import { createHash } from "node:crypto";
 import { promises as fs } from "node:fs";
 import path from "node:path";
 
+import chromiumLambda from "@sparticuz/chromium";
 import { chromium } from "playwright-core";
 
 import type { PreviewDevice } from "@/lib/types/audit";
@@ -29,6 +30,12 @@ const browserCandidates = [
   "/Applications/Microsoft Edge.app/Contents/MacOS/Microsoft Edge",
   "/Applications/Opera.app/Contents/MacOS/Opera",
 ].filter(Boolean) as string[];
+
+const isServerlessRuntime = Boolean(
+  process.env.VERCEL ||
+    process.env.AWS_LAMBDA_FUNCTION_NAME ||
+    process.env.AWS_EXECUTION_ENV,
+);
 
 const desktopContext = {
   viewport: { width: 1440, height: 1800 },
@@ -89,11 +96,37 @@ async function writeScreenshotToCache(cacheKey: string, buffer: Buffer) {
   await fs.writeFile(path.join(CACHE_DIR, `${cacheKey}.png`), buffer);
 }
 
-async function resolveBrowserExecutablePath() {
+async function resolveBrowserLaunchConfig() {
+  if (process.env.PLAYWRIGHT_EXECUTABLE_PATH) {
+    try {
+      await fs.access(process.env.PLAYWRIGHT_EXECUTABLE_PATH);
+      return {
+        executablePath: process.env.PLAYWRIGHT_EXECUTABLE_PATH,
+        args: [] as string[],
+        headless: true,
+      };
+    } catch {
+      // Continue to runtime-specific fallbacks.
+    }
+  }
+
+  if (isServerlessRuntime) {
+    const executablePath = await chromiumLambda.executablePath();
+    return {
+      executablePath,
+      args: [...chromiumLambda.args],
+      headless: chromiumLambda.headless,
+    };
+  }
+
   for (const candidate of browserCandidates) {
     try {
       await fs.access(candidate);
-      return candidate;
+      return {
+        executablePath: candidate,
+        args: [] as string[],
+        headless: true,
+      };
     } catch {
       continue;
     }
@@ -103,11 +136,12 @@ async function resolveBrowserExecutablePath() {
 }
 
 async function captureScreenshot(url: string, device: PreviewDevice) {
-  const executablePath = await resolveBrowserExecutablePath();
+  const launchConfig = await resolveBrowserLaunchConfig();
   const browser = await chromium.launch({
-    executablePath,
-    headless: true,
+    executablePath: launchConfig.executablePath,
+    headless: launchConfig.headless,
     args: [
+      ...launchConfig.args,
       "--disable-blink-features=AutomationControlled",
       "--disable-dev-shm-usage",
       "--hide-scrollbars",
@@ -244,6 +278,38 @@ async function fetchRemoteImage(imageUrl: string) {
   };
 }
 
+function createPlaceholderImage(url: string, device: PreviewDevice): PreviewImageResult {
+  const hostname = (() => {
+    try {
+      return new URL(url).hostname.replace(/^www\./, "");
+    } catch {
+      return "website preview";
+    }
+  })();
+  const width = device === "mobile" ? 390 : 1280;
+  const height = device === "mobile" ? 844 : 800;
+
+  const svg = `
+<svg xmlns="http://www.w3.org/2000/svg" width="${width}" height="${height}" viewBox="0 0 ${width} ${height}" fill="none">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#0a1028"/>
+      <stop offset="100%" stop-color="#090d1f"/>
+    </linearGradient>
+  </defs>
+  <rect width="${width}" height="${height}" fill="url(#bg)"/>
+  <rect x="${device === "mobile" ? 20 : 56}" y="${device === "mobile" ? 34 : 56}" width="${width - (device === "mobile" ? 40 : 112)}" height="${height - (device === "mobile" ? 68 : 112)}" rx="18" fill="#0f1733" stroke="#26305a" stroke-width="2"/>
+  <text x="50%" y="45%" fill="#eef2ff" font-size="${device === "mobile" ? 22 : 36}" text-anchor="middle" font-family="ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto">Preview unavailable</text>
+  <text x="50%" y="52%" fill="#8f9aca" font-size="${device === "mobile" ? 14 : 20}" text-anchor="middle" font-family="ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto">${hostname}</text>
+</svg>`.trim();
+
+  return {
+    buffer: Buffer.from(svg, "utf8"),
+    contentType: "image/svg+xml; charset=utf-8",
+    source: "remote-image",
+  };
+}
+
 async function buildPreviewImage(
   url: string,
   device: PreviewDevice,
@@ -265,12 +331,16 @@ async function buildPreviewImage(
       contentType: "image/png",
       source: "screenshot" as const,
     };
-  } catch (error) {
+  } catch {
     if (fallbackImageUrl) {
-      return fetchRemoteImage(fallbackImageUrl);
+      try {
+        return await fetchRemoteImage(fallbackImageUrl);
+      } catch {
+        return createPlaceholderImage(url, device);
+      }
     }
 
-    throw error;
+    return createPlaceholderImage(url, device);
   }
 }
 

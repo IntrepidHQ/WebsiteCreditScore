@@ -23,11 +23,11 @@ export async function GET(request: Request) {
 
   try {
     const normalizedUrl = normalizeUrl(rawUrl);
-    const observation = await inspectWebsite(normalizedUrl);
+    const observation = await inspectWebsite(normalizedUrl).catch(() => null);
     const preview = await getSitePreviewImage(
-      observation.finalUrl || normalizedUrl,
+      observation?.finalUrl || normalizedUrl,
       device,
-      observation.ogImage,
+      observation?.ogImage,
     );
 
     return new NextResponse(new Uint8Array(preview.buffer), {

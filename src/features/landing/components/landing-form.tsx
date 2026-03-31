@@ -32,7 +32,7 @@ export function LandingForm() {
       });
 
       const payload = (await response.json()) as
-        | { id: string; normalizedUrl: string }
+        | { id: string; normalizedUrl: string; persisted?: boolean; leadId?: string }
         | { error: string };
 
       if (!response.ok || !("id" in payload)) {
@@ -44,6 +44,11 @@ export function LandingForm() {
       }
 
       startTransition(() => {
+        if (payload.persisted && payload.leadId) {
+          router.push(`/app/leads/${payload.leadId}`);
+          return;
+        }
+
         router.push(
           `/audit/${payload.id}?url=${encodeURIComponent(payload.normalizedUrl)}`,
         );
