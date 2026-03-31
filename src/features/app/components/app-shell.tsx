@@ -8,7 +8,7 @@ import { AppShellNav } from "@/features/app/components/app-shell-nav";
 export function AppShell({ children }: { children: React.ReactNode }) {
   return (
     <main className="flex min-h-screen flex-col bg-background" id="main-content">
-      <section className="sticky top-0 z-50 border-b border-border/50 bg-background/82 backdrop-blur-xl print:hidden">
+      <section className="sticky top-5 z-50 mx-4 rounded-[20px] border border-border/50 bg-background/82 backdrop-blur-xl print:hidden sm:mx-6 lg:mx-8">
         <div className="mx-auto flex w-full max-w-7xl flex-col gap-3 px-4 py-4 sm:px-6 lg:px-8">
           <div className="flex flex-wrap items-center justify-between gap-3">
             <Link className="min-w-0 shrink-0" href="/">

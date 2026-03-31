@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 
+import { sanitizeInternalNextPath } from "@/lib/auth/session";
 import { hasSupabaseEnv } from "@/lib/supabase/config";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 
@@ -7,7 +8,7 @@ export async function POST(request: Request) {
   const url = new URL(request.url);
   const formData = await request.formData();
   const email = String(formData.get("email") ?? "").trim();
-  const next = String(formData.get("next") ?? "/app").trim() || "/app";
+  const next = sanitizeInternalNextPath(String(formData.get("next") ?? "/app"), "/app");
 
   if (!hasSupabaseEnv()) {
     return NextResponse.redirect(

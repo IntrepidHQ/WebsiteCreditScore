@@ -38,6 +38,7 @@ export type BenchmarkType =
 
 export type ThemeMode = "light" | "dark";
 export type PreviewDevice = "desktop" | "mobile";
+export type ReportProvenance = "live-observed" | "fallback-estimated" | "sample-based";
 export type BenchmarkVertical =
   | "service-providers"
   | "private-healthcare"
@@ -192,6 +193,8 @@ export interface ThemeTokens {
   mode: ThemeMode;
   accentColor: string;
   fontScale: number;
+  lineHeightScale: number;
+  glowIntensity: number;
   radius: number;
   shadowIntensity: number;
   spacingDensity: number;
@@ -477,6 +480,11 @@ export interface AuditReport {
     role: string;
     quote: string;
   }>;
+  provenance: {
+    mode: ReportProvenance;
+    confidenceLabel: "high" | "medium" | "low";
+    note: string;
+  };
 }
 
 export interface SampleAuditCard {

@@ -1,7 +1,11 @@
 import { NextResponse } from "next/server";
 
 import { buildCheckoutSessionParams } from "@/lib/billing/checkout";
-import { getStripeServerClient, hasStripeServerEnv } from "@/lib/billing/stripe";
+import {
+  assertStripeServerModeSafe,
+  getStripeServerClient,
+  hasStripeServerEnv,
+} from "@/lib/billing/stripe";
 import { getOptionalWorkspaceSession } from "@/lib/auth/session";
 import { getProductRepository } from "@/lib/product/repository";
 import type { BillingAddOnId, BillingPlanId } from "@/lib/billing/catalog";
@@ -11,6 +15,19 @@ export async function POST(request: Request) {
     return NextResponse.json(
       { error: "Stripe is not configured in this environment yet." },
       { status: 503 },
+    );
+  }
+  try {
+    assertStripeServerModeSafe();
+  } catch (error) {
+    return NextResponse.json(
+      {
+        error:
+          error instanceof Error
+            ? error.message
+            : "Stripe mode is not safe for this environment.",
+      },
+      { status: 400 },
     );
   }
 

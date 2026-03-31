@@ -35,22 +35,22 @@ export function aggregateOverallScore(categoryScores: AuditCategoryScore[]) {
 
 export function describeScore(score: number) {
   if (score >= 9.5) {
-    return "Elite foundation with very little left to fix.";
+    return "Excellent score. This is an elite foundation with very little left to fix.";
   }
 
   if (score >= 8) {
-    return "Strong foundation with room to polish.";
+    return "Excellent momentum. The foundation is strong with only selective polish left.";
   }
 
   if (score >= 6) {
-    return "Good bones, but clarity still leaves value on the table.";
+    return "Good progress so far. There is clear value here, but clarity still leaves opportunities on the table.";
   }
 
   if (score >= 4) {
-    return "Clarity is weak and likely working against the business.";
+    return "There is real potential here, but sadly there is still room for improvement and clearer conversion guidance.";
   }
 
-  return "The first impression is working against the business.";
+  return "This score is struggling right now, and that can feel frustrating. The good news is the biggest gains are usually very fixable with focused updates.";
 }
 
 export function getScoreTone(score: number) {

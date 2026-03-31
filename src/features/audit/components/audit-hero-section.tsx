@@ -146,8 +146,31 @@ export function AuditHeroSection({ report }: { report: AuditReport }) {
                 label="Overall score"
                 score={report.overallScore}
               />
+              <div className="mt-3 flex flex-wrap items-center gap-2">
+                <Badge
+                  variant={
+                    report.provenance.confidenceLabel === "high"
+                      ? "accent"
+                      : report.provenance.confidenceLabel === "medium"
+                        ? "neutral"
+                        : "warning"
+                  }
+                >
+                  {report.provenance.mode === "live-observed"
+                    ? "Measured from live signals"
+                    : report.provenance.mode === "sample-based"
+                      ? "Sample + observed signals"
+                      : "Estimated from fallback heuristics"}
+                </Badge>
+                <p className="text-xs uppercase tracking-[0.14em] text-muted">
+                  Confidence: {report.provenance.confidenceLabel}
+                </p>
+              </div>
               <p className="mt-4 max-w-[34rem] text-[1.2rem] leading-[2.1rem] text-muted sm:text-[1.3rem]">
                 {describeScore(report.overallScore)}
+              </p>
+              <p className="mt-2 max-w-[34rem] text-sm leading-7 text-muted">
+                {report.provenance.note}
               </p>
 
               <Accordion collapsible type="single" className="mt-4">

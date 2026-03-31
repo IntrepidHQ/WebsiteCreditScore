@@ -1,11 +1,12 @@
 import { NextResponse } from "next/server";
 
+import { sanitizeInternalNextPath } from "@/lib/auth/session";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { hasSupabaseEnv } from "@/lib/supabase/config";
 
 export async function GET(request: Request) {
   const url = new URL(request.url);
-  const next = url.searchParams.get("next") ?? "/app";
+  const next = sanitizeInternalNextPath(url.searchParams.get("next"), "/app");
 
   if (!hasSupabaseEnv()) {
     return NextResponse.redirect(new URL("/app/login?error=supabase-not-configured", url));

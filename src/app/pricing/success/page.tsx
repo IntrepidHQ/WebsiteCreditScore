@@ -14,6 +14,7 @@ import {
   getCheckoutSessionPurchaseSummary,
 } from "@/lib/billing/fulfillment";
 import { getStripeServerClient, hasStripeServerEnv } from "@/lib/billing/stripe";
+import { getOptionalWorkspaceSession } from "@/lib/auth/session";
 
 export default async function PricingSuccessPage({
   searchParams,
@@ -28,6 +29,11 @@ export default async function PricingSuccessPage({
 
   if (!sessionId) {
     redirect("/pricing");
+  }
+  const session = await getOptionalWorkspaceSession();
+
+  if (!session) {
+    redirect("/app/login?next=/pricing");
   }
 
   if (!hasStripeServerEnv()) {
@@ -46,6 +52,29 @@ export default async function PricingSuccessPage({
 
   const stripe = getStripeServerClient();
   const checkoutSession = await stripe.checkout.sessions.retrieve(sessionId);
+  const ownerFromSession = checkoutSession.metadata?.workspaceOwnerId ?? null;
+
+  if (ownerFromSession && ownerFromSession !== session.userId) {
+    return (
+      <main className="presentation-section" id="main-content">
+        <div className="mx-auto w-full max-w-3xl px-4 sm:px-6 lg:px-8">
+          <Card>
+            <CardHeader>
+              <CardTitle>Checkout verified</CardTitle>
+              <p className="text-sm leading-7 text-muted">
+                This purchase exists, but it is attached to a different workspace.
+              </p>
+            </CardHeader>
+            <CardContent>
+              <Button asChild variant="secondary">
+                <Link href="/pricing">Back to pricing</Link>
+              </Button>
+            </CardContent>
+          </Card>
+        </div>
+      </main>
+    );
+  }
   const purchase = getCheckoutSessionPurchaseSummary(checkoutSession);
   let appliedBalance = 0;
   let appliedWorkspaceName: string | null = null;

@@ -7,6 +7,7 @@ import { normalizeUrl } from "@/lib/utils/url";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
+export const maxDuration = 25;
 
 export async function GET(request: Request) {
   const { searchParams } = new URL(request.url);
@@ -37,6 +38,7 @@ export async function GET(request: Request) {
         "Cross-Origin-Resource-Policy": "same-origin",
         "X-Content-Type-Options": "nosniff",
         "X-Preview-Source": preview.source,
+        "X-Preview-Reason": preview.reason,
       },
     });
   } catch {

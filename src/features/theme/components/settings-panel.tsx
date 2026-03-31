@@ -63,6 +63,8 @@ export function SettingsPanel() {
   const radiusLabelId = useId();
   const shadowLabelId = useId();
   const spacingLabelId = useId();
+  const lineHeightLabelId = useId();
+  const glowIntensityLabelId = useId();
   const motionLabelId = useId();
   const tokens = useThemeStore((state) => state.tokens);
   const branding = useThemeStore((state) => state.branding);
@@ -76,6 +78,8 @@ export function SettingsPanel() {
   const setRadius = useThemeStore((state) => state.setRadius);
   const setShadowIntensity = useThemeStore((state) => state.setShadowIntensity);
   const setSpacingDensity = useThemeStore((state) => state.setSpacingDensity);
+  const setLineHeightScale = useThemeStore((state) => state.setLineHeightScale);
+  const setGlowIntensity = useThemeStore((state) => state.setGlowIntensity);
   const setMotionPreference = useThemeStore((state) => state.setMotionPreference);
   const applyPreset = useThemeStore((state) => state.applyPreset);
   const updateBranding = useThemeStore((state) => state.updateBranding);
@@ -214,6 +218,23 @@ export function SettingsPanel() {
                 />
                 <p className="mt-2 text-sm text-muted">Current value: {tokens.fontScale.toFixed(2)}</p>
               </SettingRow>
+              <SettingRow
+                titleId={lineHeightLabelId}
+                label="Text breathing room"
+                description="Tune paragraph line-height for denser or more relaxed reading."
+              >
+                <Slider
+                  aria-labelledby={lineHeightLabelId}
+                  max={1.15}
+                  min={0.9}
+                  onValueChange={(value) => setLineHeightScale(value[0] ?? 1)}
+                  step={0.01}
+                  value={[tokens.lineHeightScale]}
+                />
+                <p className="mt-2 text-sm text-muted">
+                  Current value: {tokens.lineHeightScale.toFixed(2)}
+                </p>
+              </SettingRow>
 
               <SettingRow
                 titleId={radiusLabelId}
@@ -264,6 +285,23 @@ export function SettingsPanel() {
                 />
                 <p className="mt-2 text-sm text-muted">
                   Current value: {tokens.spacingDensity.toFixed(2)}
+                </p>
+              </SettingRow>
+              <SettingRow
+                titleId={glowIntensityLabelId}
+                label="Ambient glow intensity"
+                description="Control how much accent glow appears in page background gradients."
+              >
+                <Slider
+                  aria-labelledby={glowIntensityLabelId}
+                  max={1.45}
+                  min={0.55}
+                  onValueChange={(value) => setGlowIntensity(value[0] ?? 1)}
+                  step={0.01}
+                  value={[tokens.glowIntensity]}
+                />
+                <p className="mt-2 text-sm text-muted">
+                  Current value: {tokens.glowIntensity.toFixed(2)}
                 </p>
               </SettingRow>
 

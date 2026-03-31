@@ -176,8 +176,8 @@ export function SiteHeader() {
   }
 
   return (
-    <header className="sticky top-0 z-50 print:hidden">
-      <div className="px-4 pt-3 sm:px-6 lg:px-8">
+    <header className="sticky top-5 z-50 print:hidden">
+      <div className="px-4 sm:px-6 lg:px-8">
         <div className="mx-auto w-full max-w-7xl">
         <div
           className={cn(

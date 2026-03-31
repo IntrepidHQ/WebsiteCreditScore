@@ -40,6 +40,7 @@ export function PublicPricingPage({
   billingPlan,
   checkoutSigninHref,
   hasCheckout,
+  stripeMode,
   sessionEmail,
   startHref,
   tokenBalance,
@@ -48,6 +49,7 @@ export function PublicPricingPage({
   billingPlan: BillingPlanId | null;
   checkoutSigninHref: string;
   hasCheckout: boolean;
+  stripeMode: "test" | "live" | "unknown" | null;
   sessionEmail: string | null;
   startHref: string;
   tokenBalance: number | null;
@@ -407,6 +409,18 @@ export function PublicPricingPage({
               {!hasCheckout ? (
                 <div className="rounded-[18px] border border-danger/25 bg-danger/10 p-4 text-sm leading-6 text-foreground">
                   Stripe is not configured in this environment yet. Add `STRIPE_SECRET_KEY` to enable live checkout.
+                </div>
+              ) : null}
+              {hasCheckout && stripeMode ? (
+                <div className="rounded-[18px] border border-border/60 bg-background/35 p-4 text-sm leading-6 text-foreground">
+                  Stripe mode:{" "}
+                  <strong>
+                    {stripeMode === "test"
+                      ? "Test (no live charges)"
+                      : stripeMode === "live"
+                        ? "Live"
+                        : "Unknown"}
+                  </strong>
                 </div>
               ) : null}
 

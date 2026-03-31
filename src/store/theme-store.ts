@@ -22,6 +22,8 @@ interface ThemeState {
   setMode: (mode: ThemeMode) => void;
   setAccentColor: (accentColor: string) => void;
   setFontScale: (fontScale: number) => void;
+  setLineHeightScale: (lineHeightScale: number) => void;
+  setGlowIntensity: (glowIntensity: number) => void;
   setRadius: (radius: number) => void;
   setShadowIntensity: (shadowIntensity: number) => void;
   setSpacingDensity: (spacingDensity: number) => void;
@@ -72,6 +74,22 @@ export const useThemeStore = create<ThemeState>()(
           tokens: createThemeTokens({
             ...state.tokens,
             fontScale,
+          }),
+        })),
+      setLineHeightScale: (lineHeightScale) =>
+        set((state) => ({
+          presetId: null,
+          tokens: createThemeTokens({
+            ...state.tokens,
+            lineHeightScale,
+          }),
+        })),
+      setGlowIntensity: (glowIntensity) =>
+        set((state) => ({
+          presetId: null,
+          tokens: createThemeTokens({
+            ...state.tokens,
+            glowIntensity,
           }),
         })),
       setRadius: (radius) =>

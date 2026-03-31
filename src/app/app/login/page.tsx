@@ -4,7 +4,7 @@ import { LockKeyhole, Mail, Rocket, Sparkles } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
-import { getOptionalWorkspaceSession } from "@/lib/auth/session";
+import { getOptionalWorkspaceSession, sanitizeInternalNextPath } from "@/lib/auth/session";
 import { hasSupabaseEnv } from "@/lib/supabase/config";
 
 export default async function AppLoginPage({
@@ -17,8 +17,10 @@ export default async function AppLoginPage({
   const emailSent = resolvedSearchParams.sent === "1";
   const authError =
     typeof resolvedSearchParams.error === "string" ? resolvedSearchParams.error : null;
-  const next =
-    typeof resolvedSearchParams.next === "string" ? resolvedSearchParams.next : "/app";
+  const next = sanitizeInternalNextPath(
+    typeof resolvedSearchParams.next === "string" ? resolvedSearchParams.next : "/app",
+    "/app",
+  );
 
   if (session) {
     redirect(next);
@@ -100,6 +102,10 @@ export default async function AppLoginPage({
                   <div className="rounded-[10px] border border-danger/30 bg-danger/10 p-4 text-sm leading-6 text-foreground">
                     {authError === "missing-email"
                       ? "Enter an email address to receive the sign-in link."
+                      : authError === "callback-failed"
+                        ? "The sign-in link expired or failed. Please request a new link."
+                        : authError === "missing-code"
+                          ? "The sign-in callback was incomplete. Please try signing in again."
                       : "The sign-in link could not be sent. Please try again."}
                   </div>
                 ) : null}

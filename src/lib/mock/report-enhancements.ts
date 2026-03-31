@@ -536,6 +536,7 @@ export function buildObservedExecutiveSummary(
   title: string,
   observation: SiteObservation,
   overallScore: number,
+  mode: "live-observed" | "fallback-estimated" | "sample-based",
 ) {
   const opening =
     observation.heroHeading || observation.pageTitle
@@ -559,8 +560,14 @@ export function buildObservedExecutiveSummary(
       : overallScore >= 6
         ? "The main opportunity is to make that value easier to trust and easier to act on."
         : "Right now the site is likely making visitors work too hard before they feel confident enough to reach out.";
+  const confidenceFrame =
+    mode === "live-observed"
+      ? "This summary is based on directly observed page signals."
+      : mode === "sample-based"
+        ? "This summary blends observed signals with known sample profile data."
+        : "This summary is estimated from heuristic fallbacks because live fetch signals were limited.";
 
-  return `${opening} but the site can still do a better job of turning that substance into a confident first impression. ${specifics.join(" ")} ${scoreFrame}`.trim();
+  return `${opening} but the site can still do a better job of turning that substance into a confident first impression. ${specifics.join(" ")} ${scoreFrame} ${confidenceFrame}`.trim();
 }
 
 export function getTenOutOfTenNotes() {

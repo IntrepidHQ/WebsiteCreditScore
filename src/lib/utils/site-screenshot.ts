@@ -11,6 +11,10 @@ const CACHE_DIR = path.join("/tmp", "craydl-site-previews");
 const CACHE_TTL_MS = 1000 * 60 * 60 * 12;
 const SCREENSHOT_WAIT_MS = 1200;
 const SCROLL_STEP_DELAY_MS = 140;
+const CAPTURE_BUDGET_MS = 18000;
+const GOTO_TIMEOUT_MS = 12000;
+const NETWORK_IDLE_TIMEOUT_MS = 1800;
+const REMOTE_IMAGE_TIMEOUT_MS = 7000;
 const CAPTURE_VERSION = "static-shot-3";
 
 const previewCache = new Map<string, Promise<PreviewImageResult>>();
@@ -18,7 +22,8 @@ const previewCache = new Map<string, Promise<PreviewImageResult>>();
 type PreviewImageResult = {
   buffer: Buffer;
   contentType: string;
-  source: "screenshot" | "remote-image";
+  source: "screenshot" | "remote-image" | "placeholder";
+  reason: string;
 };
 
 const browserCandidates = [
@@ -70,6 +75,28 @@ async function ensureCacheDirectory() {
   await fs.mkdir(CACHE_DIR, { recursive: true });
 }
 
+async function pruneCacheDirectory() {
+  const files = await fs.readdir(CACHE_DIR).catch(() => []);
+  const now = Date.now();
+
+  await Promise.all(
+    files
+      .filter((file) => file.endsWith(".png"))
+      .map(async (file) => {
+        const filePath = path.join(CACHE_DIR, file);
+        const stats = await fs.stat(filePath).catch(() => null);
+
+        if (!stats) {
+          return;
+        }
+
+        if (now - stats.mtimeMs > CACHE_TTL_MS) {
+          await fs.unlink(filePath).catch(() => undefined);
+        }
+      }),
+  );
+}
+
 async function readFreshScreenshotFromCache(cacheKey: string) {
   const filePath = path.join(CACHE_DIR, `${cacheKey}.png`);
   const stats = await fs.stat(filePath).catch(() => null);
@@ -88,11 +115,13 @@ async function readFreshScreenshotFromCache(cacheKey: string) {
     buffer,
     contentType: "image/png",
     source: "screenshot" as const,
+    reason: "cache-hit",
   };
 }
 
 async function writeScreenshotToCache(cacheKey: string, buffer: Buffer) {
   await ensureCacheDirectory();
+  await pruneCacheDirectory();
   await fs.writeFile(path.join(CACHE_DIR, `${cacheKey}.png`), buffer);
 }
 
@@ -176,9 +205,9 @@ async function captureScreenshot(url: string, device: PreviewDevice) {
 
     await page.goto(url, {
       waitUntil: "domcontentloaded",
-      timeout: 25000,
+      timeout: GOTO_TIMEOUT_MS,
     });
-    await page.waitForLoadState("networkidle", { timeout: 4000 }).catch(() => undefined);
+    await page.waitForLoadState("networkidle", { timeout: NETWORK_IDLE_TIMEOUT_MS }).catch(() => undefined);
     await page.emulateMedia({ reducedMotion: "reduce" }).catch(() => undefined);
     await page.addStyleTag({
       content: `
@@ -275,6 +304,7 @@ async function fetchRemoteImage(imageUrl: string) {
     buffer: Buffer.from(await response.arrayBuffer()),
     contentType,
     source: "remote-image" as const,
+    reason: "remote-image-fallback",
   };
 }
 
@@ -306,8 +336,18 @@ function createPlaceholderImage(url: string, device: PreviewDevice): PreviewImag
   return {
     buffer: Buffer.from(svg, "utf8"),
     contentType: "image/svg+xml; charset=utf-8",
-    source: "remote-image",
+    source: "placeholder",
+    reason: "placeholder-generated",
   };
+}
+
+function withTimeout<T>(promise: Promise<T>, timeoutMs: number, message: string) {
+  return Promise.race([
+    promise,
+    new Promise<T>((_, reject) => {
+      setTimeout(() => reject(new Error(message)), timeoutMs);
+    }),
+  ]);
 }
 
 async function buildPreviewImage(
@@ -323,24 +363,43 @@ async function buildPreviewImage(
   }
 
   try {
-    const buffer = await captureScreenshot(url, device);
+    const buffer = await withTimeout(
+      captureScreenshot(url, device),
+      CAPTURE_BUDGET_MS,
+      "Screenshot capture budget exceeded.",
+    );
     await writeScreenshotToCache(cacheKey, buffer);
 
     return {
       buffer,
       contentType: "image/png",
       source: "screenshot" as const,
+      reason: "captured-live",
     };
-  } catch {
+  } catch (captureError) {
     if (fallbackImageUrl) {
       try {
-        return await fetchRemoteImage(fallbackImageUrl);
+        const remoteImage = await withTimeout(
+          fetchRemoteImage(fallbackImageUrl),
+          REMOTE_IMAGE_TIMEOUT_MS,
+          "Remote image fallback timed out.",
+        );
+        return {
+          ...remoteImage,
+          reason: `fallback-og-image:${captureError instanceof Error ? captureError.message : "capture-failed"}`,
+        };
       } catch {
-        return createPlaceholderImage(url, device);
+        return {
+          ...createPlaceholderImage(url, device),
+          reason: "fallback-placeholder-after-og-failed",
+        };
       }
     }
 
-    return createPlaceholderImage(url, device);
+    return {
+      ...createPlaceholderImage(url, device),
+      reason: "fallback-placeholder-no-og-image",
+    };
   }
 }
 

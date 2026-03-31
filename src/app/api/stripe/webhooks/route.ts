@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 
 import { fulfillCheckoutSession } from "@/lib/billing/fulfillment";
-import { getStripeServerClient } from "@/lib/billing/stripe";
+import { getStripeServerClient, validateStripeWebhookSecretMode } from "@/lib/billing/stripe";
 
 export const runtime = "nodejs";
 
@@ -25,6 +25,19 @@ export async function POST(request: Request) {
   }
 
   const payload = await request.text();
+  try {
+    validateStripeWebhookSecretMode();
+  } catch (error) {
+    return NextResponse.json(
+      {
+        error:
+          error instanceof Error
+            ? error.message
+            : "Stripe webhook mode mismatch.",
+      },
+      { status: 400 },
+    );
+  }
   const stripe = getStripeServerClient();
 
   try {

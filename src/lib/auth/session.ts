@@ -7,6 +7,20 @@ import { createSupabaseServerClient } from "@/lib/supabase/server";
 
 export const DEMO_SESSION_COOKIE = "craydl-demo-session";
 
+export function sanitizeInternalNextPath(next: string | null | undefined, fallback = "/app") {
+  if (!next) {
+    return fallback;
+  }
+
+  const trimmed = next.trim();
+
+  if (!trimmed.startsWith("/") || trimmed.startsWith("//")) {
+    return fallback;
+  }
+
+  return trimmed;
+}
+
 export async function getOptionalWorkspaceSession(): Promise<WorkspaceSession | null> {
   if (hasSupabaseEnv()) {
     try {

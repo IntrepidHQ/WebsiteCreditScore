@@ -15,6 +15,7 @@ import type {
   ReportProfileType,
   RoiScenarioDefaults,
   SiteObservation,
+  ReportProvenance,
 } from "@/lib/types/audit";
 import {
   buildBenchmarkReferences,
@@ -1503,6 +1504,23 @@ function buildAuditReport(
   const normalizedUrl = normalizeUrl(rawUrl);
   const profile = sample?.profile ?? inferProfileType(normalizedUrl);
   const observation = incomingObservation ?? createFallbackObservation(normalizedUrl);
+  const provenanceMode: ReportProvenance = sample
+    ? "sample-based"
+    : observation.fetchSucceeded
+      ? "live-observed"
+      : "fallback-estimated";
+  const provenanceNote =
+    provenanceMode === "live-observed"
+      ? "Score reflects directly observed page signals from the scanned URL."
+      : provenanceMode === "sample-based"
+        ? "Score uses sample profile data with live signal enrichment where available."
+        : "Score is estimated from heuristic baselines because live page signals were unavailable.";
+  const confidenceLabel =
+    provenanceMode === "live-observed"
+      ? "high"
+      : provenanceMode === "sample-based"
+        ? "medium"
+        : "low";
   const title = deriveReportTitle(normalizedUrl, sample, observation);
   const previewSet = getPreviewSet(profile);
   const previewUrl = sample?.previewUrl ?? rawUrl;
@@ -1582,7 +1600,7 @@ function buildAuditReport(
     normalizedUrl,
     executiveSummary:
       sample?.executiveSummary ??
-      buildObservedExecutiveSummary(title, observation, overallScore),
+      buildObservedExecutiveSummary(title, observation, overallScore, provenanceMode),
     overallScore,
     categoryScores,
     findings,
@@ -1611,6 +1629,11 @@ function buildAuditReport(
     },
     proposalOffer: createDefaultProposalOffer(defaultPricingSummary.total),
     socialProof,
+    provenance: {
+      mode: provenanceMode,
+      confidenceLabel,
+      note: provenanceNote,
+    },
   };
 
   report.outreachEmail = generateOutreachEmail(report);

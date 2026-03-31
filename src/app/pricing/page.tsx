@@ -3,7 +3,7 @@ import type { Metadata } from "next";
 import { PublicPricingPage } from "@/features/pricing/components/public-pricing-page";
 import { getOptionalWorkspaceSession } from "@/lib/auth/session";
 import { getProductRepository } from "@/lib/product/repository";
-import { hasStripeServerEnv } from "@/lib/billing/stripe";
+import { getStripeServerMode, hasStripeServerEnv } from "@/lib/billing/stripe";
 import { hasSupabaseEnv } from "@/lib/supabase/config";
 
 export const metadata: Metadata = {
@@ -26,6 +26,7 @@ export default async function PricingPage() {
       billingPlan={workspace?.billingPlan ?? null}
       checkoutSigninHref={checkoutSigninHref}
       hasCheckout={hasStripeServerEnv()}
+      stripeMode={getStripeServerMode()}
       sessionEmail={session?.email ?? null}
       startHref={startHref}
       tokenBalance={workspace?.tokenBalance ?? workspace?.creditBalance ?? null}

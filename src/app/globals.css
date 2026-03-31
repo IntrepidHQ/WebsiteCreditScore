@@ -18,6 +18,8 @@
   --theme-warning: #ffcf66;
   --theme-danger: #ff8b8b;
   --theme-font-scale: 1;
+  --theme-line-height-scale: 1;
+  --theme-glow-intensity: 1;
   --theme-radius: 12px;
   --theme-radius-lg: 14px;
   --theme-shadow: 0 24px 80px rgba(0, 0, 0, 0.24), 0 8px 28px rgba(0, 0, 0, 0.12);
@@ -72,12 +74,16 @@ figcaption {
 
 body {
   background:
-    radial-gradient(circle at top left, color-mix(in srgb, var(--theme-glow) 18%, transparent), transparent 34%),
+    radial-gradient(
+      circle at top left,
+      color-mix(in srgb, var(--theme-glow) calc(18% * var(--theme-glow-intensity)), transparent),
+      transparent 34%
+    ),
     linear-gradient(180deg, var(--theme-background), var(--theme-background-alt));
   color: var(--theme-foreground);
   font-family: var(--font-manrope), sans-serif;
   font-size: calc(16px * var(--theme-font-scale));
-  line-height: 1.58;
+  line-height: calc(1.58 * var(--theme-line-height-scale));
   font-kerning: normal;
   font-feature-settings: "liga" 1, "kern" 1, "ss01" 1, "cv05" 1;
   -webkit-font-smoothing: antialiased;

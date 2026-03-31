@@ -1,10 +1,10 @@
 import { NextResponse } from "next/server";
 
-import { DEMO_SESSION_COOKIE } from "@/lib/auth/session";
+import { DEMO_SESSION_COOKIE, sanitizeInternalNextPath } from "@/lib/auth/session";
 
 export async function GET(request: Request) {
   const url = new URL(request.url);
-  const next = url.searchParams.get("next") ?? "/app";
+  const next = sanitizeInternalNextPath(url.searchParams.get("next"), "/app");
   const response = NextResponse.redirect(new URL(next, url));
 
   response.cookies.set(DEMO_SESSION_COOKIE, "owner", {
