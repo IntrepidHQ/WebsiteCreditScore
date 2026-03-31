@@ -357,6 +357,28 @@ async function buildPreviewImage(
 ) {
   const cacheKey = createCacheKey(url, device);
   const cached = await readFreshScreenshotFromCache(cacheKey);
+  const runId = `shot-${Date.now()}`;
+
+  // #region agent log
+  fetch("http://127.0.0.1:7468/ingest/c5386a22-ca2a-4aae-9102-924794d536c2", {
+    method: "POST",
+    headers: { "Content-Type": "application/json", "X-Debug-Session-Id": "8da5be" },
+    body: JSON.stringify({
+      sessionId: "8da5be",
+      runId,
+      hypothesisId: "H4",
+      location: "src/lib/utils/site-screenshot.ts:367",
+      message: "buildPreviewImage start",
+      data: {
+        device,
+        url,
+        hasFallbackImageUrl: Boolean(fallbackImageUrl),
+        cacheHit: Boolean(cached),
+      },
+      timestamp: Date.now(),
+    }),
+  }).catch(() => {});
+  // #endregion
 
   if (cached) {
     return cached;
@@ -377,6 +399,25 @@ async function buildPreviewImage(
       reason: "captured-live",
     };
   } catch (captureError) {
+    // #region agent log
+    fetch("http://127.0.0.1:7468/ingest/c5386a22-ca2a-4aae-9102-924794d536c2", {
+      method: "POST",
+      headers: { "Content-Type": "application/json", "X-Debug-Session-Id": "8da5be" },
+      body: JSON.stringify({
+        sessionId: "8da5be",
+        runId,
+        hypothesisId: "H1",
+        location: "src/lib/utils/site-screenshot.ts:413",
+        message: "captureScreenshot failed",
+        data: {
+          errorMessage:
+            captureError instanceof Error ? captureError.message : "capture-failed",
+          hasFallbackImageUrl: Boolean(fallbackImageUrl),
+        },
+        timestamp: Date.now(),
+      }),
+    }).catch(() => {});
+    // #endregion
     if (fallbackImageUrl) {
       try {
         const remoteImage = await withTimeout(
@@ -384,11 +425,47 @@ async function buildPreviewImage(
           REMOTE_IMAGE_TIMEOUT_MS,
           "Remote image fallback timed out.",
         );
+        // #region agent log
+        fetch("http://127.0.0.1:7468/ingest/c5386a22-ca2a-4aae-9102-924794d536c2", {
+          method: "POST",
+          headers: { "Content-Type": "application/json", "X-Debug-Session-Id": "8da5be" },
+          body: JSON.stringify({
+            sessionId: "8da5be",
+            runId,
+            hypothesisId: "H3",
+            location: "src/lib/utils/site-screenshot.ts:436",
+            message: "remote fallback image succeeded",
+            data: {
+              contentType: remoteImage.contentType,
+              bufferBytes: remoteImage.buffer.byteLength,
+            },
+            timestamp: Date.now(),
+          }),
+        }).catch(() => {});
+        // #endregion
         return {
           ...remoteImage,
           reason: `fallback-og-image:${captureError instanceof Error ? captureError.message : "capture-failed"}`,
         };
-      } catch {
+      } catch (fallbackError) {
+        // #region agent log
+        fetch("http://127.0.0.1:7468/ingest/c5386a22-ca2a-4aae-9102-924794d536c2", {
+          method: "POST",
+          headers: { "Content-Type": "application/json", "X-Debug-Session-Id": "8da5be" },
+          body: JSON.stringify({
+            sessionId: "8da5be",
+            runId,
+            hypothesisId: "H3",
+            location: "src/lib/utils/site-screenshot.ts:454",
+            message: "remote fallback image failed; using placeholder",
+            data: {
+              errorMessage:
+                fallbackError instanceof Error ? fallbackError.message : "remote-fallback-failed",
+            },
+            timestamp: Date.now(),
+          }),
+        }).catch(() => {});
+        // #endregion
         return {
           ...createPlaceholderImage(url, device),
           reason: "fallback-placeholder-after-og-failed",
