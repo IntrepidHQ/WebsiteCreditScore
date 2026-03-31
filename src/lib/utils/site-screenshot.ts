@@ -144,7 +144,7 @@ async function resolveBrowserLaunchConfig() {
     return {
       executablePath,
       args: [...chromiumLambda.args],
-      headless: chromiumLambda.headless,
+      headless: true,
     };
   }
 
