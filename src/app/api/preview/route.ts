@@ -31,7 +31,7 @@ export async function GET(request: Request) {
       observation?.ogImage,
     );
 
-    if (preview.storageUrl) {
+    if (preview.source === "storage" && preview.storageUrl) {
       return NextResponse.redirect(preview.storageUrl, {
         status: 302,
         headers: {

@@ -373,7 +373,7 @@ async function buildPreviewImage(
   }
 
   // L2: Supabase Storage (persists across deploys and cold starts)
-  const storageUrl = getScreenshotPublicUrl(cacheKey);
+  const storageUrl = getScreenshotPublicUrl(cacheKey) ?? undefined;
 
   if (storageUrl) {
     const exists = await screenshotExistsInStorage(cacheKey);
