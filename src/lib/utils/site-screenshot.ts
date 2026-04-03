@@ -6,6 +6,12 @@ import chromiumLambda from "@sparticuz/chromium";
 import { chromium } from "playwright-core";
 
 import type { PreviewDevice } from "@/lib/types/audit";
+import {
+  downloadScreenshot,
+  getScreenshotPublicUrl,
+  screenshotExistsInStorage,
+  uploadScreenshot,
+} from "@/lib/supabase/storage";
 
 const CACHE_DIR = path.join("/tmp", "craydl-site-previews");
 const CACHE_TTL_MS = 1000 * 60 * 60 * 12;
@@ -19,11 +25,13 @@ const CAPTURE_VERSION = "static-shot-3";
 
 const previewCache = new Map<string, Promise<PreviewImageResult>>();
 
-type PreviewImageResult = {
+export type PreviewImageResult = {
   buffer: Buffer;
   contentType: string;
-  source: "screenshot" | "remote-image" | "placeholder";
+  source: "screenshot" | "remote-image" | "placeholder" | "storage";
   reason: string;
+  /** Public CDN URL when the image is persisted to Supabase Storage. */
+  storageUrl?: string;
 };
 
 const browserCandidates = [
@@ -64,7 +72,7 @@ const mobileContext = {
     "Mozilla/5.0 (iPhone; CPU iPhone OS 17_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.0 Mobile/15E148 Safari/604.1",
 };
 
-function createCacheKey(url: string, device: PreviewDevice) {
+export function createCacheKey(url: string, device: PreviewDevice) {
   return createHash("sha256")
     .update(`${url}:${device}:${CAPTURE_VERSION}`)
     .digest("hex")
@@ -354,36 +362,41 @@ async function buildPreviewImage(
   url: string,
   device: PreviewDevice,
   fallbackImageUrl?: string,
-) {
+): Promise<PreviewImageResult> {
   const cacheKey = createCacheKey(url, device);
-  const cached = await readFreshScreenshotFromCache(cacheKey);
-  const runId = `shot-${Date.now()}`;
 
-  // #region agent log
-  fetch("http://127.0.0.1:7468/ingest/c5386a22-ca2a-4aae-9102-924794d536c2", {
-    method: "POST",
-    headers: { "Content-Type": "application/json", "X-Debug-Session-Id": "8da5be" },
-    body: JSON.stringify({
-      sessionId: "8da5be",
-      runId,
-      hypothesisId: "H4",
-      location: "src/lib/utils/site-screenshot.ts:367",
-      message: "buildPreviewImage start",
-      data: {
-        device,
-        url,
-        hasFallbackImageUrl: Boolean(fallbackImageUrl),
-        cacheHit: Boolean(cached),
-      },
-      timestamp: Date.now(),
-    }),
-  }).catch(() => {});
-  // #endregion
+  // L1: in-process disk cache (warm serverless instances)
+  const cached = await readFreshScreenshotFromCache(cacheKey);
 
   if (cached) {
     return cached;
   }
 
+  // L2: Supabase Storage (persists across deploys and cold starts)
+  const storageUrl = getScreenshotPublicUrl(cacheKey);
+
+  if (storageUrl) {
+    const exists = await screenshotExistsInStorage(cacheKey);
+
+    if (exists) {
+      const buffer = await downloadScreenshot(cacheKey);
+
+      if (buffer) {
+        // Warm the disk cache for subsequent requests in this instance.
+        writeScreenshotToCache(cacheKey, buffer).catch(() => {});
+
+        return {
+          buffer,
+          contentType: "image/png",
+          source: "storage",
+          reason: "storage-hit",
+          storageUrl,
+        };
+      }
+    }
+  }
+
+  // L3: Live capture
   try {
     const buffer = await withTimeout(
       captureScreenshot(url, device),
@@ -392,32 +405,19 @@ async function buildPreviewImage(
     );
     await writeScreenshotToCache(cacheKey, buffer);
 
+    // Persist to Supabase Storage in the background so future cold starts skip capture.
+    if (storageUrl) {
+      uploadScreenshot(cacheKey, buffer).catch(() => {});
+    }
+
     return {
       buffer,
       contentType: "image/png",
-      source: "screenshot" as const,
+      source: "screenshot",
       reason: "captured-live",
+      storageUrl,
     };
-  } catch (captureError) {
-    // #region agent log
-    fetch("http://127.0.0.1:7468/ingest/c5386a22-ca2a-4aae-9102-924794d536c2", {
-      method: "POST",
-      headers: { "Content-Type": "application/json", "X-Debug-Session-Id": "8da5be" },
-      body: JSON.stringify({
-        sessionId: "8da5be",
-        runId,
-        hypothesisId: "H1",
-        location: "src/lib/utils/site-screenshot.ts:413",
-        message: "captureScreenshot failed",
-        data: {
-          errorMessage:
-            captureError instanceof Error ? captureError.message : "capture-failed",
-          hasFallbackImageUrl: Boolean(fallbackImageUrl),
-        },
-        timestamp: Date.now(),
-      }),
-    }).catch(() => {});
-    // #endregion
+  } catch {
     if (fallbackImageUrl) {
       try {
         const remoteImage = await withTimeout(
@@ -425,47 +425,12 @@ async function buildPreviewImage(
           REMOTE_IMAGE_TIMEOUT_MS,
           "Remote image fallback timed out.",
         );
-        // #region agent log
-        fetch("http://127.0.0.1:7468/ingest/c5386a22-ca2a-4aae-9102-924794d536c2", {
-          method: "POST",
-          headers: { "Content-Type": "application/json", "X-Debug-Session-Id": "8da5be" },
-          body: JSON.stringify({
-            sessionId: "8da5be",
-            runId,
-            hypothesisId: "H3",
-            location: "src/lib/utils/site-screenshot.ts:436",
-            message: "remote fallback image succeeded",
-            data: {
-              contentType: remoteImage.contentType,
-              bufferBytes: remoteImage.buffer.byteLength,
-            },
-            timestamp: Date.now(),
-          }),
-        }).catch(() => {});
-        // #endregion
+
         return {
           ...remoteImage,
-          reason: `fallback-og-image:${captureError instanceof Error ? captureError.message : "capture-failed"}`,
+          reason: "fallback-og-image",
         };
-      } catch (fallbackError) {
-        // #region agent log
-        fetch("http://127.0.0.1:7468/ingest/c5386a22-ca2a-4aae-9102-924794d536c2", {
-          method: "POST",
-          headers: { "Content-Type": "application/json", "X-Debug-Session-Id": "8da5be" },
-          body: JSON.stringify({
-            sessionId: "8da5be",
-            runId,
-            hypothesisId: "H3",
-            location: "src/lib/utils/site-screenshot.ts:454",
-            message: "remote fallback image failed; using placeholder",
-            data: {
-              errorMessage:
-                fallbackError instanceof Error ? fallbackError.message : "remote-fallback-failed",
-            },
-            timestamp: Date.now(),
-          }),
-        }).catch(() => {});
-        // #endregion
+      } catch {
         return {
           ...createPlaceholderImage(url, device),
           reason: "fallback-placeholder-after-og-failed",

@@ -39,8 +39,8 @@ describe("score utilities", () => {
   });
 
   it("describes score bands clearly", () => {
-    expect(describeScore(8.3)).toMatch(/Strong foundation/);
-    expect(describeScore(4.2)).toMatch(/working against the business/);
+    expect(describeScore(8.3)).toMatch(/foundation is strong/);
+    expect(describeScore(4.2)).toMatch(/real potential/);
   });
 
   it("labels score bands consistently", () => {
