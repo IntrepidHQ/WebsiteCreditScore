@@ -28,6 +28,7 @@ import {
   measureBenchmarkReferences,
   rankMeasuredBenchmarkReferences,
 } from "@/lib/benchmarks/scans";
+import { getBenchmarkVerticalForProfile } from "@/lib/benchmarks/library";
 import { sampleAudits } from "@/lib/mock/sample-audits";
 import { generateOutreachEmail } from "@/lib/utils/outreach";
 import { createDefaultProposalOffer } from "@/lib/utils/proposal-offers";
@@ -41,9 +42,14 @@ import {
   createWebsiteScreenshotUrl,
   formatDomainTitle,
   inferProfileType,
+  inferSiteNiche,
   normalizeUrl,
   slugFromUrl,
 } from "@/lib/utils/url";
+import {
+  getNicheCompetitors,
+  nicheCompetitorsToReferences,
+} from "@/lib/benchmarks/niche-competitors";
 
 const categoryLabels: Record<AuditCategoryKey, string> = {
   "visual-design": "Visual Design",
@@ -1554,6 +1560,13 @@ function buildAuditReport(
     overallScore,
     buildBenchmarkReferences(profile),
   );
+  const niche = sample ? undefined : inferSiteNiche(normalizedUrl, observation);
+  const nicheRefs = niche
+    ? getNicheCompetitors(niche, normalizedUrl, 3)
+    : null;
+  const competitorReferences = nicheRefs
+    ? nicheCompetitorsToReferences(nicheRefs, getBenchmarkVerticalForProfile(profile))
+    : benchmarkReferences;
   const findings = observation.fetchSucceeded
     ? buildObservedFindings(profile, title, observation, categoryScores, livePreviewSet.current.desktop)
     : buildFindings(profile, title, livePreviewSet.current.desktop);
@@ -1581,13 +1594,14 @@ function buildAuditReport(
     },
     categoryScores,
     overallScore,
-    benchmarkReferences,
+    competitorReferences,
   );
   const proposalCtas = buildProposalCtas(normalizedUrl);
   const socialProof = buildSocialProof();
   const roiDefaults = buildRoiDefaults(profile);
   const clientProfile = {
     ...profileClientProfiles[profile],
+    niche,
     competitors: competitorSnapshots
       .filter((item) => item.relationship === "reference")
       .map((item) => item.name),
@@ -1650,6 +1664,13 @@ async function enrichReportBenchmarks(report: AuditReport): Promise<AuditReport>
   const currentSnapshot = report.competitorSnapshots.find(
     (snapshot) => snapshot.relationship === "your-site",
   );
+  const niche = report.clientProfile.niche;
+  const nicheRefs = niche
+    ? getNicheCompetitors(niche, report.normalizedUrl, 3)
+    : null;
+  const competitorReferences = nicheRefs
+    ? nicheCompetitorsToReferences(nicheRefs, getBenchmarkVerticalForProfile(report.clientProfile.type))
+    : measuredBenchmarkReferences;
 
   return {
     ...report,
@@ -1666,11 +1687,11 @@ async function enrichReportBenchmarks(report: AuditReport): Promise<AuditReport>
       },
       report.categoryScores,
       report.overallScore,
-      measuredBenchmarkReferences,
+      competitorReferences,
     ),
     clientProfile: {
       ...report.clientProfile,
-      competitors: measuredBenchmarkReferences.map((item) => item.name),
+      competitors: competitorReferences.map((item) => item.name),
     },
   };
 }
