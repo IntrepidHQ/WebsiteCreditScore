@@ -329,16 +329,10 @@ function createPlaceholderImage(url: string, device: PreviewDevice): PreviewImag
 
   const svg = `
 <svg xmlns="http://www.w3.org/2000/svg" width="${width}" height="${height}" viewBox="0 0 ${width} ${height}" fill="none">
-  <defs>
-    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
-      <stop offset="0%" stop-color="#0a1028"/>
-      <stop offset="100%" stop-color="#090d1f"/>
-    </linearGradient>
-  </defs>
-  <rect width="${width}" height="${height}" fill="url(#bg)"/>
-  <rect x="${device === "mobile" ? 20 : 56}" y="${device === "mobile" ? 34 : 56}" width="${width - (device === "mobile" ? 40 : 112)}" height="${height - (device === "mobile" ? 68 : 112)}" rx="18" fill="#0f1733" stroke="#26305a" stroke-width="2"/>
-  <text x="50%" y="45%" fill="#eef2ff" font-size="${device === "mobile" ? 22 : 36}" text-anchor="middle" font-family="ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto">Preview unavailable</text>
-  <text x="50%" y="52%" fill="#8f9aca" font-size="${device === "mobile" ? 14 : 20}" text-anchor="middle" font-family="ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto">${hostname}</text>
+  <rect width="${width}" height="${height}" fill="#071018"/>
+  <rect x="${device === "mobile" ? 20 : 56}" y="${device === "mobile" ? 34 : 56}" width="${width - (device === "mobile" ? 40 : 112)}" height="${height - (device === "mobile" ? 68 : 112)}" rx="12" fill="#101d2b" stroke="#223247" stroke-width="1.5"/>
+  <text x="50%" y="44%" fill="#f4f7fb" font-size="${device === "mobile" ? 18 : 28}" text-anchor="middle" font-family="ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto" font-weight="500">Preview unavailable</text>
+  <text x="50%" y="51%" fill="#98a6ba" font-size="${device === "mobile" ? 13 : 17}" text-anchor="middle" font-family="ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto">${hostname}</text>
 </svg>`.trim();
 
   return {
