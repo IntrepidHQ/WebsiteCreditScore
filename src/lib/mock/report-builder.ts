@@ -28,6 +28,7 @@ import {
   measureBenchmarkReferences,
   rankMeasuredBenchmarkReferences,
 } from "@/lib/benchmarks/scans";
+import { getBenchmarkVerticalForProfile } from "@/lib/benchmarks/library";
 import { sampleAudits } from "@/lib/mock/sample-audits";
 import { generateOutreachEmail } from "@/lib/utils/outreach";
 import { createDefaultProposalOffer } from "@/lib/utils/proposal-offers";
@@ -41,9 +42,14 @@ import {
   createWebsiteScreenshotUrl,
   formatDomainTitle,
   inferProfileType,
+  inferSiteNiche,
   normalizeUrl,
   slugFromUrl,
 } from "@/lib/utils/url";
+import {
+  getNicheCompetitors,
+  nicheCompetitorsToReferences,
+} from "@/lib/benchmarks/niche-competitors";
 
 const categoryLabels: Record<AuditCategoryKey, string> = {
   "visual-design": "Visual Design",
@@ -1543,20 +1549,33 @@ function buildAuditReport(
     },
     fallbackFuture: previewSet.fallbackFuture,
   };
-  const categoryScores = observation.fetchSucceeded
-    ? buildObservedCategoryScores(profile, observation, sample?.scoreOverrides)
-    : buildCategoryScores(profile, normalizedUrl, sample?.scoreOverrides);
+  // Always use observation-driven scoring when fetch succeeded.
+  // For sample audits or fallback, use observation scoring with overrides.
+  // The old fake scoring path (buildCategoryScores) is no longer used —
+  // the API route now rejects requests where fetchSucceeded is false.
+  const categoryScores = buildObservedCategoryScores(profile, observation, sample?.scoreOverrides);
   const reportId = sample?.id ?? slugFromUrl(normalizedUrl);
   const hostname = new URL(normalizedUrl).hostname;
   const overallScore = aggregateOverallScore(categoryScores);
-  const benchmarkReferences = selectBenchmarkReferencesForReport(
+  const designBenchmarkReferences = selectBenchmarkReferencesForReport(
     normalizedUrl,
     overallScore,
     buildBenchmarkReferences(profile),
   );
-  const findings = observation.fetchSucceeded
-    ? buildObservedFindings(profile, title, observation, categoryScores, livePreviewSet.current.desktop)
-    : buildFindings(profile, title, livePreviewSet.current.desktop);
+  const niche = sample ? undefined : inferSiteNiche(normalizedUrl, observation);
+  const nicheRefs = niche
+    ? getNicheCompetitors(niche, normalizedUrl, 3)
+    : null;
+  const nicheReferences = nicheRefs
+    ? nicheCompetitorsToReferences(nicheRefs, getBenchmarkVerticalForProfile(profile))
+    : null;
+  // Use niche references for both the competitor research cards and comparison chart;
+  // fall back to design benchmark references when no niche is detected.
+  const benchmarkReferences = nicheReferences ?? designBenchmarkReferences;
+  const competitorReferences = benchmarkReferences;
+  // Always use observation-driven findings. The old hardcoded buildFindings()
+  // path is no longer reachable — the API now rejects unfetchable URLs.
+  const findings = buildObservedFindings(profile, title, observation, categoryScores, livePreviewSet.current.desktop);
   const opportunities = buildOpportunities(profile, livePreviewSet);
   const rebuildPhases = buildRebuildPhases(profile);
   const pricingBundle = createCatalog();
@@ -1581,13 +1600,14 @@ function buildAuditReport(
     },
     categoryScores,
     overallScore,
-    benchmarkReferences,
+    competitorReferences,
   );
   const proposalCtas = buildProposalCtas(normalizedUrl);
   const socialProof = buildSocialProof();
   const roiDefaults = buildRoiDefaults(profile);
   const clientProfile = {
     ...profileClientProfiles[profile],
+    niche,
     competitors: competitorSnapshots
       .filter((item) => item.relationship === "reference")
       .map((item) => item.name),
@@ -1641,7 +1661,7 @@ function buildAuditReport(
   return report;
 }
 
-async function enrichReportBenchmarks(report: AuditReport): Promise<AuditReport> {
+export async function enrichReportBenchmarks(report: AuditReport): Promise<AuditReport> {
   const measuredBenchmarkReferences = await enrichBenchmarkReferences(
     report.normalizedUrl,
     report.overallScore,
@@ -1650,10 +1670,20 @@ async function enrichReportBenchmarks(report: AuditReport): Promise<AuditReport>
   const currentSnapshot = report.competitorSnapshots.find(
     (snapshot) => snapshot.relationship === "your-site",
   );
+  const niche = report.clientProfile.niche;
+  const nicheRefs = niche
+    ? getNicheCompetitors(niche, report.normalizedUrl, 3)
+    : null;
+  const nicheReferences = nicheRefs
+    ? nicheCompetitorsToReferences(nicheRefs, getBenchmarkVerticalForProfile(report.clientProfile.type))
+    : null;
+  // Niche references replace both the benchmark cards and comparison chart;
+  // fall back to measured design references when no niche is detected.
+  const competitorReferences = nicheReferences ?? measuredBenchmarkReferences;
 
   return {
     ...report,
-    benchmarkReferences: measuredBenchmarkReferences,
+    benchmarkReferences: competitorReferences,
     benchmarkScanIds: measuredBenchmarkReferences
       .map((item) => item.benchmarkScanId)
       .filter(Boolean) as string[],
@@ -1666,11 +1696,11 @@ async function enrichReportBenchmarks(report: AuditReport): Promise<AuditReport>
       },
       report.categoryScores,
       report.overallScore,
-      measuredBenchmarkReferences,
+      competitorReferences,
     ),
     clientProfile: {
       ...report.clientProfile,
-      competitors: measuredBenchmarkReferences.map((item) => item.name),
+      competitors: competitorReferences.map((item) => item.name),
     },
   };
 }

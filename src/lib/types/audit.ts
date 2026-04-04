@@ -2,6 +2,21 @@ import type { ProposalOffer } from "@/lib/types/product";
 
 export type ReportProfileType = "healthcare" | "local-service" | "saas";
 
+export type SiteNiche =
+  | "restaurant-qsr"
+  | "retail-ecommerce"
+  | "legal"
+  | "real-estate"
+  | "fitness"
+  | "beauty-salon"
+  | "dental"
+  | "construction"
+  | "home-services"
+  | "healthcare-general"
+  | "saas-software"
+  | "local-service-generic"
+  | "generic";
+
 export type AuditCategoryKey =
   | "visual-design"
   | "ux-conversion"
@@ -226,6 +241,7 @@ export interface AgencyBranding {
 
 export interface ClientProfile {
   type: ReportProfileType;
+  niche?: SiteNiche;
   industryLabel: string;
   audience: string;
   primaryGoal: string;
@@ -402,6 +418,23 @@ export interface ObservationFact {
   confidence: ObservationFactConfidence;
 }
 
+export type FetchErrorReason =
+  | "timeout"
+  | "dns"
+  | "http-error"
+  | "blocked"
+  | "ssl"
+  | "unknown";
+
+export type ContentClassification =
+  | "normal"
+  | "parked-domain"
+  | "redirect-to-unrelated"
+  | "search-engine-redirect"
+  | "error-page"
+  | "under-construction"
+  | "empty-page";
+
 export interface SiteObservation {
   fetchedAt: string;
   finalUrl: string;
@@ -429,6 +462,11 @@ export interface SiteObservation {
   hasLang: boolean;
   missingAltRatio: number;
   fetchSucceeded: boolean;
+  fetchError?: FetchErrorReason;
+  httpStatus?: number;
+  contentClassification?: ContentClassification;
+  redirectTarget?: string;
+  strippedTextLength?: number;
 }
 
 export interface RoiScenarioDefaults {

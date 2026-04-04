@@ -1,4 +1,4 @@
-import type { PreviewDevice, ReportProfileType } from "@/lib/types/audit";
+import type { PreviewDevice, ReportProfileType, SiteNiche, SiteObservation } from "@/lib/types/audit";
 
 const blockedHostnamePatterns = [
   /^localhost$/i,
@@ -121,6 +121,63 @@ export function inferProfileType(input: string): ReportProfileType {
   ];
 
   return profiles[hashString(hostname) % profiles.length];
+}
+
+const nicheKeywords: Array<[SiteNiche, RegExp]> = [
+  ["restaurant-qsr", /(restaurant|grill|kitchen|fried|chicken|burger|pizza|taco|bbq|diner|cafe|bistro|biscuit|wings|wingstop|bojangle|popeye|chick.fil|raising.cane|culver|zaxby|whataburger|sonic.drive|steak.n|hardees|dairy.queen|arbys|wendys|mcdonalds|subway|chipotle|qdoba|panera|applebee|buffalo.wild|cracker.barrel)/],
+  ["dental", /(dental|dentist|orthodont|dds|dmds|teeth|smile|braces|ortho)/],
+  ["healthcare-general", /(clinic|care|med|health|wellness|therapy|doctor|hospital|physio|urgent.care|telehealth|patient)/],
+  ["legal", /(law|legal|attorney|lawyer|counsel|litigat|attorneys|lawfirm)/],
+  ["real-estate", /(realty|realtor|homes|properties|property|housing|realestate|estate|mls|listings)/],
+  ["fitness", /(gym|fitness|crossfit|yoga|training|athletic|workout|pilates|bootcamp)/],
+  ["beauty-salon", /(salon|spa|beauty|nail|hair|barber|lash|brow|aesthetics|waxing)/],
+  ["construction", /(construction|builder|building|contractor|remodel|renovate|roofing|concrete|masonry)/],
+  ["home-services", /(plumb|hvac|electric|landscap|irrigation|pest|cleaning|garage|gutter|handyman|repair|roof)/],
+  ["retail-ecommerce", /(shop|store|boutique|retail|goods|market|supply|merch|apparel|ecommerce)/],
+  ["saas-software", /(software|platform|saas|crm|cloud|analytics|dashboard|workspace|devtools)/],
+];
+
+export function inferSiteNiche(
+  url: string,
+  observation?: Pick<SiteObservation, "pageTitle" | "metaDescription"> | null,
+): SiteNiche {
+  const hostname = (() => {
+    try {
+      return new URL(url).hostname.toLowerCase();
+    } catch {
+      return url.toLowerCase();
+    }
+  })();
+
+  // Pass 1: domain keyword match
+  for (const [niche, regex] of nicheKeywords) {
+    if (regex.test(hostname)) {
+      return niche;
+    }
+  }
+
+  // Pass 2: observation text match (pageTitle + metaDescription)
+  if (observation) {
+    const text = `${observation.pageTitle ?? ""} ${observation.metaDescription ?? ""}`.toLowerCase();
+
+    if (text) {
+      for (const [niche, regex] of nicheKeywords) {
+        if (regex.test(text)) {
+          return niche;
+        }
+      }
+    }
+  }
+
+  // Pass 3: fall back to existing profile type → niche mapping
+  const profile = inferProfileType(url);
+  const profileToNiche: Record<ReportProfileType, SiteNiche> = {
+    healthcare: "healthcare-general",
+    "local-service": "local-service-generic",
+    saas: "saas-software",
+  };
+
+  return profileToNiche[profile];
 }
 
 export function createWebsiteScreenshotUrl(
