@@ -1555,7 +1555,7 @@ function buildAuditReport(
   const reportId = sample?.id ?? slugFromUrl(normalizedUrl);
   const hostname = new URL(normalizedUrl).hostname;
   const overallScore = aggregateOverallScore(categoryScores);
-  const benchmarkReferences = selectBenchmarkReferencesForReport(
+  const designBenchmarkReferences = selectBenchmarkReferencesForReport(
     normalizedUrl,
     overallScore,
     buildBenchmarkReferences(profile),
@@ -1564,9 +1564,13 @@ function buildAuditReport(
   const nicheRefs = niche
     ? getNicheCompetitors(niche, normalizedUrl, 3)
     : null;
-  const competitorReferences = nicheRefs
+  const nicheReferences = nicheRefs
     ? nicheCompetitorsToReferences(nicheRefs, getBenchmarkVerticalForProfile(profile))
-    : benchmarkReferences;
+    : null;
+  // Use niche references for both the competitor research cards and comparison chart;
+  // fall back to design benchmark references when no niche is detected.
+  const benchmarkReferences = nicheReferences ?? designBenchmarkReferences;
+  const competitorReferences = benchmarkReferences;
   const findings = observation.fetchSucceeded
     ? buildObservedFindings(profile, title, observation, categoryScores, livePreviewSet.current.desktop)
     : buildFindings(profile, title, livePreviewSet.current.desktop);
@@ -1668,13 +1672,16 @@ async function enrichReportBenchmarks(report: AuditReport): Promise<AuditReport>
   const nicheRefs = niche
     ? getNicheCompetitors(niche, report.normalizedUrl, 3)
     : null;
-  const competitorReferences = nicheRefs
+  const nicheReferences = nicheRefs
     ? nicheCompetitorsToReferences(nicheRefs, getBenchmarkVerticalForProfile(report.clientProfile.type))
-    : measuredBenchmarkReferences;
+    : null;
+  // Niche references replace both the benchmark cards and comparison chart;
+  // fall back to measured design references when no niche is detected.
+  const competitorReferences = nicheReferences ?? measuredBenchmarkReferences;
 
   return {
     ...report,
-    benchmarkReferences: measuredBenchmarkReferences,
+    benchmarkReferences: competitorReferences,
     benchmarkScanIds: measuredBenchmarkReferences
       .map((item) => item.benchmarkScanId)
       .filter(Boolean) as string[],
