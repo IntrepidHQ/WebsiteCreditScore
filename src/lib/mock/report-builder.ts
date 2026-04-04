@@ -1549,9 +1549,11 @@ function buildAuditReport(
     },
     fallbackFuture: previewSet.fallbackFuture,
   };
-  const categoryScores = observation.fetchSucceeded
-    ? buildObservedCategoryScores(profile, observation, sample?.scoreOverrides)
-    : buildCategoryScores(profile, normalizedUrl, sample?.scoreOverrides);
+  // Always use observation-driven scoring when fetch succeeded.
+  // For sample audits or fallback, use observation scoring with overrides.
+  // The old fake scoring path (buildCategoryScores) is no longer used —
+  // the API route now rejects requests where fetchSucceeded is false.
+  const categoryScores = buildObservedCategoryScores(profile, observation, sample?.scoreOverrides);
   const reportId = sample?.id ?? slugFromUrl(normalizedUrl);
   const hostname = new URL(normalizedUrl).hostname;
   const overallScore = aggregateOverallScore(categoryScores);
@@ -1571,9 +1573,9 @@ function buildAuditReport(
   // fall back to design benchmark references when no niche is detected.
   const benchmarkReferences = nicheReferences ?? designBenchmarkReferences;
   const competitorReferences = benchmarkReferences;
-  const findings = observation.fetchSucceeded
-    ? buildObservedFindings(profile, title, observation, categoryScores, livePreviewSet.current.desktop)
-    : buildFindings(profile, title, livePreviewSet.current.desktop);
+  // Always use observation-driven findings. The old hardcoded buildFindings()
+  // path is no longer reachable — the API now rejects unfetchable URLs.
+  const findings = buildObservedFindings(profile, title, observation, categoryScores, livePreviewSet.current.desktop);
   const opportunities = buildOpportunities(profile, livePreviewSet);
   const rebuildPhases = buildRebuildPhases(profile);
   const pricingBundle = createCatalog();
@@ -1659,7 +1661,7 @@ function buildAuditReport(
   return report;
 }
 
-async function enrichReportBenchmarks(report: AuditReport): Promise<AuditReport> {
+export async function enrichReportBenchmarks(report: AuditReport): Promise<AuditReport> {
   const measuredBenchmarkReferences = await enrichBenchmarkReferences(
     report.normalizedUrl,
     report.overallScore,

@@ -418,6 +418,23 @@ export interface ObservationFact {
   confidence: ObservationFactConfidence;
 }
 
+export type FetchErrorReason =
+  | "timeout"
+  | "dns"
+  | "http-error"
+  | "blocked"
+  | "ssl"
+  | "unknown";
+
+export type ContentClassification =
+  | "normal"
+  | "parked-domain"
+  | "redirect-to-unrelated"
+  | "search-engine-redirect"
+  | "error-page"
+  | "under-construction"
+  | "empty-page";
+
 export interface SiteObservation {
   fetchedAt: string;
   finalUrl: string;
@@ -445,6 +462,11 @@ export interface SiteObservation {
   hasLang: boolean;
   missingAltRatio: number;
   fetchSucceeded: boolean;
+  fetchError?: FetchErrorReason;
+  httpStatus?: number;
+  contentClassification?: ContentClassification;
+  redirectTarget?: string;
+  strippedTextLength?: number;
 }
 
 export interface RoiScenarioDefaults {

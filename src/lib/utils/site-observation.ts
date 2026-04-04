@@ -1,4 +1,6 @@
 import type {
+  ContentClassification,
+  FetchErrorReason,
   ObservationFact,
   ObservationFactConfidence,
   ObservationFactSource,
@@ -701,7 +703,98 @@ function deriveMotionSignals(html: string, text: string) {
   return uniqueTexts([...signals], 8);
 }
 
-export function createFallbackObservation(rawUrl: string): SiteObservation {
+function classifyContent(
+  requestUrl: string,
+  finalUrl: string,
+  text: string,
+  pageTitle: string,
+  headingCount: number,
+): ContentClassification {
+  const requestHostname = new URL(requestUrl).hostname.replace(/^www\./, "");
+  const finalHostname = new URL(finalUrl).hostname.replace(/^www\./, "");
+
+  // Redirect to a search engine
+  const searchEngines = ["google.com", "bing.com", "yahoo.com", "duckduckgo.com", "baidu.com", "yandex.com"];
+  if (searchEngines.some((se) => finalHostname === se || finalHostname.endsWith(`.${se}`))) {
+    return "search-engine-redirect";
+  }
+
+  // Redirect to an unrelated domain (not just www prefix or subdomain differences)
+  const requestBase = requestHostname.split(".").slice(-2).join(".");
+  const finalBase = finalHostname.split(".").slice(-2).join(".");
+  if (requestBase !== finalBase) {
+    return "redirect-to-unrelated";
+  }
+
+  const lower = text.toLowerCase();
+  const strippedLength = text.replace(/\s+/g, " ").trim().length;
+
+  // Empty or nearly empty page
+  if (strippedLength < 80 && headingCount === 0) {
+    return "empty-page";
+  }
+
+  // Parked domain detection
+  const parkedPatterns = [
+    /this domain is for sale/i,
+    /buy this domain/i,
+    /domain parking/i,
+    /parked by/i,
+    /this domain may be for sale/i,
+    /domain is available/i,
+    /make an offer on this domain/i,
+    /hugedomains\.com/i,
+    /sedoparking/i,
+    /afternic/i,
+    /dan\.com/i,
+    /godaddy\s+auctions?/i,
+    /namecheap.*marketplace/i,
+  ];
+  if (parkedPatterns.some((p) => p.test(lower) || p.test(pageTitle.toLowerCase()))) {
+    return "parked-domain";
+  }
+
+  // Under construction — but only if it's the dominant content
+  const underConstructionPatterns = [
+    /^coming soon$/i,
+    /site is under construction/i,
+    /website is under construction/i,
+    /we're building something/i,
+    /under maintenance/i,
+    /launching soon/i,
+  ];
+  if (strippedLength < 500 && underConstructionPatterns.some((p) => p.test(text.trim()) || p.test(pageTitle))) {
+    return "under-construction";
+  }
+
+  return "normal";
+}
+
+function classifyFetchError(error: unknown): FetchErrorReason {
+  if (!error || typeof error !== "object") return "unknown";
+  const message = "message" in error && typeof error.message === "string" ? error.message : "";
+  const name = "name" in error && typeof error.name === "string" ? error.name : "";
+
+  if (name === "AbortError" || name === "TimeoutError" || /timeout|timed out/i.test(message)) {
+    return "timeout";
+  }
+  if (/ENOTFOUND|ENOENT|getaddrinfo|dns/i.test(message)) {
+    return "dns";
+  }
+  if (/certificate|ssl|tls|ERR_CERT/i.test(message)) {
+    return "ssl";
+  }
+  if (/ECONNREFUSED|ECONNRESET|EHOSTUNREACH|blocked/i.test(message)) {
+    return "blocked";
+  }
+  return "unknown";
+}
+
+export function createFallbackObservation(
+  rawUrl: string,
+  fetchError?: FetchErrorReason,
+  httpStatus?: number,
+): SiteObservation {
   const normalizedUrl = normalizeUrl(rawUrl);
 
   return {
@@ -731,12 +824,13 @@ export function createFallbackObservation(rawUrl: string): SiteObservation {
     hasLang: false,
     missingAltRatio: 0,
     fetchSucceeded: false,
+    fetchError: fetchError ?? "unknown",
+    httpStatus,
+    strippedTextLength: 0,
   };
 }
 
 async function fetchObservation(normalizedUrl: string): Promise<SiteObservation> {
-  const fallback = createFallbackObservation(normalizedUrl);
-
   try {
     const response = await fetch(normalizedUrl, {
       headers: {
@@ -750,7 +844,7 @@ async function fetchObservation(normalizedUrl: string): Promise<SiteObservation>
     });
 
     if (!response.ok) {
-      return fallback;
+      return createFallbackObservation(normalizedUrl, "http-error", response.status);
     }
 
     const finalUrl = response.url || normalizedUrl;
@@ -783,6 +877,8 @@ async function fetchObservation(normalizedUrl: string): Promise<SiteObservation>
     const trustSignals = deriveTrustSignals(text, paragraphs, schemaKinds, verifiedFacts);
     const securitySignals = deriveSecuritySignals(response.headers);
     const motionSignals = deriveMotionSignals(html, text);
+    const strippedTextLength = text.replace(/\s+/g, " ").trim().length;
+    const contentClassification = classifyContent(normalizedUrl, finalUrl, text, pageTitle, headingCount);
     const seoSignals = uniqueTexts(
       [
         pageTitle ? `Title tag present: ${pageTitle}` : "",
@@ -835,9 +931,13 @@ async function fetchObservation(normalizedUrl: string): Promise<SiteObservation>
       hasLang,
       missingAltRatio,
       fetchSucceeded: true,
+      httpStatus: response.status,
+      contentClassification,
+      redirectTarget: finalUrl !== normalizedUrl ? finalUrl : undefined,
+      strippedTextLength,
     };
-  } catch {
-    return fallback;
+  } catch (error) {
+    return createFallbackObservation(normalizedUrl, classifyFetchError(error));
   }
 }
 
