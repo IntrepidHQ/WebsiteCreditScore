@@ -353,11 +353,12 @@ function withTimeout<T>(promise: Promise<T>, timeoutMs: number, message: string)
 }
 
 async function buildPreviewImage(
-  url: string,
+  cacheIdentityUrl: string,
+  captureUrl: string,
   device: PreviewDevice,
   fallbackImageUrl?: string,
 ): Promise<PreviewImageResult> {
-  const cacheKey = createCacheKey(url, device);
+  const cacheKey = createCacheKey(cacheIdentityUrl, device);
 
   // L1: in-process disk cache (warm serverless instances)
   const cached = await readFreshScreenshotFromCache(cacheKey);
@@ -393,7 +394,7 @@ async function buildPreviewImage(
   // L3: Live capture
   try {
     const buffer = await withTimeout(
-      captureScreenshot(url, device),
+      captureScreenshot(captureUrl, device),
       CAPTURE_BUDGET_MS,
       "Screenshot capture budget exceeded.",
     );
@@ -401,7 +402,9 @@ async function buildPreviewImage(
 
     // Persist to Supabase Storage in the background so future cold starts skip capture.
     if (storageUrl) {
-      uploadScreenshot(cacheKey, buffer).catch(() => {});
+      uploadScreenshot(cacheKey, buffer).catch((err) => {
+        console.error("[site-preview] Supabase upload failed:", err);
+      });
     }
 
     return {
@@ -426,35 +429,42 @@ async function buildPreviewImage(
         };
       } catch {
         return {
-          ...createPlaceholderImage(url, device),
+          ...createPlaceholderImage(cacheIdentityUrl, device),
           reason: "fallback-placeholder-after-og-failed",
         };
       }
     }
 
     return {
-      ...createPlaceholderImage(url, device),
+      ...createPlaceholderImage(cacheIdentityUrl, device),
       reason: "fallback-placeholder-no-og-image",
     };
   }
 }
 
-export async function getSitePreviewImage(
-  url: string,
+export const getSitePreviewImage = async (
+  cacheIdentityUrl: string,
   device: PreviewDevice,
   fallbackImageUrl?: string,
-) {
-  const cacheKey = `${url}::${device}::${fallbackImageUrl ?? ""}`;
-  const existing = previewCache.get(cacheKey);
+  captureUrl?: string,
+) => {
+  const navigateTo = captureUrl ?? cacheIdentityUrl;
+  const dedupeKey = `${cacheIdentityUrl}::${device}::${fallbackImageUrl ?? ""}`;
+  const existing = previewCache.get(dedupeKey);
 
   if (existing) {
     return existing;
   }
 
-  const pending = buildPreviewImage(url, device, fallbackImageUrl).finally(() => {
-    previewCache.delete(cacheKey);
+  const pending = buildPreviewImage(
+    cacheIdentityUrl,
+    navigateTo,
+    device,
+    fallbackImageUrl,
+  ).finally(() => {
+    previewCache.delete(dedupeKey);
   });
-  previewCache.set(cacheKey, pending);
+  previewCache.set(dedupeKey, pending);
 
   return pending;
-}
+};

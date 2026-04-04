@@ -2,12 +2,13 @@ import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 
 import type { WorkspaceSession } from "@/lib/types/product";
+import { isDemoWorkspaceAllowed } from "@/lib/auth/demo-flag";
 import { hasSupabaseEnv } from "@/lib/supabase/config";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 
 export const DEMO_SESSION_COOKIE = "craydl-demo-session";
 
-export function sanitizeInternalNextPath(next: string | null | undefined, fallback = "/app") {
+export const sanitizeInternalNextPath = (next: string | null | undefined, fallback = "/app") => {
   if (!next) {
     return fallback;
   }
@@ -19,15 +20,21 @@ export function sanitizeInternalNextPath(next: string | null | undefined, fallba
   }
 
   return trimmed;
-}
+};
 
-export async function getOptionalWorkspaceSession(): Promise<WorkspaceSession | null> {
+export const getOptionalWorkspaceSession = async (): Promise<WorkspaceSession | null> => {
   if (hasSupabaseEnv()) {
     try {
       const supabase = await createSupabaseServerClient();
       const {
         data: { user },
+        error,
       } = await supabase.auth.getUser();
+
+      if (error) {
+        console.error("[auth] Supabase getUser failed:", error.message);
+        return null;
+      }
 
       if (user?.id) {
         return {
@@ -42,8 +49,23 @@ export async function getOptionalWorkspaceSession(): Promise<WorkspaceSession | 
           avatarUrl: user.user_metadata?.avatar_url,
         };
       }
-    } catch {
-      // fall through to demo session
+
+      const cookieStore = await cookies();
+      const hasDemoSession = cookieStore.get(DEMO_SESSION_COOKIE)?.value === "owner";
+
+      if (hasDemoSession && isDemoWorkspaceAllowed()) {
+        return {
+          mode: "demo",
+          userId: "demo-owner",
+          email: "hello@websitecreditscore.com",
+          name: "WebsiteCreditScore",
+        };
+      }
+
+      return null;
+    } catch (err) {
+      console.error("[auth] Supabase session error:", err);
+      return null;
     }
   }
 
@@ -60,9 +82,9 @@ export async function getOptionalWorkspaceSession(): Promise<WorkspaceSession | 
     email: "hello@websitecreditscore.com",
     name: "WebsiteCreditScore",
   };
-}
+};
 
-export async function requireWorkspaceSession() {
+export const requireWorkspaceSession = async () => {
   const session = await getOptionalWorkspaceSession();
 
   if (!session) {
@@ -70,4 +92,4 @@ export async function requireWorkspaceSession() {
   }
 
   return session;
-}
+};

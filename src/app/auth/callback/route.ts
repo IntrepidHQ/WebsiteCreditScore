@@ -1,10 +1,10 @@
 import { NextResponse } from "next/server";
 
-import { sanitizeInternalNextPath } from "@/lib/auth/session";
-import { createSupabaseServerClient } from "@/lib/supabase/server";
+import { DEMO_SESSION_COOKIE, sanitizeInternalNextPath } from "@/lib/auth/session";
 import { hasSupabaseEnv } from "@/lib/supabase/config";
+import { createSupabaseRouteHandlerClient } from "@/lib/supabase/route-client";
 
-export async function GET(request: Request) {
+export const GET = async (request: Request) => {
   const url = new URL(request.url);
   const next = sanitizeInternalNextPath(url.searchParams.get("next"), "/app");
 
@@ -14,16 +14,25 @@ export async function GET(request: Request) {
 
   const code = url.searchParams.get("code");
 
-  if (code) {
-    const supabase = await createSupabaseServerClient();
-    const { error } = await supabase.auth.exchangeCodeForSession(code);
-
-    if (error) {
-      return NextResponse.redirect(new URL("/app/login?error=callback-failed", url));
-    }
-  } else {
+  if (!code) {
     return NextResponse.redirect(new URL("/app/login?error=missing-code", url));
   }
 
-  return NextResponse.redirect(new URL(next, url));
-}
+  const redirectTarget = new URL(next, url.origin);
+  const response = NextResponse.redirect(redirectTarget);
+  const supabase = createSupabaseRouteHandlerClient(request, response);
+  const { error } = await supabase.auth.exchangeCodeForSession(code);
+
+  if (error) {
+    return NextResponse.redirect(new URL("/app/login?error=callback-failed", url));
+  }
+
+  response.cookies.set(DEMO_SESSION_COOKIE, "", {
+    httpOnly: true,
+    path: "/",
+    sameSite: "lax",
+    maxAge: 0,
+  });
+
+  return response;
+};

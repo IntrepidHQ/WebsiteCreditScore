@@ -4,6 +4,7 @@ import { LockKeyhole, Mail, Rocket, Sparkles } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
+import { isDemoWorkspaceAllowed } from "@/lib/auth/demo-flag";
 import { getOptionalWorkspaceSession, sanitizeInternalNextPath } from "@/lib/auth/session";
 import { hasSupabaseEnv } from "@/lib/supabase/config";
 
@@ -145,14 +146,18 @@ export default async function AppLoginPage({
                 Email sign-in is not available in this environment.
               </div>
             )}
-            <div className="flex items-center gap-3">
-              <div className="h-px flex-1 bg-border/50" />
-              <span className="text-xs text-muted">or</span>
-              <div className="h-px flex-1 bg-border/50" />
-            </div>
-            <Button asChild className="w-full" variant="ghost">
-              <a href={`/auth/demo?next=${encodeURIComponent(next)}`}>Continue in demo workspace</a>
-            </Button>
+            {isDemoWorkspaceAllowed() ? (
+              <>
+                <div className="flex items-center gap-3">
+                  <div className="h-px flex-1 bg-border/50" />
+                  <span className="text-xs text-muted">or</span>
+                  <div className="h-px flex-1 bg-border/50" />
+                </div>
+                <Button asChild className="w-full" variant="ghost">
+                  <a href={`/auth/demo?next=${encodeURIComponent(next)}`}>Continue in demo workspace</a>
+                </Button>
+              </>
+            ) : null}
           </CardContent>
         </Card>
       </div>
