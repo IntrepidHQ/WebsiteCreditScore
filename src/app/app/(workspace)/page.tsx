@@ -49,6 +49,11 @@ function SearchRow({
     return null;
   }
 
+  const desktopShot =
+    report.previewSet?.current?.desktop ?? "/previews/fallback-desktop.svg";
+  const fallbackShot =
+    report.previewSet?.fallbackCurrent?.desktop ?? desktopShot;
+
   const auditHref = `/audit/${report.id}?url=${encodeURIComponent(report.normalizedUrl)}`;
   const leadHref = `/app/leads/${savedReport.leadId}`;
   const domain = savedReport.normalizedUrl.replace(/^https?:\/\//, "");
@@ -61,9 +66,9 @@ function SearchRow({
             alt={`${savedReport.title} preview`}
             className="aspect-[16/11]"
             fallbackLabel="Preview unavailable"
-            fallbackSrc={report.previewSet.fallbackCurrent.desktop}
+            fallbackSrc={fallbackShot}
             loadingLabel="Capturing desktop screenshot"
-            src={report.previewSet.current.desktop}
+            src={desktopShot}
           />
         </Link>
 
@@ -71,7 +76,7 @@ function SearchRow({
           <div className="flex flex-wrap items-center gap-2">
             {lead ? <LeadStageBadge stage={lead.stage} /> : null}
             <span className="rounded-full border border-accent/25 bg-accent/10 px-2.5 py-1 text-[11px] font-semibold uppercase tracking-[0.16em] text-accent">
-              {report.overallScore.toFixed(1)}
+              {Number(report.overallScore ?? 0).toFixed(1)}
             </span>
           </div>
           <div className="space-y-1">
@@ -80,7 +85,9 @@ function SearchRow({
                 {savedReport.title}
               </Link>
             </h3>
-            <p className="line-clamp-2 text-sm leading-6 text-muted">{report.executiveSummary}</p>
+            <p className="line-clamp-2 text-sm leading-6 text-muted">
+              {report.executiveSummary ?? ""}
+            </p>
           </div>
           <div className="flex flex-wrap items-center gap-x-4 gap-y-2 text-[11px] font-semibold uppercase tracking-[0.16em] text-muted">
             <span className="inline-flex items-center gap-2">
@@ -118,7 +125,51 @@ export default async function AppDashboardPage({
   const resolvedSearchParams = (await searchParams) ?? {};
   const error =
     typeof resolvedSearchParams.error === "string" ? resolvedSearchParams.error : null;
+  // #region agent log
+  fetch("http://127.0.0.1:7460/ingest/f3e69962-c2ab-4d8a-81a8-8fb4ae2a364a", {
+    method: "POST",
+    headers: { "Content-Type": "application/json", "X-Debug-Session-Id": "8c27eb" },
+    body: JSON.stringify({
+      sessionId: "8c27eb",
+      hypothesisId: "H-B",
+      location: "page.tsx:before_getWorkspaceDashboardContext",
+      message: "dashboard data fetch start",
+      data: {},
+      timestamp: Date.now(),
+    }),
+  }).catch(() => {});
+  // #endregion
+
+  console.error(
+    JSON.stringify({ tag: "WCS_PHASE", phase: "app_dashboard_fetch_start", timestamp: Date.now() }),
+  );
   const { dashboard } = await getWorkspaceDashboardContext();
+
+  // #region agent log
+  fetch("http://127.0.0.1:7460/ingest/f3e69962-c2ab-4d8a-81a8-8fb4ae2a364a", {
+    method: "POST",
+    headers: { "Content-Type": "application/json", "X-Debug-Session-Id": "8c27eb" },
+    body: JSON.stringify({
+      sessionId: "8c27eb",
+      hypothesisId: "H-A",
+      location: "page.tsx:after_getWorkspaceDashboardContext",
+      message: "dashboard data ok",
+      data: {
+        savedReportCount: dashboard.savedReports.length,
+        firstHasCategoryScores: Boolean(
+          dashboard.savedReports[0]?.reportSnapshot &&
+            Array.isArray(dashboard.savedReports[0].reportSnapshot.categoryScores),
+        ),
+        firstHasOutreach: Boolean(dashboard.savedReports[0]?.reportSnapshot?.outreachEmail),
+      },
+      timestamp: Date.now(),
+    }),
+  }).catch(() => {});
+  // #endregion
+
+  console.error(
+    JSON.stringify({ tag: "WCS_PHASE", phase: "app_dashboard_fetch_ok", timestamp: Date.now() }),
+  );
   const workspaceState = dashboard.workspace;
   const visibleLeads = dashboard.leads.filter((lead) => lead.title !== "Provider Pages");
   const visibleSavedReports = dashboard.savedReports.filter(
@@ -153,11 +204,13 @@ export default async function AppDashboardPage({
   const latestPacketPdfHref = latestReport
     ? `${latestPacketHref}&print=1`
     : undefined;
-  const emailHref = latestReport
-    ? buildMailtoHref(latestReport.outreachEmail.subject, latestReport.outreachEmail.body)
-    : undefined;
-  const emailPreview = latestReport
-    ? latestReport.outreachEmail.body
+  const latestOutreach = latestReport?.outreachEmail;
+  const emailHref =
+    latestReport && latestOutreach
+      ? buildMailtoHref(latestOutreach.subject ?? "Site review", latestOutreach.body ?? "")
+      : undefined;
+  const emailPreview = latestOutreach?.body
+    ? latestOutreach.body
         .split("\n")
         .map((line) => line.trim())
         .filter(Boolean)
@@ -273,7 +326,7 @@ export default async function AppDashboardPage({
                     className="h-full"
                     label="Site score"
                     projectedScore={latestLead?.projectedScore}
-                    score={latestReport.overallScore}
+                    score={latestReport.overallScore ?? 0}
                   />
                   <div className="space-y-3 rounded-[22px] border border-border/60 bg-background-alt/60 p-4">
                     <div className="flex flex-wrap items-center gap-2">
@@ -283,7 +336,7 @@ export default async function AppDashboardPage({
                       </span>
                     </div>
                     <p className="text-base leading-7 text-foreground">
-                      {latestReport.executiveSummary}
+                      {latestReport.executiveSummary ?? ""}
                     </p>
                     <div className="flex flex-wrap gap-2">
                       {latestAuditHref ? (
@@ -305,7 +358,7 @@ export default async function AppDashboardPage({
                     </div>
                   </div>
                 </div>
-                <ScoreBreakdownBars items={latestReport.categoryScores} showWeights />
+                <ScoreBreakdownBars items={latestReport.categoryScores ?? []} showWeights />
               </>
             ) : (
               <div className="rounded-[20px] border border-border/60 bg-background-alt/60 p-5 text-sm leading-7 text-muted">
@@ -357,10 +410,10 @@ export default async function AppDashboardPage({
                       Subject
                     </p>
                     <p className="mt-2 text-sm font-semibold text-foreground">
-                      {latestReport.outreachEmail.subject}
+                      {latestOutreach?.subject ?? "—"}
                     </p>
                     <p className="mt-3 text-sm leading-6 text-muted">
-                      {latestReport.outreachEmail.previewLine}
+                      {latestOutreach?.previewLine ?? "—"}
                     </p>
                   </div>
 
