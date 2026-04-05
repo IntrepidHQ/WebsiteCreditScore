@@ -100,6 +100,8 @@ export default async function AppLoginPage({
         return "Auth is not configured in this environment.";
       case "callback-failed":
         return "The link expired or was already used. Request a new one below.";
+      case "missing-code":
+        return "That sign-in link did not include a valid code (wrong redirect URL, or the link was opened in a different browser). Use the same site address as in the email (www vs non-www), or sign in again from this page.";
       case "session-required":
         return "Sign in to continue to your workspace.";
       case "db-not-ready":

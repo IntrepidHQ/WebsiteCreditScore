@@ -1,6 +1,6 @@
 import type { NextConfig } from "next";
 
-const securityHeaders = [
+const baseSecurityHeaders = [
   { key: "Referrer-Policy", value: "strict-origin-when-cross-origin" },
   { key: "X-Content-Type-Options", value: "nosniff" },
   { key: "X-Frame-Options", value: "DENY" },
@@ -8,11 +8,18 @@ const securityHeaders = [
     key: "Permissions-Policy",
     value: "camera=(), microphone=(), geolocation=(), browsing-topics=(), payment=()",
   },
-  { key: "Cross-Origin-Opener-Policy", value: "same-origin" },
 ];
 
+const coopHeader = { key: "Cross-Origin-Opener-Policy", value: "same-origin" } as const;
+
+const globalSecurityHeaders = [...baseSecurityHeaders, coopHeader];
+
 if (process.env.NODE_ENV === "production") {
-  securityHeaders.push({
+  baseSecurityHeaders.push({
+    key: "Strict-Transport-Security",
+    value: "max-age=63072000; includeSubDomains; preload",
+  });
+  globalSecurityHeaders.push({
     key: "Strict-Transport-Security",
     value: "max-age=63072000; includeSubDomains; preload",
   });
@@ -28,13 +35,17 @@ const nextConfig: NextConfig = {
   async headers() {
     return [
       {
-        source: "/:path*",
-        headers: securityHeaders,
+        source: "/auth/:path*",
+        headers: baseSecurityHeaders,
+      },
+      {
+        source: "/((?!auth/|_next/static|_next/image|favicon.ico).*)",
+        headers: globalSecurityHeaders,
       },
       {
         source: "/api/preview",
         headers: [
-          ...securityHeaders,
+          ...globalSecurityHeaders,
           { key: "Cross-Origin-Resource-Policy", value: "same-origin" },
         ],
       },
