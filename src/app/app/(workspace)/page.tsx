@@ -22,7 +22,7 @@ import { Input } from "@/components/ui/input";
 import { LeadStageBadge } from "@/features/app/components/lead-stage-badge";
 import { ScanHistorySection } from "@/features/app/components/scan-history-section";
 import { WorkspaceTokenLinkButton } from "@/features/app/components/workspace-token-link-button";
-import { getWorkspaceAppContext } from "@/lib/product/context";
+import { getWorkspaceDashboardContext } from "@/lib/product/context";
 import type { LeadRecord, SavedReport } from "@/lib/types/product";
 
 function formatTimestamp(input: string) {
@@ -45,6 +45,10 @@ function SearchRow({
   lead?: LeadRecord;
 }) {
   const report = savedReport.reportSnapshot;
+  if (!report) {
+    return null;
+  }
+
   const auditHref = `/audit/${report.id}?url=${encodeURIComponent(report.normalizedUrl)}`;
   const leadHref = `/app/leads/${savedReport.leadId}`;
   const domain = savedReport.normalizedUrl.replace(/^https?:\/\//, "");
@@ -114,12 +118,12 @@ export default async function AppDashboardPage({
   const resolvedSearchParams = (await searchParams) ?? {};
   const error =
     typeof resolvedSearchParams.error === "string" ? resolvedSearchParams.error : null;
-  const { repository, session, workspace } = await getWorkspaceAppContext();
-  const dashboard = await repository.getDashboard(workspace.id, session);
+  const { dashboard } = await getWorkspaceDashboardContext();
   const workspaceState = dashboard.workspace;
   const visibleLeads = dashboard.leads.filter((lead) => lead.title !== "Provider Pages");
   const visibleSavedReports = dashboard.savedReports.filter(
-    (savedReport) => savedReport.title !== "Provider Pages",
+    (savedReport) =>
+      savedReport.title !== "Provider Pages" && Boolean(savedReport.reportSnapshot),
   );
   const latestSavedReport = visibleSavedReports[0];
   const latestLead = latestSavedReport
@@ -127,14 +131,14 @@ export default async function AppDashboardPage({
     : undefined;
   const latestReport = latestSavedReport?.reportSnapshot;
   const lowScoreCount = visibleSavedReports.filter(
-    (savedReport) => savedReport.reportSnapshot.overallScore < 6.5,
+    (savedReport) => (savedReport.reportSnapshot?.overallScore ?? 0) < 6.5,
   ).length;
   const openReminderCount = dashboard.reminders.filter((reminder) => reminder.status === "open").length;
   const averageScore = visibleSavedReports.length
     ? Number(
         (
           visibleSavedReports.reduce(
-            (sum, savedReport) => sum + savedReport.reportSnapshot.overallScore,
+            (sum, savedReport) => sum + (savedReport.reportSnapshot?.overallScore ?? 0),
             0,
           ) / visibleSavedReports.length
         ).toFixed(1),

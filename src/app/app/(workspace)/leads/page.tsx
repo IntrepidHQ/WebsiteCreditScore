@@ -5,11 +5,10 @@ import { LeadOverviewCard } from "@/features/app/components/lead-overview-card";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { LeadStageBadge } from "@/features/app/components/lead-stage-badge";
-import { getWorkspaceAppContext } from "@/lib/product/context";
+import { getWorkspaceDashboardContext } from "@/lib/product/context";
 
 export default async function LeadsPage() {
-  const { repository, session, workspace } = await getWorkspaceAppContext();
-  const dashboard = await repository.getDashboard(workspace.id, session);
+  const { dashboard } = await getWorkspaceDashboardContext();
 
   return (
     <Card>
