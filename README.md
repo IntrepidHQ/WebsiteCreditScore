@@ -132,7 +132,7 @@ You can copy the exact URL from Supabase → Authentication → Providers → Go
 
 ### 6. Still stuck on `/app` after Plan A?
 
-1. **Diagnostics** — While signed in, open **`/api/workspace/gate`** (same site, same browser). The JSON field `step` shows where it fails: env, auth cookie, DB query, duplicate workspaces, or OK.
+1. **Diagnostics** — While signed in, open **`/api/workspace/gate`** (same site, same browser). The JSON field `step` shows where it fails: env, auth cookie, DB query, duplicate workspaces, or OK. This route skips the global Supabase middleware so session refresh and diagnostics use one `getUser()` per request (avoids a false **“Auth session missing”** when middleware already rotated cookies). Use the **same hostname** as sign-in (`www` vs apex must match your Supabase Site URL and Redirect URLs).
 2. **Vercel Preview** — If you test on `*.vercel.app`, add that deployment URL (or a pattern your team uses) under Supabase → Authentication → **Redirect URLs**, e.g. `https://your-app-xxx.vercel.app/auth/callback`. Production and Preview use different origins.
 3. **`NEXT_PUBLIC_SITE_URL`** — Set it to the origin users actually use (including `www` vs apex). Mismatches mostly hurt absolute links, but keep it aligned with your canonical domain.
 4. **Duplicate `workspaces` rows** — Two rows with the same `owner_user_id` used to break workspace load; the app now picks the oldest row, but you should delete extras in the SQL Editor if `gate` reports `duplicate_workspace_rows`.
