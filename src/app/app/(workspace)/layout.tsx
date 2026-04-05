@@ -16,17 +16,35 @@ export default async function WorkspaceLayout({
     await getWorkspaceAppContext();
   } catch (err) {
     const msg = err instanceof Error ? err.message : String(err);
-    // Table doesn't exist yet (migration not run) or DB connectivity issue.
-    // Redirect to login with a readable error rather than showing a 500.
-    if (
+    const code =
+      typeof err === "object" && err !== null && "code" in err
+        ? String((err as { code?: string }).code ?? "")
+        : "";
+
+    const isMissingTable =
       msg.includes("relation") ||
       msg.includes("does not exist") ||
       msg.includes("undefined") ||
-      msg.includes("42P01") // PostgreSQL: undefined_table
-    ) {
+      msg.includes("42P01");
+
+    const isDuplicateKey =
+      code === "23505" || msg.includes("23505") || msg.includes("duplicate key");
+
+    const isRlsOrPermission =
+      code === "42501" ||
+      msg.includes("42501") ||
+      /row-level security|violates row-level security|RLS/i.test(msg);
+
+    // Table doesn't exist yet (migration not run), duplicate seed IDs across
+    // workspaces (fixed in app, but old deploys may still throw), or RLS/JWT issues.
+    if (isMissingTable) {
       redirect("/app/login?error=db-not-ready");
     }
-    // Re-throw everything else so it surfaces properly.
+
+    if (isDuplicateKey || isRlsOrPermission) {
+      redirect("/app/login?error=workspace-unavailable");
+    }
+
     throw err;
   }
 

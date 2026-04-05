@@ -85,6 +85,8 @@ export default async function AppLoginPage({
         return "The link expired or was already used. Request a new one below.";
       case "db-not-ready":
         return "The database tables are not set up yet. Run the migration SQL in your Supabase project (SQL Editor → paste supabase/migrations/20260330232000_init_schema.sql → Run), then sign in again.";
+      case "workspace-unavailable":
+        return "We could not open your workspace (database permission or a stale session). Sign out and sign in again. If it keeps happening, confirm Supabase migrations are applied and Row Level Security policies match your project.";
       default:
         return code ? "Something went wrong. Please try again." : null;
     }

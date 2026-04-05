@@ -23,7 +23,11 @@ export const updateSupabaseSession = async (request: NextRequest) => {
       },
       setAll(cookiesToSet) {
         cookiesToSet.forEach(({ name, value, options }) => {
-          request.cookies.set(name, value);
+          try {
+            request.cookies.set(name, value);
+          } catch {
+            // Some runtimes treat request cookies as read-only; response Set-Cookie is enough.
+          }
           supabaseResponse.cookies.set(name, value, options);
         });
       },

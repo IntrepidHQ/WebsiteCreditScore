@@ -91,14 +91,27 @@ function buildWorkspace(ownerUserId: string, session: WorkspaceSession): Workspa
 }
 
 function normalizeWorkspaceRecord(workspace: WorkspaceRecord) {
+  const branding = workspace.branding ?? {
+    agencyName: "",
+    logoMark: "",
+    logoColor: "",
+    logoScale: 1,
+    contactName: "",
+    contactTitle: "",
+    contactEmail: "",
+    contactPhone: "",
+    headshot: "",
+    accentOverride: "",
+  };
+
   const usesLegacyBrand = [
     workspace.name,
     workspace.slug,
-    workspace.branding.agencyName,
-    workspace.branding.logoMark,
-    workspace.branding.contactName,
-    workspace.branding.contactEmail,
-    workspace.branding.headshot,
+    branding.agencyName,
+    branding.logoMark,
+    branding.contactName,
+    branding.contactEmail,
+    branding.headshot,
   ].some((value) => LEGACY_BRAND_PATTERN.test(value));
   const usesLegacyBilling = workspace.tokenBalance == null && workspace.billingPlan == null;
   const normalizedTokenBalance = usesLegacyBilling
@@ -118,14 +131,14 @@ function normalizeWorkspaceRecord(workspace: WorkspaceRecord) {
     tokenBalance: normalizedTokenBalance,
     entitlements: workspace.entitlements ?? [],
     branding: {
-      ...workspace.branding,
-      agencyName: usesLegacyBrand ? "WebsiteCreditScore.com" : workspace.branding.agencyName,
-      logoMark: usesLegacyBrand || workspace.branding.logoMark === "CR" ? "WCS" : workspace.branding.logoMark,
-      logoColor: workspace.branding.logoColor ?? "",
-      logoScale: workspace.branding.logoScale ?? 1,
-      contactName: usesLegacyBrand ? "WebsiteCreditScore.com team" : workspace.branding.contactName,
-      contactEmail: usesLegacyBrand ? "hello@websitecreditscore.com" : workspace.branding.contactEmail,
-      headshot: usesLegacyBrand ? "/previews/agency-avatar.svg" : workspace.branding.headshot,
+      ...branding,
+      agencyName: usesLegacyBrand ? "WebsiteCreditScore.com" : branding.agencyName,
+      logoMark: usesLegacyBrand || branding.logoMark === "CR" ? "WCS" : branding.logoMark,
+      logoColor: branding.logoColor ?? "",
+      logoScale: branding.logoScale ?? 1,
+      contactName: usesLegacyBrand ? "WebsiteCreditScore.com team" : branding.contactName,
+      contactEmail: usesLegacyBrand ? "hello@websitecreditscore.com" : branding.contactEmail,
+      headshot: usesLegacyBrand ? "/previews/agency-avatar.svg" : branding.headshot,
     },
   };
 }
@@ -182,14 +195,21 @@ function isLegacyProviderPagesLead(lead: LeadRecord, report?: SavedReport) {
 
 function buildSeededLead(
   workspaceId: string,
-  reportId: string,
+  sampleReportId: string,
   fallbackUrl?: string,
   createdAt = new Date().toISOString(),
 ) {
   const sourceReport =
-    buildAuditReportById(reportId) ??
+    buildAuditReportById(sampleReportId) ??
     buildAuditReportFromUrl(fallbackUrl ?? "https://www.onemedical.com");
-  const report = prepareReportForStorage(sourceReport);
+  // DB enforces GLOBAL uniqueness on saved_reports.lead_id and share_links.token.
+  // Sample IDs must be namespaced per workspace or the second signup hits duplicate key errors.
+  const scopedLeadId = `${workspaceId}__sample__${sampleReportId}`;
+  const baseReport = prepareReportForStorage(sourceReport);
+  const report = {
+    ...baseReport,
+    id: scopedLeadId,
+  };
   const summary = calculatePricingSummary(
     report.pricingBundle,
     getDefaultSelectedIds(report.pricingBundle),
@@ -198,7 +218,7 @@ function buildSeededLead(
     ...report,
     proposalOffer: createDefaultProposalOffer(summary.total, new Date(createdAt)),
   };
-  const leadId = report.id;
+  const leadId = scopedLeadId;
 
   const savedReport: SavedReport = {
     id: leadId,
@@ -276,7 +296,8 @@ async function ensurePublicSampleSeeds(workspaceId: string) {
   const existingReportIds = new Set(existingReports.map((report) => report.id));
 
   for (const sample of sampleAudits) {
-    if (existingReportIds.has(sample.id)) {
+    const scopedSavedReportId = `${workspaceId}__sample__${sample.id}`;
+    if (existingReportIds.has(scopedSavedReportId) || existingReportIds.has(sample.id)) {
       continue;
     }
 
@@ -544,14 +565,20 @@ export async function getSupabaseDashboard(workspaceId: string): Promise<Dashboa
   const reportByLeadId = new Map(savedReports.map((report) => [report.leadId, report]));
   const filteredLeads = leads.filter((lead) => !isLegacyProviderPagesLead(lead, reportByLeadId.get(lead.id)));
   const filteredLeadIds = new Set(filteredLeads.map((lead) => lead.id));
-  const filteredSavedReports = savedReports.filter(
-    (report) =>
+  const filteredSavedReports = savedReports.filter((report) => {
+    const snap = report.reportSnapshot;
+    if (!snap) {
+      return false;
+    }
+
+    return (
       filteredLeadIds.has(report.leadId) &&
       !isLegacyProviderPagesText(report.title) &&
       !isLegacyProviderPagesText(report.normalizedUrl) &&
-      !isLegacyProviderPagesText(report.reportSnapshot.title) &&
-      !isLegacyProviderPagesText(report.reportSnapshot.executiveSummary),
-  );
+      !isLegacyProviderPagesText(snap.title) &&
+      !isLegacyProviderPagesText(snap.executiveSummary)
+    );
+  });
 
   return {
     workspace,
