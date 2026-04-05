@@ -1,9 +1,17 @@
-import type { EmailOtpType } from "@supabase/auth-js";
 import { NextResponse } from "next/server";
 
 import { DEMO_SESSION_COOKIE, sanitizeInternalNextPath } from "@/lib/auth/session";
 import { hasSupabaseEnv } from "@/lib/supabase/config";
 import { createSupabaseOAuthRouteClient } from "@/lib/supabase/route-client";
+
+/** Matches GoTrue `EmailOtpType` (declared in `@supabase/auth-js`, not a direct dependency). */
+type EmailOtpType =
+  | "signup"
+  | "invite"
+  | "magiclink"
+  | "recovery"
+  | "email_change"
+  | "email";
 
 const EMAIL_OTP_TYPES: readonly EmailOtpType[] = [
   "signup",
