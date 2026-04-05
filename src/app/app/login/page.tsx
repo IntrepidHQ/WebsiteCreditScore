@@ -228,9 +228,7 @@ export default async function AppLoginPage({
                   <div className="h-px flex-1 bg-border/50" />
                 </div>
                 <Button asChild className="w-full" variant="ghost">
-                  <a href={`/auth/demo?next=${encodeURIComponent(next)}`}>
-                    Continue in demo workspace
-                  </a>
+                  <a href={`/auth/demo?next=${encodeURIComponent(next)}`}>Continue in demo workspace</a>
                 </Button>
               </>
             ) : null}

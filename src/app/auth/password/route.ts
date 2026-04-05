@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 
 import { sanitizeInternalNextPath } from "@/lib/auth/session";
 import { hasSupabaseEnv } from "@/lib/supabase/config";
-import { createSupabaseServerClient } from "@/lib/supabase/server";
+import { createSupabaseOAuthRouteClient } from "@/lib/supabase/route-client";
 
 export async function POST(request: Request) {
   const url = new URL(request.url);
@@ -19,7 +19,7 @@ export async function POST(request: Request) {
     return NextResponse.redirect(new URL("/app/login?error=missing-credentials", url));
   }
 
-  const supabase = await createSupabaseServerClient();
+  const { supabase, applyCookiesToResponse } = createSupabaseOAuthRouteClient(request);
   const { error } = await supabase.auth.signInWithPassword({ email, password });
 
   if (error) {
@@ -31,5 +31,5 @@ export async function POST(request: Request) {
     );
   }
 
-  return NextResponse.redirect(new URL(next, url));
+  return applyCookiesToResponse(NextResponse.redirect(new URL(next, url)));
 }

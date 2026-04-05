@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 
 import { hasSupabaseEnv } from "@/lib/supabase/config";
-import { createSupabaseServerClient } from "@/lib/supabase/server";
+import { createSupabaseOAuthRouteClient } from "@/lib/supabase/route-client";
 
 export async function POST(request: Request) {
   const url = new URL(request.url);
@@ -16,12 +16,11 @@ export async function POST(request: Request) {
     return NextResponse.redirect(new URL("/app/login?mode=reset&error=missing-email", url));
   }
 
-  const supabase = await createSupabaseServerClient();
-  // Always redirects to callback which logs user in, then they can set a new password
+  const { supabase, applyCookiesToResponse } = createSupabaseOAuthRouteClient(request);
   await supabase.auth.resetPasswordForEmail(email, {
     redirectTo: `${url.origin}/auth/callback?next=/app`,
   });
 
-  // Always show success — never reveal whether the email exists
-  return NextResponse.redirect(new URL("/app/login?sent=reset", url));
+  // Always show success — never reveal whether an account exists for this email
+  return applyCookiesToResponse(NextResponse.redirect(new URL("/app/login?sent=reset", url)));
 }

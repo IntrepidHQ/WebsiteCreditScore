@@ -1,8 +1,15 @@
 /**
- * Controls whether the "Continue in demo workspace" option is shown on the
- * login page. Set NEXT_PUBLIC_DEMO_WORKSPACE=false to hide it in production.
- * Defaults to true so the app is always accessible without auth.
+ * Demo workspace entry: enabled in development by default; in production only when
+ * NEXT_PUBLIC_ENABLE_DEMO_WORKSPACE === "true".
  */
-export function isDemoWorkspaceAllowed(): boolean {
-  return process.env.NEXT_PUBLIC_DEMO_WORKSPACE !== "false";
-}
+export const isDemoWorkspaceAllowed = (): boolean => {
+  if (process.env.NEXT_PUBLIC_ENABLE_DEMO_WORKSPACE === "true") {
+    return true;
+  }
+
+  if (process.env.NEXT_PUBLIC_ENABLE_DEMO_WORKSPACE === "false") {
+    return false;
+  }
+
+  return process.env.NODE_ENV !== "production";
+};

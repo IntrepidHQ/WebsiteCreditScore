@@ -25,10 +25,12 @@ export async function GET(request: Request) {
   try {
     const normalizedUrl = normalizeUrl(rawUrl);
     const observation = await inspectWebsite(normalizedUrl).catch(() => null);
+    const captureUrl = observation?.finalUrl ?? normalizedUrl;
     const preview = await getSitePreviewImage(
-      observation?.finalUrl || normalizedUrl,
+      normalizedUrl,
       device,
       observation?.ogImage,
+      captureUrl,
     );
 
     if (preview.source === "storage" && preview.storageUrl) {

@@ -2,9 +2,9 @@ import { NextResponse } from "next/server";
 
 import { sanitizeInternalNextPath } from "@/lib/auth/session";
 import { hasSupabaseEnv } from "@/lib/supabase/config";
-import { createSupabaseServerClient } from "@/lib/supabase/server";
+import { createSupabaseOAuthRouteClient } from "@/lib/supabase/route-client";
 
-export async function POST(request: Request) {
+export const POST = async (request: Request) => {
   const url = new URL(request.url);
   const formData = await request.formData();
   const email = String(formData.get("email") ?? "").trim();
@@ -20,7 +20,7 @@ export async function POST(request: Request) {
     return NextResponse.redirect(new URL("/app/login?error=missing-email", url));
   }
 
-  const supabase = await createSupabaseServerClient();
+  const { supabase, applyCookiesToResponse } = createSupabaseOAuthRouteClient(request);
   const { error } = await supabase.auth.signInWithOtp({
     email,
     options: {
@@ -29,8 +29,10 @@ export async function POST(request: Request) {
   });
 
   if (error) {
-    return NextResponse.redirect(new URL("/app/login?error=send-failed", url));
+    return applyCookiesToResponse(
+      NextResponse.redirect(new URL("/app/login?error=send-failed", url)),
+    );
   }
 
-  return NextResponse.redirect(new URL("/app/login?sent=1", url));
-}
+  return applyCookiesToResponse(NextResponse.redirect(new URL("/app/login?sent=1", url)));
+};
