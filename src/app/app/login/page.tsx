@@ -62,35 +62,21 @@ export default async function AppLoginPage({
     "/app",
   );
 
-  const fatalWorkspaceAuthErrors = new Set(["db-not-ready", "workspace-unavailable"]);
-  const skipAutoRedirect = Boolean(authError && fatalWorkspaceAuthErrors.has(authError));
+  // Never auto-redirect to /app while ?error= is present — any code can indicate a failed workspace
+  // load or auth handoff; redirecting back causes /app ↔ /login loops when session is still valid.
+  const skipAutoRedirectToWorkspace = Boolean(authError);
 
-  // #region agent log
-  fetch("http://127.0.0.1:7460/ingest/f3e69962-c2ab-4d8a-81a8-8fb4ae2a364a", {
-    method: "POST",
-    headers: { "Content-Type": "application/json", "X-Debug-Session-Id": "8c27eb" },
-    body: JSON.stringify({
-      sessionId: "8c27eb",
-      hypothesisId: "C-loop",
-      location: "login/page.tsx:session-redirect",
-      message: "login redirect decision",
-      data: {
-        hasSession: Boolean(session),
-        authError,
-        skipAutoRedirect,
-        next,
-      },
-      timestamp: Date.now(),
+  console.error(
+    JSON.stringify({
+      tag: "wcs-login-route",
+      hasSession: Boolean(session),
+      authError,
+      skipAutoRedirectToWorkspace,
+      next,
     }),
-  }).catch(() => {});
-  console.error("[debug-8c27eb] login redirect decision", {
-    hasSession: Boolean(session),
-    authError,
-    skipAutoRedirect,
-  });
-  // #endregion
+  );
 
-  if (session && !skipAutoRedirect) {
+  if (session && !skipAutoRedirectToWorkspace) {
     redirect(next);
   }
 
@@ -114,6 +100,8 @@ export default async function AppLoginPage({
         return "Auth is not configured in this environment.";
       case "callback-failed":
         return "The link expired or was already used. Request a new one below.";
+      case "session-required":
+        return "Sign in to continue to your workspace.";
       case "db-not-ready":
         return "The database tables are not set up yet. Run the migration SQL in your Supabase project (SQL Editor → paste supabase/migrations/20260330232000_init_schema.sql → Run), then sign in again.";
       case "workspace-unavailable":
@@ -318,7 +306,9 @@ export default async function AppLoginPage({
               )}
             </div>
 
-            {session && skipAutoRedirect ? (
+            {session &&
+            skipAutoRedirectToWorkspace &&
+            ["db-not-ready", "workspace-unavailable", "supabase-not-configured"].includes(authError ?? "") ? (
               <div className="rounded-xl border border-accent/35 bg-accent/10 p-4 text-sm leading-6 text-foreground">
                 <p className="font-semibold">You are signed in, but the workspace did not open.</p>
                 <p className="mt-2 text-muted">

@@ -93,7 +93,8 @@ export const requireWorkspaceSession = async () => {
   const session = await getOptionalWorkspaceSession();
 
   if (!session) {
-    redirect("/app/login");
+    // Stable error so login does not immediately redirect back to /app when cookies recover next request.
+    redirect("/app/login?error=session-required");
   }
 
   return session;
