@@ -1,5 +1,5 @@
 import { redirect } from "next/navigation";
-import { LockKeyhole, Mail, Rocket, Sparkles } from "lucide-react";
+import { LockKeyhole, Rocket, Sparkles } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -25,9 +25,12 @@ export default async function AppLoginPage({
 }) {
   const session = await getOptionalWorkspaceSession();
   const resolvedSearchParams = (await searchParams) ?? {};
-  const emailSent = resolvedSearchParams.sent === "1";
+  const mode = resolvedSearchParams.mode === "reset" ? "reset" : "signin";
+  const sentReset = resolvedSearchParams.sent === "reset";
   const authError =
     typeof resolvedSearchParams.error === "string" ? resolvedSearchParams.error : null;
+  const prefillEmail =
+    typeof resolvedSearchParams.email === "string" ? resolvedSearchParams.email : "";
   const next = sanitizeInternalNextPath(
     typeof resolvedSearchParams.next === "string" ? resolvedSearchParams.next : "/app",
     "/app",
@@ -36,6 +39,27 @@ export default async function AppLoginPage({
   if (session) {
     redirect(next);
   }
+
+  const errorMessage = (code: string | null) => {
+    switch (code) {
+      case "invalid-credentials":
+        return "Incorrect email or password. If you haven't set a password yet, use \"Forgot password\" below.";
+      case "missing-credentials":
+        return "Enter both your email and password.";
+      case "missing-email":
+        return "Enter your email address.";
+      case "sign-in-failed":
+        return "Sign-in failed. Please try again.";
+      case "supabase-not-configured":
+        return "Auth is not configured in this environment.";
+      case "callback-failed":
+        return "The sign-in link expired or was already used. Request a new one below.";
+      default:
+        return code ? "Something went wrong. Please try again." : null;
+    }
+  };
+
+  const error = errorMessage(authError);
 
   return (
     <main className="presentation-section" id="main-content">
@@ -82,10 +106,66 @@ export default async function AppLoginPage({
 
         <Card>
           <CardHeader>
-            <CardTitle className="text-3xl">Access</CardTitle>
+            <CardTitle className="text-3xl">
+              {mode === "reset" ? "Reset password" : "Sign in"}
+            </CardTitle>
           </CardHeader>
           <CardContent className="space-y-3">
-            {hasSupabaseEnv() ? (
+            {!hasSupabaseEnv() ? (
+              <div className="rounded-[10px] border border-border/70 bg-panel/70 p-4 text-sm leading-6 text-muted">
+                Auth environment variables are not set. Add{" "}
+                <code className="text-foreground">NEXT_PUBLIC_SUPABASE_URL</code> and{" "}
+                <code className="text-foreground">NEXT_PUBLIC_SUPABASE_PUBLISHABLE_DEFAULT_KEY</code>{" "}
+                to your Vercel project settings, then redeploy.
+              </div>
+            ) : sentReset ? (
+              <div className="rounded-[10px] border border-success/30 bg-success/10 p-4 text-sm leading-6 text-foreground">
+                <p className="font-medium">Check your inbox.</p>
+                <p className="mt-1 text-muted">
+                  If that email has an account, you&apos;ll get a link to sign in and set a new password. Check spam if you don&apos;t see it.
+                </p>
+                <a
+                  className="mt-3 block text-accent hover:underline"
+                  href={`/app/login?next=${encodeURIComponent(next)}`}
+                >
+                  Back to sign in
+                </a>
+              </div>
+            ) : mode === "reset" ? (
+              <>
+                <p className="text-sm text-muted">
+                  Enter your email and we&apos;ll send a link to sign in and set a new password.
+                </p>
+                <form action="/auth/reset" className="space-y-3" method="post">
+                  <label className="block space-y-2">
+                    <span className="text-sm font-medium text-foreground">Email</span>
+                    <Input
+                      autoComplete="email"
+                      autoFocus
+                      defaultValue={prefillEmail}
+                      name="email"
+                      placeholder="you@yourbusiness.com"
+                      required
+                      type="email"
+                    />
+                  </label>
+                  <Button className="w-full" type="submit">
+                    Send reset link
+                  </Button>
+                </form>
+                {error ? (
+                  <p className="rounded-[10px] border border-danger/30 bg-danger/10 px-4 py-3 text-sm text-danger">
+                    {error}
+                  </p>
+                ) : null}
+                <a
+                  className="block text-center text-sm text-muted hover:text-foreground"
+                  href={`/app/login?next=${encodeURIComponent(next)}`}
+                >
+                  Back to sign in
+                </a>
+              </>
+            ) : (
               <>
                 <Button asChild className="w-full" variant="outline">
                   <a href={`/auth/google?next=${encodeURIComponent(next)}`}>
@@ -95,64 +175,64 @@ export default async function AppLoginPage({
                 </Button>
                 <div className="flex items-center gap-3">
                   <div className="h-px flex-1 bg-border/50" />
-                  <span className="text-xs text-muted">or use email</span>
+                  <span className="text-xs text-muted">or</span>
                   <div className="h-px flex-1 bg-border/50" />
                 </div>
-                <form action="/auth/email" className="space-y-3" method="post">
+                <form action="/auth/password" className="space-y-3" method="post">
                   <label className="block space-y-2">
                     <span className="text-sm font-medium text-foreground">Email</span>
                     <Input
                       autoComplete="email"
+                      defaultValue={prefillEmail}
                       name="email"
                       placeholder="you@yourbusiness.com"
                       required
                       type="email"
                     />
                   </label>
+                  <label className="block space-y-2">
+                    <div className="flex items-center justify-between">
+                      <span className="text-sm font-medium text-foreground">Password</span>
+                      <a
+                        className="text-xs text-muted hover:text-foreground"
+                        href={`/app/login?mode=reset&email=${encodeURIComponent(prefillEmail)}&next=${encodeURIComponent(next)}`}
+                      >
+                        Forgot password?
+                      </a>
+                    </div>
+                    <Input
+                      autoComplete="current-password"
+                      name="password"
+                      required
+                      type="password"
+                    />
+                  </label>
                   <input name="next" type="hidden" value={next} />
-                  <Button className="w-full" type="submit" variant="secondary">
-                    <Mail className="size-4" />
-                    Email me a sign-in link
+                  <Button className="w-full" type="submit">
+                    Sign in
                   </Button>
                 </form>
-                {emailSent ? (
-                  <div className="rounded-[10px] border border-success/30 bg-success/10 p-4 text-sm leading-6 text-foreground">
-                    <p className="font-medium">Check your inbox.</p>
-                    <p className="mt-1 text-muted">The link expires in 24 hours and can only be used once. Check spam if you don&apos;t see it.</p>
-                  </div>
-                ) : null}
-                {authError ? (
-                  <div className="rounded-[10px] border border-danger/30 bg-danger/10 p-4 text-sm leading-6 text-foreground">
-                    {authError === "missing-email" ? (
-                      "Enter an email address to receive the sign-in link."
-                    ) : authError === "callback-failed" ? (
-                      <div className="space-y-1">
-                        <p className="font-medium">Sign-in link expired or already used.</p>
-                        <p className="text-muted">Magic links expire after 24 hours and can only be used once. Request a new one above, or use Google sign-in.</p>
-                      </div>
-                    ) : authError === "missing-code" ? (
-                      "The sign-in callback was incomplete. Please try signing in again."
-                    ) : authError === "supabase-not-configured" ? (
-                      "Auth is not configured in this environment."
-                    ) : (
-                      "The sign-in link could not be sent. Please try again."
-                    )}
-                  </div>
+                {error ? (
+                  <p className="rounded-[10px] border border-danger/30 bg-danger/10 px-4 py-3 text-sm text-danger">
+                    {error}
+                  </p>
                 ) : null}
               </>
-            ) : (
-              <div className="rounded-[10px] border border-border/70 bg-panel/70 p-4 text-sm leading-6 text-muted">
-                Email sign-in is not available in this environment.
-              </div>
             )}
-            <div className="flex items-center gap-3">
-              <div className="h-px flex-1 bg-border/50" />
-              <span className="text-xs text-muted">or</span>
-              <div className="h-px flex-1 bg-border/50" />
-            </div>
-            <Button asChild className="w-full" variant="ghost">
-              <a href={`/auth/demo?next=${encodeURIComponent(next)}`}>Continue in demo workspace</a>
-            </Button>
+            {hasSupabaseEnv() && !sentReset ? (
+              <>
+                <div className="flex items-center gap-3">
+                  <div className="h-px flex-1 bg-border/50" />
+                  <span className="text-xs text-muted">or</span>
+                  <div className="h-px flex-1 bg-border/50" />
+                </div>
+                <Button asChild className="w-full" variant="ghost">
+                  <a href={`/auth/demo?next=${encodeURIComponent(next)}`}>
+                    Continue in demo workspace
+                  </a>
+                </Button>
+              </>
+            ) : null}
           </CardContent>
         </Card>
       </div>
