@@ -34,11 +34,36 @@ export const redirectOnRecoverableProductError = (err: unknown): void => {
     name: err instanceof Error ? err.name : typeof err,
   });
 
+  // Require Postgres-style missing relation (avoid "X does not exist" from other subsystems).
   const isMissingTable =
-    haystack.includes("relation") ||
-    haystack.includes("does not exist") ||
     haystack.includes("42P01") ||
-    /undefined_table/i.test(haystack);
+    /undefined_table/i.test(haystack) ||
+    (/relation/i.test(haystack) && /does not exist/i.test(haystack));
+
+  // #region agent log
+  fetch("http://127.0.0.1:7460/ingest/f3e69962-c2ab-4d8a-81a8-8fb4ae2a364a", {
+    method: "POST",
+    headers: { "Content-Type": "application/json", "X-Debug-Session-Id": "8c27eb" },
+    body: JSON.stringify({
+      sessionId: "8c27eb",
+      hypothesisId: "A-db-classify",
+      location: "workspace-load-errors.ts:classify",
+      message: "recoverable error classification",
+      data: {
+        isMissingTable,
+        code,
+        msgSnippet: msg.slice(0, 200),
+        detailsSnippet: details.slice(0, 200),
+      },
+      timestamp: Date.now(),
+    }),
+  }).catch(() => {});
+  console.error("[debug-8c27eb] workspace-load classify", {
+    isMissingTable,
+    code,
+    msgSnippet: msg.slice(0, 200),
+  });
+  // #endregion
 
   const isDuplicateKey =
     code === "23505" || haystack.includes("23505") || haystack.includes("duplicate key");

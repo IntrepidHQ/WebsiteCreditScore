@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { redirect } from "next/navigation";
 import { Check } from "lucide-react";
 
@@ -61,7 +62,37 @@ export default async function AppLoginPage({
     "/app",
   );
 
-  if (session) redirect(next);
+  const fatalWorkspaceAuthErrors = new Set(["db-not-ready", "workspace-unavailable"]);
+  const skipAutoRedirect = Boolean(authError && fatalWorkspaceAuthErrors.has(authError));
+
+  // #region agent log
+  fetch("http://127.0.0.1:7460/ingest/f3e69962-c2ab-4d8a-81a8-8fb4ae2a364a", {
+    method: "POST",
+    headers: { "Content-Type": "application/json", "X-Debug-Session-Id": "8c27eb" },
+    body: JSON.stringify({
+      sessionId: "8c27eb",
+      hypothesisId: "C-loop",
+      location: "login/page.tsx:session-redirect",
+      message: "login redirect decision",
+      data: {
+        hasSession: Boolean(session),
+        authError,
+        skipAutoRedirect,
+        next,
+      },
+      timestamp: Date.now(),
+    }),
+  }).catch(() => {});
+  console.error("[debug-8c27eb] login redirect decision", {
+    hasSession: Boolean(session),
+    authError,
+    skipAutoRedirect,
+  });
+  // #endregion
+
+  if (session && !skipAutoRedirect) {
+    redirect(next);
+  }
 
   const errorMessage = (code: string | null): string | null => {
     switch (code) {
@@ -286,6 +317,19 @@ export default async function AppLoginPage({
                 <p className="mt-1 text-sm text-muted">Free to start — no credit card required.</p>
               )}
             </div>
+
+            {session && skipAutoRedirect ? (
+              <div className="rounded-xl border border-accent/35 bg-accent/10 p-4 text-sm leading-6 text-foreground">
+                <p className="font-semibold">You are signed in, but the workspace did not open.</p>
+                <p className="mt-2 text-muted">
+                  Staying on this page avoids a redirect loop with /app. After fixing the database (or
+                  signing out), try again.
+                </p>
+                <Button asChild className="mt-4 w-full" variant="secondary">
+                  <Link href="/auth/logout">Sign out and start over</Link>
+                </Button>
+              </div>
+            ) : null}
 
             {/* Email + Password form */}
             {mode === "signup" ? (
