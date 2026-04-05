@@ -119,6 +119,12 @@ You can copy the exact URL from Supabase → Authentication → Providers → Go
 - After Google sign-in, you should land on `/auth/callback` then `/app` (or `next` query), not immediately back on login with `error=callback-failed` (that usually means redirect URL mismatch or expired code).
 - Vercel **Logs** / browser URL: note `?error=` codes (`db-not-ready`, `workspace-unavailable`, `session-required`, etc.) to see which gate failed.
 
+### Workspace vs scans
+
+- A **workspace row** is created the first time you successfully open **`/app`** (server runs `ensureWorkspace`). It is **not** created by running a scan.
+- **`no_workspace_row`** from `/api/workspace/gate` means that insert has not happened yet — usually you have not loaded `/app` after fixing auth/RLS, or `/app` is erroring before layout completes.
+- **Welcome scan** — New workspaces include `onboardingWelcomeScanUsed: false` in the stored payload. The **first** live URL scan does **not** deduct tokens; the dashboard calls this out until you run it.
+
 ### 6. Still stuck on `/app` after Plan A?
 
 1. **Diagnostics** — While signed in, open **`/api/workspace/gate`** (same site, same browser). The JSON field `step` shows where it fails: env, auth cookie, DB query, duplicate workspaces, or OK.

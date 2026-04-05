@@ -13,6 +13,7 @@ import {
 } from "lucide-react";
 
 import { createLeadAction, completeReminderAction } from "@/app/app/actions";
+import { getTokenActionCost } from "@/lib/billing/catalog";
 import { ScoreBreakdownBars } from "@/components/common/score-breakdown-bars";
 import { ScoreDial } from "@/components/common/score-dial";
 import { PreviewImage } from "@/components/common/preview-image";
@@ -127,6 +128,8 @@ export default async function AppDashboardPage({
     typeof resolvedSearchParams.error === "string" ? resolvedSearchParams.error : null;
   const { dashboard } = await getWorkspaceDashboardContext();
   const workspaceState = dashboard.workspace;
+  const welcomeFreeScanAvailable = workspaceState.onboardingWelcomeScanUsed === false;
+  const scanTokenCost = getTokenActionCost("scan-site");
   const visibleLeads = dashboard.leads.filter((lead) => lead.title !== "Provider Pages");
   const visibleSavedReports = dashboard.savedReports.filter(
     (savedReport) =>
@@ -180,26 +183,43 @@ export default async function AppDashboardPage({
           <CardHeader className="pb-3">
             <div className="flex items-center gap-2 text-accent">
               <ScanSearch className="size-4" />
-              <p className="text-xs uppercase tracking-[0.24em] text-accent">Run a new search</p>
+              <p className="text-xs uppercase tracking-[0.24em] text-accent">
+                {welcomeFreeScanAvailable ? "Start here" : "Run a new search"}
+              </p>
             </div>
             <CardTitle className="text-[clamp(4rem,3.15rem+1.1vw,5.5rem)] leading-[0.92]">
-              Turn any live site into a score reveal worth sending.
+              {welcomeFreeScanAvailable
+                ? "Paste a URL — your first live scan is free."
+                : "Turn any live site into a score reveal worth sending."}
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-5">
+            {welcomeFreeScanAvailable ? (
+              <div className="rounded-[18px] border border-accent/35 bg-accent/10 px-4 py-3 text-sm leading-6 text-foreground">
+                <p className="font-semibold text-foreground">Welcome — this scan does not use a token.</p>
+                <p className="mt-1 text-muted">
+                  Your workspace is ready. After this, each new live scan uses {scanTokenCost} token
+                  {scanTokenCost === 1 ? "" : "s"} from your balance (you still have {workspaceState.tokenBalance}{" "}
+                  to explore with).
+                </p>
+              </div>
+            ) : null}
             <p className="max-w-3xl text-sm leading-7 text-muted">
-              Save the audit, capture the opportunity, and move straight into the outreach packet and brief. Each new live scan uses a token, so the dashboard keeps the score reveal and the remaining balance in the same place.
+              {welcomeFreeScanAvailable
+                ? "We will run the live score, save the full audit to your workspace, and open the lead so you can share the packet and brief."
+                : `Save the audit, capture the opportunity, and move straight into the outreach packet and brief. Each new live scan uses ${scanTokenCost} token${scanTokenCost === 1 ? "" : "s"}, so the dashboard keeps the score reveal and the remaining balance in the same place.`}
             </p>
             <form action={createLeadAction} className="flex flex-col gap-3 sm:flex-row">
               <Input
                 autoComplete="url"
+                autoFocus={welcomeFreeScanAvailable}
                 className="flex-1"
                 name="url"
                 placeholder="https://example.com"
                 type="url"
               />
               <Button type="submit">
-                Generate saved audit
+                {welcomeFreeScanAvailable ? "Run free first scan" : "Generate saved audit"}
                 <ArrowRight className="size-4" />
               </Button>
             </form>

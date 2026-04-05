@@ -87,6 +87,7 @@ function buildWorkspace(ownerUserId: string, session: WorkspaceSession): Workspa
       mode: "dark",
       accentColor: "#f7b21b",
     }),
+    onboardingWelcomeScanUsed: false,
   };
 }
 
@@ -130,6 +131,8 @@ function normalizeWorkspaceRecord(workspace: WorkspaceRecord) {
       : workspace.creditBalance ?? normalizedTokenBalance,
     tokenBalance: normalizedTokenBalance,
     entitlements: workspace.entitlements ?? [],
+    // Legacy payloads without the field are treated as already past welcome (no retroactive free scan).
+    onboardingWelcomeScanUsed: workspace.onboardingWelcomeScanUsed !== false,
     branding: {
       ...branding,
       agencyName: usesLegacyBrand ? "WebsiteCreditScore.com" : branding.agencyName,
@@ -656,8 +659,10 @@ export async function createSupabaseLeadFromUrl(workspaceId: string, rawUrl: str
   }
 
   const tokenCost = getTokenActionCost("scan-site");
+  const welcomeScanFree = workspace.onboardingWelcomeScanUsed === false;
+  const balance = workspace.tokenBalance ?? workspace.creditBalance ?? 0;
 
-  if ((workspace.tokenBalance ?? workspace.creditBalance ?? 0) < tokenCost) {
+  if (!welcomeScanFree && balance < tokenCost) {
     throw new Error("INSUFFICIENT_TOKENS");
   }
 
@@ -697,7 +702,7 @@ export async function createSupabaseLeadFromUrl(workspaceId: string, rawUrl: str
     title: report.title,
     companyName: report.title,
     normalizedUrl: report.normalizedUrl,
-    previewImage: report.previewSet.current.desktop,
+    previewImage: report.previewSet?.current?.desktop ?? "/previews/fallback-desktop.svg",
     stage: "audit-ready",
     createdAt,
     updatedAt: createdAt,
@@ -750,33 +755,39 @@ export async function createSupabaseLeadFromUrl(workspaceId: string, rawUrl: str
       leadId: lead.id,
       type: "audit-created",
       title: "Audit created",
-      detail: `Saved a working audit for ${report.title}.`,
+      detail: welcomeScanFree
+        ? `Welcome scan — no tokens charged. Saved a working audit for ${report.title}.`
+        : `Saved a working audit for ${report.title}.`,
       occurredAt: createdAt,
     } satisfies LeadActivity,
   });
+  const nextBalance = welcomeScanFree ? balance : balance - tokenCost;
   await upsertPayloadRecord("workspaces", {
     id: workspace.id,
     owner_user_id: workspace.ownerUserId,
     payload: {
       ...workspace,
-      tokenBalance: (workspace.tokenBalance ?? workspace.creditBalance ?? 0) - tokenCost,
-      creditBalance: (workspace.tokenBalance ?? workspace.creditBalance ?? 0) - tokenCost,
+      onboardingWelcomeScanUsed: true,
+      tokenBalance: nextBalance,
+      creditBalance: nextBalance,
       updatedAt: createdAt,
     } satisfies WorkspaceRecord,
   });
-  await upsertPayloadRecord("workspace_credits", {
-    id: createId("credit"),
-    workspace_id: workspaceId,
-    payload: {
-      ...createBalanceEntry(workspaceId, -tokenCost, "Live site scan", {
-        type: "spend",
-        source: "workspace",
-        actionId: "scan-site",
-        actionKey: `lead:${leadId}:scan`,
-      }),
-      createdAt,
-    } satisfies WorkspaceCreditEntry,
-  });
+  if (!welcomeScanFree) {
+    await upsertPayloadRecord("workspace_credits", {
+      id: createId("credit"),
+      workspace_id: workspaceId,
+      payload: {
+        ...createBalanceEntry(workspaceId, -tokenCost, "Live site scan", {
+          type: "spend",
+          source: "workspace",
+          actionId: "scan-site",
+          actionKey: `lead:${leadId}:scan`,
+        }),
+        createdAt,
+      } satisfies WorkspaceCreditEntry,
+    });
+  }
 
   return lead;
 }

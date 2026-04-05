@@ -79,7 +79,8 @@ export const GET = async () => {
     return NextResponse.json({
       ...base,
       step: "no_workspace_row",
-      hint: "No workspace for this user yet. Visiting /app should create one if INSERT is allowed by RLS.",
+      hint:
+        "No workspace row yet — it is created when you first open /app (not from scans). Sign in, then load /app in this browser. If /app redirects or errors, fix RLS/migrations first; this endpoint only checks the database.",
     });
   }
 

@@ -57,6 +57,8 @@ export interface WorkspaceRecord {
   entitlements: WorkspaceEntitlement[];
   branding: AgencyBranding;
   savedTheme: ThemeTokens;
+  /** When `false`, the next live URL scan does not deduct tokens (one-time welcome). Omitted/`true` = already used or legacy workspace. */
+  onboardingWelcomeScanUsed?: boolean;
 }
 
 export interface SavedReport {

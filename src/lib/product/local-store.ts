@@ -109,6 +109,7 @@ function getWorkspaceDefaults(ownerUserId: string) {
       mode: "dark",
       accentColor: "#f7b21b",
     }),
+    onboardingWelcomeScanUsed: false,
   };
 }
 
@@ -153,6 +154,7 @@ function normalizeWorkspaceRecord(workspace: WorkspaceRecord) {
       : workspace.creditBalance ?? normalizedTokenBalance,
     tokenBalance: normalizedTokenBalance,
     entitlements: workspace.entitlements ?? [],
+    onboardingWelcomeScanUsed: workspace.onboardingWelcomeScanUsed !== false,
     branding,
   };
 }
@@ -725,8 +727,9 @@ export async function createLocalLeadFromUrl(
   return updateStore(ownerUserId, async (store) => {
     const workspace = getWorkspaceOrThrow(store, workspaceId);
     const tokenCost = getTokenActionCost("scan-site");
+    const welcomeScanFree = workspace.onboardingWelcomeScanUsed === false;
 
-    if (workspace.tokenBalance < tokenCost) {
+    if (!welcomeScanFree && workspace.tokenBalance < tokenCost) {
       throw new Error("INSUFFICIENT_TOKENS");
     }
 
@@ -769,7 +772,7 @@ export async function createLocalLeadFromUrl(
       title: report.title,
       companyName: report.title,
       normalizedUrl: report.normalizedUrl,
-      previewImage: report.previewSet.current.desktop,
+      previewImage: report.previewSet?.current?.desktop ?? "/previews/fallback-desktop.svg",
       stage: "audit-ready",
       createdAt,
       updatedAt: createdAt,
@@ -809,7 +812,9 @@ export async function createLocalLeadFromUrl(
         leadId,
         type: "audit-created",
         title: "Audit created",
-        detail: `Saved a working audit for ${report.title}.`,
+        detail: welcomeScanFree
+          ? `Welcome scan — no tokens charged. Saved a working audit for ${report.title}.`
+          : `Saved a working audit for ${report.title}.`,
         occurredAt: createdAt,
       },
       {
@@ -831,18 +836,21 @@ export async function createLocalLeadFromUrl(
       dueAt: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString(),
       status: "open",
     });
-    workspace.tokenBalance -= tokenCost;
-    workspace.creditBalance = workspace.tokenBalance;
+    workspace.onboardingWelcomeScanUsed = true;
+    if (!welcomeScanFree) {
+      workspace.tokenBalance -= tokenCost;
+      workspace.creditBalance = workspace.tokenBalance;
+      store.workspaceCredits.push({
+        ...createBalanceEntry(workspaceId, -tokenCost, "Live site scan", {
+          type: "spend",
+          source: "workspace",
+          actionId: "scan-site",
+          actionKey: `lead:${leadId}:scan`,
+        }),
+        createdAt,
+      });
+    }
     workspace.updatedAt = createdAt;
-    store.workspaceCredits.push({
-      ...createBalanceEntry(workspaceId, -tokenCost, "Live site scan", {
-        type: "spend",
-        source: "workspace",
-        actionId: "scan-site",
-        actionKey: `lead:${leadId}:scan`,
-      }),
-      createdAt,
-    });
 
     return lead;
   });
