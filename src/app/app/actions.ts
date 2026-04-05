@@ -6,30 +6,7 @@ import { redirect } from "next/navigation";
 import { getWorkspaceAppContext } from "@/lib/product/context";
 import type { LeadStage } from "@/lib/types/product";
 
-export async function createLeadAction(formData: FormData) {
-  const rawUrl = String(formData.get("url") ?? "").trim();
-  const { repository, session, workspace } = await getWorkspaceAppContext();
-
-  if (!rawUrl) {
-    redirect("/app?error=missing-url");
-  }
-
-  let lead;
-
-  try {
-    lead = await repository.createLeadFromUrl(workspace.id, rawUrl, session);
-  } catch (error) {
-    if (error instanceof Error && error.message === "INSUFFICIENT_TOKENS") {
-      redirect("/app?error=insufficient-tokens");
-    }
-
-    throw error;
-  }
-
-  revalidatePath("/app");
-  revalidatePath("/app/leads");
-  redirect(`/app/leads/${lead.id}`);
-}
+/** Dashboard scan uses POST /api/app/create-lead (form navigation) so auth cookies stay in sync with middleware. */
 
 export async function updateLeadStageAction(formData: FormData) {
   const leadId = String(formData.get("leadId") ?? "");

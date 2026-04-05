@@ -13,14 +13,24 @@ export async function createSupabaseServerClient() {
         return cookieStore.getAll();
       },
       setAll(cookiesToSet) {
-        try {
-          cookiesToSet.forEach(({ name, value, options }) => {
+        cookiesToSet.forEach(({ name, value, options }) => {
+          try {
             cookieStore.set(name, value, options);
-          });
-        } catch {
-          // Server Components cannot write cookies — session refresh is handled
-          // by the middleware (src/middleware.ts). This catch is intentional.
-        }
+          } catch (err) {
+            const message = err instanceof Error ? err.message : String(err);
+            // Server Components cannot set cookies; middleware refreshes there.
+            // Server Actions / Route Handlers must not swallow real failures.
+            if (
+              /Cookies can only be modified in a Server Action or Route Handler/i.test(
+                message,
+              ) ||
+              /Dynamic server usage/i.test(message)
+            ) {
+              return;
+            }
+            throw err;
+          }
+        });
       },
     },
   });

@@ -12,7 +12,7 @@ import {
   Sparkles,
 } from "lucide-react";
 
-import { createLeadAction, completeReminderAction } from "@/app/app/actions";
+import { completeReminderAction } from "@/app/app/actions";
 import { getTokenActionCost } from "@/lib/billing/catalog";
 import { ScoreBreakdownBars } from "@/components/common/score-breakdown-bars";
 import { ScoreDial } from "@/components/common/score-dial";
@@ -209,7 +209,11 @@ export default async function AppDashboardPage({
                 ? "We will run the live score, save the full audit to your workspace, and open the lead so you can share the packet and brief."
                 : `Save the audit, capture the opportunity, and move straight into the outreach packet and brief. Each new live scan uses ${scanTokenCost} token${scanTokenCost === 1 ? "" : "s"}, so the dashboard keeps the score reveal and the remaining balance in the same place.`}
             </p>
-            <form action={createLeadAction} className="flex flex-col gap-3 sm:flex-row">
+            <form
+              action="/api/app/create-lead"
+              className="flex flex-col gap-3 sm:flex-row"
+              method="post"
+            >
               <Input
                 autoComplete="url"
                 autoFocus={welcomeFreeScanAvailable}
