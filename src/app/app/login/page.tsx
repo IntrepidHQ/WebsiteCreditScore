@@ -195,9 +195,11 @@ export default async function AppLoginPage({
         {!hasSupabaseEnv() ? (
           <div className="rounded-xl border border-border/70 bg-panel/70 p-5 text-sm leading-6 text-muted">
             Auth environment variables are not set. Add{" "}
-            <code className="text-foreground">NEXT_PUBLIC_SUPABASE_URL</code> and{" "}
+            <code className="text-foreground">NEXT_PUBLIC_SUPABASE_URL</code> and a public anon key as{" "}
+            <code className="text-foreground">NEXT_PUBLIC_SUPABASE_ANON_KEY</code>,{" "}
+            <code className="text-foreground">NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY</code>, or{" "}
             <code className="text-foreground">NEXT_PUBLIC_SUPABASE_PUBLISHABLE_DEFAULT_KEY</code>{" "}
-            to your Vercel project settings, then redeploy.
+            (see README Plan A checklist), then redeploy.
           </div>
         ) : sentConfirm ? (
           <div className="space-y-4">

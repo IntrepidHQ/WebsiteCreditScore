@@ -57,17 +57,60 @@ pnpm dev
 
 ### Optional Supabase Auth Setup
 
-If you want Google OAuth and Supabase-backed workspaces instead of the local demo workspace, add:
+If you want Google OAuth and Supabase-backed workspaces instead of the local demo workspace, copy `.env.example` to `.env.local` and fill in values. See **Production sign-in checklist (Plan A)** below for Vercel + Supabase Dashboard steps.
 
 ```bash
 NEXT_PUBLIC_SUPABASE_URL=...
-NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY=...
+# Any one of: NEXT_PUBLIC_SUPABASE_ANON_KEY, NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY,
+# or NEXT_PUBLIC_SUPABASE_PUBLISHABLE_DEFAULT_KEY (see src/lib/supabase/config.ts)
 NEXT_PUBLIC_SITE_URL=http://localhost:3000
-STRIPE_SECRET_KEY=...
-STRIPE_WEBHOOK_SECRET=...
 ```
 
-The included schema file at `supabase/schema.sql` defines the payload-based tables used by the product layer.
+Optional: `STRIPE_SECRET_KEY`, `STRIPE_WEBHOOK_SECRET`, `SUPABASE_SERVICE_ROLE_KEY` (storage uploads).
+
+## Production sign-in checklist (Plan A)
+
+Use this when sign-in reaches a dead end (login loop, `?error=` on `/app/login`, or opaque errors on `/app`). The app expects **the same Supabase project** for env vars, Auth, and the database you migrate.
+
+### 1. Vercel → Environment Variables (Production)
+
+Set for the **Production** environment (and **Preview** if you test OAuth on preview URLs):
+
+| Variable | Notes |
+|----------|--------|
+| `NEXT_PUBLIC_SUPABASE_URL` | Project URL from Supabase → Settings → API |
+| **One** of: `NEXT_PUBLIC_SUPABASE_ANON_KEY`, `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY`, or `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_DEFAULT_KEY` | Anon/public key from the same project |
+| `NEXT_PUBLIC_SITE_URL` | Your live origin, e.g. `https://websitecreditscore.com` (used for absolute links) |
+
+Redeploy after changing these.
+
+### 2. Supabase → Authentication → URL configuration
+
+In the **same** Supabase project as the keys above:
+
+- **Site URL**: your production origin (e.g. `https://websitecreditscore.com`).
+- **Redirect URLs**: add explicit callback URLs Supabase is allowed to redirect to after OAuth/email:
+  - `https://YOUR_DOMAIN/auth/callback`
+  - `http://localhost:3000/auth/callback` (local dev)
+
+Google OAuth in this app uses `redirectTo` = `{origin}/auth/callback?next=...` (see `src/app/auth/google/route.ts`), so the callback path must be allowed here.
+
+### 3. Database migrations (same Supabase project)
+
+In Supabase → **SQL Editor**, run the migration files in order:
+
+1. `supabase/migrations/20260330232000_init_schema.sql` — tables + RLS (required).
+2. If you still hit unique-constraint issues on `saved_reports.lead_id` across workspaces, run `supabase/migrations/20260404140000_saved_reports_lead_per_workspace.sql`.
+
+Without (1), workspace load fails and you may be redirected to `/app/login?error=db-not-ready` or `workspace-unavailable`.
+
+### 4. Quick verification
+
+- Open `/app/login` — you should **not** see “Auth environment variables are not set” if step 1 is correct.
+- After Google sign-in, you should land on `/auth/callback` then `/app` (or `next` query), not immediately back on login with `error=callback-failed` (that usually means redirect URL mismatch or expired code).
+- Vercel **Logs** / browser URL: note `?error=` codes (`db-not-ready`, `workspace-unavailable`, `session-required`, etc.) to see which gate failed.
+
+Legacy reference: `supabase/schema.sql` may drift from migrations; prefer the `supabase/migrations/` files for a fresh project.
 
 ## Scripts
 
