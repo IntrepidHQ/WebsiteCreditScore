@@ -4,6 +4,7 @@ import { LockKeyhole, Rocket, Sparkles } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
+import { isDemoWorkspaceAllowed } from "@/lib/auth/demo-flag";
 import { getOptionalWorkspaceSession, sanitizeInternalNextPath } from "@/lib/auth/session";
 import { hasSupabaseEnv } from "@/lib/supabase/config";
 
@@ -219,7 +220,7 @@ export default async function AppLoginPage({
                 ) : null}
               </>
             )}
-            {hasSupabaseEnv() && !sentReset ? (
+            {isDemoWorkspaceAllowed() && !sentReset ? (
               <>
                 <div className="flex items-center gap-3">
                   <div className="h-px flex-1 bg-border/50" />
