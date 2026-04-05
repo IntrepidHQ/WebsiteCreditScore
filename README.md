@@ -104,11 +104,26 @@ In Supabase → **SQL Editor**, run the migration files in order:
 
 Without (1), workspace load fails and you may be redirected to `/app/login?error=db-not-ready` or `workspace-unavailable`.
 
-### 4. Quick verification
+### 4. Google provider (Google Cloud Console)
+
+If email/password works but **Google** does not: in [Google Cloud Console](https://console.cloud.google.com/) → APIs & Services → Credentials → your OAuth client → **Authorized redirect URIs**, add **Supabase’s** callback (not your Vercel domain):
+
+`https://<YOUR_SUPABASE_PROJECT_REF>.supabase.co/auth/v1/callback`
+
+You can copy the exact URL from Supabase → Authentication → Providers → Google.
+
+### 5. Quick verification
 
 - Open `/app/login` — you should **not** see “Auth environment variables are not set” if step 1 is correct.
 - After Google sign-in, you should land on `/auth/callback` then `/app` (or `next` query), not immediately back on login with `error=callback-failed` (that usually means redirect URL mismatch or expired code).
 - Vercel **Logs** / browser URL: note `?error=` codes (`db-not-ready`, `workspace-unavailable`, `session-required`, etc.) to see which gate failed.
+
+### 6. Still stuck on `/app` after Plan A?
+
+1. **Diagnostics** — While signed in, open **`/api/workspace/gate`** (same site, same browser). The JSON field `step` shows where it fails: env, auth cookie, DB query, duplicate workspaces, or OK.
+2. **Vercel Preview** — If you test on `*.vercel.app`, add that deployment URL (or a pattern your team uses) under Supabase → Authentication → **Redirect URLs**, e.g. `https://your-app-xxx.vercel.app/auth/callback`. Production and Preview use different origins.
+3. **`NEXT_PUBLIC_SITE_URL`** — Set it to the origin users actually use (including `www` vs apex). Mismatches mostly hurt absolute links, but keep it aligned with your canonical domain.
+4. **Duplicate `workspaces` rows** — Two rows with the same `owner_user_id` used to break workspace load; the app now picks the oldest row, but you should delete extras in the SQL Editor if `gate` reports `duplicate_workspace_rows`.
 
 Legacy reference: `supabase/schema.sql` may drift from migrations; prefer the `supabase/migrations/` files for a fresh project.
 

@@ -467,10 +467,13 @@ async function getWorkspacePayload(workspaceId: string) {
 
 export async function ensureSupabaseWorkspace(session: WorkspaceSession) {
   const supabase = await createSupabaseServerClient();
+  // Prefer oldest row; limit(1) avoids PostgREST errors when duplicate owner rows exist.
   const { data, error } = await supabase
     .from("workspaces")
     .select("payload")
     .eq("owner_user_id", session.userId)
+    .order("created_at", { ascending: true })
+    .limit(1)
     .maybeSingle();
 
   if (error) {

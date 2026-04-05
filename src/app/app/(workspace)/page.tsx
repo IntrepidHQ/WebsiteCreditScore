@@ -125,51 +125,7 @@ export default async function AppDashboardPage({
   const resolvedSearchParams = (await searchParams) ?? {};
   const error =
     typeof resolvedSearchParams.error === "string" ? resolvedSearchParams.error : null;
-  // #region agent log
-  fetch("http://127.0.0.1:7460/ingest/f3e69962-c2ab-4d8a-81a8-8fb4ae2a364a", {
-    method: "POST",
-    headers: { "Content-Type": "application/json", "X-Debug-Session-Id": "8c27eb" },
-    body: JSON.stringify({
-      sessionId: "8c27eb",
-      hypothesisId: "H-B",
-      location: "page.tsx:before_getWorkspaceDashboardContext",
-      message: "dashboard data fetch start",
-      data: {},
-      timestamp: Date.now(),
-    }),
-  }).catch(() => {});
-  // #endregion
-
-  console.error(
-    JSON.stringify({ tag: "WCS_PHASE", phase: "app_dashboard_fetch_start", timestamp: Date.now() }),
-  );
   const { dashboard } = await getWorkspaceDashboardContext();
-
-  // #region agent log
-  fetch("http://127.0.0.1:7460/ingest/f3e69962-c2ab-4d8a-81a8-8fb4ae2a364a", {
-    method: "POST",
-    headers: { "Content-Type": "application/json", "X-Debug-Session-Id": "8c27eb" },
-    body: JSON.stringify({
-      sessionId: "8c27eb",
-      hypothesisId: "H-A",
-      location: "page.tsx:after_getWorkspaceDashboardContext",
-      message: "dashboard data ok",
-      data: {
-        savedReportCount: dashboard.savedReports.length,
-        firstHasCategoryScores: Boolean(
-          dashboard.savedReports[0]?.reportSnapshot &&
-            Array.isArray(dashboard.savedReports[0].reportSnapshot.categoryScores),
-        ),
-        firstHasOutreach: Boolean(dashboard.savedReports[0]?.reportSnapshot?.outreachEmail),
-      },
-      timestamp: Date.now(),
-    }),
-  }).catch(() => {});
-  // #endregion
-
-  console.error(
-    JSON.stringify({ tag: "WCS_PHASE", phase: "app_dashboard_fetch_ok", timestamp: Date.now() }),
-  );
   const workspaceState = dashboard.workspace;
   const visibleLeads = dashboard.leads.filter((lead) => lead.title !== "Provider Pages");
   const visibleSavedReports = dashboard.savedReports.filter(

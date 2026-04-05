@@ -117,18 +117,6 @@ export function ScanHistorySection({
 }) {
   const leadById = new Map(leads.map((lead) => [lead.id, lead]));
 
-  // #region agent log
-  console.error(
-    JSON.stringify({
-      tag: "WCS_PHASE",
-      phase: "scan_history_section_render",
-      hypothesisId: "H-F",
-      savedReportCount: savedReports.length,
-      timestamp: Date.now(),
-    }),
-  );
-  // #endregion
-
   return (
     <Card>
       <CardHeader className="flex-row items-start justify-between gap-4 space-y-0 pb-4">
