@@ -28,7 +28,8 @@ export function LandingForm() {
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({ url }),
+        credentials: "include",
+        body: JSON.stringify({ url, persist: false }),
       });
 
       const payload = (await response.json()) as
@@ -44,11 +45,6 @@ export function LandingForm() {
       }
 
       startTransition(() => {
-        if (payload.persisted && payload.leadId) {
-          router.push(`/app/leads/${payload.leadId}`);
-          return;
-        }
-
         router.push(
           `/audit/${payload.id}?url=${encodeURIComponent(payload.normalizedUrl)}`,
         );

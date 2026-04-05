@@ -119,6 +119,11 @@ You can copy the exact URL from Supabase → Authentication → Providers → Go
 - After Google sign-in, you should land on `/auth/callback` then `/app` (or `next` query), not immediately back on login with `error=callback-failed` (that usually means redirect URL mismatch or expired code).
 - Vercel **Logs** / browser URL: note `?error=` codes (`db-not-ready`, `workspace-unavailable`, `session-required`, etc.) to see which gate failed.
 
+### Homepage audit vs `/app`
+
+- The marketing **homepage** calls `POST /api/audit` with **`persist: false`** and always opens **`/audit/[id]?url=...`** so visitors are never sent to **`/app/leads/...`** (which requires a signed-in session). Saving scans to the workspace is done from **`/app`** after login.
+- Set **`WCS_UNLIMITED_WORKSPACE=true`** on the server (e.g. Vercel) to skip token deductions, grant pro-style defaults for **new** workspaces, and show “Unlimited” on the dashboard — useful before billing is enforced.
+
 ### Workspace vs scans
 
 - A **workspace row** is created the first time you successfully open **`/app`** (server runs `ensureWorkspace`). It is **not** created by running a scan.

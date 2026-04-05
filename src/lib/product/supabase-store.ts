@@ -5,6 +5,7 @@ import { getTokenActionCost } from "@/lib/billing/catalog";
 import { buildAuditReportById, buildAuditReportFromUrl, buildLiveAuditReportFromUrl } from "@/lib/mock/report-builder";
 import { sampleAudits } from "@/lib/mock/sample-audits";
 import { prepareReportForStorage, passesReportQualityCheck } from "@/lib/product/report-quality";
+import { isUnlimitedWorkspace } from "@/lib/product/unlimited-workspace";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import type {
   DashboardSnapshot,
@@ -58,6 +59,7 @@ function sortNewestFirst<
 
 function buildWorkspace(ownerUserId: string, session: WorkspaceSession): WorkspaceRecord {
   const createdAt = new Date().toISOString();
+  const unlimited = isUnlimitedWorkspace();
 
   return {
     id: createId("workspace"),
@@ -66,11 +68,11 @@ function buildWorkspace(ownerUserId: string, session: WorkspaceSession): Workspa
     slug: session.name.toLowerCase().replace(/[^a-z0-9]+/g, "-"),
     createdAt,
     updatedAt: createdAt,
-    billingStatus: "trial",
-    billingPlan: "free",
-    creditBalance: 10,
-    tokenBalance: 10,
-    entitlements: [],
+    billingStatus: unlimited ? "active" : "trial",
+    billingPlan: unlimited ? "pro" : "free",
+    creditBalance: unlimited ? 999_999 : 10,
+    tokenBalance: unlimited ? 999_999 : 10,
+    entitlements: unlimited ? (["seo-benchmark", "max-stealth"] as WorkspaceEntitlement[]) : [],
     branding: {
       agencyName: "WebsiteCreditScore.com",
       logoMark: "WCS",
@@ -659,10 +661,11 @@ export async function createSupabaseLeadFromUrl(workspaceId: string, rawUrl: str
   }
 
   const tokenCost = getTokenActionCost("scan-site");
-  const welcomeScanFree = workspace.onboardingWelcomeScanUsed === false;
+  const unlimited = isUnlimitedWorkspace();
+  const welcomeScanFree = !unlimited && workspace.onboardingWelcomeScanUsed === false;
   const balance = workspace.tokenBalance ?? workspace.creditBalance ?? 0;
 
-  if (!welcomeScanFree && balance < tokenCost) {
+  if (!unlimited && !welcomeScanFree && balance < tokenCost) {
     throw new Error("INSUFFICIENT_TOKENS");
   }
 
@@ -755,25 +758,27 @@ export async function createSupabaseLeadFromUrl(workspaceId: string, rawUrl: str
       leadId: lead.id,
       type: "audit-created",
       title: "Audit created",
-      detail: welcomeScanFree
-        ? `Welcome scan — no tokens charged. Saved a working audit for ${report.title}.`
-        : `Saved a working audit for ${report.title}.`,
+      detail: unlimited
+        ? `Saved a working audit for ${report.title}.`
+        : welcomeScanFree
+          ? `Welcome scan — no tokens charged. Saved a working audit for ${report.title}.`
+          : `Saved a working audit for ${report.title}.`,
       occurredAt: createdAt,
     } satisfies LeadActivity,
   });
-  const nextBalance = welcomeScanFree ? balance : balance - tokenCost;
+  const nextBalance = unlimited || welcomeScanFree ? balance : balance - tokenCost;
   await upsertPayloadRecord("workspaces", {
     id: workspace.id,
     owner_user_id: workspace.ownerUserId,
     payload: {
       ...workspace,
-      onboardingWelcomeScanUsed: true,
+      onboardingWelcomeScanUsed: unlimited ? workspace.onboardingWelcomeScanUsed : true,
       tokenBalance: nextBalance,
       creditBalance: nextBalance,
       updatedAt: createdAt,
     } satisfies WorkspaceRecord,
   });
-  if (!welcomeScanFree) {
+  if (!unlimited && !welcomeScanFree) {
     await upsertPayloadRecord("workspace_credits", {
       id: createId("credit"),
       workspace_id: workspaceId,
@@ -859,6 +864,10 @@ export async function consumeSupabaseWorkspaceTokens(
 
   if (!workspace) {
     throw new Error("Workspace not found.");
+  }
+
+  if (isUnlimitedWorkspace()) {
+    return workspace;
   }
 
   const tokenCost = getTokenActionCost(input.actionId);

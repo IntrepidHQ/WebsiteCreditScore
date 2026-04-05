@@ -14,6 +14,7 @@ import {
 
 import { completeReminderAction } from "@/app/app/actions";
 import { getTokenActionCost } from "@/lib/billing/catalog";
+import { isUnlimitedWorkspace } from "@/lib/product/unlimited-workspace";
 import { ScoreBreakdownBars } from "@/components/common/score-breakdown-bars";
 import { ScoreDial } from "@/components/common/score-dial";
 import { PreviewImage } from "@/components/common/preview-image";
@@ -128,7 +129,9 @@ export default async function AppDashboardPage({
     typeof resolvedSearchParams.error === "string" ? resolvedSearchParams.error : null;
   const { dashboard } = await getWorkspaceDashboardContext();
   const workspaceState = dashboard.workspace;
-  const welcomeFreeScanAvailable = workspaceState.onboardingWelcomeScanUsed === false;
+  const unlimitedWorkspace = isUnlimitedWorkspace();
+  const welcomeFreeScanAvailable =
+    !unlimitedWorkspace && workspaceState.onboardingWelcomeScanUsed === false;
   const scanTokenCost = getTokenActionCost("scan-site");
   const visibleLeads = dashboard.leads.filter((lead) => lead.title !== "Provider Pages");
   const visibleSavedReports = dashboard.savedReports.filter(
@@ -258,8 +261,10 @@ export default async function AppDashboardPage({
                 {
                   icon: Coins,
                   label: "Tokens available",
-                  value: workspaceState.tokenBalance,
-                  detail: "Enough balance for the next live scan or export.",
+                  value: unlimitedWorkspace ? "Unlimited" : workspaceState.tokenBalance,
+                  detail: unlimitedWorkspace
+                    ? "Pro mode — token checks are off for this deployment."
+                    : "Enough balance for the next live scan or export.",
                 },
                 {
                   icon: BellDot,
