@@ -30,7 +30,9 @@ export const updateSupabaseSession = async (request: NextRequest) => {
     },
   });
 
-  await supabase.auth.getClaims();
+  // getUser() validates the session and triggers a token refresh if needed.
+  // The refreshed tokens are written back via setAll above.
+  await supabase.auth.getUser();
 
   return supabaseResponse;
 };
