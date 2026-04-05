@@ -27,7 +27,15 @@ function WorkspaceScanHistoryCard({
   lead?: LeadRecord;
 }) {
   const report = savedReport.reportSnapshot;
-  const score = lead?.currentScore ?? report.overallScore;
+  if (!report) {
+    return null;
+  }
+
+  const desktopShot =
+    report.previewSet?.current?.desktop ?? "/previews/fallback-desktop.svg";
+  const fallbackShot =
+    report.previewSet?.fallbackCurrent?.desktop ?? desktopShot;
+  const score = Number(lead?.currentScore ?? report.overallScore ?? 0);
   const domain = savedReport.normalizedUrl.replace(/^https?:\/\//, "");
   const auditHref = `/audit/${report.id}?url=${encodeURIComponent(report.normalizedUrl)}`;
 
@@ -38,10 +46,10 @@ function WorkspaceScanHistoryCard({
           alt={`${savedReport.title} preview`}
           className="aspect-[21/10]"
           fallbackLabel="Preview unavailable"
-          fallbackSrc={report.previewSet.fallbackCurrent.desktop}
+          fallbackSrc={fallbackShot}
           imageClassName="transition duration-500 group-hover:scale-[1.02]"
           loadingLabel="Capturing desktop screenshot"
-          src={report.previewSet.current.desktop}
+          src={desktopShot}
         >
           <div className="pointer-events-none absolute inset-x-0 top-0 h-28 bg-gradient-to-b from-background/35 via-transparent to-transparent" />
         </PreviewImage>
@@ -82,7 +90,7 @@ function WorkspaceScanHistoryCard({
 
       <CardContent className="space-y-3 pt-0">
         <p className="line-clamp-3 text-[1rem] leading-7 text-muted">
-          {report.executiveSummary}
+          {report.executiveSummary ?? ""}
         </p>
 
         <div className="flex flex-wrap items-center gap-x-4 gap-y-2 text-xs uppercase tracking-[0.16em] text-muted">
@@ -108,6 +116,18 @@ export function ScanHistorySection({
   leads: LeadRecord[];
 }) {
   const leadById = new Map(leads.map((lead) => [lead.id, lead]));
+
+  // #region agent log
+  console.error(
+    JSON.stringify({
+      tag: "WCS_PHASE",
+      phase: "scan_history_section_render",
+      hypothesisId: "H-F",
+      savedReportCount: savedReports.length,
+      timestamp: Date.now(),
+    }),
+  );
+  // #endregion
 
   return (
     <Card>
