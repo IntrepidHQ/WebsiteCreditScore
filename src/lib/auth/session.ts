@@ -64,7 +64,12 @@ export const getOptionalWorkspaceSession = async (): Promise<WorkspaceSession | 
 
       return null;
     } catch (err) {
-      console.error("[auth] Supabase session error:", err);
+      // During Next.js build, static pre-rendering hits `cookies()` before
+      // `force-dynamic` is applied on every route. Suppress those noisy logs.
+      const msg = err instanceof Error ? err.message : String(err);
+      if (!msg.includes("Dynamic server usage")) {
+        console.error("[auth] Supabase session error:", err);
+      }
       return null;
     }
   }

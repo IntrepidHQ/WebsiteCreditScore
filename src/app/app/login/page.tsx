@@ -1,6 +1,9 @@
 import { redirect } from "next/navigation";
 import { LockKeyhole, Rocket, Sparkles } from "lucide-react";
 
+// Force dynamic so cookies() isn't called during static pre-rendering
+export const dynamic = "force-dynamic";
+
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
