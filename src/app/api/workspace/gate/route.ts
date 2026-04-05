@@ -57,14 +57,19 @@ export const GET = async () => {
 
   if (wsError) {
     const msg = wsError.message ?? "";
+    const code = wsError.code ?? "";
+    const isMissingTable = /relation|does not exist|42P01/i.test(msg);
+    const isRlsRecursion = code === "42P17" || /infinite recursion.*policy/i.test(msg);
     return NextResponse.json({
       ...base,
       step: "workspace_query_failed",
       workspaceError: msg.slice(0, 400),
-      workspaceCode: wsError.code,
-      hint: /relation|does not exist|42P01/i.test(msg)
-        ? "Tables missing — run supabase/migrations/20260330232000_init_schema.sql in the SQL Editor."
-        : "Check Supabase logs; often RLS or wrong project vs Vercel env keys.",
+      workspaceCode: code,
+      hint: isRlsRecursion
+        ? "RLS policy recursion on workspaces — run supabase/migrations/20260405180000_fix_workspaces_rls_recursion.sql in the Supabase SQL Editor."
+        : isMissingTable
+          ? "Tables missing — run supabase/migrations/20260330232000_init_schema.sql in the SQL Editor."
+          : "Check Supabase logs; often RLS or wrong project vs Vercel env keys.",
     });
   }
 

@@ -101,6 +101,7 @@ In Supabase → **SQL Editor**, run the migration files in order:
 
 1. `supabase/migrations/20260330232000_init_schema.sql` — tables + RLS (required).
 2. If you still hit unique-constraint issues on `saved_reports.lead_id` across workspaces, run `supabase/migrations/20260404140000_saved_reports_lead_per_workspace.sql`.
+3. If Supabase returns **`42P17` / `infinite recursion detected in policy for relation "workspaces"`**, run `supabase/migrations/20260405180000_fix_workspaces_rls_recursion.sql` (fixes RLS between `workspaces` and `leads`).
 
 Without (1), workspace load fails and you may be redirected to `/app/login?error=db-not-ready` or `workspace-unavailable`.
 

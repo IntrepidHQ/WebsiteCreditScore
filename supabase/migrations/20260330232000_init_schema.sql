@@ -309,15 +309,30 @@ create policy "public can read shared reports"
     )
   );
 
+-- Avoid RLS recursion (42P17): a workspaces SELECT policy must not subquery `leads`
+-- while `leads` policies subquery `workspaces`.
+create or replace function public.workspace_has_public_share(p_workspace_id text)
+returns boolean
+language sql
+stable
+security definer
+set search_path = public
+set row_security = off
+as $$
+  select exists (
+    select 1
+    from leads
+    join share_links on share_links.lead_id = leads.id
+    where leads.workspace_id = p_workspace_id
+      and share_links.enabled = true
+  );
+$$;
+
+revoke all on function public.workspace_has_public_share(text) from public;
+grant execute on function public.workspace_has_public_share(text) to authenticated;
+grant execute on function public.workspace_has_public_share(text) to anon;
+
 create policy "public can read workspaces that have shared leads"
   on workspaces
   for select
-  using (
-    exists (
-      select 1
-      from leads
-      join share_links on share_links.lead_id = leads.id
-      where leads.workspace_id = workspaces.id
-        and share_links.enabled = true
-    )
-  );
+  using (public.workspace_has_public_share(workspaces.id));
