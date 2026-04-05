@@ -31,7 +31,7 @@ export async function POST(request: Request) {
   }
 
   const { supabase, applyCookiesToResponse } = createSupabaseOAuthRouteClient(request);
-  const { error } = await supabase.auth.signUp({
+  const { data, error } = await supabase.auth.signUp({
     email,
     password,
     options: {
@@ -40,12 +40,25 @@ export async function POST(request: Request) {
   });
 
   if (error) {
-    const code = error.message.toLowerCase().includes("already registered")
+    const msg = error.message.toLowerCase();
+    const code = msg.includes("already registered") || msg.includes("already exists")
       ? "already-registered"
       : "sign-up-failed";
     return NextResponse.redirect(
       new URL(
         `/app/login?mode=signup&error=${code}&email=${encodeURIComponent(email)}`,
+        url,
+      ),
+    );
+  }
+
+  // Supabase email-enumeration protection: returns success with identities:[]
+  // when the email is already registered rather than surfacing an error.
+  // Redirect to the sign-in tab so the user can log in directly.
+  if (!data.user || (data.user.identities && data.user.identities.length === 0)) {
+    return NextResponse.redirect(
+      new URL(
+        `/app/login?error=already-registered&email=${encodeURIComponent(email)}`,
         url,
       ),
     );
