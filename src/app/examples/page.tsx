@@ -2,6 +2,7 @@ import Link from "next/link";
 import { ArrowRight, Eye, FileText, Layers3 } from "lucide-react";
 
 import { ScoreBreakdownBars } from "@/components/common/score-breakdown-bars";
+import { buildBenchmarkTargetCategoryScores } from "@/lib/utils/score-visuals";
 import { ScoreDial } from "@/components/common/score-dial";
 import { SectionHeading } from "@/components/common/section-heading";
 import { Badge } from "@/components/ui/badge";
@@ -101,7 +102,11 @@ export default function ExamplesPage() {
                 </CardTitle>
               </CardHeader>
               <CardContent className="space-y-4 pt-0">
-                <ScoreBreakdownBars items={featuredReport.categoryScores} showWeights />
+                <ScoreBreakdownBars
+                  items={featuredReport.categoryScores}
+                  showWeights
+                  targetItems={buildBenchmarkTargetCategoryScores(featuredReport.categoryScores)}
+                />
                 <p className="text-sm leading-6 text-muted">
                   This is where the problem becomes specific: which categories are underweight, which ones are already credible, and which upgrades will move the score fastest.
                 </p>

@@ -15,13 +15,14 @@ import {
 
 const CACHE_DIR = path.join("/tmp", "craydl-site-previews");
 const CACHE_TTL_MS = 1000 * 60 * 60 * 12;
-const SCREENSHOT_WAIT_MS = 1200;
-const SCROLL_STEP_DELAY_MS = 140;
-const CAPTURE_BUDGET_MS = 18000;
-const GOTO_TIMEOUT_MS = 12000;
-const NETWORK_IDLE_TIMEOUT_MS = 1800;
+const SCREENSHOT_WAIT_MS = 2400;
+const SCROLL_STEP_DELAY_MS = 160;
+const CAPTURE_BUDGET_MS = 22000;
+const GOTO_TIMEOUT_MS = 14000;
+const LOAD_STATE_TIMEOUT_MS = 11000;
+const NETWORK_IDLE_TIMEOUT_MS = 4500;
 const REMOTE_IMAGE_TIMEOUT_MS = 7000;
-const CAPTURE_VERSION = "static-shot-3";
+const CAPTURE_VERSION = "static-shot-4";
 
 const previewCache = new Map<string, Promise<PreviewImageResult>>();
 
@@ -215,6 +216,7 @@ async function captureScreenshot(url: string, device: PreviewDevice) {
       waitUntil: "domcontentloaded",
       timeout: GOTO_TIMEOUT_MS,
     });
+    await page.waitForLoadState("load", { timeout: LOAD_STATE_TIMEOUT_MS }).catch(() => undefined);
     await page.waitForLoadState("networkidle", { timeout: NETWORK_IDLE_TIMEOUT_MS }).catch(() => undefined);
     await page.emulateMedia({ reducedMotion: "reduce" }).catch(() => undefined);
     await page.addStyleTag({
@@ -226,8 +228,7 @@ async function captureScreenshot(url: string, device: PreviewDevice) {
           scroll-behavior: auto !important;
         }
 
-        video,
-        iframe {
+        video {
           visibility: hidden !important;
         }
       `,
@@ -240,6 +241,11 @@ async function captureScreenshot(url: string, device: PreviewDevice) {
 
         const wait = (time: number) =>
           new Promise((resolve) => window.setTimeout(resolve, time));
+        try {
+          await document.fonts?.ready;
+        } catch {
+          /* ignore */
+        }
         const scrollRoot = document.scrollingElement || document.documentElement;
         const maxScroll = Math.max(0, scrollRoot.scrollHeight - window.innerHeight);
         const step = Math.max(360, Math.floor(window.innerHeight * 0.85));

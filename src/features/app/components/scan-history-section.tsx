@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { ArrowUpRight, CalendarDays, ClipboardList, Globe2, History } from "lucide-react";
 
-import { PreviewImage } from "@/components/common/preview-image";
+import { PreviewWithLiveToggle } from "@/components/common/preview-with-live-toggle";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -41,19 +41,19 @@ function WorkspaceScanHistoryCard({
 
   return (
     <Card className="group h-full overflow-hidden rounded-[24px] border-border/60 bg-[linear-gradient(180deg,color-mix(in_srgb,var(--theme-panel)_88%,transparent),color-mix(in_srgb,var(--theme-background-alt)_96%,transparent))] shadow-[0_20px_60px_rgba(0,0,0,0.18)] transition duration-300 hover:-translate-y-1 hover:border-accent/30">
-      <Link href={auditHref}>
-        <PreviewImage
-          alt={`${savedReport.title} preview`}
-          className="aspect-[21/10]"
-          fallbackLabel="Preview unavailable"
-          fallbackSrc={fallbackShot}
-          imageClassName="transition duration-500 group-hover:scale-[1.02]"
-          loadingLabel="Capturing desktop screenshot"
-          src={desktopShot}
-        >
+      <PreviewWithLiveToggle
+        alt={`${savedReport.title} preview`}
+        fallbackLabel="Preview unavailable"
+        fallbackSrc={fallbackShot}
+        imageClassName="transition duration-500 group-hover:scale-[1.02]"
+        loadingLabel="Capturing desktop screenshot"
+        normalizedUrl={savedReport.normalizedUrl}
+        previewClassName="aspect-[21/10] w-full"
+        screenshotOverlay={
           <div className="pointer-events-none absolute inset-x-0 top-0 h-28 bg-gradient-to-b from-background/35 via-transparent to-transparent" />
-        </PreviewImage>
-      </Link>
+        }
+        screenshotSrc={desktopShot}
+      />
 
       <CardHeader className="space-y-4 pb-4">
         <div className="flex items-start justify-between gap-3">

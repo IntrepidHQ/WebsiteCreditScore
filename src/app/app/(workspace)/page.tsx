@@ -16,7 +16,7 @@ import { getTokenActionCost } from "@/lib/billing/catalog";
 import { isUnlimitedWorkspace } from "@/lib/product/unlimited-workspace";
 import { ScoreBreakdownBars } from "@/components/common/score-breakdown-bars";
 import { ScoreDial } from "@/components/common/score-dial";
-import { PreviewImage } from "@/components/common/preview-image";
+import { PreviewWithLiveToggle } from "@/components/common/preview-with-live-toggle";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { LeadStageBadge } from "@/features/app/components/lead-stage-badge";
@@ -24,6 +24,7 @@ import { CreateLeadScanForm } from "@/features/app/components/create-lead-scan-f
 import { ScanHistorySection } from "@/features/app/components/scan-history-section";
 import { WorkspaceTokenLinkButton } from "@/features/app/components/workspace-token-link-button";
 import { getWorkspaceDashboardContext } from "@/lib/product/context";
+import { buildBenchmarkTargetCategoryScores } from "@/lib/utils/score-visuals";
 import type { LeadRecord, SavedReport } from "@/lib/types/product";
 
 function formatTimestamp(input: string) {
@@ -62,16 +63,14 @@ function SearchRow({
   return (
     <div className="rounded-[18px] border border-border/60 bg-background-alt/60 p-3 sm:p-4">
       <div className="grid gap-4 md:grid-cols-[8.5rem_minmax(0,1fr)_auto] md:items-center">
-        <Link className="block overflow-hidden rounded-[14px]" href={auditHref}>
-          <PreviewImage
-            alt={`${savedReport.title} preview`}
-            className="aspect-[16/11]"
-            fallbackLabel="Preview unavailable"
-            fallbackSrc={fallbackShot}
-            loadingLabel="Capturing desktop screenshot"
-            src={desktopShot}
-          />
-        </Link>
+        <PreviewWithLiveToggle
+          alt={`${savedReport.title} preview`}
+          fallbackLabel="Preview unavailable"
+          fallbackSrc={fallbackShot}
+          loadingLabel="Capturing desktop screenshot"
+          normalizedUrl={savedReport.normalizedUrl}
+          screenshotSrc={desktopShot}
+        />
 
         <div className="min-w-0 space-y-2">
           <div className="flex flex-wrap items-center gap-2">
@@ -345,7 +344,13 @@ export default async function AppDashboardPage({
                     </div>
                   </div>
                 </div>
-                <ScoreBreakdownBars items={latestReport.categoryScores ?? []} showWeights />
+                <ScoreBreakdownBars
+                  items={latestReport.categoryScores ?? []}
+                  showWeights
+                  targetItems={buildBenchmarkTargetCategoryScores(
+                    latestReport.categoryScores ?? [],
+                  )}
+                />
               </>
             ) : (
               <div className="rounded-[20px] border border-border/60 bg-background-alt/60 p-5 text-sm leading-7 text-muted">
