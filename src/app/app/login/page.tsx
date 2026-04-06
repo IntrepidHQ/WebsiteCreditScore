@@ -127,7 +127,7 @@ export default async function AppLoginPage({
   return (
     <div className="flex min-h-screen">
       {/* ── Left: Brand panel ── */}
-      <div className="relative hidden overflow-hidden lg:flex lg:flex-1 lg:flex-col lg:justify-between lg:p-14">
+      <div className="relative hidden overflow-hidden md:flex md:flex-1 md:flex-col md:justify-between md:p-14">
         {/* Ambient glow */}
         <div
           aria-hidden="true"
@@ -185,10 +185,26 @@ export default async function AppLoginPage({
       </div>
 
       {/* ── Right: Form panel ── */}
-      <div className="flex w-full flex-col justify-center px-6 py-12 lg:w-[460px] lg:shrink-0 lg:border-l lg:border-border/60 lg:px-12">
+      <div className="flex w-full flex-col justify-center px-6 py-12 md:w-[min(100%,460px)] md:shrink-0 md:border-l md:border-border/60 md:px-12 lg:w-[460px]">
         <LoginSupabaseEnvBanner />
-        {/* Mobile wordmark */}
-        <a className="mb-10 inline-flex items-center gap-2.5 lg:hidden" href="/">
+        {/* Mobile / small tablet: same visual language as the left panel (hidden from md where split layout shows) */}
+        <div className="mb-8 flex flex-col items-center md:hidden">
+          <div
+            aria-hidden
+            className="pointer-events-none mb-5 h-28 w-full max-w-[17rem] rounded-[1.75rem]"
+            style={{
+              background:
+                "radial-gradient(ellipse at 50% 25%, rgba(247,178,27,0.2) 0%, transparent 72%)",
+              filter: "blur(0.5px)",
+            }}
+          />
+          <ScoreBadge />
+          <p className="mt-4 max-w-xs text-center text-[11px] font-semibold uppercase tracking-[0.2em] text-muted">
+            Example audit · acme-example.com
+          </p>
+        </div>
+        {/* Mobile wordmark when split panel is hidden */}
+        <a className="mb-10 inline-flex items-center gap-2.5 md:hidden" href="/">
           <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-accent text-xs font-black tracking-tight text-accent-foreground">
             WCS
           </span>

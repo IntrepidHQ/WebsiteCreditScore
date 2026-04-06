@@ -1,12 +1,27 @@
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 
+import type { User } from "@supabase/supabase-js";
+
 import type { WorkspaceSession } from "@/lib/types/product";
 import { isDemoWorkspaceAllowed } from "@/lib/auth/demo-flag";
 import { hasSupabaseEnv } from "@/lib/supabase/config";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 
 export const DEMO_SESSION_COOKIE = "craydl-demo-session";
+
+/** Build workspace session from Supabase `User` (same shape as `getOptionalWorkspaceSession` for Supabase). */
+export const workspaceSessionFromSupabaseUser = (user: User): WorkspaceSession => ({
+  mode: "supabase",
+  userId: user.id,
+  email: user.email ?? "owner@example.com",
+  name:
+    user.user_metadata?.full_name ??
+    user.user_metadata?.name ??
+    user.email?.split("@")[0] ??
+    "Workspace owner",
+  avatarUrl: user.user_metadata?.avatar_url,
+});
 
 export const sanitizeInternalNextPath = (next: string | null | undefined, fallback = "/app") => {
   if (!next) {
