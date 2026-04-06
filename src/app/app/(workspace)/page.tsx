@@ -180,7 +180,7 @@ export default async function AppDashboardPage({
   return (
     <div className="grid gap-6">
       <section className="grid gap-5 xl:grid-cols-[minmax(0,1.02fr)_minmax(23rem,0.98fr)]">
-        <Card id="new-lead">
+        <Card className="scroll-mt-[8.75rem]" id="new-lead">
           <CardHeader className="pb-3">
             <div className="flex items-center gap-2 text-accent">
               <ScanSearch className="size-4" />

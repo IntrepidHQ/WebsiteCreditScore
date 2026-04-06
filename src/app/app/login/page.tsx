@@ -11,39 +11,9 @@ import { isDemoWorkspaceAllowed } from "@/lib/auth/demo-flag";
 import { getOptionalWorkspaceSession, sanitizeInternalNextPath } from "@/lib/auth/session";
 import { hasSupabaseEnv } from "@/lib/supabase/config";
 
-import { LoginSupabaseEnvBanner } from "./login-supabase-env-banner";
+import { AnimatedExampleScoreBadge } from "@/features/auth/components/animated-example-score-badge";
 
-// Decorative score ring for the left panel
-function ScoreBadge() {
-  const score = 87;
-  const radius = 54;
-  const circumference = 2 * Math.PI * radius;
-  const filled = (score / 100) * circumference;
-  return (
-    <div className="relative inline-flex items-center justify-center">
-      <svg className="rotate-[-90deg]" height="136" viewBox="0 0 136 136" width="136">
-        <circle
-          cx="68" cy="68" r={radius}
-          fill="none"
-          stroke="rgba(247,178,27,0.12)"
-          strokeWidth="10"
-        />
-        <circle
-          cx="68" cy="68" r={radius}
-          fill="none"
-          stroke="#f7b21b"
-          strokeDasharray={`${filled} ${circumference - filled}`}
-          strokeLinecap="round"
-          strokeWidth="10"
-        />
-      </svg>
-      <div className="absolute flex flex-col items-center">
-        <span className="font-display text-4xl leading-none text-foreground">{score}</span>
-        <span className="mt-1 text-[10px] font-medium uppercase tracking-widest text-accent">Score</span>
-      </div>
-    </div>
-  );
-}
+import { LoginSupabaseEnvBanner } from "./login-supabase-env-banner";
 
 export default async function AppLoginPage({
   searchParams,
@@ -67,16 +37,6 @@ export default async function AppLoginPage({
   // Never auto-redirect to /app while ?error= is present — any code can indicate a failed workspace
   // load or auth handoff; redirecting back causes /app ↔ /login loops when session is still valid.
   const skipAutoRedirectToWorkspace = Boolean(authError);
-
-  console.error(
-    JSON.stringify({
-      tag: "wcs-login-route",
-      hasSession: Boolean(session),
-      authError,
-      skipAutoRedirectToWorkspace,
-      next,
-    }),
-  );
 
   if (session && !skipAutoRedirectToWorkspace) {
     redirect(next);
@@ -175,7 +135,7 @@ export default async function AppLoginPage({
 
         {/* Score badge */}
         <div className="relative flex items-end gap-6">
-          <ScoreBadge />
+          <AnimatedExampleScoreBadge />
           <div>
             <p className="text-xs uppercase tracking-widest text-accent">Example audit</p>
             <p className="mt-1 text-sm font-semibold text-foreground">acme-example.com</p>
@@ -198,7 +158,7 @@ export default async function AppLoginPage({
               filter: "blur(0.5px)",
             }}
           />
-          <ScoreBadge />
+          <AnimatedExampleScoreBadge />
           <p className="mt-4 max-w-xs text-center text-[11px] font-semibold uppercase tracking-[0.2em] text-muted">
             Example audit · acme-example.com
           </p>

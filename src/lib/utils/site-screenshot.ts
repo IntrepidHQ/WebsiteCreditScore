@@ -22,7 +22,7 @@ const GOTO_TIMEOUT_MS = 14000;
 const LOAD_STATE_TIMEOUT_MS = 11000;
 const NETWORK_IDLE_TIMEOUT_MS = 4500;
 const REMOTE_IMAGE_TIMEOUT_MS = 7000;
-const CAPTURE_VERSION = "static-shot-4";
+const CAPTURE_VERSION = "static-shot-5";
 
 const previewCache = new Map<string, Promise<PreviewImageResult>>();
 
@@ -275,6 +275,14 @@ async function captureScreenshot(url: string, device: PreviewDevice) {
         );
       }, SCROLL_STEP_DELAY_MS)
       .catch(() => undefined);
+
+    await page
+      .waitForFunction(
+        () => (document.body?.innerText?.trim().length ?? 0) > 320,
+        { timeout: 9000 },
+      )
+      .catch(() => undefined);
+
     await page.waitForTimeout(SCREENSHOT_WAIT_MS);
 
     const buffer = await page.screenshot({
