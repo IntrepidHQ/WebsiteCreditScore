@@ -92,11 +92,12 @@ export function inferProfileType(input: string): ReportProfileType {
     ],
     [
       "local-service",
-      /(roof|plumb|hvac|electric|landscap|remodel|clean|garage|service|repair)/,
+      /(roof|plumb|hvac|electric|landscap|remodel|clean|garage|service|repair|starbucks|dunkin|timhorton|peets|coffee|restaurant|cafe|kitchen|grill|burger|pizza|taco|food|eats|bakery|bistro|dining|brew|latte|espresso|franchise|drive.thru|order\.online)/,
     ],
     [
       "saas",
-      /(app|cloud|crm|software|platform|hq|studio|system|suite|data|analytics)/,
+      // Subdomain / token boundaries — avoid matching "app" inside "apple.com".
+      /(^|\.)app\.|(^|\.)api\.|(^|\.)cloud\.|(^|\.)dashboard\.|(^|\.)studio\.|(^|\.)data\.|(^|\.)analytics\.|(^|\.)saas\.|(^|\.)crm\.|\bsoftware\b|platform|system|suite|datadog|intercom|zendesk|hubspot|salesforce|vercel|netlify|figma|notion\.so|slack\.com|linear\.app/,
     ],
   ];
 
@@ -106,9 +107,7 @@ export function inferProfileType(input: string): ReportProfileType {
     return matched[0];
   }
 
-  if (/^[a-z0-9]+$/.test(root) && root.length <= 10) {
-    return "saas";
-  }
+  // Avoid classifying short brand domains (starbucks, nike, target) as SaaS — that heuristic was wrong.
 
   if (/-|_/.test(root)) {
     return "local-service";
@@ -124,7 +123,7 @@ export function inferProfileType(input: string): ReportProfileType {
 }
 
 const nicheKeywords: Array<[SiteNiche, RegExp]> = [
-  ["restaurant-qsr", /(restaurant|grill|kitchen|fried|chicken|burger|pizza|taco|bbq|diner|cafe|bistro|biscuit|wings|wingstop|bojangle|popeye|chick.fil|raising.cane|culver|zaxby|whataburger|sonic.drive|steak.n|hardees|dairy.queen|arbys|wendys|mcdonalds|subway|chipotle|qdoba|panera|applebee|buffalo.wild|cracker.barrel)/],
+  ["restaurant-qsr", /(starbucks|dunkin|timhorton|coffee|restaurant|grill|kitchen|fried|chicken|burger|pizza|taco|bbq|diner|cafe|bistro|biscuit|wings|wingstop|bojangle|popeye|chick.fil|raising.cane|culver|zaxby|whataburger|sonic.drive|steak.n|hardees|dairy.queen|arbys|wendys|mcdonalds|subway|chipotle|qdoba|panera|applebee|buffalo.wild|cracker.barrel)/],
   ["dental", /(dental|dentist|orthodont|dds|dmds|teeth|smile|braces|ortho)/],
   ["healthcare-general", /(clinic|care|med|health|wellness|therapy|doctor|hospital|physio|urgent.care|telehealth|patient)/],
   ["legal", /(law|legal|attorney|lawyer|counsel|litigat|attorneys|lawfirm)/],

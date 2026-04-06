@@ -4,6 +4,7 @@ import { useFormStatus } from "react-dom";
 
 import { ArrowRight, Loader2 } from "lucide-react";
 
+import { submitWorkspaceScanFromDashboardAction } from "@/app/app/actions";
 import { ScanUrlFieldGroup } from "@/components/common/scan-url-field-group";
 import { Button } from "@/components/ui/button";
 
@@ -51,11 +52,7 @@ const CreateLeadScanFormFields = ({
   );
 };
 
-/**
- * Native POST to `/api/app/create-lead`. A client `fetch` with `redirect: "manual"` often yields
- * an opaque redirect (status 0, no `Location`) for POST in browsers — full document navigation
- * applies `Set-Cookie` correctly for Supabase.
- */
+/** Submits via Server Action so Supabase session is read from `cookies()` like the `/app` layout. */
 export const CreateLeadScanForm = ({
   autoFocus,
   idleSubmitLabel,
@@ -68,11 +65,7 @@ export const CreateLeadScanForm = ({
   placeholder: string;
 }) => {
   return (
-    <form
-      action="/api/app/create-lead"
-      className="space-y-3"
-      method="post"
-    >
+    <form action={submitWorkspaceScanFromDashboardAction} className="space-y-3">
       <div className="flex flex-col gap-3 sm:flex-row">
         <CreateLeadScanFormFields
           autoFocus={autoFocus}

@@ -1,5 +1,6 @@
 import { createServerClient } from "@supabase/ssr";
 import { revalidatePath } from "next/cache";
+import { cookies } from "next/headers";
 import { type NextRequest, NextResponse } from "next/server";
 
 import { getWorkspaceAppContext } from "@/lib/product/context";
@@ -50,12 +51,20 @@ export const POST = async (request: NextRequest) => {
   const { url: supabaseUrl, anonKey } = getSupabaseEnv();
   const cookieOpts = getSupabaseCookieOptions(request);
   const authSink = NextResponse.redirect(new URL("/app", base.origin));
+  const cookieStore = await cookies();
 
   const supabase = createServerClient(supabaseUrl, anonKey, {
     cookieOptions: cookieOpts,
     cookies: {
       getAll() {
-        return request.cookies.getAll();
+        const merged = new Map<string, { name: string; value: string }>();
+        for (const c of request.cookies.getAll()) {
+          merged.set(c.name, c);
+        }
+        for (const c of cookieStore.getAll()) {
+          merged.set(c.name, c);
+        }
+        return Array.from(merged.values());
       },
       setAll(cookiesToSet) {
         cookiesToSet.forEach(({ name, value, options }) => {

@@ -3,10 +3,74 @@
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 
+import { workspaceSessionFromSupabaseUser } from "@/lib/auth/session";
 import { getWorkspaceAppContext } from "@/lib/product/context";
+import { redirectOnRecoverableProductError } from "@/lib/product/workspace-load-errors";
+import { getProductRepository } from "@/lib/product/repository";
 import type { LeadStage } from "@/lib/types/product";
+import { hasSupabaseEnv } from "@/lib/supabase/config";
+import { createSupabaseServerClient } from "@/lib/supabase/server";
 
-/** Dashboard scan uses POST /api/app/create-lead (form navigation) so auth cookies stay in sync with middleware. */
+/**
+ * Dashboard scan: Server Action reads `cookies()` in the same request context as `/app` RSC,
+ * so Supabase `getUser()` sees the session after middleware refresh (avoids `session-required`
+ * loops from Route Handler cookie drift).
+ */
+export const submitWorkspaceScanFromDashboardAction = async (formData: FormData) => {
+  const rawUrl = String(formData.get("url") ?? "").trim();
+
+  if (!rawUrl) {
+    redirect("/app?error=missing-url");
+  }
+
+  if (!hasSupabaseEnv()) {
+    try {
+      const { repository, session, workspace } = await getWorkspaceAppContext();
+      const lead = await repository.createLeadFromUrl(workspace.id, rawUrl, session);
+      revalidatePath("/app");
+      revalidatePath("/app/leads");
+      redirect(`/app/leads/${lead.id}`);
+    } catch (error) {
+      if (error instanceof Error && error.message === "INSUFFICIENT_TOKENS") {
+        redirect("/app?error=insufficient-tokens");
+      }
+      throw error;
+    }
+  }
+
+  const supabase = await createSupabaseServerClient();
+  const {
+    data: { user },
+    error: userError,
+  } = await supabase.auth.getUser();
+
+  if (userError || !user) {
+    redirect("/app/login?error=session-required&next=%2Fapp");
+  }
+
+  const session = workspaceSessionFromSupabaseUser(user);
+  const repository = getProductRepository(session);
+
+  let workspace;
+  try {
+    workspace = await repository.ensureWorkspace(session);
+  } catch (err) {
+    redirectOnRecoverableProductError(err);
+    throw err;
+  }
+
+  try {
+    const lead = await repository.createLeadFromUrl(workspace.id, rawUrl, session);
+    revalidatePath("/app");
+    revalidatePath("/app/leads");
+    redirect(`/app/leads/${lead.id}`);
+  } catch (error) {
+    if (error instanceof Error && error.message === "INSUFFICIENT_TOKENS") {
+      redirect("/app?error=insufficient-tokens");
+    }
+    throw error;
+  }
+};
 
 export async function updateLeadStageAction(formData: FormData) {
   const leadId = String(formData.get("leadId") ?? "");
