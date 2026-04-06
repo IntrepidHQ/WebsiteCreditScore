@@ -307,10 +307,10 @@ export default async function AppLoginPage({
                 </Button>
                 <p className="mt-4 text-xs leading-5 text-muted">
                   Technical check: open{" "}
-                  <a className="text-accent underline" href="/api/workspace/gate" rel="noreferrer" target="_blank">
+                  <a className="text-accent underline" href="/api/workspace/gate">
                     /api/workspace/gate
                   </a>{" "}
-                  in a new tab (while still signed in) to see which step fails.
+                  while signed in on this site to see which step fails.
                 </p>
               </div>
             ) : null}
@@ -454,7 +454,7 @@ export default async function AppLoginPage({
 
             {hasSupabaseEnv() ? (
               <p className="text-center text-xs leading-5 text-muted">
-                <a className="text-accent underline" href="/api/workspace/gate" rel="noreferrer" target="_blank">
+                <a className="text-accent underline" href="/api/workspace/gate">
                   Workspace connection check
                 </a>{" "}
                 — JSON status after sign-in

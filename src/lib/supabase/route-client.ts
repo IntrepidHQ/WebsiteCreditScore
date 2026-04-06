@@ -22,16 +22,17 @@ const getAllCookiesFromRequest = (request: Request) => {
  */
 export const createSupabaseRouteHandlerClient = (request: Request, response: NextResponse) => {
   const { url, anonKey } = getSupabaseEnv();
+  const defaults = getSupabaseCookieOptions(request);
 
   return createServerClient(url, anonKey, {
-    cookieOptions: getSupabaseCookieOptions(request),
+    cookieOptions: defaults,
     cookies: {
       getAll() {
         return getAllCookiesFromRequest(request);
       },
       setAll(cookiesToSet) {
         cookiesToSet.forEach(({ name, value, options }) => {
-          response.cookies.set(name, value, options);
+          response.cookies.set(name, value, { ...defaults, ...options });
         });
       },
     },

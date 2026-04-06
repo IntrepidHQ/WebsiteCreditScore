@@ -12,9 +12,8 @@ export const dynamic = "force-dynamic";
  * Read-only diagnostics for why /app may not load after Plan A setup.
  * Open in the browser while signed in (same cookies as /app). No secrets returned.
  *
- * This route is excluded from Supabase middleware so getUser + cookie refresh happen
- * only here and Set-Cookie is applied to this JSON response (avoids "Auth session missing"
- * from a second getUser on stale request cookies in the same request).
+ * `/api/*` is excluded from Supabase middleware (see `src/middleware.ts`) so this handler
+ * is the only `getUser()` on the request — avoids a double refresh with stale request cookies.
  */
 export const GET = async (request: NextRequest) => {
   const base: Record<string, unknown> = {
