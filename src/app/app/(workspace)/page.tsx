@@ -1,6 +1,5 @@
 import Link from "next/link";
 import {
-  ArrowRight,
   ArrowUpRight,
   BellDot,
   ClipboardList,
@@ -20,8 +19,8 @@ import { ScoreDial } from "@/components/common/score-dial";
 import { PreviewImage } from "@/components/common/preview-image";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
 import { LeadStageBadge } from "@/features/app/components/lead-stage-badge";
+import { CreateLeadScanForm } from "@/features/app/components/create-lead-scan-form";
 import { ScanHistorySection } from "@/features/app/components/scan-history-section";
 import { WorkspaceTokenLinkButton } from "@/features/app/components/workspace-token-link-button";
 import { getWorkspaceDashboardContext } from "@/lib/product/context";
@@ -212,27 +211,30 @@ export default async function AppDashboardPage({
                 ? "We will run the live score, save the full audit to your workspace, and open the lead so you can share the packet and brief."
                 : `Save the audit, capture the opportunity, and move straight into the outreach packet and brief. Each new live scan uses ${scanTokenCost} token${scanTokenCost === 1 ? "" : "s"}, so the dashboard keeps the score reveal and the remaining balance in the same place.`}
             </p>
-            <form
-              action="/api/app/create-lead"
-              className="flex flex-col gap-3 sm:flex-row"
-              method="post"
-            >
-              <Input
-                autoComplete="url"
-                autoFocus={welcomeFreeScanAvailable}
-                className="flex-1"
-                name="url"
-                placeholder="https://example.com"
-                type="url"
-              />
-              <Button type="submit">
-                {welcomeFreeScanAvailable ? "Run free first scan" : "Generate saved audit"}
-                <ArrowRight className="size-4" />
-              </Button>
-            </form>
+            <CreateLeadScanForm
+              autoFocus={welcomeFreeScanAvailable}
+              idleSubmitLabel={
+                welcomeFreeScanAvailable ? "Run free first scan" : "Generate saved audit"
+              }
+              pendingSubmitLabel="Scanning site…"
+              placeholder="example.com"
+            />
             {error === "insufficient-tokens" ? (
               <div className="rounded-[18px] border border-danger/25 bg-danger/10 px-4 py-3 text-sm leading-6 text-foreground">
                 This workspace is out of tokens. Add more on pricing before running another live scan.
+              </div>
+            ) : null}
+            {error === "missing-url" ? (
+              <div className="rounded-[18px] border border-danger/25 bg-danger/10 px-4 py-3 text-sm leading-6 text-foreground">
+                Enter a domain (e.g. example.com) or a full URL before starting the scan.
+              </div>
+            ) : null}
+            {error === "session-required" ? (
+              <div className="rounded-[18px] border border-danger/25 bg-danger/10 px-4 py-3 text-sm leading-6 text-foreground">
+                <p>We could not read your sign-in on this request. Sign in again, then return here.</p>
+                <Button asChild className="mt-3" size="sm" variant="secondary">
+                  <Link href="/app/login?next=%2Fapp">Sign in</Link>
+                </Button>
               </div>
             ) : null}
             <div className="flex flex-wrap gap-2">
