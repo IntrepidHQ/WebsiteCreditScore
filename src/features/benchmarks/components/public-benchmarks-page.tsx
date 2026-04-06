@@ -236,15 +236,18 @@ export function PublicBenchmarksPage({
               </p>
             </div>
             <ScoreBreakdownBars items={featuredAuditBreakdown} showWeights targetItems={targetBreakdown} />
-            <div className="rounded-[22px] border border-accent/20 bg-accent/8 p-5">
+            <div className="space-y-3">
               <p className="text-[11px] font-semibold uppercase tracking-[0.22em] text-muted">
                 Fastest lifts
               </p>
-              <div className="mt-3 space-y-2">
+              <div className="grid gap-3 md:grid-cols-3">
                 {verticals[0]?.rubric.fastLifts.map((item) => (
-                  <p className="text-sm leading-6 text-foreground" key={item}>
+                  <div
+                    className="rounded-[16px] border border-border/55 bg-panel/60 px-4 py-3 text-sm leading-6 text-foreground shadow-sm shadow-background/15"
+                    key={item}
+                  >
                     {item}
-                  </p>
+                  </div>
                 ))}
               </div>
             </div>
@@ -290,11 +293,11 @@ export function PublicBenchmarksPage({
       <section className="presentation-section py-8">
         <div className="mx-auto w-full max-w-7xl space-y-8 px-4 sm:px-6 xl:px-8">
           <SectionHeading
-            description="These references are here to anchor the conversation. They are not templates to copy; they are standards to measure against."
+            description="Curated library flagships anchor each vertical. High-scoring public audits (8.8+ overall) are added automatically as we publish more samples — the set grows while staying benchmark-only."
             eyebrow="Reference set"
-            title="Examples that still count as the benchmark"
+            title="High-bar examples: curated + public scans"
           />
-          <div className="grid gap-5 xl:grid-cols-3">
+          <div className="grid gap-5 sm:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4">
             {featuredExamples.map((reference) => (
               <article
                 className="overflow-hidden rounded-[24px] border border-border/60 bg-[linear-gradient(180deg,color-mix(in_srgb,var(--theme-panel)_90%,transparent),color-mix(in_srgb,var(--theme-background-alt)_96%,transparent))]"
@@ -310,6 +313,11 @@ export function PublicBenchmarksPage({
                 <div className="space-y-4 p-5">
                   <div className="flex flex-wrap items-center gap-2">
                     <Badge variant="accent">{reference.tier}</Badge>
+                    {reference.measuredScore != null ? (
+                      <Badge className="tabular-nums" variant="neutral">
+                        Scored {reference.measuredScore.toFixed(1)}
+                      </Badge>
+                    ) : null}
                     <Badge variant="neutral">{reference.sourceLabel}</Badge>
                   </div>
                   <h3 className="font-display text-[clamp(2.2rem,1.8rem+0.5vw,3rem)] leading-[0.95] tracking-[-0.04em] text-foreground">
