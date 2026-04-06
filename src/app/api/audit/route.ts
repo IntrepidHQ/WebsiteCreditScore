@@ -101,7 +101,7 @@ export async function POST(request: Request) {
     if (shouldPersist) {
       const repository = getProductRepository(session);
       const workspace = await repository.ensureWorkspace(session);
-      const lead = await repository.createLeadFromUrl(workspace.id, body.url, session);
+      const lead = await repository.createLeadFromUrl(workspace.id, normalizedUrl, session);
 
       return NextResponse.json({
         id: lead.id,
@@ -113,7 +113,7 @@ export async function POST(request: Request) {
 
     // Build report with real observation data
     const report = await enrichReportBenchmarks(
-      buildAuditReportFromUrl(body.url, observation),
+      buildAuditReportFromUrl(normalizedUrl, observation),
     );
 
     return NextResponse.json({
