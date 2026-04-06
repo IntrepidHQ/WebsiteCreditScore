@@ -3,6 +3,7 @@ import type { CookieOptions } from "@supabase/ssr";
 import type { NextRequest } from "next/server";
 import { NextResponse } from "next/server";
 
+import { getSupabaseCookieOptions } from "@/lib/supabase/cookie-options";
 import { getSupabaseEnv, hasSupabaseEnv } from "@/lib/supabase/config";
 
 export const dynamic = "force-dynamic";
@@ -30,8 +31,10 @@ export const GET = async (request: NextRequest) => {
 
   const { url, anonKey } = getSupabaseEnv();
   const pendingCookies: { name: string; value: string; options: CookieOptions }[] = [];
+  const cookieOpts = getSupabaseCookieOptions(request);
 
   const supabase = createServerClient(url, anonKey, {
+    cookieOptions: cookieOpts,
     cookies: {
       getAll() {
         return request.cookies.getAll();
@@ -49,7 +52,7 @@ export const GET = async (request: NextRequest) => {
 
   const applyCookies = (res: NextResponse) => {
     pendingCookies.forEach(({ name, value, options }) => {
-      res.cookies.set(name, value, options);
+      res.cookies.set(name, value, { ...cookieOpts, ...options });
     });
     return res;
   };
