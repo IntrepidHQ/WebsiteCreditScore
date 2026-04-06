@@ -1,16 +1,60 @@
 "use client";
 
-import { useState } from "react";
+import { useFormStatus } from "react-dom";
 
 import { ArrowRight, Loader2 } from "lucide-react";
 
 import { ScanUrlFieldGroup } from "@/components/common/scan-url-field-group";
 import { Button } from "@/components/ui/button";
 
+const CreateLeadScanFormFields = ({
+  autoFocus,
+  idleSubmitLabel,
+  pendingSubmitLabel,
+  placeholder,
+}: {
+  autoFocus?: boolean;
+  idleSubmitLabel: string;
+  pendingSubmitLabel: string;
+  placeholder: string;
+}) => {
+  const { pending } = useFormStatus();
+
+  return (
+    <>
+      <ScanUrlFieldGroup
+        autoFocus={autoFocus}
+        disabled={pending}
+        name="url"
+        placeholder={placeholder}
+      />
+      <Button
+        aria-busy={pending}
+        className="h-12 min-w-[10.5rem] sm:min-w-[12rem]"
+        disabled={pending}
+        size="lg"
+        type="submit"
+      >
+        {pending ? (
+          <>
+            <Loader2 aria-hidden className="size-4 animate-spin" />
+            {pendingSubmitLabel}
+          </>
+        ) : (
+          <>
+            {idleSubmitLabel}
+            <ArrowRight aria-hidden className="size-4" />
+          </>
+        )}
+      </Button>
+    </>
+  );
+};
+
 /**
- * Workspace scan: POST `/api/app/create-lead` via `fetch` + `redirect: "manual"` then
- * `window.location.assign` so the browser applies `Set-Cookie` from the redirect response
- * before the next document load (more reliable than a plain form POST for some Supabase flows).
+ * Native POST to `/api/app/create-lead`. A client `fetch` with `redirect: "manual"` often yields
+ * an opaque redirect (status 0, no `Location`) for POST in browsers — full document navigation
+ * applies `Set-Cookie` correctly for Supabase.
  */
 export const CreateLeadScanForm = ({
   autoFocus,
@@ -23,83 +67,20 @@ export const CreateLeadScanForm = ({
   pendingSubmitLabel: string;
   placeholder: string;
 }) => {
-  const [url, setUrl] = useState("");
-  const [pending, setPending] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-
-  const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
-    event.preventDefault();
-    const trimmed = url.trim();
-    if (!trimmed) {
-      return;
-    }
-
-    setPending(true);
-    setError(null);
-
-    try {
-      const formData = new FormData();
-      formData.append("url", trimmed);
-
-      const response = await fetch("/api/app/create-lead", {
-        method: "POST",
-        body: formData,
-        credentials: "include",
-        redirect: "manual",
-      });
-
-      const location = response.headers.get("Location");
-      if (response.status >= 300 && response.status < 400 && location) {
-        const target = location.startsWith("http")
-          ? location
-          : `${window.location.origin}${location}`;
-        window.location.assign(target);
-        return;
-      }
-
-      setError("Could not start the scan. Try again or sign in if your session expired.");
-    } catch {
-      setError("Network error. Check your connection and try again.");
-    } finally {
-      setPending(false);
-    }
-  };
-
   return (
-    <form className="space-y-3" onSubmit={handleSubmit}>
+    <form
+      action="/api/app/create-lead"
+      className="space-y-3"
+      method="post"
+    >
       <div className="flex flex-col gap-3 sm:flex-row">
-        <ScanUrlFieldGroup
+        <CreateLeadScanFormFields
           autoFocus={autoFocus}
-          disabled={pending}
-          onValueChange={setUrl}
+          idleSubmitLabel={idleSubmitLabel}
+          pendingSubmitLabel={pendingSubmitLabel}
           placeholder={placeholder}
-          value={url}
         />
-        <Button
-          aria-busy={pending}
-          className="h-12 min-w-[10.5rem] sm:min-w-[12rem]"
-          disabled={pending || !url.trim()}
-          size="lg"
-          type="submit"
-        >
-          {pending ? (
-            <>
-              <Loader2 aria-hidden className="size-4 animate-spin" />
-              {pendingSubmitLabel}
-            </>
-          ) : (
-            <>
-              {idleSubmitLabel}
-              <ArrowRight aria-hidden className="size-4" />
-            </>
-          )}
-        </Button>
       </div>
-      {error ? (
-        <p className="text-sm text-danger" role="alert">
-          {error}
-        </p>
-      ) : null}
     </form>
   );
 };
