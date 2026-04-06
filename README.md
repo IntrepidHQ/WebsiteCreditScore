@@ -55,9 +55,11 @@ pnpm dev
 
 3. Open [http://localhost:3000](http://localhost:3000)
 
+**`/app/login` without Supabase env:** The full sign-in layout still renders. A yellow notice explains missing variables; the email/password fields are visible but disabled until you add keys (see below). Use **Continue in demo workspace** when demo mode is allowed (see `src/lib/auth/demo-flag.ts`).
+
 ### Optional Supabase Auth Setup
 
-If you want Google OAuth and Supabase-backed workspaces instead of the local demo workspace, copy `.env.example` to `.env.local` and fill in values. See **Production sign-in checklist (Plan A)** below for Vercel + Supabase Dashboard steps.
+If you want Google OAuth and Supabase-backed workspaces instead of the local demo workspace, copy `.env.example` to `.env.local` and fill in values. See **Production sign-in checklist (Plan A)** below for Vercel + Supabase Dashboard steps. Production canonical site: **https://www.websitecreditscore.com** — keep Supabase **Site URL** and **Redirect URLs** aligned with whether you use `www` or apex.
 
 ```bash
 NEXT_PUBLIC_SUPABASE_URL=...
@@ -115,7 +117,7 @@ You can copy the exact URL from Supabase → Authentication → Providers → Go
 
 ### 5. Quick verification
 
-- Open `/app/login` — you should **not** see “Auth environment variables are not set” if step 1 is correct.
+- Open `/app/login` — if env vars are set, you should **not** see the yellow “Auth is not configured” banner; the form fields should be interactive (not grayed out).
 - After Google sign-in, you should land on `/auth/callback` then `/app` (or `next` query), not immediately back on login with `error=callback-failed` (that usually means redirect URL mismatch or expired code).
 - Vercel **Logs** / browser URL: note `?error=` codes (`db-not-ready`, `workspace-unavailable`, `session-required`, etc.) to see which gate failed.
 
@@ -163,7 +165,10 @@ src/
   hooks/                Motion and GSAP helpers
   lib/
     auth/               Demo + Supabase session helpers
-    mock/               Seed data and deterministic report builder
+    benchmarks/library/  Large benchmark rubrics, sites, and pattern notes (split from a single file for tooling)
+    mock/
+      report-builder/   Audit assembly: benchmark selection, report sections, main `build-report` orchestration
+      …                 Seed data, `report-enhancements`, `sample-audits`
     product/            Repository layer, local store, share resolution, quality checks
     supabase/           Supabase client and env helpers
     types/              Core TypeScript models
@@ -171,6 +176,10 @@ src/
   store/                Zustand state for theme, pricing, and UI controls
   test/                 Vitest setup
 ```
+
+### Large files (for contributors and coding agents)
+
+Some domains still carry big data or logic files (for example `report-enhancements.ts`, `niche-competitors.ts`, product stores, `site-observation.ts`). Prefer **editing the smallest module that owns the behavior** (e.g. `src/lib/mock/report-builder/build-report.ts` for orchestration, `report-sections.ts` for pricing/opportunity blocks). Import paths like `@/lib/mock/report-builder` resolve to `src/lib/mock/report-builder/index.ts`. The same applies to `@/lib/benchmarks/library` → `src/lib/benchmarks/library/index.ts`.
 
 ## Animation Architecture
 
@@ -182,7 +191,7 @@ src/
 
 - `src/app/api/audit/route.ts`
   Replace the mock builder call with your live audit pipeline or queue.
-- `src/lib/mock/report-builder.ts`
+- `src/lib/mock/report-builder/` (see `build-report.ts` and `report-sections.ts`)
   Swap deterministic seeded logic for normalized crawler, screenshot, SEO, and posture results.
 - `src/lib/product/repository.ts`
   Replace the local fallback with your preferred persistence strategy or extend the Supabase adapter.

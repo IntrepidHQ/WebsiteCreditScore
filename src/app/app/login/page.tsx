@@ -11,6 +11,8 @@ import { isDemoWorkspaceAllowed } from "@/lib/auth/demo-flag";
 import { getOptionalWorkspaceSession, sanitizeInternalNextPath } from "@/lib/auth/session";
 import { hasSupabaseEnv } from "@/lib/supabase/config";
 
+import { LoginSupabaseEnvBanner } from "./login-supabase-env-banner";
+
 // Decorative score ring for the left panel
 function ScoreBadge() {
   const score = 87;
@@ -184,6 +186,7 @@ export default async function AppLoginPage({
 
       {/* ── Right: Form panel ── */}
       <div className="flex w-full flex-col justify-center px-6 py-12 lg:w-[460px] lg:shrink-0 lg:border-l lg:border-border/60 lg:px-12">
+        <LoginSupabaseEnvBanner />
         {/* Mobile wordmark */}
         <a className="mb-10 inline-flex items-center gap-2.5 lg:hidden" href="/">
           <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-accent text-xs font-black tracking-tight text-accent-foreground">
@@ -194,16 +197,7 @@ export default async function AppLoginPage({
           </span>
         </a>
 
-        {!hasSupabaseEnv() ? (
-          <div className="rounded-xl border border-border/70 bg-panel/70 p-5 text-sm leading-6 text-muted">
-            Auth environment variables are not set. Add{" "}
-            <code className="text-foreground">NEXT_PUBLIC_SUPABASE_URL</code> and a public anon key as{" "}
-            <code className="text-foreground">NEXT_PUBLIC_SUPABASE_ANON_KEY</code>,{" "}
-            <code className="text-foreground">NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY</code>, or{" "}
-            <code className="text-foreground">NEXT_PUBLIC_SUPABASE_PUBLISHABLE_DEFAULT_KEY</code>{" "}
-            (see README Plan A checklist), then redeploy.
-          </div>
-        ) : sentConfirm ? (
+        {sentConfirm ? (
           <div className="space-y-4">
             <div className="flex h-12 w-12 items-center justify-center rounded-full bg-success/15">
               <Check className="size-5 text-success" strokeWidth={2.5} />
@@ -237,79 +231,52 @@ export default async function AppLoginPage({
             </a>
           </div>
         ) : mode === "reset" ? (
-          <div className="space-y-6">
-            <div>
-              <h2 className="text-2xl font-semibold text-foreground">Reset your password</h2>
-              <p className="mt-1.5 text-sm text-muted">
-                Enter your email and we&apos;ll send a link to set a new password.
-              </p>
-            </div>
-            <form action="/auth/reset" className="space-y-4" method="post">
-              <div className="space-y-1.5">
-                <label className="text-sm font-medium text-foreground" htmlFor="reset-email">
-                  Email
-                </label>
-                <Input
-                  autoComplete="email"
-                  autoFocus
-                  defaultValue={prefillEmail}
-                  id="reset-email"
-                  name="email"
-                  placeholder="you@yourbusiness.com"
-                  required
-                  type="email"
-                />
+          <>
+            <fieldset
+              className="min-w-0 space-y-6 border-0 p-0 disabled:pointer-events-none disabled:opacity-60"
+              disabled={!hasSupabaseEnv()}
+            >
+              <div>
+                <h2 className="text-2xl font-semibold text-foreground">Reset your password</h2>
+                <p className="mt-1.5 text-sm text-muted">
+                  Enter your email and we&apos;ll send a link to set a new password.
+                </p>
               </div>
-              <Button className="w-full" type="submit">
-                Send reset link
-              </Button>
-            </form>
-            {error && (
+              <form action="/auth/reset" className="space-y-4" method="post">
+                <div className="space-y-1.5">
+                  <label className="text-sm font-medium text-foreground" htmlFor="reset-email">
+                    Email
+                  </label>
+                  <Input
+                    autoComplete="email"
+                    autoFocus
+                    defaultValue={prefillEmail}
+                    id="reset-email"
+                    name="email"
+                    placeholder="you@yourbusiness.com"
+                    required
+                    type="email"
+                  />
+                </div>
+                <Button className="w-full" type="submit">
+                  Send reset link
+                </Button>
+              </form>
+              <a
+                className="block text-center text-sm text-muted hover:text-foreground"
+                href={`/app/login?next=${encodeURIComponent(next)}`}
+              >
+                Back to sign in
+              </a>
+            </fieldset>
+            {error ? (
               <p className="rounded-lg border border-danger/30 bg-danger/10 px-4 py-3 text-sm text-danger">
                 {error}
               </p>
-            )}
-            <a
-              className="block text-center text-sm text-muted hover:text-foreground"
-              href={`/app/login?next=${encodeURIComponent(next)}`}
-            >
-              Back to sign in
-            </a>
-          </div>
+            ) : null}
+          </>
         ) : (
           <div className="space-y-6">
-            {/* Tab switcher */}
-            <div>
-              <div className="inline-flex rounded-lg border border-border/70 bg-panel/60 p-1">
-                <a
-                  className={`rounded-md px-4 py-1.5 text-sm font-medium transition-colors ${
-                    mode === "signin"
-                      ? "bg-elevated text-foreground shadow-sm"
-                      : "text-muted hover:text-foreground"
-                  }`}
-                  href={`/app/login?next=${encodeURIComponent(next)}`}
-                >
-                  Sign in
-                </a>
-                <a
-                  className={`rounded-md px-4 py-1.5 text-sm font-medium transition-colors ${
-                    mode === "signup"
-                      ? "bg-elevated text-foreground shadow-sm"
-                      : "text-muted hover:text-foreground"
-                  }`}
-                  href={`/app/login?mode=signup&next=${encodeURIComponent(next)}`}
-                >
-                  Create account
-                </a>
-              </div>
-              <h2 className="mt-5 text-2xl font-semibold text-foreground">
-                {mode === "signup" ? "Create your account" : "Welcome back"}
-              </h2>
-              {mode === "signup" && (
-                <p className="mt-1 text-sm text-muted">Free to start — no credit card required.</p>
-              )}
-            </div>
-
             {session &&
             skipAutoRedirectToWorkspace &&
             ["db-not-ready", "workspace-unavailable", "supabase-not-configured"].includes(authError ?? "") ? (
@@ -332,84 +299,121 @@ export default async function AppLoginPage({
               </div>
             ) : null}
 
-            {/* Email + Password form */}
-            {mode === "signup" ? (
-              <form action="/auth/signup" className="space-y-4" method="post">
-                <div className="space-y-1.5">
-                  <label className="text-sm font-medium text-foreground" htmlFor="signup-email">
-                    Email
-                  </label>
-                  <Input
-                    autoComplete="email"
-                    autoFocus
-                    defaultValue={prefillEmail}
-                    id="signup-email"
-                    name="email"
-                    placeholder="you@yourbusiness.com"
-                    required
-                    type="email"
-                  />
+            <fieldset
+              className="min-w-0 space-y-6 border-0 p-0 disabled:pointer-events-none disabled:opacity-60"
+              disabled={!hasSupabaseEnv()}
+            >
+              {/* Tab switcher */}
+              <div>
+                <div className="inline-flex rounded-lg border border-border/70 bg-panel/60 p-1">
+                  <a
+                    className={`rounded-md px-4 py-1.5 text-sm font-medium transition-colors ${
+                      mode === "signin"
+                        ? "bg-elevated text-foreground shadow-sm"
+                        : "text-muted hover:text-foreground"
+                    }`}
+                    href={`/app/login?next=${encodeURIComponent(next)}`}
+                  >
+                    Sign in
+                  </a>
+                  <a
+                    className={`rounded-md px-4 py-1.5 text-sm font-medium transition-colors ${
+                      mode === "signup"
+                        ? "bg-elevated text-foreground shadow-sm"
+                        : "text-muted hover:text-foreground"
+                    }`}
+                    href={`/app/login?mode=signup&next=${encodeURIComponent(next)}`}
+                  >
+                    Create account
+                  </a>
                 </div>
-                <div className="space-y-1.5">
-                  <label className="text-sm font-medium text-foreground" htmlFor="signup-password">
-                    Password
-                  </label>
-                  <Input
-                    autoComplete="new-password"
-                    id="signup-password"
-                    name="password"
-                    required
-                    type="password"
-                  />
-                  <p className="text-xs text-muted">At least 8 characters</p>
-                </div>
-                <input name="next" type="hidden" value={next} />
-                <Button className="w-full" type="submit">
-                  Create account
-                </Button>
-              </form>
-            ) : (
-              <form action="/auth/password" className="space-y-4" method="post">
-                <div className="space-y-1.5">
-                  <label className="text-sm font-medium text-foreground" htmlFor="signin-email">
-                    Email
-                  </label>
-                  <Input
-                    autoComplete="email"
-                    defaultValue={prefillEmail}
-                    id="signin-email"
-                    name="email"
-                    placeholder="you@yourbusiness.com"
-                    required
-                    type="email"
-                  />
-                </div>
-                <div className="space-y-1.5">
-                  <div className="flex items-center justify-between">
-                    <label className="text-sm font-medium text-foreground" htmlFor="signin-password">
+                <h2 className="mt-5 text-2xl font-semibold text-foreground">
+                  {mode === "signup" ? "Create your account" : "Welcome back"}
+                </h2>
+                {mode === "signup" && (
+                  <p className="mt-1 text-sm text-muted">Free to start — no credit card required.</p>
+                )}
+              </div>
+
+              {/* Email + Password form */}
+              {mode === "signup" ? (
+                <form action="/auth/signup" className="space-y-4" method="post">
+                  <div className="space-y-1.5">
+                    <label className="text-sm font-medium text-foreground" htmlFor="signup-email">
+                      Email
+                    </label>
+                    <Input
+                      autoComplete="email"
+                      autoFocus
+                      defaultValue={prefillEmail}
+                      id="signup-email"
+                      name="email"
+                      placeholder="you@yourbusiness.com"
+                      required
+                      type="email"
+                    />
+                  </div>
+                  <div className="space-y-1.5">
+                    <label className="text-sm font-medium text-foreground" htmlFor="signup-password">
                       Password
                     </label>
-                    <a
-                      className="text-xs text-muted hover:text-foreground"
-                      href={`/app/login?mode=reset&email=${encodeURIComponent(prefillEmail)}&next=${encodeURIComponent(next)}`}
-                    >
-                      Forgot password?
-                    </a>
+                    <Input
+                      autoComplete="new-password"
+                      id="signup-password"
+                      name="password"
+                      required
+                      type="password"
+                    />
+                    <p className="text-xs text-muted">At least 8 characters</p>
                   </div>
-                  <Input
-                    autoComplete="current-password"
-                    id="signin-password"
-                    name="password"
-                    required
-                    type="password"
-                  />
-                </div>
-                <input name="next" type="hidden" value={next} />
-                <Button className="w-full" type="submit">
-                  Sign in
-                </Button>
-              </form>
-            )}
+                  <input name="next" type="hidden" value={next} />
+                  <Button className="w-full" type="submit">
+                    Create account
+                  </Button>
+                </form>
+              ) : (
+                <form action="/auth/password" className="space-y-4" method="post">
+                  <div className="space-y-1.5">
+                    <label className="text-sm font-medium text-foreground" htmlFor="signin-email">
+                      Email
+                    </label>
+                    <Input
+                      autoComplete="email"
+                      defaultValue={prefillEmail}
+                      id="signin-email"
+                      name="email"
+                      placeholder="you@yourbusiness.com"
+                      required
+                      type="email"
+                    />
+                  </div>
+                  <div className="space-y-1.5">
+                    <div className="flex items-center justify-between">
+                      <label className="text-sm font-medium text-foreground" htmlFor="signin-password">
+                        Password
+                      </label>
+                      <a
+                        className="text-xs text-muted hover:text-foreground"
+                        href={`/app/login?mode=reset&email=${encodeURIComponent(prefillEmail)}&next=${encodeURIComponent(next)}`}
+                      >
+                        Forgot password?
+                      </a>
+                    </div>
+                    <Input
+                      autoComplete="current-password"
+                      id="signin-password"
+                      name="password"
+                      required
+                      type="password"
+                    />
+                  </div>
+                  <input name="next" type="hidden" value={next} />
+                  <Button className="w-full" type="submit">
+                    Sign in
+                  </Button>
+                </form>
+              )}
+            </fieldset>
 
             {error && (
               <p className="rounded-lg border border-danger/30 bg-danger/10 px-4 py-3 text-sm text-danger">
