@@ -17,7 +17,11 @@ export function AppShell({ children }: { children: React.ReactNode }) {
         <div className="border-b border-border/60 bg-background/92 shadow-sm backdrop-blur-xl supports-[backdrop-filter]:bg-background/84">
           <div className="mx-auto flex w-full max-w-7xl flex-col gap-3 px-4 py-3 sm:px-6 lg:px-8">
             <div className="flex flex-wrap items-center justify-between gap-3">
-              <Link className="min-w-0 shrink-0" href="/">
+              <Link
+                aria-label="WebsiteCreditScore.com — Dashboard"
+                className="min-w-0 shrink-0"
+                href="/app"
+              >
                 <WebsiteCreditScoreLogo size="header" />
               </Link>
               <div className="flex flex-wrap items-center gap-2 sm:justify-end">
@@ -56,7 +60,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
       <footer className="border-t border-border/60 bg-background/84 print:hidden">
         <div className="mx-auto flex w-full max-w-7xl flex-col gap-6 px-4 py-8 sm:px-6 lg:flex-row lg:items-center lg:justify-between lg:px-8">
           <div className="space-y-2">
-            <Link className="inline-flex" href="/">
+            <Link aria-label="WebsiteCreditScore.com — Dashboard" className="inline-flex" href="/app">
               <WebsiteCreditScoreLogo compact />
             </Link>
             <p className="max-w-xl text-sm leading-6 text-muted">
