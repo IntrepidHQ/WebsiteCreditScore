@@ -98,7 +98,7 @@ function PreviewImageInner({
             imageClassName,
           )}
           decoding="async"
-          loading="lazy"
+          loading={currentSrc.startsWith("/api/preview") ? "eager" : "lazy"}
           onError={() => {
             if (fallbackSrc && currentSrc !== fallbackSrc) {
               setCurrentSrc(fallbackSrc);

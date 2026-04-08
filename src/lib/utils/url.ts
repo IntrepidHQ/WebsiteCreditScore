@@ -22,7 +22,17 @@ function isBlockedHostname(hostname: string) {
   return blockedHostnamePatterns.some((pattern) => pattern.test(hostname));
 }
 
-export function normalizeUrl(input: string) {
+export type NormalizeUrlOptions = {
+  /**
+   * When false, keeps `www.` so preview capture hits the same host the site serves
+   * (many Squarespace / hosted stacks only terminate TLS on `www`).
+   * Default true for audits and deduping.
+   */
+  stripWww?: boolean;
+};
+
+export function normalizeUrl(input: string, options?: NormalizeUrlOptions) {
+  const stripWww = options?.stripWww ?? true;
   const trimmed = input.trim();
 
   if (!trimmed) {
@@ -53,7 +63,10 @@ export function normalizeUrl(input: string) {
   parsed.search = "";
   parsed.pathname = parsed.pathname.replace(/\/+$/, "") || "/";
   parsed.protocol = "https:";
-  parsed.hostname = parsed.hostname.toLowerCase().replace(/^www\./, "");
+  parsed.hostname = parsed.hostname.toLowerCase();
+  if (stripWww) {
+    parsed.hostname = parsed.hostname.replace(/^www\./, "");
+  }
 
   return parsed.toString().replace(/\/$/, "");
 }
@@ -177,5 +190,7 @@ export function createWebsiteScreenshotUrl(
   input: string,
   device: PreviewDevice = "desktop",
 ) {
-  return `/api/preview?url=${encodeURIComponent(normalizeUrl(input))}&device=${device}&v=${PREVIEW_CAPTURE_VERSION}`;
+  return `/api/preview?url=${encodeURIComponent(
+    normalizeUrl(input, { stripWww: false }),
+  )}&device=${device}&v=${PREVIEW_CAPTURE_VERSION}`;
 }
