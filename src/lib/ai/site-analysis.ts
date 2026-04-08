@@ -46,6 +46,26 @@ function buildObservationContext(url: string, observation: SiteObservation): str
   if (observation.notableDetails?.length)
     lines.push(`Notable details: ${observation.notableDetails.slice(0, 4).join(", ")}`);
 
+  // PageSpeed / Core Web Vitals
+  if (observation.performanceScore != null) {
+    lines.push(`Mobile performance score: ${observation.performanceScore}/100`);
+  }
+  if (observation.lcp) {
+    const lcpSec = (observation.lcp / 1000).toFixed(1);
+    const lcpNote = observation.lcp < 2500 ? "(good)" : observation.lcp < 4000 ? "(needs improvement)" : "(poor)";
+    lines.push(`Largest Contentful Paint (LCP): ${lcpSec}s ${lcpNote}`);
+  }
+  if (observation.cls != null && observation.cls > 0) {
+    const clsNote = observation.cls < 0.1 ? "(good)" : observation.cls < 0.25 ? "(needs improvement)" : "(poor)";
+    lines.push(`Cumulative Layout Shift (CLS): ${observation.cls.toFixed(3)} ${clsNote}`);
+  }
+  if (observation.fcp) {
+    lines.push(`First Contentful Paint (FCP): ${(observation.fcp / 1000).toFixed(1)}s`);
+  }
+  if (observation.tbt) {
+    lines.push(`Total Blocking Time (TBT): ${observation.tbt}ms`);
+  }
+
   return lines.join("\n");
 }
 

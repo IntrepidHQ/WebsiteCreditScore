@@ -11,6 +11,7 @@ import {
 import { sampleAudits } from "@/lib/mock/sample-audits";
 import { analyzeSiteWithAI } from "@/lib/ai/site-analysis";
 import type { AISiteAnalysis } from "@/lib/ai/site-analysis";
+import { fetchPageSpeedMetrics } from "@/lib/utils/pagespeed";
 import { generateOutreachEmail } from "@/lib/utils/outreach";
 import { createDefaultProposalOffer } from "@/lib/utils/proposal-offers";
 import { calculatePricingSummary, getDefaultSelectedIds } from "@/lib/utils/pricing";
@@ -84,23 +85,37 @@ function applyAIAnalysis(report: AuditReport, ai: AISiteAnalysis): AuditReport {
 export async function buildLiveAuditReportFromUrl(rawUrl: string): Promise<AuditReport> {
   const normalizedUrl = normalizeUrl(rawUrl);
 
-  // Run site observation and AI analysis concurrently when possible.
-  // AI analysis depends on observation, so we await observation first, then
-  // fire AI in parallel with benchmark enrichment.
-  const observation = await inspectWebsite(normalizedUrl);
-  let report = buildAuditReportFromUrl(rawUrl, observation);
+  // Fetch site observation and PageSpeed metrics in parallel — both are
+  // network calls that don't depend on each other.
+  const [observation, pageSpeedMetrics] = await Promise.all([
+    inspectWebsite(normalizedUrl),
+    fetchPageSpeedMetrics(normalizedUrl, "mobile"),
+  ]);
 
-  // Enrich benchmarks and run AI analysis in parallel — both are async and
-  // independent of each other.
+  // Merge PageSpeed data into the observation so it flows through scoring,
+  // the AI prompt, and the packet PDF.
+  const enrichedObservation = pageSpeedMetrics
+    ? {
+        ...observation,
+        performanceScore: pageSpeedMetrics.performanceScore,
+        lcp: pageSpeedMetrics.lcp,
+        cls: pageSpeedMetrics.cls,
+        fcp: pageSpeedMetrics.fcp,
+        tbt: pageSpeedMetrics.tbt,
+        speedIndex: pageSpeedMetrics.speedIndex,
+      }
+    : observation;
+
+  let report = buildAuditReportFromUrl(rawUrl, enrichedObservation);
+
+  // Enrich benchmarks and run AI analysis in parallel.
   const [enriched, aiAnalysis] = await Promise.all([
     enrichReportBenchmarks(report),
-    analyzeSiteWithAI(normalizedUrl, observation, report.overallScore),
+    analyzeSiteWithAI(normalizedUrl, enrichedObservation, report.overallScore),
   ]);
 
   report = enriched;
 
-  // Apply AI-written copy if available. Heuristic fallbacks remain when AI
-  // returns null (API key absent, fetch failed, parse error).
   if (aiAnalysis) {
     report = applyAIAnalysis(report, aiAnalysis);
   }
@@ -360,12 +375,28 @@ export async function buildLiveAuditReportById(id: string) {
     return null;
   }
 
-  const observation = await inspectWebsite(sample.url);
-  let report = buildAuditReport(sample.url, sample, observation);
+  const [observation, pageSpeedMetrics] = await Promise.all([
+    inspectWebsite(sample.url),
+    fetchPageSpeedMetrics(sample.url, "mobile"),
+  ]);
+
+  const enrichedObservation = pageSpeedMetrics
+    ? {
+        ...observation,
+        performanceScore: pageSpeedMetrics.performanceScore,
+        lcp: pageSpeedMetrics.lcp,
+        cls: pageSpeedMetrics.cls,
+        fcp: pageSpeedMetrics.fcp,
+        tbt: pageSpeedMetrics.tbt,
+        speedIndex: pageSpeedMetrics.speedIndex,
+      }
+    : observation;
+
+  let report = buildAuditReport(sample.url, sample, enrichedObservation);
 
   const [enriched, aiAnalysis] = await Promise.all([
     enrichReportBenchmarks(report),
-    analyzeSiteWithAI(sample.url, observation, report.overallScore),
+    analyzeSiteWithAI(sample.url, enrichedObservation, report.overallScore),
   ]);
 
   report = enriched;
