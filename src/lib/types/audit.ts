@@ -471,6 +471,19 @@ export interface SiteObservation {
   contentClassification?: ContentClassification;
   redirectTarget?: string;
   strippedTextLength?: number;
+  /** PageSpeed / Lighthouse performance metrics (mobile strategy). Optional — populated
+   *  only when GOOGLE_PAGESPEED_API_KEY is set and the PSI call succeeds. */
+  performanceScore?: number;
+  /** Largest Contentful Paint in milliseconds */
+  lcp?: number;
+  /** Cumulative Layout Shift score (0–1) */
+  cls?: number;
+  /** First Contentful Paint in milliseconds */
+  fcp?: number;
+  /** Total Blocking Time in milliseconds */
+  tbt?: number;
+  /** Speed Index in milliseconds */
+  speedIndex?: number;
 }
 
 export interface RoiScenarioDefaults {

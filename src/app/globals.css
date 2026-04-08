@@ -273,12 +273,18 @@ a {
 @media print {
   @page {
     size: letter portrait;
-    margin: 0.2in;
+    /* Tighter margins give more content area without feeling crowded */
+    margin: 0.35in 0.4in;
+  }
+
+  @page :first {
+    margin-top: 0.3in;
   }
 
   html,
   body {
     background: #ffffff !important;
+    font-size: 13px;
   }
 
   body {
@@ -289,5 +295,11 @@ a {
   .print-avoid-break {
     break-inside: avoid;
     page-break-inside: avoid;
+  }
+
+  /* Ensure custom properties render correctly in print */
+  * {
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
   }
 }

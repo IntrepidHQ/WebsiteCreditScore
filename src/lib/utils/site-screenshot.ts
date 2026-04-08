@@ -418,6 +418,77 @@ async function captureScreenshot(url: string, device: PreviewDevice) {
 }
 
 /**
+ * Capture a full-page screenshot via the Browserless REST API.
+ * This is the primary live-capture method in serverless environments — it
+ * offloads headless Chrome to a reliable external service, eliminating the
+ * binary-size issues that plague @sparticuz/chromium on Vercel/Lambda.
+ *
+ * Requires the BROWSERLESS_API environment variable (API token).
+ * The endpoint base can be overridden with BROWSERLESS_ENDPOINT; defaults
+ * to the standard Browserless cloud cluster.
+ */
+async function captureViaBrowserless(
+  url: string,
+  device: PreviewDevice,
+): Promise<Buffer> {
+  const apiKey = process.env.BROWSERLESS_API?.trim();
+  if (!apiKey) throw new Error("BROWSERLESS_API not configured");
+
+  const isDesktop = device === "desktop";
+  const baseEndpoint =
+    process.env.BROWSERLESS_ENDPOINT?.trim() ?? "https://chrome.browserless.io";
+
+  const apiUrl = `${baseEndpoint}/screenshot?token=${encodeURIComponent(apiKey)}`;
+
+  const body = {
+    url,
+    options: {
+      fullPage: true,
+      type: "png",
+      animations: "disabled",
+    },
+    gotoOptions: {
+      waitUntil: "networkidle0",
+      timeout: 25000,
+    },
+    viewport: isDesktop
+      ? { width: 1440, height: 900, deviceScaleFactor: 1 }
+      : { width: 390, height: 844, deviceScaleFactor: 3, isMobile: true, hasTouch: true },
+    userAgent: isDesktop
+      ? "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/134.0.0.0 Safari/537.36"
+      : "Mozilla/5.0 (iPhone; CPU iPhone OS 17_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.0 Mobile/15E148 Safari/604.1",
+    // Inject CSS to freeze animations and hide scrollbars for a clean screenshot
+    addStyleTag: [
+      {
+        content: `
+          *, *::before, *::after {
+            animation: none !important;
+            transition: none !important;
+            scroll-behavior: auto !important;
+          }
+          video { visibility: hidden !important; }
+          ::-webkit-scrollbar { display: none !important; }
+        `,
+      },
+    ],
+  };
+
+  const response = await fetch(apiUrl, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(body),
+    signal: AbortSignal.timeout(35000),
+  });
+
+  if (!response.ok) {
+    const detail = await response.text().catch(() => "");
+    throw new Error(`Browserless API returned ${response.status}: ${detail.slice(0, 200)}`);
+  }
+
+  return Buffer.from(await response.arrayBuffer());
+}
+
+/**
  * Use an external screenshot API as a reliable fallback when local browser
  * capture fails (common in serverless environments with binary size limits).
  * Uses Google PageSpeed Insights which is free and returns a real rendered screenshot.
@@ -604,7 +675,27 @@ async function buildPreviewImage(
     };
   }
 
-  // L3: Live capture
+  // L3a: Browserless API — primary live capture. Reliable in serverless because
+  // it offloads headless Chrome to an external service. Tried first whenever
+  // BROWSERLESS_API is set.
+  if (process.env.BROWSERLESS_API?.trim()) {
+    try {
+      const rawBuffer = await withTimeout(
+        captureViaBrowserless(captureUrl, device),
+        38000,
+        "Browserless capture timed out.",
+      );
+
+      return await compressAndCache(rawBuffer, "browserless-api");
+    } catch (err) {
+      console.warn("[site-preview] Browserless capture failed, trying next layer:", err);
+    }
+  }
+
+  // L3b: Local Playwright capture — works in local dev; usually fails in
+  // serverless due to binary size limits. Skipped when BROWSERLESS_API is set
+  // and succeeded above, or when running in serverless without a configured
+  // executable.
   try {
     const rawBuffer = await withTimeout(
       captureScreenshot(captureUrl, device),
