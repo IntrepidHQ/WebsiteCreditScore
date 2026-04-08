@@ -34,7 +34,8 @@ export const sampleAudits: SampleAuditCard[] = [
     id: "saunders-woodworks",
     title: "Saunders Wood Work LLC",
     url: "https://www.saunderswoodworkllc.com/about",
-    previewUrl: "https://www.saunderswoodworkllc.com/about",
+    /** Homepage captures reliably in headless; audit still deep-links to /about. */
+    previewUrl: "https://www.saunderswoodworkllc.com",
     profile: "local-service",
     summary:
       "The story is credible, but the page still makes visitors read too much before acting.",

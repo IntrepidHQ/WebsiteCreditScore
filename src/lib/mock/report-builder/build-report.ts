@@ -354,7 +354,11 @@ export function getSampleAuditCards() {
     })
     .map((sample) => ({
       ...sample,
-      previewImage: createWebsiteScreenshotUrl(sample.previewUrl ?? sample.url, "desktop"),
+      // Respect per-sample `previewImage` (e.g. Saunders uses homepage for capture while `url` is /about).
+      // Overwriting with previewUrl broke Squarespace previews that need the root domain.
+      previewImage:
+        sample.previewImage ??
+        createWebsiteScreenshotUrl(sample.previewUrl ?? sample.url, "desktop"),
       score: buildAuditReport(sample.url, sample).overallScore,
     }));
 }
