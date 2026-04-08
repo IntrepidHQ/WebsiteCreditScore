@@ -200,6 +200,7 @@ Some domains still carry big data or logic files (for example `report-enhancemen
 
 ## Notes
 
+- Optional **Firecrawl**: set `FIRECRAWL_API` or `FIRECRAWL_API_KEY` in **Vercel** and `.env.local` (not only Supabase Edge secrets). The app calls `POST https://api.firecrawl.dev/v2/scrape` when the live HTML fetch fails, the page looks empty/under construction, or extractable text is very thin. Disk cache under `/tmp` plus Firecrawl `maxAge` (7 days) limits repeat credit use.
 - Packet PDF export is real; the packet page stays themed on screen and prints in light mode.
 - Public share links for `/audit/[id]`, `/packet/[id]`, and `/brief/[id]` can resolve from saved report snapshots.
 - Preview images prefer captured site screenshots and fall back to site image metadata when capture is unavailable.

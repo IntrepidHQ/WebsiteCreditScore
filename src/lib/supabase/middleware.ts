@@ -9,6 +9,9 @@ import { getSupabaseEnv, hasSupabaseEnv } from "@/lib/supabase/config";
  * Single `NextResponse.next({ request })` — do not rebuild the raw `Cookie` header manually;
  * that can break chunked `sb-*-auth-token` values and drop the session on the next hop.
  *
+ * Marketing pages (`/`) and workspace (`/app/*`) share the same Supabase cookies (path `/`).
+ * Workspace access is enforced in RSC via `requireWorkspaceSession()`, not by splitting cookies.
+ *
  * @see https://supabase.com/docs/guides/auth/server-side/nextjs
  */
 export const updateSupabaseSession = async (request: NextRequest) => {

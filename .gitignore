@@ -43,3 +43,6 @@ next-env.d.ts
 
 # local node symlink (Turbopack PATH workaround)
 /node
+
+# git worktrees (local clones; never commit)
+.claude/worktrees/

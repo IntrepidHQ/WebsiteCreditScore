@@ -6,6 +6,7 @@ import type {
   ObservationFactSource,
   SiteObservation,
 } from "@/lib/types/audit";
+import type { FirecrawlScrapePayload } from "@/lib/utils/firecrawl-types";
 import { createWebsiteScreenshotUrl, normalizeUrl } from "@/lib/utils/url";
 
 const observationCache = new Map<string, Promise<SiteObservation>>();
@@ -805,6 +806,275 @@ function classifyFetchError(error: unknown): FetchErrorReason {
   return "unknown";
 }
 
+function markdownParagraphsForFirecrawl(markdown: string, limit = 24): string[] {
+  const blocks = markdown
+    .replace(/```[\s\S]*?```/g, " ")
+    .split(/\n{2,}/)
+    .map((block) =>
+      block
+        .replace(/^#{1,6}\s+/gm, "")
+        .replace(/\[([^\]]+)\]\([^)]+\)/g, "$1")
+        .replace(/[*_`]+/g, " ")
+        .replace(/\s+/g, " ")
+        .trim(),
+    )
+    .filter((p) => p.length > 24);
+
+  return uniqueTexts(blocks, limit);
+}
+
+function countMarkdownHeadings(markdown: string): number {
+  return (markdown.match(/^#{1,6}\s+/gm) ?? []).length;
+}
+
+function firstMarkdownHeading(markdown: string): string {
+  const line = markdown.split(/\n/).find((l) => /^#{1,6}\s+/.test(l.trim()));
+  if (!line) {
+    return "";
+  }
+  return cleanText(line.replace(/^#{1,6}\s+/, ""));
+}
+
+function markdownToReadableText(markdown: string): string {
+  const withoutCode = markdown.replace(/```[\s\S]*?```/g, " ");
+  return cleanText(
+    withoutCode
+      .replace(/^#{1,6}\s+/gm, "")
+      .replace(/\[([^\]]+)\]\([^)]+\)/g, "$1")
+      .replace(/[*_`]+/g, " "),
+  );
+}
+
+function derivePrimaryCtasFromMarkdown(markdown: string): string[] {
+  const ctaMatcher =
+    /\b(book|schedule|get started|contact|call|request|quote|estimate|claim|demo|tour|consult|apply|work with us|make an appointment)\b/i;
+  const matches = [...markdown.matchAll(/\[([^\]]{2,80})\]\([^)]+\)/g)]
+    .map((m) => cleanText(m[1] ?? ""))
+    .filter(Boolean)
+    .filter((text) => ctaMatcher.test(text) && !isLikelyNavigationNoise(text));
+
+  return uniqueTexts(matches.map((t) => t.slice(0, 64)), 5);
+}
+
+function mergeVerifiedFacts(primary: ObservationFact[], secondary: ObservationFact[]): ObservationFact[] {
+  const seen = new Set<string>();
+  const out: ObservationFact[] = [];
+
+  for (const fact of [...primary, ...secondary]) {
+    const key = `${fact.type}:${fact.value}`;
+    if (seen.has(key)) {
+      continue;
+    }
+    seen.add(key);
+    out.push(fact);
+  }
+
+  return out;
+}
+
+function shouldAttemptFirecrawl(observation: SiteObservation): boolean {
+  const key = (process.env.FIRECRAWL_API ?? process.env.FIRECRAWL_API_KEY ?? "").trim();
+  if (!key) {
+    return false;
+  }
+
+  if (!observation.fetchSucceeded) {
+    return true;
+  }
+
+  const cls = observation.contentClassification;
+  if (cls === "empty-page" || cls === "under-construction") {
+    return true;
+  }
+
+  const thinText =
+    (observation.strippedTextLength ?? 0) < 180 && (observation.headingCount ?? 0) < 2;
+
+  return thinText;
+}
+
+function siteObservationFromFirecrawlOnly(
+  normalizedRequestUrl: string,
+  fc: FirecrawlScrapePayload,
+): SiteObservation {
+  const paragraphs = markdownParagraphsForFirecrawl(fc.markdown);
+  const text = markdownToReadableText(fc.markdown);
+  const pageTitle = fc.pageTitle || firstMarkdownHeading(fc.markdown);
+  const heroHeading = firstMarkdownHeading(fc.markdown) || pageTitle;
+  const metaDescription = fc.metaDescription;
+  const verifiedFacts = extractVerifiedFacts("", paragraphs, metaDescription);
+  const aboutSnippet = verifiedFacts.find((fact) => fact.type === "about")?.value ?? "";
+  const headingCount = countMarkdownHeadings(fc.markdown);
+  const strippedTextLength = text.replace(/\s+/g, " ").trim().length;
+  const contentClassification = classifyContent(
+    normalizedRequestUrl,
+    fc.finalUrl,
+    text,
+    pageTitle,
+    headingCount,
+  );
+  const trustSignals = deriveTrustSignals(text, paragraphs, [], verifiedFacts);
+  const templateSignals = deriveTemplateSignals(text);
+  const motionSignals = deriveMotionSignals(fc.markdown, text);
+  const primaryCtas = derivePrimaryCtasFromMarkdown(fc.markdown);
+
+  return {
+    fetchedAt: new Date().toISOString(),
+    finalUrl: fc.finalUrl,
+    pageTitle,
+    metaDescription,
+    heroHeading,
+    aboutSnippet,
+    verifiedFacts,
+    primaryCtas,
+    trustSignals,
+    seoSignals: uniqueTexts(
+      [
+        pageTitle ? `Title tag present: ${pageTitle}` : "",
+        metaDescription ? "Meta description present." : "",
+        heroHeading ? `Primary heading: ${heroHeading}` : "",
+        "Content captured via Firecrawl (live HTML fetch failed or was blocked).",
+      ],
+      6,
+    ),
+    securitySignals: [
+      "Security headers were not read from a same-origin response; posture may differ for real visitors.",
+    ],
+    technicalSignals: uniqueTexts(
+      [
+        "Page text recovered via Firecrawl; DOM-level signals (forms, viewport, canonical) were not measured on this path.",
+      ],
+      5,
+    ),
+    motionSignals,
+    notableDetails: extractNotableDetails(text, paragraphs, verifiedFacts),
+    templateSignals,
+    screenshotUrl: createWebsiteScreenshotUrl(fc.finalUrl, "desktop"),
+    ogImage: undefined,
+    formCount: 0,
+    internalLinkCount: 0,
+    headingCount,
+    hasViewport: false,
+    hasCanonical: false,
+    hasSchema: false,
+    hasLang: false,
+    missingAltRatio: 0,
+    fetchSucceeded: true,
+    httpStatus: 200,
+    contentClassification,
+    redirectTarget: fc.finalUrl !== normalizedRequestUrl ? fc.finalUrl : undefined,
+    strippedTextLength,
+  };
+}
+
+function mergeFirecrawlIntoSiteObservation(
+  normalizedRequestUrl: string,
+  base: SiteObservation,
+  fc: FirecrawlScrapePayload,
+): SiteObservation {
+  const fcParagraphs = markdownParagraphsForFirecrawl(fc.markdown);
+  const metaDescription = base.metaDescription.trim() || fc.metaDescription;
+  const pageTitle = base.pageTitle.trim() || fc.pageTitle || firstMarkdownHeading(fc.markdown);
+  const heroHeading = base.heroHeading.trim() || firstMarkdownHeading(fc.markdown) || pageTitle;
+  const fcFacts = extractVerifiedFacts("", fcParagraphs, metaDescription);
+  const verifiedFacts = mergeVerifiedFacts(base.verifiedFacts, fcFacts);
+  const aboutSnippet =
+    base.aboutSnippet.trim() ||
+    verifiedFacts.find((fact) => fact.type === "about")?.value ||
+    fcParagraphs[0] ||
+    "";
+  const combinedText = cleanText(
+    [
+      base.pageTitle,
+      base.heroHeading,
+      base.metaDescription,
+      base.aboutSnippet,
+      markdownToReadableText(fc.markdown),
+    ].join(" "),
+  );
+  const headingCount = Math.max(base.headingCount, countMarkdownHeadings(fc.markdown));
+  const strippedTextLength = combinedText.replace(/\s+/g, " ").trim().length;
+  const finalUrl = fc.finalUrl || base.finalUrl;
+  const contentClassification = classifyContent(
+    normalizedRequestUrl,
+    finalUrl,
+    combinedText,
+    pageTitle,
+    headingCount,
+  );
+  const paragraphs = uniqueTexts(
+    [...fcParagraphs, base.aboutSnippet, base.metaDescription].filter(Boolean),
+    28,
+  );
+  const trustSignals = uniqueTexts(
+    [
+      ...base.trustSignals,
+      ...deriveTrustSignals(combinedText, paragraphs, [], verifiedFacts),
+    ],
+    10,
+  );
+  const primaryCtas =
+    base.primaryCtas.length > 0 ? base.primaryCtas : derivePrimaryCtasFromMarkdown(fc.markdown);
+
+  return {
+    ...base,
+    fetchedAt: new Date().toISOString(),
+    finalUrl,
+    pageTitle,
+    metaDescription,
+    heroHeading,
+    aboutSnippet,
+    verifiedFacts,
+    primaryCtas,
+    trustSignals,
+    templateSignals: uniqueTexts(
+      [...base.templateSignals, ...deriveTemplateSignals(combinedText)],
+      8,
+    ),
+    motionSignals: uniqueTexts(
+      [...base.motionSignals, ...deriveMotionSignals(fc.markdown, combinedText)],
+      8,
+    ),
+    notableDetails: extractNotableDetails(combinedText, paragraphs, verifiedFacts),
+    seoSignals: uniqueTexts(
+      [
+        ...base.seoSignals,
+        "Additional page copy recovered via Firecrawl after a thin live HTML parse.",
+      ],
+      8,
+    ),
+    technicalSignals: uniqueTexts(
+      [...base.technicalSignals, "Supplemental text source: Firecrawl markdown."],
+      6,
+    ),
+    contentClassification,
+    strippedTextLength,
+    headingCount,
+  };
+}
+
+async function maybeEnrichWithFirecrawl(
+  normalizedRequestUrl: string,
+  observation: SiteObservation,
+): Promise<SiteObservation> {
+  if (!shouldAttemptFirecrawl(observation)) {
+    return observation;
+  }
+
+  const { scrapeUrlMarkdownWithFirecrawl } = await import("@/lib/utils/firecrawl-scrape");
+  const target = observation.fetchSucceeded ? observation.finalUrl : normalizedRequestUrl;
+  const fc = await scrapeUrlMarkdownWithFirecrawl(target);
+  if (!fc) {
+    return observation;
+  }
+
+  if (!observation.fetchSucceeded) {
+    return siteObservationFromFirecrawlOnly(normalizedRequestUrl, fc);
+  }
+
+  return mergeFirecrawlIntoSiteObservation(normalizedRequestUrl, observation, fc);
+}
+
 export function createFallbackObservation(
   rawUrl: string,
   fetchError?: FetchErrorReason,
@@ -975,7 +1245,10 @@ export async function inspectWebsite(rawUrl: string) {
     return cached;
   }
 
-  const pending = fetchObservation(normalizedUrl);
+  const pending = (async () => {
+    const base = await fetchObservation(normalizedUrl);
+    return maybeEnrichWithFirecrawl(normalizedUrl, base);
+  })();
   observationCache.set(normalizedUrl, pending);
 
   return pending;

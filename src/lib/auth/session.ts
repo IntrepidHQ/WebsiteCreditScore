@@ -10,6 +10,20 @@ import { createSupabaseServerClient } from "@/lib/supabase/server";
 
 export const DEMO_SESSION_COOKIE = "craydl-demo-session";
 
+const isExpectedNoSessionError = (error: { message?: string; name?: string }) => {
+  const msg = (error.message ?? "").toLowerCase();
+  if (error.name === "AuthSessionMissingError") {
+    return true;
+  }
+  return (
+    msg.includes("invalid refresh token") ||
+    msg.includes("refresh token not found") ||
+    msg.includes("jwt expired") ||
+    msg.includes("session missing") ||
+    msg.includes("invalid jwt")
+  );
+};
+
 /** Build workspace session from Supabase `User` (same shape as `getOptionalWorkspaceSession` for Supabase). */
 export const workspaceSessionFromSupabaseUser = (user: User): WorkspaceSession => ({
   mode: "supabase",
@@ -49,7 +63,9 @@ export const resolveSupabaseSessionUser = async (
   }
 
   if (error) {
-    console.error("[auth] Supabase getUser failed:", error.message);
+    if (!isExpectedNoSessionError(error)) {
+      console.error("[auth] Supabase getUser failed:", error.message);
+    }
     return null;
   }
 
@@ -77,17 +93,7 @@ export const getOptionalWorkspaceSession = async (): Promise<WorkspaceSession | 
       const user = await resolveSupabaseSessionUser(supabase);
 
       if (user?.id) {
-        return {
-          mode: "supabase",
-          userId: user.id,
-          email: user.email ?? "owner@example.com",
-          name:
-            user.user_metadata?.full_name ??
-            user.user_metadata?.name ??
-            user.email?.split("@")[0] ??
-            "Workspace owner",
-          avatarUrl: user.user_metadata?.avatar_url,
-        };
+        return workspaceSessionFromSupabaseUser(user);
       }
 
       const cookieStore = await cookies();
