@@ -3,17 +3,13 @@
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 
-import { resolveSupabaseSessionUser, workspaceSessionFromSupabaseUser } from "@/lib/auth/session";
 import { getWorkspaceAppContext } from "@/lib/product/context";
-import { redirectOnRecoverableProductError } from "@/lib/product/workspace-load-errors";
-import { getProductRepository } from "@/lib/product/repository";
 import type { LeadStage } from "@/lib/types/product";
-import { hasSupabaseEnv } from "@/lib/supabase/config";
-import { createSupabaseServerClient } from "@/lib/supabase/server";
 
 /**
- * Dashboard scan: Server Action reads `cookies()` in the same request context as `/app` RSC,
- * so Supabase sees the same merged cookies as RSC (Cookie header + `cookies()`).
+ * Dashboard scan: same session resolution as `/app` RSC (`getWorkspaceAppContext`), including
+ * demo mode when Supabase env is set but there is no JWT — avoids redirecting to login while
+ * the rest of the workspace still loads.
  */
 export const submitWorkspaceScanFromDashboardAction = async (formData: FormData) => {
   const rawUrl = String(formData.get("url") ?? "").trim();
@@ -22,41 +18,8 @@ export const submitWorkspaceScanFromDashboardAction = async (formData: FormData)
     redirect("/app?error=missing-url");
   }
 
-  if (!hasSupabaseEnv()) {
-    try {
-      const { repository, session, workspace } = await getWorkspaceAppContext();
-      const lead = await repository.createLeadFromUrl(workspace.id, rawUrl, session);
-      revalidatePath("/app");
-      revalidatePath("/app/leads");
-      redirect(`/app/leads/${lead.id}`);
-    } catch (error) {
-      if (error instanceof Error && error.message === "INSUFFICIENT_TOKENS") {
-        redirect("/app?error=insufficient-tokens");
-      }
-      throw error;
-    }
-  }
-
-  const supabase = await createSupabaseServerClient();
-  const user = await resolveSupabaseSessionUser(supabase);
-
-  if (!user) {
-    console.error("[workspace-scan] No Supabase user after resolveSupabaseSessionUser");
-    redirect("/app/login?error=session-required&next=%2Fapp");
-  }
-
-  const session = workspaceSessionFromSupabaseUser(user);
-  const repository = getProductRepository(session);
-
-  let workspace;
   try {
-    workspace = await repository.ensureWorkspace(session);
-  } catch (err) {
-    redirectOnRecoverableProductError(err);
-    throw err;
-  }
-
-  try {
+    const { repository, session, workspace } = await getWorkspaceAppContext();
     const lead = await repository.createLeadFromUrl(workspace.id, rawUrl, session);
     revalidatePath("/app");
     revalidatePath("/app/leads");
