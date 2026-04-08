@@ -13,6 +13,7 @@ import {
   uploadScreenshot,
   type ScreenshotImageFormat,
 } from "@/lib/supabase/storage";
+import { getBrowserlessApiKey } from "@/lib/utils/browserless-env";
 import { PREVIEW_CAPTURE_VERSION } from "@/lib/utils/preview-capture-version";
 
 const CACHE_DIR = path.join("/tmp", "craydl-site-previews");
@@ -470,7 +471,7 @@ let browserlessVerified: boolean | null = null;
 async function verifyBrowserlessOnce(): Promise<boolean> {
   if (browserlessVerified !== null) return browserlessVerified;
 
-  const apiKey = process.env.BROWSERLESS_API?.trim();
+  const apiKey = getBrowserlessApiKey();
   if (!apiKey) {
     browserlessVerified = false;
     return false;
@@ -501,7 +502,9 @@ async function verifyBrowserlessOnce(): Promise<boolean> {
     const detail = await res.text().catch(() => "");
 
     if (res.status === 401) {
-      console.error("[site-preview] BROWSERLESS_API key is invalid or expired. Screenshots will fall back to PageSpeed.");
+      console.error(
+        "[site-preview] Browserless API key is invalid or expired (BROWSERLESS_API / BROWSERLESS_TOKEN). Falling back to PageSpeed.",
+      );
     } else if (res.status === 404) {
       console.error(`[site-preview] Browserless endpoint returned 404. Try setting BROWSERLESS_ENDPOINT to https://production-sfo.browserless.io`);
     } else if (res.status === 400) {
@@ -525,7 +528,7 @@ async function verifyBrowserlessOnce(): Promise<boolean> {
  * offloads headless Chrome to a reliable external service, eliminating the
  * binary-size issues that plague @sparticuz/chromium on Vercel/Lambda.
  *
- * Requires the BROWSERLESS_API environment variable (API token).
+ * Requires BROWSERLESS_API, BROWSERLESS_TOKEN, or BROWSERLESS_KEY (API token).
  * The endpoint base can be overridden with BROWSERLESS_ENDPOINT; defaults
  * to the standard Browserless cloud cluster.
  */
@@ -533,8 +536,8 @@ async function captureViaBrowserless(
   url: string,
   device: PreviewDevice,
 ): Promise<Buffer> {
-  const apiKey = process.env.BROWSERLESS_API?.trim();
-  if (!apiKey) throw new Error("BROWSERLESS_API not configured");
+  const apiKey = getBrowserlessApiKey();
+  if (!apiKey) throw new Error("Browserless API key not configured (BROWSERLESS_API or BROWSERLESS_TOKEN)");
 
   const healthy = await verifyBrowserlessOnce();
   if (!healthy) throw new Error("Browserless health check failed — skipping");
@@ -836,7 +839,7 @@ async function buildPreviewImage(
   }
 
   // L3a: Browserless API — primary live capture in serverless.
-  if (process.env.BROWSERLESS_API?.trim()) {
+  if (getBrowserlessApiKey()) {
     const t = Date.now();
     try {
       const rawBuffer = await withTimeout(
