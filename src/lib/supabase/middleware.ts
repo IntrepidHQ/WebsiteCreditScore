@@ -6,6 +6,9 @@ import { getSupabaseEnv, hasSupabaseEnv } from "@/lib/supabase/config";
 /**
  * Refreshes the Supabase session and forwards updated auth cookies on the response.
  * See https://supabase.com/docs/guides/auth/server-side/nextjs
+ *
+ * Marketing pages (`/`) and workspace (`/app/*`) share the same Supabase cookies (path `/`).
+ * Workspace access is enforced in RSC via `requireWorkspaceSession()`, not by splitting cookies.
  */
 export const updateSupabaseSession = async (request: NextRequest) => {
   if (!hasSupabaseEnv()) {
