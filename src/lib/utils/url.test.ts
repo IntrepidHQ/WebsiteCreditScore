@@ -13,6 +13,15 @@ describe("url utilities", () => {
     expect(normalizeUrl("Example.com/")).toBe("https://example.com");
   });
 
+  it("can preserve www for preview capture (hosted sites often only serve on www)", () => {
+    expect(normalizeUrl("https://WWW.SaundersWoodworkLLC.com", { stripWww: false })).toBe(
+      "https://www.saunderswoodworkllc.com",
+    );
+    expect(normalizeUrl("https://www.example.com/about/", { stripWww: false })).toBe(
+      "https://www.example.com/about",
+    );
+  });
+
   it("formats the domain into a presentation title", () => {
     expect(formatDomainTitle("https://northshore-roofing.com")).toBe(
       "Northshore Roofing",

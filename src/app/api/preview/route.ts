@@ -24,7 +24,7 @@ export async function GET(request: Request) {
   }
 
   try {
-    const normalizedUrl = normalizeUrl(rawUrl);
+    const normalizedUrl = normalizeUrl(rawUrl, { stripWww: false });
     const observation = await inspectWebsite(normalizedUrl).catch(() => null);
     const captureUrl = observation?.finalUrl ?? normalizedUrl;
     const preview = await getSitePreviewImage(
