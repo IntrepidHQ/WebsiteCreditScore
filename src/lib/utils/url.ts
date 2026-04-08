@@ -1,4 +1,5 @@
 import type { PreviewDevice, ReportProfileType, SiteNiche, SiteObservation } from "@/lib/types/audit";
+import { PREVIEW_CAPTURE_VERSION } from "@/lib/utils/preview-capture-version";
 
 const blockedHostnamePatterns = [
   /^localhost$/i,
@@ -184,5 +185,5 @@ export function createWebsiteScreenshotUrl(
   input: string,
   device: PreviewDevice = "desktop",
 ) {
-  return `/api/preview?url=${encodeURIComponent(normalizeUrl(input))}&device=${device}&v=static-shot-4`;
+  return `/api/preview?url=${encodeURIComponent(normalizeUrl(input))}&device=${device}&v=${PREVIEW_CAPTURE_VERSION}`;
 }

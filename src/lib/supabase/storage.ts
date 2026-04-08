@@ -25,35 +25,6 @@ export function getScreenshotPublicUrl(
   return `${url}/storage/v1/object/public/${BUCKET}/${objectPath(cacheKey, format)}`;
 }
 
-async function headOk(url: string | null): Promise<boolean> {
-  if (!url) {
-    return false;
-  }
-
-  try {
-    const response = await fetch(url, {
-      method: "HEAD",
-      signal: AbortSignal.timeout(3000),
-    });
-
-    return response.ok;
-  } catch {
-    return false;
-  }
-}
-
-/**
- * Checks whether a screenshot exists in Supabase Storage via a lightweight HEAD request.
- * Prefers WebP (current default upload) and falls back to legacy PNG objects.
- */
-export async function screenshotExistsInStorage(cacheKey: string): Promise<boolean> {
-  if (await headOk(getScreenshotPublicUrl(cacheKey, "webp"))) {
-    return true;
-  }
-
-  return headOk(getScreenshotPublicUrl(cacheKey, "png"));
-}
-
 /**
  * Downloads a screenshot from Supabase Storage.
  * Returns null when storage is unconfigured, the file does not exist, or the download fails.

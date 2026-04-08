@@ -10,10 +10,10 @@ import type { PreviewDevice } from "@/lib/types/audit";
 import {
   downloadScreenshot,
   getScreenshotPublicUrl,
-  screenshotExistsInStorage,
   uploadScreenshot,
   type ScreenshotImageFormat,
 } from "@/lib/supabase/storage";
+import { PREVIEW_CAPTURE_VERSION } from "@/lib/utils/preview-capture-version";
 
 const CACHE_DIR = path.join("/tmp", "craydl-site-previews");
 const CACHE_TTL_MS = 1000 * 60 * 60 * 12;
@@ -23,12 +23,41 @@ const CAPTURE_BUDGET_MS = 18000;
 const GOTO_TIMEOUT_MS = 12000;
 const NETWORK_IDLE_TIMEOUT_MS = 1800;
 const REMOTE_IMAGE_TIMEOUT_MS = 7000;
-const CAPTURE_VERSION = "static-shot-4";
+const CAPTURE_VERSION = PREVIEW_CAPTURE_VERSION;
 const COMPRESSION_MAX_WIDTH = 1440;
 const COMPRESSION_MAX_HEIGHT = 2400;
 const COMPRESSION_QUALITY = 82;
 
 const previewCache = new Map<string, Promise<PreviewImageResult>>();
+
+function bufferLooksLikeRasterImage(buffer: Buffer) {
+  if (buffer.length < 12) {
+    return false;
+  }
+
+  if (buffer[0] === 0x89 && buffer[1] === 0x50 && buffer[2] === 0x4e && buffer[3] === 0x47) {
+    return true;
+  }
+
+  if (buffer[0] === 0xff && buffer[1] === 0xd8 && buffer[2] === 0xff) {
+    return true;
+  }
+
+  if (
+    buffer[0] === 0x52 &&
+    buffer[1] === 0x49 &&
+    buffer[2] === 0x46 &&
+    buffer[3] === 0x46 &&
+    buffer[8] === 0x57 &&
+    buffer[9] === 0x45 &&
+    buffer[10] === 0x42 &&
+    buffer[11] === 0x50
+  ) {
+    return true;
+  }
+
+  return false;
+}
 
 function detectBufferImageFormat(buffer: Buffer): ScreenshotImageFormat {
   if (
@@ -184,6 +213,12 @@ async function readFreshScreenshotFromCache(cacheKey: string) {
     }
 
     const buffer = await fs.readFile(filePath);
+
+    if (!bufferLooksLikeRasterImage(buffer)) {
+      await fs.unlink(filePath).catch(() => undefined);
+      continue;
+    }
+
     const format = detectBufferImageFormat(buffer);
     const contentType = format === "webp" ? "image/webp" : "image/png";
 
@@ -348,7 +383,10 @@ async function captureScreenshot(url: string, device: PreviewDevice) {
         );
       }, SCROLL_STEP_DELAY_MS)
       .catch(() => undefined);
-    await page.waitForTimeout(SCREENSHOT_WAIT_MS);
+    await page.evaluate(
+      (ms) => new Promise<void>((resolve) => window.setTimeout(resolve, ms)),
+      SCREENSHOT_WAIT_MS,
+    );
 
     const buffer = await page.screenshot({
       type: "png",
@@ -501,25 +539,22 @@ async function buildPreviewImage(
   const canUseRemote = getScreenshotPublicUrl(cacheKey) !== null;
 
   if (canUseRemote) {
-    const exists = await screenshotExistsInStorage(cacheKey);
+    // Skip HEAD checks: many public CDNs return 403/405 for HEAD while GET works.
+    const remoteBuffer = await downloadScreenshot(cacheKey);
 
-    if (exists) {
-      const buffer = await downloadScreenshot(cacheKey);
+    if (remoteBuffer && bufferLooksLikeRasterImage(remoteBuffer)) {
+      const format = detectBufferImageFormat(remoteBuffer);
+      const contentType = format === "webp" ? "image/webp" : "image/png";
 
-      if (buffer) {
-        const format = detectBufferImageFormat(buffer);
-        const contentType = format === "webp" ? "image/webp" : "image/png";
+      writeScreenshotToCache(cacheKey, remoteBuffer, contentType).catch(() => {});
 
-        writeScreenshotToCache(cacheKey, buffer, contentType).catch(() => {});
-
-        return {
-          buffer,
-          contentType,
-          source: "storage",
-          reason: "storage-hit",
-          storageUrl: getScreenshotPublicUrl(cacheKey, format) ?? undefined,
-        };
-      }
+      return {
+        buffer: remoteBuffer,
+        contentType,
+        source: "storage",
+        reason: "storage-hit",
+        storageUrl: getScreenshotPublicUrl(cacheKey, format) ?? undefined,
+      };
     }
   }
 
@@ -615,7 +650,7 @@ export const getSitePreviewImage = async (
   captureUrl?: string,
 ) => {
   const navigateTo = captureUrl ?? cacheIdentityUrl;
-  const dedupeKey = `${cacheIdentityUrl}::${device}::${fallbackImageUrl ?? ""}`;
+  const dedupeKey = `${cacheIdentityUrl}::${device}::${fallbackImageUrl ?? ""}::${CAPTURE_VERSION}`;
   const existing = previewCache.get(dedupeKey);
 
   if (existing) {

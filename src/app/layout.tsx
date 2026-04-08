@@ -7,8 +7,11 @@ import { RouteScrollReset } from "@/components/common/route-scroll-reset";
 import { SiteFooter } from "@/components/common/site-footer";
 import { SiteHeader } from "@/components/common/site-header";
 import { ThemeStyleProvider } from "@/components/common/theme-style-provider";
+import { getOptionalWorkspaceSession } from "@/lib/auth/session";
 
 import "./globals.css";
+
+export const dynamic = "force-dynamic";
 
 const manrope = Manrope({
   variable: "--font-manrope",
@@ -32,11 +35,15 @@ export const metadata: Metadata = {
     "WebsiteCreditScore.com turns prospect sites into sharper audits, clearer redesign direction, and measurable design benchmarks.",
 };
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  const session = await getOptionalWorkspaceSession();
+  const isAuthenticated = Boolean(session);
+  const accountHint = session?.name?.trim() || session?.email?.split("@")[0] || null;
+
   return (
     <html data-scroll-behavior="smooth" lang="en" suppressHydrationWarning>
       <body
@@ -46,13 +53,13 @@ export default function RootLayout({
           <div className="relative isolate min-h-screen overflow-x-hidden">
             <div className="relative z-10 flex min-h-screen flex-col">
               <Suspense fallback={null}>
-                <SiteHeader />
+                <SiteHeader accountHint={accountHint} isAuthenticated={isAuthenticated} />
               </Suspense>
               <Suspense fallback={null}>
                 <RouteScrollReset />
               </Suspense>
               {children}
-              <SiteFooter />
+              <SiteFooter isAuthenticated={isAuthenticated} />
             </div>
             <ContactModal />
           </div>

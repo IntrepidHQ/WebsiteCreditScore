@@ -5,6 +5,7 @@ import {
   buildObservedCategoryScores,
 } from "@/lib/mock/report-enhancements";
 import type { SiteObservation } from "@/lib/types/audit";
+import { createWebsiteScreenshotUrl } from "@/lib/utils/url";
 
 const strongObservation: SiteObservation = {
   fetchedAt: "2026-03-16T10:00:00.000Z",
@@ -59,7 +60,7 @@ const strongObservation: SiteObservation = {
   notableDetails: ["Phone listed: (800) 692-7753"],
   templateSignals: [],
   motionSignals: ["micro-feedback", "scroll-story", "reduced-motion"],
-  screenshotUrl: "/api/preview?url=https%3A%2F%2Fwww.apple.com&device=desktop&v=static-shot-2",
+  screenshotUrl: createWebsiteScreenshotUrl("https://www.apple.com", "desktop"),
   ogImage: "https://www.apple.com/og.png",
   formCount: 1,
   internalLinkCount: 24,

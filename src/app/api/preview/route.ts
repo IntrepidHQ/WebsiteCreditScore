@@ -33,15 +33,8 @@ export async function GET(request: Request) {
       captureUrl,
     );
 
-    if (preview.source === "storage" && preview.storageUrl) {
-      return NextResponse.redirect(preview.storageUrl, {
-        status: 302,
-        headers: {
-          "Cache-Control": "public, max-age=43200, s-maxage=43200, stale-while-revalidate=86400",
-        },
-      });
-    }
-
+    // Always stream bytes through this route. Redirecting to Supabase often breaks
+    // <img> loads (referrer/CORB/CDN quirks) and masks bad objects as “broken” images.
     return new NextResponse(new Uint8Array(preview.buffer), {
       headers: {
         "Content-Type": preview.contentType,
