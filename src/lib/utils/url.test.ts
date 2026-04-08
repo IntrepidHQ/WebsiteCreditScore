@@ -5,6 +5,7 @@ import {
   formatDomainTitle,
   inferProfileType,
   normalizeUrl,
+  pickReportTitleFromPageTitle,
   slugFromUrl,
 } from "@/lib/utils/url";
 
@@ -25,6 +26,24 @@ describe("url utilities", () => {
   it("formats the domain into a presentation title", () => {
     expect(formatDomainTitle("https://northshore-roofing.com")).toBe(
       "Northshore Roofing",
+    );
+  });
+
+  it("formats hyphenated brands from the hostname (e.g. T-Mobile)", () => {
+    expect(formatDomainTitle("https://t-mobile.com")).toBe("T Mobile");
+  });
+
+  it("does not split brand hyphens in page titles (T-Mobile pipe pattern)", () => {
+    const url = "https://t-mobile.com";
+    expect(pickReportTitleFromPageTitle("T-Mobile | Switch to T-Mobile", url)).toBe("T-Mobile");
+    expect(pickReportTitleFromPageTitle("T | Switch to T-Mobile in 15 minutes", url)).toBe(
+      "Switch to T-Mobile in 15 minutes",
+    );
+  });
+
+  it("uses the full title when there is no pipe separator", () => {
+    expect(pickReportTitleFromPageTitle("Acme Corp Official Store", "https://acme.com")).toBe(
+      "Acme Corp Official Store",
     );
   });
 

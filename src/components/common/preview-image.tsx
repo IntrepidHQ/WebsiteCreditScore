@@ -18,6 +18,7 @@ export function PreviewImage({
   loadingLabel = "Capturing preview",
   fallbackLabel = "Using site image",
   errorLabel = "Preview unavailable",
+  priority = false,
   children,
 }: {
   alt: string;
@@ -29,6 +30,8 @@ export function PreviewImage({
   loadingLabel?: string;
   fallbackLabel?: string;
   errorLabel?: string;
+  /** When true, load immediately (e.g. audit hero) for faster visible preview. */
+  priority?: boolean;
   children?: ReactNode;
 }) {
   return (
@@ -41,6 +44,7 @@ export function PreviewImage({
       imageClassName={imageClassName}
       key={`${src}::${fallbackSrc ?? ""}`}
       loadingLabel={loadingLabel}
+      priority={priority}
       scrollable={scrollable}
       src={src}
     >
@@ -59,6 +63,7 @@ function PreviewImageInner({
   loadingLabel = "Capturing preview",
   fallbackLabel = "Using site image",
   errorLabel = "Preview unavailable",
+  priority = false,
   children,
 }: {
   alt: string;
@@ -70,6 +75,7 @@ function PreviewImageInner({
   loadingLabel?: string;
   fallbackLabel?: string;
   errorLabel?: string;
+  priority?: boolean;
   children?: ReactNode;
 }) {
   const [currentSrc, setCurrentSrc] = useState(src);
@@ -98,7 +104,8 @@ function PreviewImageInner({
             imageClassName,
           )}
           decoding="async"
-          loading={currentSrc.startsWith("/api/preview") ? "eager" : "lazy"}
+          fetchPriority={priority ? "high" : "low"}
+          loading={priority || currentSrc.startsWith("/api/preview") ? "eager" : "lazy"}
           onError={() => {
             if (fallbackSrc && currentSrc !== fallbackSrc) {
               setCurrentSrc(fallbackSrc);

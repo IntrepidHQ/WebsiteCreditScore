@@ -19,10 +19,10 @@ import { aggregateOverallScore } from "@/lib/utils/scores";
 import { createFallbackObservation, inspectWebsite } from "@/lib/utils/site-observation";
 import {
   createWebsiteScreenshotUrl,
-  formatDomainTitle,
   inferProfileType,
   inferSiteNiche,
   normalizeUrl,
+  pickReportTitleFromPageTitle,
   slugFromUrl,
 } from "@/lib/utils/url";
 
@@ -48,12 +48,7 @@ function deriveReportTitle(
     return sample.title;
   }
 
-  const pageTitle = observation.pageTitle
-    .split(/[\|\u2013-]/)
-    .map((segment) => segment.trim())
-    .find(Boolean);
-
-  return pageTitle || formatDomainTitle(normalizedUrl);
+  return pickReportTitleFromPageTitle(observation.pageTitle ?? "", normalizedUrl);
 }
 
 /**

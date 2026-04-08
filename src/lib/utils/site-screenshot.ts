@@ -17,12 +17,12 @@ import { PREVIEW_CAPTURE_VERSION } from "@/lib/utils/preview-capture-version";
 
 const CACHE_DIR = path.join("/tmp", "craydl-site-previews");
 const CACHE_TTL_MS = 1000 * 60 * 60 * 12;
-const SCREENSHOT_WAIT_MS = 2400;
+const SCREENSHOT_WAIT_MS = 3200;
 const SCROLL_STEP_DELAY_MS = 160;
 const CAPTURE_BUDGET_MS = 22000;
 const GOTO_TIMEOUT_MS = 14000;
 const LOAD_STATE_TIMEOUT_MS = 11000;
-const NETWORK_IDLE_TIMEOUT_MS = 4500;
+const NETWORK_IDLE_TIMEOUT_MS = 6500;
 const REMOTE_IMAGE_TIMEOUT_MS = 7000;
 const CAPTURE_VERSION = PREVIEW_CAPTURE_VERSION;
 const COMPRESSION_MAX_WIDTH = 1440;
@@ -766,19 +766,7 @@ async function buildPreviewImage(
 
     return await compressAndCache(rawBuffer, "captured-live");
   } catch {
-    // L4: External screenshot API fallback (reliable in serverless)
-    try {
-      const rawBuffer = await withTimeout(
-        captureViaExternalApi(captureUrl, device),
-        16000,
-        "External screenshot API timed out.",
-      );
-
-      return await compressAndCache(rawBuffer, "external-api-fallback");
-    } catch {
-      // Continue to OG image / placeholder fallbacks
-    }
-
+    // L4: OG / social image — fast when live capture fails (often better than a long PageSpeed run)
     if (fallbackImageUrl) {
       try {
         const remoteImage = await withTimeout(
@@ -786,7 +774,6 @@ async function buildPreviewImage(
           REMOTE_IMAGE_TIMEOUT_MS,
           "Remote image fallback timed out.",
         );
-        // Compress remote images too
         const compressed = await compressScreenshot(remoteImage.buffer, device);
 
         return {
@@ -796,16 +783,28 @@ async function buildPreviewImage(
           reason: "fallback-og-image",
         };
       } catch {
-        return {
-          ...createPlaceholderImage(cacheIdentityUrl, device),
-          reason: "fallback-placeholder-after-og-failed",
-        };
+        /* continue to PageSpeed */
       }
+    }
+
+    // L5: External screenshot API (serverless-friendly when Playwright and OG both fail)
+    try {
+      const rawBuffer = await withTimeout(
+        captureViaExternalApi(captureUrl, device),
+        16000,
+        "External screenshot API timed out.",
+      );
+
+      return await compressAndCache(rawBuffer, "external-api-fallback");
+    } catch {
+      /* placeholder */
     }
 
     return {
       ...createPlaceholderImage(cacheIdentityUrl, device),
-      reason: "fallback-placeholder-no-og-image",
+      reason: fallbackImageUrl
+        ? "fallback-placeholder-after-capture-og-pagespeed"
+        : "fallback-placeholder-no-og-image",
     };
   }
 }

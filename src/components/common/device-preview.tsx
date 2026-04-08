@@ -35,6 +35,7 @@ export function DevicePreview({
   device,
   highlight = false,
   treatment = "current",
+  imagePriority = false,
 }: {
   image: string;
   fallbackImage?: string;
@@ -43,6 +44,7 @@ export function DevicePreview({
   device: "desktop" | "mobile";
   highlight?: boolean;
   treatment?: PreviewTreatment;
+  imagePriority?: boolean;
 }) {
   return (
     <div
@@ -73,6 +75,7 @@ export function DevicePreview({
           treatment === "future" && "scale-[1.02] saturate-[1.06]",
         )}
         loadingLabel={device === "mobile" ? "Capturing mobile screenshot" : "Capturing desktop screenshot"}
+        priority={imagePriority}
         scrollable
         src={image}
       >

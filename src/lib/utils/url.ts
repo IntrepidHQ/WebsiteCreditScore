@@ -91,6 +91,51 @@ export function formatDomainTitle(input: string) {
     .join(" ");
 }
 
+/**
+ * Split `<title>` on common site-wide separators only. Do not split on ASCII hyphens inside
+ * brand names (e.g. "T-Mobile | …" must not become "T" + rest).
+ */
+export function splitPageTitleIntoCandidates(pageTitle: string): string[] {
+  const trimmed = pageTitle.trim();
+  if (!trimmed) {
+    return [];
+  }
+
+  return trimmed
+    .split(/\s*[|\u2013\u2014]\s+/)
+    .map((segment) => segment.trim())
+    .filter(Boolean);
+}
+
+/**
+ * Choose a report title from the live `<title>` or fall back to a hostname-based label.
+ */
+export function pickReportTitleFromPageTitle(pageTitle: string, normalizedUrl: string): string {
+  const trimmed = pageTitle.trim();
+  if (!trimmed) {
+    return formatDomainTitle(normalizedUrl);
+  }
+
+  const parts = splitPageTitleIntoCandidates(trimmed);
+  const candidates = parts.length > 0 ? parts : [trimmed];
+
+  const first = candidates[0] ?? "";
+  if (first.length >= 3 || /[-_]/.test(first)) {
+    return first;
+  }
+
+  const longer = candidates.find((p) => p.length > first.length && p.length >= 3);
+  if (longer) {
+    return longer;
+  }
+
+  if (first.length >= 2) {
+    return first;
+  }
+
+  return formatDomainTitle(normalizedUrl);
+}
+
 export function inferProfileType(input: string): ReportProfileType {
   const hostname = new URL(input).hostname.toLowerCase();
   const root = hostname.replace(/^www\./, "").split(".")[0];

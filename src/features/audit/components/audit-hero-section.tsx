@@ -243,6 +243,7 @@ export function AuditHeroSection({ report }: { report: AuditReport }) {
               fallbackImage={report.previewSet.fallbackCurrent[previewDevice]}
               highlight
               image={report.previewSet.current[previewDevice]}
+              imagePriority
               label={
                 previewDevice === "mobile"
                   ? report.previewSet.mobileLabel
