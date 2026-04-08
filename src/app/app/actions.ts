@@ -4,6 +4,7 @@ import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 
 import { getWorkspaceAppContext } from "@/lib/product/context";
+import type { AgencyBranding, ThemeTokens } from "@/lib/types/audit";
 import type { LeadStage } from "@/lib/types/product";
 
 /**
@@ -102,4 +103,22 @@ export async function saveTemplateAction(formData: FormData) {
   revalidatePath("/app");
   revalidatePath("/app/templates");
   redirect("/app/templates?saved=1");
+}
+
+/**
+ * Persists the user's theme tokens and agency branding back to the workspace
+ * record so the chosen theme is restored when the user signs in on a new
+ * device or browser. Non-fatal: silently swallowed when called from an
+ * unauthenticated context (e.g. the public /settings page).
+ */
+export async function saveWorkspaceThemeAction(
+  theme: ThemeTokens,
+  branding: AgencyBranding,
+): Promise<void> {
+  try {
+    const { repository, session, workspace } = await getWorkspaceAppContext();
+    await repository.saveTheme(workspace.id, session, theme, branding);
+  } catch {
+    // Non-fatal — silently ignore if session is missing or a DB error occurs.
+  }
 }
