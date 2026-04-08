@@ -21,7 +21,6 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { LeadStageBadge } from "@/features/app/components/lead-stage-badge";
 import { CreateLeadScanForm } from "@/features/app/components/create-lead-scan-form";
-import { LoginShowcaseStrip } from "@/features/auth/components/login-showcase-strip";
 import { ScanHistorySection } from "@/features/app/components/scan-history-section";
 import { WorkspaceTokenLinkButton } from "@/features/app/components/workspace-token-link-button";
 import { getWorkspaceDashboardContext } from "@/lib/product/context";
@@ -236,7 +235,6 @@ export default async function AppDashboardPage({
                   <span className="whitespace-nowrap">www</span> and the bare domain, or an expired session).
                   Sign in again, then run your scan.
                 </p>
-                <LoginShowcaseStrip layout="horizontal" />
                 <Button asChild className="w-full sm:w-auto" size="sm" variant="secondary">
                   <Link href="/app/login?error=session-required&next=%2Fapp">Sign in</Link>
                 </Button>

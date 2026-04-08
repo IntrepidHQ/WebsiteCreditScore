@@ -12,7 +12,6 @@ import { getOptionalWorkspaceSession, sanitizeInternalNextPath } from "@/lib/aut
 import { hasSupabaseEnv } from "@/lib/supabase/config";
 
 import { AnimatedExampleScoreBadge } from "@/features/auth/components/animated-example-score-badge";
-import { LoginShowcaseStrip } from "@/features/auth/components/login-showcase-strip";
 
 import { BrandWordmarkLink } from "@/components/common/brand-wordmark-link";
 
@@ -89,7 +88,7 @@ export default async function AppLoginPage({
 
   return (
     <div className="flex min-h-screen">
-      {/* ── Left: Brand panel (theme-aligned; preview cards sit to the right of copy from lg up) ── */}
+      {/* ── Left: Brand panel ── */}
       <div className="relative hidden overflow-hidden md:flex md:flex-1 md:flex-col md:justify-between md:bg-background md:p-14 md:pr-10 lg:pr-14">
         <div
           aria-hidden="true"
@@ -104,35 +103,28 @@ export default async function AppLoginPage({
         <div className="relative flex min-h-0 flex-1 flex-col">
           <BrandWordmarkLink className="block" variant="on-dark" />
 
-          <div className="mt-10 flex min-h-0 flex-1 flex-col gap-10 lg:flex-row lg:items-start lg:gap-10 xl:gap-12">
-            <div className="min-w-0 max-w-xl lg:flex-1">
-              <h1 className="font-display text-[3.25rem] leading-[1.05] text-foreground">
-                Your website&apos;s<br />
-                <span className="gradient-type">credit score,</span>
-                <br />
-                starts here.
-              </h1>
+          <div className="mt-10 min-w-0 max-w-xl">
+            <h1 className="font-display text-[3.25rem] leading-[1.05] text-foreground">
+              Your website&apos;s<br />
+              <span className="gradient-type">credit score,</span>
+              <br />
+              starts here.
+            </h1>
 
-              <p className="mt-5 max-w-sm text-base leading-7 text-muted">
-                Audit any site in seconds. See exactly what&apos;s holding back the score — and what to fix first.
-              </p>
+            <p className="mt-5 max-w-sm text-base leading-7 text-muted">
+              Audit any site in seconds. See exactly what&apos;s holding back the score — and what to fix first.
+            </p>
 
-              <ul className="mt-8 space-y-3">
-                {features.map((f) => (
-                  <li className="flex items-center gap-3" key={f}>
-                    <span className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-accent/15">
-                      <Check className="size-3 text-accent" strokeWidth={2.5} />
-                    </span>
-                    <span className="text-sm text-muted">{f}</span>
-                  </li>
-                ))}
-              </ul>
-            </div>
-
-            <LoginShowcaseStrip
-              className="w-full shrink-0 lg:max-w-[15.5rem] xl:max-w-[17rem]"
-              layout="stacked"
-            />
+            <ul className="mt-8 space-y-3">
+              {features.map((f) => (
+                <li className="flex items-center gap-3" key={f}>
+                  <span className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-accent/15">
+                    <Check className="size-3 text-accent" strokeWidth={2.5} />
+                  </span>
+                  <span className="text-sm text-muted">{f}</span>
+                </li>
+              ))}
+            </ul>
           </div>
         </div>
 
@@ -149,7 +141,7 @@ export default async function AppLoginPage({
       {/* ── Right: Form panel ── */}
       <div className="flex w-full flex-col justify-center px-6 py-12 md:w-[min(100%,460px)] md:shrink-0 md:border-l md:border-border/60 md:px-12 lg:w-[460px]">
         <LoginSupabaseEnvBanner />
-        <BrandWordmarkLink className="mb-8 hidden md:block" variant="on-light" />
+        <BrandWordmarkLink className="mb-8 hidden md:block" variant="on-dark" />
         {/* Mobile / small tablet: same visual language as the left panel (hidden from md where split layout shows) */}
         <div className="mb-8 flex flex-col items-center md:hidden">
           <div
@@ -166,8 +158,7 @@ export default async function AppLoginPage({
             Example audit · acme-example.com
           </p>
         </div>
-        <LoginShowcaseStrip className="mb-8 w-full max-w-xl md:hidden" layout="horizontal" />
-        <BrandWordmarkLink className="mb-10 md:hidden" variant="on-light" />
+        <BrandWordmarkLink className="mb-10 md:hidden" variant="on-dark" />
 
         {sentConfirm ? (
           <div className="space-y-4">
