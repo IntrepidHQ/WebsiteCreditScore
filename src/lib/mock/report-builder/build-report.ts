@@ -79,6 +79,10 @@ function applyAIAnalysis(report: AuditReport, ai: AISiteAnalysis): AuditReport {
       observedPositioning: ai.businessDescription,
       observedAudienceInference: ai.audienceProfile,
     },
+    provenance: {
+      ...report.provenance,
+      narrativeSource: "claude",
+    },
   };
 }
 
@@ -287,6 +291,7 @@ function buildAuditReport(
       mode: provenanceMode,
       confidenceLabel,
       note: provenanceNote,
+      narrativeSource: "heuristic",
     },
   };
 

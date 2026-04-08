@@ -172,6 +172,11 @@ export function AuditHeroSection({ report }: { report: AuditReport }) {
               <p className="mt-2 max-w-[34rem] text-sm leading-7 text-muted">
                 {report.provenance.note}
               </p>
+              {report.provenance.narrativeSource === "claude" ? (
+                <p className="mt-2 max-w-[34rem] text-xs uppercase tracking-[0.12em] text-accent">
+                  Executive summary and outreach drafted with Claude from live page signals.
+                </p>
+              ) : null}
 
               <Accordion collapsible type="single" className="mt-4">
                 <AccordionItem

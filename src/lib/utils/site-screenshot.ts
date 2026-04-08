@@ -440,16 +440,12 @@ async function captureViaBrowserless(
 
   const apiUrl = `${baseEndpoint}/screenshot?token=${encodeURIComponent(apiKey)}`;
 
-  const body = {
+  const basePayload = {
     url,
     options: {
       fullPage: true,
       type: "png",
       animations: "disabled",
-    },
-    gotoOptions: {
-      waitUntil: "networkidle0",
-      timeout: 25000,
     },
     viewport: isDesktop
       ? { width: 1440, height: 900, deviceScaleFactor: 1 }
@@ -457,7 +453,6 @@ async function captureViaBrowserless(
     userAgent: isDesktop
       ? "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/134.0.0.0 Safari/537.36"
       : "Mozilla/5.0 (iPhone; CPU iPhone OS 17_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.0 Mobile/15E148 Safari/604.1",
-    // Inject CSS to freeze animations and hide scrollbars for a clean screenshot
     addStyleTag: [
       {
         content: `
@@ -473,19 +468,52 @@ async function captureViaBrowserless(
     ],
   };
 
-  const response = await fetch(apiUrl, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(body),
-    signal: AbortSignal.timeout(35000),
-  });
+  // `networkidle0` often never resolves on SPAs and analytics-heavy sites.
+  // Prefer load + post-navigation wait (Browserless `waitFor` ms), then fall back.
+  const attempts: Array<{
+    gotoOptions: { waitUntil: string; timeout: number };
+    waitFor?: number;
+  }> = [
+    { gotoOptions: { waitUntil: "load", timeout: 30_000 }, waitFor: 2500 },
+    { gotoOptions: { waitUntil: "domcontentloaded", timeout: 28_000 }, waitFor: 3800 },
+  ];
 
-  if (!response.ok) {
-    const detail = await response.text().catch(() => "");
-    throw new Error(`Browserless API returned ${response.status}: ${detail.slice(0, 200)}`);
+  let lastError: unknown;
+
+  for (const attempt of attempts) {
+    try {
+      const body = {
+        ...basePayload,
+        gotoOptions: attempt.gotoOptions,
+        ...(attempt.waitFor != null ? { waitFor: attempt.waitFor } : {}),
+      };
+
+      const response = await fetch(apiUrl, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(body),
+        signal: AbortSignal.timeout(32_000),
+      });
+
+      if (!response.ok) {
+        const detail = await response.text().catch(() => "");
+        throw new Error(`Browserless API returned ${response.status}: ${detail.slice(0, 200)}`);
+      }
+
+      const buffer = Buffer.from(await response.arrayBuffer());
+
+      if (!bufferLooksLikeRasterImage(buffer)) {
+        throw new Error("Browserless returned a non-image response body.");
+      }
+
+      return buffer;
+    } catch (err) {
+      lastError = err;
+      console.warn("[site-preview] Browserless capture attempt failed:", err);
+    }
   }
 
-  return Buffer.from(await response.arrayBuffer());
+  throw lastError instanceof Error ? lastError : new Error(String(lastError));
 }
 
 /**
@@ -682,7 +710,7 @@ async function buildPreviewImage(
     try {
       const rawBuffer = await withTimeout(
         captureViaBrowserless(captureUrl, device),
-        38000,
+        68_000,
         "Browserless capture timed out.",
       );
 

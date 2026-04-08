@@ -281,15 +281,47 @@ a {
     margin-top: 0.3in;
   }
 
+  /*
+   * Reset theme tokens to light “document” values so PDFs/readers are not
+   * light-on-white when the user’s screen theme is dark (Tailwind maps
+   * text-foreground to --theme-foreground).
+   */
+  :root {
+    --theme-background: #ffffff;
+    --theme-background-alt: #f8fafc;
+    --theme-panel: #ffffff;
+    --theme-elevated: #f1f5f9;
+    --theme-border: #cbd5e1;
+    --theme-foreground: #0f172a;
+    --theme-muted: #64748b;
+    --theme-accent: #f7b21b;
+    --theme-accent-soft: #fff7e6;
+    --theme-accent-foreground: #08111b;
+    --theme-panel-foreground: #0f172a;
+    --theme-elevated-foreground: #0f172a;
+    --theme-glow: #f7b21b;
+    --theme-success: #138a5f;
+    --theme-warning: #b66b00;
+    --theme-danger: #b83232;
+    --theme-shadow: 0 1px 3px rgba(15, 23, 42, 0.08);
+  }
+
   html,
   body {
     background: #ffffff !important;
+    background-image: none !important;
     font-size: 13px;
+    color: var(--theme-foreground);
   }
 
   body {
     -webkit-print-color-adjust: exact;
     print-color-adjust: exact;
+  }
+
+  ::selection {
+    background: color-mix(in srgb, var(--theme-accent) 28%, #e2e8f0);
+    color: var(--theme-foreground);
   }
 
   .print-avoid-break {

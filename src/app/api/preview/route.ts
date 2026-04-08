@@ -7,7 +7,8 @@ import { normalizeUrl } from "@/lib/utils/url";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
-export const maxDuration = 25;
+/** Browserless may run two navigation attempts; keep below host max (e.g. Vercel 60s). */
+export const maxDuration = 60;
 
 export async function GET(request: Request) {
   const { searchParams } = new URL(request.url);

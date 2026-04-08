@@ -539,6 +539,8 @@ export interface AuditReport {
     mode: ReportProvenance;
     confidenceLabel: "high" | "medium" | "low";
     note: string;
+    /** Executive summary and outreach copy from Claude when set. */
+    narrativeSource?: "claude" | "heuristic";
   };
 }
 
