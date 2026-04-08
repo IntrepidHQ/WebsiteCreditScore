@@ -906,12 +906,18 @@ function siteObservationFromFirecrawlOnly(
   const aboutSnippet = verifiedFacts.find((fact) => fact.type === "about")?.value ?? "";
   const headingCount = countMarkdownHeadings(fc.markdown);
   const strippedTextLength = text.replace(/\s+/g, " ").trim().length;
+  const markdownLinkCount = (fc.markdown.match(/\]\([^)]+\)/g) ?? []).length;
   const contentClassification = classifyContent(
     normalizedRequestUrl,
     fc.finalUrl,
     text,
     pageTitle,
     headingCount,
+    {
+      internalLinkCount: markdownLinkCount,
+      htmlLength: Math.max(fc.markdown.length, 1),
+      schemaKindCount: 0,
+    },
   );
   const trustSignals = deriveTrustSignals(text, paragraphs, [], verifiedFacts);
   const templateSignals = deriveTemplateSignals(text);
@@ -995,12 +1001,18 @@ function mergeFirecrawlIntoSiteObservation(
   const headingCount = Math.max(base.headingCount, countMarkdownHeadings(fc.markdown));
   const strippedTextLength = combinedText.replace(/\s+/g, " ").trim().length;
   const finalUrl = fc.finalUrl || base.finalUrl;
+  const markdownLinkCount = (fc.markdown.match(/\]\([^)]+\)/g) ?? []).length;
   const contentClassification = classifyContent(
     normalizedRequestUrl,
     finalUrl,
     combinedText,
     pageTitle,
     headingCount,
+    {
+      internalLinkCount: Math.max(base.internalLinkCount, markdownLinkCount),
+      htmlLength: Math.max(fc.markdown.length, (base.strippedTextLength ?? 0) * 2, 1),
+      schemaKindCount: base.hasSchema ? 1 : 0,
+    },
   );
   const paragraphs = uniqueTexts(
     [...fcParagraphs, base.aboutSnippet, base.metaDescription].filter(Boolean),
