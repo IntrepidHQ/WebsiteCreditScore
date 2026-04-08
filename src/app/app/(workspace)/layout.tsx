@@ -14,10 +14,14 @@ export default async function WorkspaceLayout({
   children: React.ReactNode;
 }) {
   let userId: string;
+  let savedTheme;
+  let savedBranding;
 
   try {
     const ctx = await getWorkspaceAppContext();
     userId = ctx.session.userId;
+    savedTheme = ctx.workspace.savedTheme;
+    savedBranding = ctx.workspace.branding;
   } catch (err) {
     const msg = err instanceof Error ? err.message : String(err);
     // Table doesn't exist yet (migration not run) or DB connectivity issue.
@@ -36,7 +40,11 @@ export default async function WorkspaceLayout({
 
   return (
     <>
-      <WorkspaceThemeScopeSync userId={userId} />
+      <WorkspaceThemeScopeSync
+        userId={userId}
+        savedBranding={savedBranding}
+        savedTheme={savedTheme}
+      />
       <AppShell>{children}</AppShell>
     </>
   );

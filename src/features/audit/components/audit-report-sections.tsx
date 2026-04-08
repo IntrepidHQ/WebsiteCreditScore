@@ -2,6 +2,7 @@ import { AuditHeroSection } from "@/features/audit/components/audit-hero-section
 import { BeforeAfterSection } from "@/features/audit/components/before-after-section";
 import { CompetitorResearchSection } from "@/features/audit/components/competitor-research-section";
 import { FindingsSection } from "@/features/audit/components/findings-section";
+import { MobileProposalSticky } from "@/features/audit/components/mobile-proposal-sticky";
 import { PricingConfigurator } from "@/features/pricing/components/pricing-configurator";
 import { ProposalActions } from "@/features/audit/components/proposal-actions";
 import { RebuildStrategySection } from "@/features/audit/components/rebuild-strategy-section";
@@ -23,7 +24,8 @@ export function AuditReportSections({
   isAuthenticated?: boolean;
 }) {
   return (
-    <>
+    // pb-24 on mobile prevents content from being hidden behind the sticky bar.
+    <div className="pb-24 sm:pb-0">
       <AuditHeroSection report={report} />
       <CompetitorResearchSection report={report} />
       {sectionOrder.map((section) => (
@@ -43,6 +45,7 @@ export function AuditReportSections({
           returnPath={`/audit/${report.id}?url=${encodeURIComponent(report.normalizedUrl)}`}
         />
       )}
-    </>
+      <MobileProposalSticky report={report} />
+    </div>
   );
 }

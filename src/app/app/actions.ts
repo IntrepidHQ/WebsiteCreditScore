@@ -3,17 +3,14 @@
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 
-import { resolveSupabaseSessionUser, workspaceSessionFromSupabaseUser } from "@/lib/auth/session";
 import { getWorkspaceAppContext } from "@/lib/product/context";
-import { redirectOnRecoverableProductError } from "@/lib/product/workspace-load-errors";
-import { getProductRepository } from "@/lib/product/repository";
+import type { AgencyBranding, ThemeTokens } from "@/lib/types/audit";
 import type { LeadStage } from "@/lib/types/product";
-import { hasSupabaseEnv } from "@/lib/supabase/config";
-import { createSupabaseServerClient } from "@/lib/supabase/server";
 
 /**
- * Dashboard scan: Server Action reads `cookies()` in the same request context as `/app` RSC,
- * so Supabase sees the same merged cookies as RSC (Cookie header + `cookies()`).
+ * Dashboard scan: same session resolution as `/app` RSC (`getWorkspaceAppContext`), including
+ * demo mode when Supabase env is set but there is no JWT — avoids redirecting to login while
+ * the rest of the workspace still loads.
  */
 export const submitWorkspaceScanFromDashboardAction = async (formData: FormData) => {
   const rawUrl = String(formData.get("url") ?? "").trim();
@@ -22,41 +19,8 @@ export const submitWorkspaceScanFromDashboardAction = async (formData: FormData)
     redirect("/app?error=missing-url");
   }
 
-  if (!hasSupabaseEnv()) {
-    try {
-      const { repository, session, workspace } = await getWorkspaceAppContext();
-      const lead = await repository.createLeadFromUrl(workspace.id, rawUrl, session);
-      revalidatePath("/app");
-      revalidatePath("/app/leads");
-      redirect(`/app/leads/${lead.id}`);
-    } catch (error) {
-      if (error instanceof Error && error.message === "INSUFFICIENT_TOKENS") {
-        redirect("/app?error=insufficient-tokens");
-      }
-      throw error;
-    }
-  }
-
-  const supabase = await createSupabaseServerClient();
-  const user = await resolveSupabaseSessionUser(supabase);
-
-  if (!user) {
-    console.error("[workspace-scan] No Supabase user after resolveSupabaseSessionUser");
-    redirect("/app/login?error=session-required&next=%2Fapp");
-  }
-
-  const session = workspaceSessionFromSupabaseUser(user);
-  const repository = getProductRepository(session);
-
-  let workspace;
   try {
-    workspace = await repository.ensureWorkspace(session);
-  } catch (err) {
-    redirectOnRecoverableProductError(err);
-    throw err;
-  }
-
-  try {
+    const { repository, session, workspace } = await getWorkspaceAppContext();
     const lead = await repository.createLeadFromUrl(workspace.id, rawUrl, session);
     revalidatePath("/app");
     revalidatePath("/app/leads");
@@ -139,4 +103,22 @@ export async function saveTemplateAction(formData: FormData) {
   revalidatePath("/app");
   revalidatePath("/app/templates");
   redirect("/app/templates?saved=1");
+}
+
+/**
+ * Persists the user's theme tokens and agency branding back to the workspace
+ * record so the chosen theme is restored when the user signs in on a new
+ * device or browser. Non-fatal: silently swallowed when called from an
+ * unauthenticated context (e.g. the public /settings page).
+ */
+export async function saveWorkspaceThemeAction(
+  theme: ThemeTokens,
+  branding: AgencyBranding,
+): Promise<void> {
+  try {
+    const { repository, session, workspace } = await getWorkspaceAppContext();
+    await repository.saveTheme(workspace.id, session, theme, branding);
+  } catch {
+    // Non-fatal — silently ignore if session is missing or a DB error occurs.
+  }
 }

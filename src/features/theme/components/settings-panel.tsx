@@ -1,7 +1,9 @@
 "use client";
 
-import { useId } from "react";
+import { useEffect, useId, useRef } from "react";
 import { Download, RefreshCcw, Shuffle, Sparkles } from "lucide-react";
+
+import { saveWorkspaceThemeAction } from "@/app/app/actions";
 
 import { SectionHeading } from "@/components/common/section-heading";
 import { Badge } from "@/components/ui/badge";
@@ -87,6 +89,20 @@ export function SettingsPanel() {
   const restoreDefaults = useThemeStore((state) => state.restoreDefaults);
   const exportThemeJson = useThemeStore((state) => state.exportThemeJson);
   const presets = getThemePresets();
+
+  // Debounced server-side theme persistence. Fires 1.2 s after the last change.
+  // Silently skipped when called outside an authenticated workspace context.
+  const saveTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  useEffect(() => {
+    if (saveTimerRef.current) clearTimeout(saveTimerRef.current);
+    saveTimerRef.current = setTimeout(() => {
+      void saveWorkspaceThemeAction(tokens, branding);
+    }, 1200);
+    return () => {
+      if (saveTimerRef.current) clearTimeout(saveTimerRef.current);
+    };
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [tokens, branding]);
 
   function downloadTheme() {
     const blob = new Blob([exportThemeJson()], { type: "application/json" });

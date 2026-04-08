@@ -18,10 +18,6 @@ const blockedHostnamePatterns = [
   /^\[?fd/i,
 ];
 
-function hashString(input: string) {
-  return [...input].reduce((acc, char) => acc + char.charCodeAt(0), 0);
-}
-
 function isBlockedHostname(hostname: string) {
   return blockedHostnamePatterns.some((pattern) => pattern.test(hostname));
 }
@@ -108,19 +104,16 @@ export function inferProfileType(input: string): ReportProfileType {
     return matched[0];
   }
 
-  // Avoid classifying short brand domains (starbucks, nike, target) as SaaS — that heuristic was wrong.
-
+  // Hyphenated roots (e.g. "roof-masters") lean local-service.
   if (/-|_/.test(root)) {
     return "local-service";
   }
 
-  const profiles: ReportProfileType[] = [
-    "healthcare",
-    "local-service",
-    "saas",
-  ];
-
-  return profiles[hashString(hostname) % profiles.length];
+  // Safe default for unrecognised brand/tech domains. Using a hash-based
+  // random assignment previously caused sites like claude.com to be labelled
+  // "Healthcare Provider". Generic tech/brand domains are closer to SaaS than
+  // either of the other two profiles.
+  return "saas";
 }
 
 const nicheKeywords: Array<[SiteNiche, RegExp]> = [

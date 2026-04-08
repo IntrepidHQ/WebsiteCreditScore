@@ -49,6 +49,10 @@ export const resolveSupabaseSessionUser = async (
     error,
   } = await supabase.auth.getUser();
 
+  if (user?.id) {
+    return user;
+  }
+
   if (!user) {
     const { data: sessionData } = await supabase.auth.getSession();
     if (sessionData.session?.refresh_token) {
