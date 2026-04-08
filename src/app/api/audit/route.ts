@@ -3,6 +3,7 @@ import { NextResponse } from "next/server";
 import { buildAuditReportFromUrl, enrichReportBenchmarks } from "@/lib/mock/report-builder";
 import { inspectWebsite } from "@/lib/utils/site-observation";
 import { normalizeUrl } from "@/lib/utils/url";
+import { ensurePreviewCachedForObservation } from "@/lib/utils/preview-warm";
 import { getCachedReport, cacheReport } from "@/lib/utils/scan-cache";
 import { getOptionalWorkspaceSession } from "@/lib/auth/session";
 import { getProductRepository } from "@/lib/product/repository";
@@ -128,6 +129,10 @@ export async function POST(request: Request) {
     const report = await enrichReportBenchmarks(
       buildAuditReportFromUrl(normalizedUrl, observation),
     );
+
+    await ensurePreviewCachedForObservation(normalizedUrl, observation).catch((err) => {
+      console.warn("[audit] preview warm failed", err);
+    });
 
     // Cache for future requests (non-blocking)
     cacheReport(normalizedUrl, report).catch(() => {});
