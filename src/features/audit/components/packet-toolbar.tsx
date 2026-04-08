@@ -90,17 +90,23 @@ export function PacketToolbar({
   }, [autoPrint]);
 
   return (
-    <div className="flex items-center gap-3 print:hidden">
-      <Button asChild variant="secondary">
-        <a href={`mailto:?subject=${encodeURIComponent(emailSubject)}&body=${encodeURIComponent(emailBody)}`}>
-          <Mail className="size-4" />
-          Open email draft
-        </a>
-      </Button>
-      <Button onClick={() => window.print()}>
-        <Download className="size-4" />
-        Save as PDF
-      </Button>
+    <div className="flex flex-col gap-2 print:hidden sm:flex-row sm:items-end sm:justify-end">
+      <div className="flex items-center gap-3">
+        <Button asChild variant="secondary">
+          <a href={`mailto:?subject=${encodeURIComponent(emailSubject)}&body=${encodeURIComponent(emailBody)}`}>
+            <Mail className="size-4" />
+            Open email draft
+          </a>
+        </Button>
+        <Button onClick={() => window.print()}>
+          <Download className="size-4" />
+          Save as PDF
+        </Button>
+      </div>
+      <p className="max-w-md text-left text-xs leading-snug text-muted sm:text-right">
+        In the print dialog, turn off <span className="font-medium text-foreground">Headers and footers</span> for a clean
+        PDF (no extra URL or date strip).
+      </p>
     </div>
   );
 }

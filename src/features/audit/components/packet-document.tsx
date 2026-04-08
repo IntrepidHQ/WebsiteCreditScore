@@ -48,7 +48,7 @@ function PacketMetricCard({
         className,
       ].join(" ")}
     >
-      <p className="text-[10px] uppercase tracking-[0.18em] text-muted print:text-slate-500">
+      <p className="text-[10px] uppercase tracking-[0.18em] text-muted print:tracking-[0.06em] print:text-slate-500">
         {label}
       </p>
       <div className="mt-1.5">{value}</div>
@@ -73,10 +73,10 @@ function PacketFactCard({
   return (
     <div className="print-avoid-break rounded-[6px] border border-border/70 bg-panel/72 px-3 py-2 print:rounded-[4px] print:border-slate-200 print:bg-white print:px-2.5 print:py-1.5">
       <div className="flex items-center justify-between gap-2">
-        <p className="text-[10px] uppercase tracking-[0.18em] text-muted print:text-slate-500">
+        <p className="text-[10px] uppercase tracking-[0.18em] text-muted print:tracking-[0.06em] print:text-slate-500">
           {label}
         </p>
-        <span className="text-[10px] font-semibold uppercase tracking-[0.14em] text-[var(--packet-accent)]">
+        <span className="text-[10px] font-semibold uppercase tracking-[0.14em] text-[var(--packet-accent)] print:tracking-[0.05em]">
           {confidence}
         </span>
       </div>
@@ -148,7 +148,7 @@ function PacketSection({
         breakAfter ? "print:break-after-page" : "",
       ].join(" ")}
     >
-      <p className="text-xs uppercase tracking-[0.24em] text-muted print:mb-2 print:text-[9px] print:tracking-[0.22em] print:text-slate-400">
+      <p className="text-xs uppercase tracking-[0.24em] text-muted print:mb-2 print:text-[9px] print:tracking-[0.08em] print:text-slate-500">
         {eyebrow}
       </p>
       <div className="mt-3 space-y-4 print:mt-0 print:space-y-2.5">{children}</div>
@@ -230,7 +230,7 @@ export function PacketDocument({
 
   return (
     <main
-      className="min-h-screen bg-background px-3 py-5 text-foreground print:bg-white print:px-0 print:py-0"
+      className="min-h-screen bg-background px-3 py-5 text-foreground print:bg-white print:px-0 print:py-0 print:text-slate-950"
       id="main-content"
       style={packetStyle}
     >
@@ -256,7 +256,7 @@ export function PacketDocument({
 
           {/* Title row */}
           <div className="print:mb-2">
-            <h1 className="font-display text-4xl font-semibold tracking-[-0.05em] text-foreground sm:text-5xl lg:text-[3.6rem] print:text-[2rem] print:leading-[1.08]">
+            <h1 className="font-display text-4xl font-semibold tracking-[-0.05em] text-foreground sm:text-5xl lg:text-[3.6rem] print:text-[2rem] print:leading-[1.08] print:text-slate-950">
               {report.title}
             </h1>
             <p className="mt-1.5 text-base leading-6 text-muted print:mt-1 print:text-[12px] print:leading-5 print:text-slate-500">
@@ -281,9 +281,16 @@ export function PacketDocument({
 
           {/* Executive summary */}
           <div className="rounded-[6px] border border-border/70 bg-elevated/80 p-3 print:rounded-[4px] print:border-slate-200 print:bg-slate-50 print:p-2">
-            <p className="text-[10px] uppercase tracking-[0.18em] text-muted print:text-slate-400">
-              Executive summary
-            </p>
+            <div className="flex flex-wrap items-baseline justify-between gap-2">
+              <p className="text-[10px] uppercase tracking-[0.18em] text-muted print:tracking-[0.06em] print:text-slate-500">
+                Executive summary
+              </p>
+              {report.provenance.narrativeSource === "claude" ? (
+                <p className="text-[9px] font-medium uppercase tracking-[0.06em] text-muted print:text-slate-500">
+                  Claude-assisted narrative
+                </p>
+              ) : null}
+            </div>
             <p className="mt-1.5 text-[15px] leading-7 text-foreground print:mt-1 print:text-[12.5px] print:leading-[1.55] print:text-slate-700">
               {report.executiveSummary}
             </p>
@@ -419,7 +426,7 @@ export function PacketDocument({
           {/* Two columns preserved in print */}
           <div className="grid gap-4 xl:grid-cols-[minmax(0,0.72fr)_minmax(0,1.28fr)] print:grid-cols-[minmax(0,0.72fr)_minmax(0,1.28fr)] print:gap-3">
             <div className="space-y-2">
-              <p className="text-[10px] uppercase tracking-[0.18em] text-muted print:text-slate-400">
+              <p className="text-[10px] uppercase tracking-[0.18em] text-muted print:tracking-[0.06em] print:text-slate-500">
                 What is already working
               </p>
               {packetPositives.map((finding) => (
@@ -427,7 +434,7 @@ export function PacketDocument({
                   className="print-avoid-break rounded-[6px] border border-border/70 bg-elevated/80 p-3.5 print:rounded-[4px] print:border-l-[3px] print:border-l-emerald-500 print:border-slate-200 print:bg-slate-50 print:p-2"
                   key={finding.id}
                 >
-                  <h2 className="font-display text-xl font-semibold print:text-[1.1rem]">
+                  <h2 className="font-display text-xl font-semibold print:text-[1.1rem] print:text-slate-950">
                     {finding.title}
                   </h2>
                   <p className="mt-1.5 text-[13px] leading-6 text-foreground print:mt-1 print:text-[11.5px] print:leading-[1.5] print:text-slate-700">
@@ -438,7 +445,7 @@ export function PacketDocument({
             </div>
 
             <div className="space-y-2">
-              <p className="text-[10px] uppercase tracking-[0.18em] text-[var(--packet-accent)]">
+              <p className="text-[10px] uppercase tracking-[0.18em] text-[var(--packet-accent)] print:tracking-[0.06em]">
                 What is costing response now
               </p>
               {packetIssues.map((finding) => (
@@ -454,18 +461,20 @@ export function PacketDocument({
                       {finding.category.replace(/-/g, " ")}
                     </span>
                   </div>
-                  <h2 className="mt-1.5 font-display text-[1.65rem] font-semibold leading-[1] print:text-[1.2rem]">
+                  <h2 className="mt-1.5 font-display text-[1.65rem] font-semibold leading-[1] print:text-[1.2rem] print:text-slate-950">
                     {finding.title}
                   </h2>
                   <p className="mt-1.5 text-[13px] leading-6 text-foreground print:mt-1 print:text-[11.5px] print:leading-[1.5] print:text-slate-700">
                     {finding.summary}
                   </p>
                   <p className="mt-2 text-[12.5px] leading-5 text-muted print:mt-1 print:text-[11px] print:leading-[1.4] print:text-slate-500">
-                    <span className="font-semibold text-foreground print:text-slate-700">Why it matters: </span>
+                    <span className="font-semibold text-foreground print:font-semibold print:text-slate-800">
+                      Why it matters:{" "}
+                    </span>
                     {finding.businessImpact}
                   </p>
                   <p className="mt-1 text-[12.5px] leading-5 text-foreground print:text-[11px] print:leading-[1.4] print:text-slate-700">
-                    <span className="font-semibold">Fix: </span>
+                    <span className="font-semibold print:text-slate-800">Fix: </span>
                     {finding.recommendation}
                   </p>
                 </div>
@@ -484,7 +493,7 @@ export function PacketDocument({
                 <p className="text-[10px] uppercase tracking-[0.16em] text-[var(--packet-accent)]">
                   {opportunity.impactLabel}
                 </p>
-                <h2 className="mt-1.5 font-display text-xl font-semibold print:text-[1.1rem]">
+                <h2 className="mt-1.5 font-display text-xl font-semibold print:text-[1.1rem] print:text-slate-950">
                   {opportunity.title}
                 </h2>
                 <p className="mt-1.5 text-[13px] leading-6 text-foreground print:text-[11.5px] print:leading-[1.5] print:text-slate-700">

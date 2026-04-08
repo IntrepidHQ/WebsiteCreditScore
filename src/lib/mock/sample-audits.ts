@@ -12,6 +12,7 @@ export const sampleAudits: SampleAuditCard[] = [
       "Provider details are present, but the first impression still feels generic.",
     scannedAt: new Date("2026-03-27T14:00:00-04:00").toISOString(),
     previewImage: createWebsiteScreenshotUrl("https://markdeford.dr-leonardo.com", "desktop"),
+    fallbackPreviewImage: "/previews/healthcare-current.svg",
     executiveSummary:
       "This example is based on the live Mark Deford M.D. profile page. The site includes real provider metadata and health-information depth, but the templated presentation weakens trust at first glance.",
     highlights: [
