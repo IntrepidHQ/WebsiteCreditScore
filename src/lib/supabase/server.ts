@@ -1,18 +1,21 @@
 import { createServerClient } from "@supabase/ssr";
-import { cookies } from "next/headers";
+import { cookies, headers } from "next/headers";
 
 import { getSupabaseCookieOptions } from "@/lib/supabase/cookie-options";
 import { getSupabaseEnv } from "@/lib/supabase/config";
+import { mergeCookieHeaderWithStore } from "@/lib/supabase/merge-request-cookies";
 
 export async function createSupabaseServerClient() {
   const cookieStore = await cookies();
+  const headerList = await headers();
+  const cookieHeader = headerList.get("cookie");
   const { url, anonKey } = getSupabaseEnv();
 
   return createServerClient(url, anonKey, {
     cookieOptions: getSupabaseCookieOptions(),
     cookies: {
       getAll() {
-        return cookieStore.getAll();
+        return mergeCookieHeaderWithStore(cookieHeader, cookieStore.getAll());
       },
       setAll(cookiesToSet) {
         cookiesToSet.forEach(({ name, value, options }) => {

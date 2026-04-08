@@ -1,7 +1,7 @@
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 
-import type { User } from "@supabase/supabase-js";
+import type { SupabaseClient, User } from "@supabase/supabase-js";
 
 import type { WorkspaceSession } from "@/lib/types/product";
 import { isDemoWorkspaceAllowed } from "@/lib/auth/demo-flag";
@@ -23,6 +23,39 @@ export const workspaceSessionFromSupabaseUser = (user: User): WorkspaceSession =
   avatarUrl: user.user_metadata?.avatar_url,
 });
 
+/**
+ * Validates the JWT and, when the access token is stale but a refresh token exists,
+ * refreshes once (Server Components cannot always rely on middleware timing vs RSC).
+ */
+export const resolveSupabaseSessionUser = async (
+  supabase: SupabaseClient,
+): Promise<User | null> => {
+  let {
+    data: { user },
+    error,
+  } = await supabase.auth.getUser();
+
+  if (!user) {
+    const { data: sessionData } = await supabase.auth.getSession();
+    if (sessionData.session?.refresh_token) {
+      await supabase.auth.refreshSession({
+        refresh_token: sessionData.session.refresh_token,
+      });
+      ({
+        data: { user },
+        error,
+      } = await supabase.auth.getUser());
+    }
+  }
+
+  if (error) {
+    console.error("[auth] Supabase getUser failed:", error.message);
+    return null;
+  }
+
+  return user?.id ? user : null;
+};
+
 export const sanitizeInternalNextPath = (next: string | null | undefined, fallback = "/app") => {
   if (!next) {
     return fallback;
@@ -41,15 +74,7 @@ export const getOptionalWorkspaceSession = async (): Promise<WorkspaceSession | 
   if (hasSupabaseEnv()) {
     try {
       const supabase = await createSupabaseServerClient();
-      const {
-        data: { user },
-        error,
-      } = await supabase.auth.getUser();
-
-      if (error) {
-        console.error("[auth] Supabase getUser failed:", error.message);
-        return null;
-      }
+      const user = await resolveSupabaseSessionUser(supabase);
 
       if (user?.id) {
         return {

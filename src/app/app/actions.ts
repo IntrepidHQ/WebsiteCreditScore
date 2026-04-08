@@ -3,18 +3,17 @@
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 
-import { workspaceSessionFromSupabaseUser } from "@/lib/auth/session";
+import { resolveSupabaseSessionUser, workspaceSessionFromSupabaseUser } from "@/lib/auth/session";
 import { getWorkspaceAppContext } from "@/lib/product/context";
 import { redirectOnRecoverableProductError } from "@/lib/product/workspace-load-errors";
 import { getProductRepository } from "@/lib/product/repository";
 import type { LeadStage } from "@/lib/types/product";
 import { hasSupabaseEnv } from "@/lib/supabase/config";
-import { createSupabaseServerClientForServerAction } from "@/lib/supabase/server-action-client";
+import { createSupabaseServerClient } from "@/lib/supabase/server";
 
 /**
  * Dashboard scan: Server Action reads `cookies()` in the same request context as `/app` RSC,
- * so Supabase `getUser()` sees the session after middleware refresh (avoids `session-required`
- * loops from Route Handler cookie drift).
+ * so Supabase sees the same merged cookies as RSC (Cookie header + `cookies()`).
  */
 export const submitWorkspaceScanFromDashboardAction = async (formData: FormData) => {
   const rawUrl = String(formData.get("url") ?? "").trim();
@@ -38,27 +37,11 @@ export const submitWorkspaceScanFromDashboardAction = async (formData: FormData)
     }
   }
 
-  const supabase = await createSupabaseServerClientForServerAction();
-  let {
-    data: { user },
-    error: userError,
-  } = await supabase.auth.getUser();
+  const supabase = await createSupabaseServerClient();
+  const user = await resolveSupabaseSessionUser(supabase);
 
-  if (userError || !user) {
-    const { data: sessionData } = await supabase.auth.getSession();
-    if (sessionData.session?.refresh_token) {
-      await supabase.auth.refreshSession({
-        refresh_token: sessionData.session.refresh_token,
-      });
-      ({
-        data: { user },
-        error: userError,
-      } = await supabase.auth.getUser());
-    }
-  }
-
-  if (userError || !user) {
-    console.error("[workspace-scan] No Supabase user after getUser/refresh:", userError?.message);
+  if (!user) {
+    console.error("[workspace-scan] No Supabase user after resolveSupabaseSessionUser");
     redirect("/app/login?error=session-required&next=%2Fapp");
   }
 
