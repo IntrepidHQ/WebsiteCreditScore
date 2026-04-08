@@ -7,6 +7,7 @@ import {
   FileText,
   Menu,
   ScanSearch,
+  type LucideIcon,
 } from "lucide-react";
 import { usePathname, useSearchParams } from "next/navigation";
 import { useEffect, useMemo, useState } from "react";
@@ -27,6 +28,12 @@ import { cn } from "@/lib/utils/cn";
 type NavItem = {
   href: string;
   label: string;
+};
+
+type HeaderQuickAction = {
+  href: string;
+  label: string;
+  icon?: LucideIcon;
 };
 
 function getPrimaryNavigation() {
@@ -175,7 +182,7 @@ export function SiteHeader({
     ? { href: workspaceHref, label: workspaceLabel }
     : { href: signInHref, label: "Sign in" };
 
-  const quickActions = isAuditPath
+  const quickActions: HeaderQuickAction[] = isAuditPath
     ? [
         { href: packetHref, label: "Packet PDF", icon: FileText },
         { href: briefHref, label: "Brief", icon: ArrowUpRight },
@@ -244,11 +251,12 @@ export function SiteHeader({
               <div className="hidden flex-wrap items-center justify-end gap-2 lg:flex">
                 {quickActions.map((action, index) => {
                   const variant = index === 1 ? "secondary" : index === 2 ? "outline" : "ghost";
+                  const ActionIcon = action.icon;
 
                   return (
                     <Button asChild className="shrink-0" key={action.href} size="sm" variant={variant}>
                       <Link href={action.href}>
-                        {action.icon ? <action.icon className="size-4" /> : null}
+                        {ActionIcon ? <ActionIcon className="size-4" /> : null}
                         {action.label}
                       </Link>
                     </Button>
@@ -324,13 +332,15 @@ export function SiteHeader({
                         </p>
                         <div className="grid gap-2">
                           {mobileQuickActions.map((action) => {
+                            const ActionIcon = action.icon;
+
                             return action.href.startsWith("#") ? (
                               <DialogClose asChild key={action.href}>
                                 <a
                                   className="inline-flex items-center gap-2 rounded-[8px] border border-border/70 bg-panel/60 px-4 py-3 text-sm font-medium text-foreground transition hover:border-accent/30 hover:bg-elevated"
                                   href={action.href}
                                 >
-                                  {action.icon ? <action.icon className="size-4" /> : null}
+                                  {ActionIcon ? <ActionIcon className="size-4" /> : null}
                                   {action.label}
                                 </a>
                               </DialogClose>
@@ -340,7 +350,7 @@ export function SiteHeader({
                                   className="inline-flex items-center gap-2 rounded-[8px] border border-border/70 bg-panel/60 px-4 py-3 text-sm font-medium text-foreground transition hover:border-accent/30 hover:bg-elevated"
                                   href={action.href}
                                 >
-                                  {action.icon ? <action.icon className="size-4" /> : null}
+                                  {ActionIcon ? <ActionIcon className="size-4" /> : null}
                                   {action.label}
                                 </Link>
                               </DialogClose>
