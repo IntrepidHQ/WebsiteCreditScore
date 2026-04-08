@@ -244,6 +244,10 @@ export interface ClientProfile {
   niche?: SiteNiche;
   industryLabel: string;
   audience: string;
+  /** What the live site signals about the business (headlines, meta, copy). */
+  observedPositioning: string;
+  /** Inferred target visitors from CTAs, proof, and on-page language. */
+  observedAudienceInference: string;
   primaryGoal: string;
   trustDrivers: string[];
   competitors: string[];

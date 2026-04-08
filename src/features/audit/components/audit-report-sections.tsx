@@ -5,6 +5,7 @@ import { FindingsSection } from "@/features/audit/components/findings-section";
 import { PricingConfigurator } from "@/features/pricing/components/pricing-configurator";
 import { ProposalActions } from "@/features/audit/components/proposal-actions";
 import { RebuildStrategySection } from "@/features/audit/components/rebuild-strategy-section";
+import { SignupPromptBanner } from "@/features/audit/components/signup-prompt-banner";
 import type { AuditReport, FindingSection as FindingSectionKey } from "@/lib/types/audit";
 
 const sectionOrder: FindingSectionKey[] = [
@@ -14,7 +15,13 @@ const sectionOrder: FindingSectionKey[] = [
   "security-posture",
 ];
 
-export function AuditReportSections({ report }: { report: AuditReport }) {
+export function AuditReportSections({
+  report,
+  isAuthenticated = false,
+}: {
+  report: AuditReport;
+  isAuthenticated?: boolean;
+}) {
   return (
     <>
       <AuditHeroSection report={report} />
@@ -30,6 +37,12 @@ export function AuditReportSections({ report }: { report: AuditReport }) {
       <BeforeAfterSection report={report} />
       <PricingConfigurator report={report} />
       <ProposalActions report={report} />
+      {!isAuthenticated && (
+        <SignupPromptBanner
+          reportTitle={report.title}
+          returnPath={`/audit/${report.id}?url=${encodeURIComponent(report.normalizedUrl)}`}
+        />
+      )}
     </>
   );
 }

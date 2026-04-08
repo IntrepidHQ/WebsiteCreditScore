@@ -988,6 +988,79 @@ export function getBenchmarkReferenceScore(reference: BenchmarkReference) {
   return reference.measuredScore ?? reference.targetScore;
 }
 
+function truncateObservationText(text: string, max: number) {
+  const trimmed = text.trim();
+
+  if (trimmed.length <= max) {
+    return trimmed;
+  }
+
+  return `${trimmed.slice(0, max - 1).trim()}…`;
+}
+
+export function buildObservationClientNarratives(
+  title: string,
+  observation: SiteObservation,
+  industryLabel: string,
+  templateAudience: string,
+): { observedPositioning: string; observedAudienceInference: string } {
+  const meta = observation.metaDescription?.trim();
+  const hero = observation.heroHeading?.trim();
+  const titleLine = observation.pageTitle?.trim();
+
+  const positioningPieces: string[] = [];
+
+  if (meta) {
+    positioningPieces.push(`Public summary line: ${truncateObservationText(meta, 320)}`);
+  }
+
+  if (hero) {
+    positioningPieces.push(`Primary headline: “${truncateObservationText(hero, 180)}”`);
+  }
+
+  if (titleLine && titleLine.toLowerCase() !== hero?.toLowerCase()) {
+    positioningPieces.push(`Browser title: “${truncateObservationText(titleLine, 120)}”`);
+  }
+
+  if (observation.aboutSnippet?.trim()) {
+    positioningPieces.push(
+      `About-style copy: ${truncateObservationText(observation.aboutSnippet.trim(), 360)}`,
+    );
+  }
+
+  if (observation.notableDetails?.length) {
+    positioningPieces.push(
+      `Other visible cues: ${observation.notableDetails.slice(0, 4).join("; ")}`,
+    );
+  }
+
+  const observedPositioning =
+    positioningPieces.length > 0
+      ? `${title} operates as ${industryLabel.toLowerCase()}. Taken together, how the site introduces itself suggests: ${positioningPieces.join(" ")}`
+      : `${title} fits the ${industryLabel} pattern, but collected positioning copy was limited, so treat this as a structural read until more marketing text is available.`;
+
+  const ctaHint =
+    observation.primaryCtas.length > 0
+      ? `Calls to action stress: ${observation.primaryCtas.slice(0, 6).join(", ")}.`
+      : "";
+  const trustHint =
+    observation.trustSignals.length > 0
+      ? `Trust language and badges highlight: ${observation.trustSignals.slice(0, 6).join(", ")}.`
+      : "";
+  const templateHint = observation.templateSignals?.length
+    ? `Layout cues include: ${observation.templateSignals.slice(0, 3).join("; ")}.`
+    : "";
+
+  const inferenceParts = [ctaHint, trustHint, templateHint].filter(Boolean);
+
+  const observedAudienceInference =
+    inferenceParts.length > 0
+      ? `On-page language points to visitors similar to: ${templateAudience} Supporting detail: ${inferenceParts.join(" ")}`
+      : `Audience cues are thin. For a typical ${industryLabel.toLowerCase()} site, plan for readers much like: ${templateAudience}`;
+
+  return { observedPositioning, observedAudienceInference };
+}
+
 export function buildObservedExecutiveSummary(
   title: string,
   observation: SiteObservation,

@@ -20,6 +20,11 @@ export function prepareReportForStorage(report: AuditReport): AuditReport {
   return {
     ...report,
     executiveSummary: normalizeCopy(report.executiveSummary),
+    clientProfile: {
+      ...report.clientProfile,
+      observedPositioning: normalizeCopy(report.clientProfile.observedPositioning),
+      observedAudienceInference: normalizeCopy(report.clientProfile.observedAudienceInference),
+    },
     siteObservation: {
       ...report.siteObservation,
       pageTitle: normalizeCopy(report.siteObservation.pageTitle),
@@ -53,6 +58,8 @@ export function prepareReportForStorage(report: AuditReport): AuditReport {
 export function passesReportQualityCheck(report: AuditReport) {
   const strings = [
     report.executiveSummary,
+    report.clientProfile.observedPositioning,
+    report.clientProfile.observedAudienceInference,
     report.siteObservation.pageTitle,
     report.siteObservation.metaDescription,
     report.siteObservation.heroHeading,

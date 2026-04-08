@@ -255,9 +255,23 @@ export function AuditHeroSection({ report }: { report: AuditReport }) {
                 <p className="mt-3 font-display text-[clamp(2.8rem,2.25rem+0.75vw,3.8rem)] font-semibold leading-[0.94] tracking-[-0.04em]">
                   {report.clientProfile.industryLabel}
                 </p>
-                <p className="mt-3 text-sm leading-6 text-muted">
-                  Audience: {report.clientProfile.audience}
-                </p>
+                <div className="mt-4 space-y-4">
+                  <div className="rounded-[calc(var(--theme-radius)-2px)] border border-border/70 bg-background-alt/70 px-4 py-3">
+                    <p className="text-xs uppercase tracking-[0.18em] text-muted">How they present</p>
+                    <p className="mt-2 text-sm leading-7 text-foreground">
+                      {report.clientProfile.observedPositioning}
+                    </p>
+                  </div>
+                  <div className="rounded-[calc(var(--theme-radius)-2px)] border border-border/70 bg-background-alt/70 px-4 py-3">
+                    <p className="text-xs uppercase tracking-[0.18em] text-muted">Who they likely serve</p>
+                    <p className="mt-2 text-sm leading-7 text-foreground">
+                      {report.clientProfile.observedAudienceInference}
+                    </p>
+                  </div>
+                  <p className="text-xs leading-5 text-muted">
+                    Category benchmark for audience: {report.clientProfile.audience}
+                  </p>
+                </div>
                 <div className="mt-4 grid gap-3">
                   <div className="rounded-[calc(var(--theme-radius)-2px)] border border-border/70 bg-background-alt/70 px-4 py-3">
                     <p className="text-xs uppercase tracking-[0.18em] text-muted">Primary goal</p>

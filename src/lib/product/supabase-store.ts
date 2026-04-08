@@ -1,5 +1,6 @@
 import { randomUUID } from "node:crypto";
 
+import type { AgencyBranding, ThemeTokens } from "@/lib/types/audit";
 import type { BillingAddOnId, BillingPlanId, TokenActionId } from "@/lib/billing/catalog";
 import { getTokenActionCost } from "@/lib/billing/catalog";
 import { buildAuditReportById, buildAuditReportFromUrl, buildLiveAuditReportFromUrl } from "@/lib/mock/report-builder";
@@ -442,6 +443,38 @@ async function getWorkspacePayload(workspaceId: string) {
   }
 
   return (data?.payload as WorkspaceRecord | undefined) ?? null;
+}
+
+export async function saveSupabaseTheme(
+  workspaceId: string,
+  session: WorkspaceSession,
+  theme: ThemeTokens,
+  branding: AgencyBranding,
+): Promise<WorkspaceRecord> {
+  const current = await getWorkspacePayload(workspaceId);
+
+  if (!current) {
+    throw new Error("Workspace not found");
+  }
+
+  if (current.ownerUserId !== session.userId) {
+    throw new Error("Forbidden");
+  }
+
+  const workspace = normalizeWorkspaceRecord({
+    ...current,
+    savedTheme: theme,
+    branding: { ...current.branding, ...branding },
+    updatedAt: new Date().toISOString(),
+  });
+
+  await upsertPayloadRecord("workspaces", {
+    id: workspace.id,
+    owner_user_id: session.userId,
+    payload: workspace,
+  });
+
+  return workspace;
 }
 
 export async function ensureSupabaseWorkspace(session: WorkspaceSession) {

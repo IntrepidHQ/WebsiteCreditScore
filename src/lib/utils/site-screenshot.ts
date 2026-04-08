@@ -4,6 +4,7 @@ import path from "node:path";
 
 import chromiumLambda from "@sparticuz/chromium";
 import { chromium } from "playwright-core";
+import sharp from "sharp";
 
 import type { PreviewDevice } from "@/lib/types/audit";
 import {
@@ -11,6 +12,7 @@ import {
   getScreenshotPublicUrl,
   screenshotExistsInStorage,
   uploadScreenshot,
+  type ScreenshotImageFormat,
 } from "@/lib/supabase/storage";
 
 const CACHE_DIR = path.join("/tmp", "craydl-site-previews");
@@ -21,9 +23,72 @@ const CAPTURE_BUDGET_MS = 18000;
 const GOTO_TIMEOUT_MS = 12000;
 const NETWORK_IDLE_TIMEOUT_MS = 1800;
 const REMOTE_IMAGE_TIMEOUT_MS = 7000;
-const CAPTURE_VERSION = "static-shot-3";
+const CAPTURE_VERSION = "static-shot-4";
+const COMPRESSION_MAX_WIDTH = 1440;
+const COMPRESSION_MAX_HEIGHT = 2400;
+const COMPRESSION_QUALITY = 82;
 
 const previewCache = new Map<string, Promise<PreviewImageResult>>();
+
+function detectBufferImageFormat(buffer: Buffer): ScreenshotImageFormat {
+  if (
+    buffer.length >= 12 &&
+    buffer[0] === 0x52 &&
+    buffer[1] === 0x49 &&
+    buffer[2] === 0x46 &&
+    buffer[3] === 0x46 &&
+    buffer[8] === 0x57 &&
+    buffer[9] === 0x45 &&
+    buffer[10] === 0x42 &&
+    buffer[11] === 0x50
+  ) {
+    return "webp";
+  }
+
+  return "png";
+}
+
+/**
+ * Compress a raw screenshot buffer using sharp.
+ * Resizes to fit within max dimensions, converts to optimized WebP,
+ * then falls back to optimized PNG if WebP is larger (rare for photos).
+ */
+async function compressScreenshot(
+  input: Buffer,
+  device: PreviewDevice,
+): Promise<{ buffer: Buffer; contentType: string }> {
+  try {
+    const maxWidth = device === "mobile" ? 780 : COMPRESSION_MAX_WIDTH;
+    const maxHeight = device === "mobile" ? 1800 : COMPRESSION_MAX_HEIGHT;
+
+    const pipeline = sharp(input)
+      .resize({
+        width: maxWidth,
+        height: maxHeight,
+        fit: "inside",
+        withoutEnlargement: true,
+      });
+
+    const webpBuffer = await pipeline
+      .clone()
+      .webp({ quality: COMPRESSION_QUALITY, effort: 4 })
+      .toBuffer();
+
+    const pngBuffer = await pipeline
+      .clone()
+      .png({ compressionLevel: 8, palette: false })
+      .toBuffer();
+
+    if (webpBuffer.length <= pngBuffer.length) {
+      return { buffer: webpBuffer, contentType: "image/webp" };
+    }
+
+    return { buffer: pngBuffer, contentType: "image/png" };
+  } catch {
+    // If sharp fails, return original uncompressed
+    return { buffer: input, contentType: "image/png" };
+  }
+}
 
 export type PreviewImageResult = {
   buffer: Buffer;
@@ -89,7 +154,7 @@ async function pruneCacheDirectory() {
 
   await Promise.all(
     files
-      .filter((file) => file.endsWith(".png"))
+      .filter((file) => file.endsWith(".png") || file.endsWith(".webp"))
       .map(async (file) => {
         const filePath = path.join(CACHE_DIR, file);
         const stats = await fs.stat(filePath).catch(() => null);
@@ -106,31 +171,45 @@ async function pruneCacheDirectory() {
 }
 
 async function readFreshScreenshotFromCache(cacheKey: string) {
-  const filePath = path.join(CACHE_DIR, `${cacheKey}.png`);
-  const stats = await fs.stat(filePath).catch(() => null);
+  for (const ext of ["webp", "png"] as const) {
+    const filePath = path.join(CACHE_DIR, `${cacheKey}.${ext}`);
+    const stats = await fs.stat(filePath).catch(() => null);
 
-  if (!stats) {
-    return null;
+    if (!stats) {
+      continue;
+    }
+
+    if (Date.now() - stats.mtimeMs > CACHE_TTL_MS) {
+      continue;
+    }
+
+    const buffer = await fs.readFile(filePath);
+    const format = detectBufferImageFormat(buffer);
+    const contentType = format === "webp" ? "image/webp" : "image/png";
+
+    return {
+      buffer,
+      contentType,
+      source: "screenshot" as const,
+      reason: "cache-hit",
+    };
   }
 
-  if (Date.now() - stats.mtimeMs > CACHE_TTL_MS) {
-    return null;
-  }
-
-  const buffer = await fs.readFile(filePath);
-
-  return {
-    buffer,
-    contentType: "image/png",
-    source: "screenshot" as const,
-    reason: "cache-hit",
-  };
+  return null;
 }
 
-async function writeScreenshotToCache(cacheKey: string, buffer: Buffer) {
+async function writeScreenshotToCache(
+  cacheKey: string,
+  buffer: Buffer,
+  contentType: string,
+) {
   await ensureCacheDirectory();
   await pruneCacheDirectory();
-  await fs.writeFile(path.join(CACHE_DIR, `${cacheKey}.png`), buffer);
+  const format = contentType.includes("webp") ? "webp" : "png";
+  const other: ScreenshotImageFormat = format === "webp" ? "png" : "webp";
+
+  await fs.unlink(path.join(CACHE_DIR, `${cacheKey}.${other}`)).catch(() => undefined);
+  await fs.writeFile(path.join(CACHE_DIR, `${cacheKey}.${format}`), buffer);
 }
 
 async function resolveBrowserLaunchConfig() {
@@ -287,6 +366,57 @@ async function captureScreenshot(url: string, device: PreviewDevice) {
   }
 }
 
+/**
+ * Use an external screenshot API as a reliable fallback when local browser
+ * capture fails (common in serverless environments with binary size limits).
+ * Uses Google PageSpeed Insights which is free and returns a real rendered screenshot.
+ */
+async function captureViaExternalApi(
+  url: string,
+  device: PreviewDevice,
+): Promise<Buffer> {
+  const strategy = device === "mobile" ? "mobile" : "desktop";
+  const apiUrl = `https://www.googleapis.com/pagespeedonline/v5/runPagespeed?url=${encodeURIComponent(url)}&strategy=${strategy}&category=performance`;
+
+  const response = await fetch(apiUrl, {
+    signal: AbortSignal.timeout(15000),
+    cache: "no-store",
+  });
+
+  if (!response.ok) {
+    throw new Error(`PageSpeed API returned ${response.status}`);
+  }
+
+  const data = (await response.json()) as {
+    lighthouseResult?: {
+      audits?: {
+        "final-screenshot"?: {
+          details?: { data?: string };
+        };
+        "full-page-screenshot"?: {
+          details?: { screenshot?: { data?: string } };
+        };
+      };
+    };
+  };
+
+  // Try full-page screenshot first, then final screenshot
+  const fullPage =
+    data.lighthouseResult?.audits?.["full-page-screenshot"]?.details?.screenshot
+      ?.data;
+  const finalShot =
+    data.lighthouseResult?.audits?.["final-screenshot"]?.details?.data;
+  const base64Data = fullPage ?? finalShot;
+
+  if (!base64Data) {
+    throw new Error("No screenshot data in PageSpeed response");
+  }
+
+  // Strip data URL prefix if present
+  const raw = base64Data.replace(/^data:image\/\w+;base64,/, "");
+  return Buffer.from(raw, "base64");
+}
+
 async function fetchRemoteImage(imageUrl: string) {
   const response = await fetch(imageUrl, {
     headers: {
@@ -368,53 +498,85 @@ async function buildPreviewImage(
   }
 
   // L2: Supabase Storage (persists across deploys and cold starts)
-  const storageUrl = getScreenshotPublicUrl(cacheKey) ?? undefined;
+  const canUseRemote = getScreenshotPublicUrl(cacheKey) !== null;
 
-  if (storageUrl) {
+  if (canUseRemote) {
     const exists = await screenshotExistsInStorage(cacheKey);
 
     if (exists) {
       const buffer = await downloadScreenshot(cacheKey);
 
       if (buffer) {
-        // Warm the disk cache for subsequent requests in this instance.
-        writeScreenshotToCache(cacheKey, buffer).catch(() => {});
+        const format = detectBufferImageFormat(buffer);
+        const contentType = format === "webp" ? "image/webp" : "image/png";
+
+        writeScreenshotToCache(cacheKey, buffer, contentType).catch(() => {});
 
         return {
           buffer,
-          contentType: "image/png",
+          contentType,
           source: "storage",
           reason: "storage-hit",
-          storageUrl,
+          storageUrl: getScreenshotPublicUrl(cacheKey, format) ?? undefined,
         };
       }
     }
   }
 
-  // L3: Live capture
-  try {
-    const buffer = await withTimeout(
-      captureScreenshot(captureUrl, device),
-      CAPTURE_BUDGET_MS,
-      "Screenshot capture budget exceeded.",
-    );
-    await writeScreenshotToCache(cacheKey, buffer);
+  // Helper: compress, cache, and persist a raw screenshot buffer.
+  async function compressAndCache(
+    rawBuffer: Buffer,
+    reason: string,
+  ): Promise<PreviewImageResult> {
+    const compressed = await compressScreenshot(rawBuffer, device);
+    writeScreenshotToCache(cacheKey, compressed.buffer, compressed.contentType).catch(() => {});
 
-    // Persist to Supabase Storage in the background so future cold starts skip capture.
-    if (storageUrl) {
-      uploadScreenshot(cacheKey, buffer).catch((err) => {
+    const formatForUrl: ScreenshotImageFormat =
+      compressed.contentType === "image/webp" ? "webp" : "png";
+    const persistedUrl = getScreenshotPublicUrl(cacheKey, formatForUrl) ?? undefined;
+
+    if (persistedUrl) {
+      uploadScreenshot(
+        cacheKey,
+        compressed.buffer,
+        compressed.contentType as "image/png" | "image/webp",
+      ).catch((err) => {
         console.error("[site-preview] Supabase upload failed:", err);
       });
     }
 
     return {
-      buffer,
-      contentType: "image/png",
+      buffer: compressed.buffer,
+      contentType: compressed.contentType,
       source: "screenshot",
-      reason: "captured-live",
-      storageUrl,
+      reason,
+      storageUrl: persistedUrl,
     };
+  }
+
+  // L3: Live capture
+  try {
+    const rawBuffer = await withTimeout(
+      captureScreenshot(captureUrl, device),
+      CAPTURE_BUDGET_MS,
+      "Screenshot capture budget exceeded.",
+    );
+
+    return await compressAndCache(rawBuffer, "captured-live");
   } catch {
+    // L4: External screenshot API fallback (reliable in serverless)
+    try {
+      const rawBuffer = await withTimeout(
+        captureViaExternalApi(captureUrl, device),
+        16000,
+        "External screenshot API timed out.",
+      );
+
+      return await compressAndCache(rawBuffer, "external-api-fallback");
+    } catch {
+      // Continue to OG image / placeholder fallbacks
+    }
+
     if (fallbackImageUrl) {
       try {
         const remoteImage = await withTimeout(
@@ -422,9 +584,13 @@ async function buildPreviewImage(
           REMOTE_IMAGE_TIMEOUT_MS,
           "Remote image fallback timed out.",
         );
+        // Compress remote images too
+        const compressed = await compressScreenshot(remoteImage.buffer, device);
 
         return {
-          ...remoteImage,
+          buffer: compressed.buffer,
+          contentType: compressed.contentType,
+          source: "remote-image",
           reason: "fallback-og-image",
         };
       } catch {

@@ -1,6 +1,7 @@
 import { redirect } from "next/navigation";
 
 import { AppShell } from "@/features/app/components/app-shell";
+import { WorkspaceThemeScopeSync } from "@/features/app/components/workspace-theme-scope-sync";
 import { getWorkspaceAppContext } from "@/lib/product/context";
 
 // All workspace routes read cookies for auth — force dynamic to prevent
@@ -12,8 +13,11 @@ export default async function WorkspaceLayout({
 }: {
   children: React.ReactNode;
 }) {
+  let userId: string;
+
   try {
-    await getWorkspaceAppContext();
+    const ctx = await getWorkspaceAppContext();
+    userId = ctx.session.userId;
   } catch (err) {
     const msg = err instanceof Error ? err.message : String(err);
     // Table doesn't exist yet (migration not run) or DB connectivity issue.
@@ -31,6 +35,9 @@ export default async function WorkspaceLayout({
   }
 
   return (
-    <AppShell>{children}</AppShell>
+    <>
+      <WorkspaceThemeScopeSync userId={userId} />
+      <AppShell>{children}</AppShell>
+    </>
   );
 }

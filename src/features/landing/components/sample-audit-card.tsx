@@ -23,9 +23,12 @@ function formatScannedAt(input?: string) {
 export function SampleAuditCard({ audit }: { audit: SampleAuditCardType }) {
   const scannedAt = formatScannedAt(audit.scannedAt);
   const summary = audit.executiveSummary ?? audit.summary;
+  const auditHref = audit.url
+    ? `/audit/${audit.id}?url=${encodeURIComponent(audit.url)}`
+    : `/audit/${audit.id}`;
 
   return (
-    <Link href={`/audit/${audit.id}`} className="block h-full">
+    <Link href={auditHref} className="block h-full">
       <Card className="group h-full overflow-hidden rounded-[24px] border-border/60 bg-[linear-gradient(180deg,color-mix(in_srgb,var(--theme-panel)_88%,transparent),color-mix(in_srgb,var(--theme-background-alt)_96%,transparent))] shadow-[0_20px_60px_rgba(0,0,0,0.18)] transition duration-300 hover:-translate-y-1 hover:border-accent/30">
         <PreviewImage
           alt={`${audit.title} preview`}

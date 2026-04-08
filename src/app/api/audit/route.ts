@@ -3,6 +3,7 @@ import { NextResponse } from "next/server";
 import { buildAuditReportFromUrl, enrichReportBenchmarks } from "@/lib/mock/report-builder";
 import { inspectWebsite } from "@/lib/utils/site-observation";
 import { normalizeUrl } from "@/lib/utils/url";
+import { getCachedReport, cacheReport } from "@/lib/utils/scan-cache";
 import { getOptionalWorkspaceSession } from "@/lib/auth/session";
 import { getProductRepository } from "@/lib/product/repository";
 import type { ContentClassification, FetchErrorReason } from "@/lib/types/audit";
@@ -108,10 +109,25 @@ export async function POST(request: Request) {
       });
     }
 
+    // Check scan cache first — avoid rebuilding the report for repeated URLs
+    const cached = await getCachedReport(normalizedUrl);
+
+    if (cached) {
+      return NextResponse.json({
+        id: cached.id,
+        normalizedUrl: cached.normalizedUrl,
+        report: cached,
+        persisted: false,
+      });
+    }
+
     // Build report with real observation data
     const report = await enrichReportBenchmarks(
       buildAuditReportFromUrl(body.url, observation),
     );
+
+    // Cache for future requests (non-blocking)
+    cacheReport(normalizedUrl, report).catch(() => {});
 
     return NextResponse.json({
       id: report.id,

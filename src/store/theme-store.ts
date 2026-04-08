@@ -1,9 +1,10 @@
 "use client";
 
 import { create } from "zustand";
-import { persist } from "zustand/middleware";
+import { createJSONStorage, persist } from "zustand/middleware";
 
 import type { AgencyBranding, ThemeMode, ThemeTokens } from "@/lib/types/audit";
+import { themeScopedStorage } from "@/lib/theme/theme-scoped-storage";
 import {
   createRandomTheme,
   createThemeTokens,
@@ -174,6 +175,7 @@ export const useThemeStore = create<ThemeState>()(
     }),
     {
       name: "premium-audit-theme-store",
+      storage: createJSONStorage(() => themeScopedStorage),
       merge: (persistedState, currentState) => {
         const persisted = persistedState as Partial<ThemeState>;
         const persistedBranding = persisted.branding

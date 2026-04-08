@@ -20,6 +20,7 @@ import type {
 import {
   buildBenchmarkReferences,
   getBenchmarkReferenceScore,
+  buildObservationClientNarratives,
   buildObservedCategoryScores,
   buildObservedExecutiveSummary,
   buildObservedFindings,
@@ -63,7 +64,7 @@ const categoryLabels: Record<AuditCategoryKey, string> = {
 
 const profileClientProfiles: Record<
   ReportProfileType,
-  Omit<ClientProfile, "competitors">
+  Omit<ClientProfile, "competitors" | "observedPositioning" | "observedAudienceInference">
 > = {
   healthcare: {
     type: "healthcare",
@@ -1605,9 +1606,18 @@ function buildAuditReport(
   const proposalCtas = buildProposalCtas(normalizedUrl);
   const socialProof = buildSocialProof();
   const roiDefaults = buildRoiDefaults(profile);
-  const clientProfile = {
-    ...profileClientProfiles[profile],
+  const profileBase = profileClientProfiles[profile];
+  const { observedPositioning, observedAudienceInference } = buildObservationClientNarratives(
+    title,
+    observation,
+    profileBase.industryLabel,
+    profileBase.audience,
+  );
+  const clientProfile: ClientProfile = {
+    ...profileBase,
     niche,
+    observedPositioning,
+    observedAudienceInference,
     competitors: competitorSnapshots
       .filter((item) => item.relationship === "reference")
       .map((item) => item.name),

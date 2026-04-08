@@ -1,3 +1,4 @@
+import type { AgencyBranding, ThemeTokens } from "@/lib/types/audit";
 import type {
   DashboardSnapshot,
   EmailTemplateRecord,
@@ -21,6 +22,7 @@ import {
   getLocalLeadDetail,
   resolveLocalPublicShare,
   saveLocalTemplate,
+  saveLocalTheme,
   updateLocalLeadStage,
 } from "@/lib/product/local-store";
 import {
@@ -34,6 +36,7 @@ import {
   getSupabaseLeadDetail,
   resolveSupabasePublicShare,
   saveSupabaseTemplate,
+  saveSupabaseTheme,
   updateSupabaseLeadStage,
 } from "@/lib/product/supabase-store";
 import type { ShareSurface } from "@/lib/types/product";
@@ -102,6 +105,12 @@ export interface ProductRepository {
       label: string;
     },
   ): Promise<WorkspaceRecord>;
+  saveTheme(
+    workspaceId: string,
+    session: WorkspaceSession,
+    theme: ThemeTokens,
+    branding: AgencyBranding,
+  ): Promise<WorkspaceRecord>;
 }
 
 function createLocalRepository(): ProductRepository {
@@ -127,6 +136,8 @@ function createLocalRepository(): ProductRepository {
       applyLocalBillingPurchase(workspaceId, session.userId, input),
     consumeTokenAction: (workspaceId, session, input) =>
       consumeLocalWorkspaceTokens(workspaceId, session.userId, input),
+    saveTheme: (workspaceId, session, theme, branding) =>
+      saveLocalTheme(workspaceId, session.userId, theme, branding),
   };
 }
 
@@ -149,6 +160,8 @@ function createSupabaseRepository(): ProductRepository {
       applySupabaseBillingPurchase(workspaceId, input),
     consumeTokenAction: (workspaceId, _session, input) =>
       consumeSupabaseWorkspaceTokens(workspaceId, input),
+    saveTheme: (workspaceId, session, theme, branding) =>
+      saveSupabaseTheme(workspaceId, session, theme, branding),
   };
 }
 

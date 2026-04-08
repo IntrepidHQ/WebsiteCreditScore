@@ -75,7 +75,7 @@ describe("LandingForm", () => {
 
     await waitFor(() =>
       expect(pushMock).toHaveBeenCalledWith(
-        "/audit/example-com?url=https%3A%2F%2Fexample.com",
+        "/audit/example-com?url=https%3A%2F%2Fexample.com&ref=landing",
       ),
     );
   });

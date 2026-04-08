@@ -220,7 +220,7 @@ export default async function LeadDetailPage({
       </section>
 
       <section className="overflow-hidden rounded-[12px] border border-border/70 bg-panel/70">
-        <AuditReportSections report={report} />
+        <AuditReportSections isAuthenticated report={report} />
       </section>
 
       <div className="flex justify-end">

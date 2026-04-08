@@ -7,7 +7,10 @@ import {
   buildLiveAuditReportById,
   buildLiveAuditReportFromUrl,
 } from "@/lib/mock/report-builder";
+import { getOptionalWorkspaceSession } from "@/lib/auth/session";
 import { getProductRepository } from "@/lib/product/repository";
+import { getCachedReport } from "@/lib/utils/scan-cache";
+import { normalizeUrl } from "@/lib/utils/url";
 
 export default async function AuditPage({
   params,
@@ -29,7 +32,13 @@ export default async function AuditPage({
     }
   } else if (url) {
     try {
-      report = await buildLiveAuditReportFromUrl(url);
+      // Check scan cache first to avoid redundant re-scanning
+      const normalized = normalizeUrl(url);
+      report = await getCachedReport(normalized);
+
+      if (!report) {
+        report = await buildLiveAuditReportFromUrl(url);
+      }
     } catch {
       return (
         <ReportEmptyState
@@ -46,9 +55,12 @@ export default async function AuditPage({
     notFound();
   }
 
+  const session = await getOptionalWorkspaceSession();
+  const isAuthenticated = Boolean(session);
+
   return (
     <WorkspaceThemeFrame>
-      <AuditReportContent report={report} />
+      <AuditReportContent isAuthenticated={isAuthenticated} report={report} />
     </WorkspaceThemeFrame>
   );
 }

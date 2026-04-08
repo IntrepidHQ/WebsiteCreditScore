@@ -2,6 +2,7 @@ import { promises as fs } from "node:fs";
 import path from "node:path";
 import { randomUUID } from "node:crypto";
 
+import type { AgencyBranding, ThemeTokens } from "@/lib/types/audit";
 import type { BillingAddOnId, BillingPlanId, TokenActionId } from "@/lib/billing/catalog";
 import { getTokenActionCost } from "@/lib/billing/catalog";
 import { buildAuditReportById, buildAuditReportFromUrl, buildLiveAuditReportFromUrl } from "@/lib/mock/report-builder";
@@ -1070,6 +1071,23 @@ export async function saveLocalTemplate(
     store.emailTemplates.push(template);
 
     return template;
+  });
+}
+
+export async function saveLocalTheme(
+  workspaceId: string,
+  ownerUserId: string,
+  theme: ThemeTokens,
+  branding: AgencyBranding,
+) {
+  return updateStore(ownerUserId, (store) => {
+    const workspace = getWorkspaceOrThrow(store, workspaceId);
+
+    workspace.savedTheme = theme;
+    workspace.branding = { ...workspace.branding, ...branding };
+    workspace.updatedAt = new Date().toISOString();
+
+    return workspace;
   });
 }
 

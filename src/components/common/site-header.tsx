@@ -153,21 +153,26 @@ export function SiteHeader() {
     return () => window.removeEventListener("hashchange", updateHash);
   }, [pathname]);
 
+  const currentPath = `${pathname}${normalizedUrl ? `?url=${encodeURIComponent(normalizedUrl)}` : ""}`;
+  const signInHref = `/app/login?next=${encodeURIComponent(currentPath)}`;
+  const signUpHref = `/app/login?mode=signup&next=${encodeURIComponent(currentPath)}`;
+
   const quickActions = isAuditPath
     ? [
         { href: packetHref, label: "Packet PDF", icon: FileText },
         { href: briefHref, label: "Brief", icon: ArrowUpRight },
+        { href: signUpHref, label: "Save audit" },
       ]
     : isBriefPath
       ? [
           { href: auditHref, label: "Open audit", icon: ScanSearch },
           { href: packetHref, label: "Packet PDF", icon: FileText },
-          { href: "/app/login", label: "Sign in" },
+          { href: signInHref, label: "Sign in" },
         ]
       : [
           { href: "/examples", label: "Examples", icon: Compass },
           { href: "/audit/mark-deford-md", label: "Sample audit", icon: ScanSearch },
-          { href: "/app/login", label: "Sign in" },
+          { href: signInHref, label: "Sign in" },
         ];
   const mobileQuickActions = quickActions;
 

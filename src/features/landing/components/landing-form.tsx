@@ -49,8 +49,9 @@ export function LandingForm() {
           return;
         }
 
+        // Public scan — redirect to audit with signup hint
         router.push(
-          `/audit/${payload.id}?url=${encodeURIComponent(payload.normalizedUrl)}`,
+          `/audit/${payload.id}?url=${encodeURIComponent(payload.normalizedUrl)}&ref=landing`,
         );
       });
     } catch (caughtError) {
@@ -80,18 +81,23 @@ export function LandingForm() {
         </p>
       </div>
       <div className="flex flex-col gap-3 sm:flex-row">
-        <Input
-          aria-describedby={error ? `${helperId} ${metaId} ${errorId}` : `${helperId} ${metaId}`}
-          aria-invalid={Boolean(error)}
-          autoComplete="url"
-          className="h-14 flex-1"
-          enterKeyHint="go"
-          id={inputId}
-          onChange={(event) => setUrl(event.target.value)}
-          placeholder="https://yourwebsite.com"
-          type="url"
-          value={url}
-        />
+        <div className="relative flex flex-1 items-center">
+          <span className="pointer-events-none absolute left-4 select-none text-sm text-muted">
+            www.
+          </span>
+          <Input
+            aria-describedby={error ? `${helperId} ${metaId} ${errorId}` : `${helperId} ${metaId}`}
+            aria-invalid={Boolean(error)}
+            autoComplete="url"
+            className="h-14 flex-1 pl-12"
+            enterKeyHint="go"
+            id={inputId}
+            onChange={(event) => setUrl(event.target.value)}
+            placeholder="yourwebsite.com"
+            type="url"
+            value={url}
+          />
+        </div>
         <Button
           className="h-14 sm:min-w-56"
           disabled={loading || !url.trim()}

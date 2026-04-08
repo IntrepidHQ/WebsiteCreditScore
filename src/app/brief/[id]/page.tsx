@@ -8,6 +8,8 @@ import {
   buildLiveAuditReportFromUrl,
 } from "@/lib/mock/report-builder";
 import { getProductRepository } from "@/lib/product/repository";
+import { getCachedReport } from "@/lib/utils/scan-cache";
+import { normalizeUrl } from "@/lib/utils/url";
 
 export default async function BriefPage({
   params,
@@ -29,7 +31,12 @@ export default async function BriefPage({
     }
   } else if (url) {
     try {
-      report = await buildLiveAuditReportFromUrl(url);
+      const normalized = normalizeUrl(url);
+      report = await getCachedReport(normalized);
+
+      if (!report) {
+        report = await buildLiveAuditReportFromUrl(url);
+      }
     } catch {
       return (
         <ReportEmptyState

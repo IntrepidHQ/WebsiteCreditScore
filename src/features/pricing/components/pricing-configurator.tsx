@@ -1,9 +1,10 @@
 "use client";
 
-import { useEffect, useId } from "react";
+import { useEffect, useId, useState } from "react";
 import {
   Calculator,
   CheckCircle2,
+  ChevronUp,
   CircleDashed,
   Layers3,
   Minus,
@@ -24,7 +25,15 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
+import { cn } from "@/lib/utils/cn";
 import type { AuditReport, PricingItem } from "@/lib/types/audit";
 import { applyProposalOffer, isProposalOfferActive } from "@/lib/utils/proposal-offers";
 import {
@@ -147,6 +156,7 @@ function PricingRow({
 }
 
 export function PricingConfigurator({ report }: { report: AuditReport }) {
+  const [mobileSummaryOpen, setMobileSummaryOpen] = useState(false);
   const monthlyLeadId = useId();
   const leadToClientId = useId();
   const averageClientValueId = useId();
@@ -193,6 +203,122 @@ export function PricingConfigurator({ report }: { report: AuditReport }) {
       body: report.objectionHandling[2],
     },
   ];
+
+  const proposalSummarySections = (
+    <>
+      <div className="rounded-[calc(var(--theme-radius)-2px)] border border-border/70 bg-background-alt/70 p-4">
+        <p className="text-xs font-semibold uppercase tracking-[0.12em] text-muted">Total investment</p>
+        <p
+          aria-live="polite"
+          className="mt-2 font-display text-[2.4rem] font-semibold leading-none text-accent"
+        >
+          ${offerSummary.finalTotal.toLocaleString()}
+        </p>
+        {report.proposalOffer ? (
+          <div className="mt-2 space-y-1">
+            <p className="text-sm font-semibold text-foreground">{report.proposalOffer.label}</p>
+            <p className="text-xs leading-5 text-muted">{report.proposalOffer.reason}</p>
+            <p className="text-xs leading-5 text-muted">
+              {isProposalOfferActive(report.proposalOffer)
+                ? `From $${offerSummary.originalTotal.toLocaleString()} · expires ${new Date(report.proposalOffer.expiresAt).toLocaleDateString()}`
+                : "Offer expired"}
+            </p>
+          </div>
+        ) : null}
+        <p className="mt-2 text-sm leading-6 text-muted">{report.pricingBundle.stickyNote}</p>
+        <div className="mt-4 rounded-[calc(var(--theme-radius)-4px)] border border-border/70 bg-background-alt/70 p-4">
+          <ScoreMeter
+            className="max-w-full"
+            compact
+            label="Projected impact"
+            projectedScore={projectedScore}
+            score={report.overallScore}
+            valueClassName="text-[2.25rem] sm:text-[2.35rem]"
+          />
+          <p className="mt-3 text-sm leading-7 text-muted">
+            Current score first, projected score underneath. Add-ons update the values so the lift stays
+            obvious on every device.
+          </p>
+        </div>
+      </div>
+
+      <div className="space-y-3">
+        <div className="flex items-start gap-3 rounded-[calc(var(--theme-radius)-4px)] border border-border/70 bg-panel/55 px-4 py-3">
+          <CheckCircle2 className="mt-0.5 size-4 shrink-0 text-accent" />
+          <div>
+            <p className="text-sm font-semibold text-foreground">{summary.baseItem.title}</p>
+            <p className="text-xs leading-5 text-muted">${summary.baseItem.price.toLocaleString()}</p>
+          </div>
+        </div>
+        {summary.selectedAddOns.length === 0 ? (
+          <div className="rounded-[calc(var(--theme-radius)-4px)] border border-dashed border-border/70 bg-background-alt/50 px-4 py-3 text-sm text-muted">
+            No add-ons selected.
+          </div>
+        ) : null}
+        {summary.selectedAddOns.map((item) => (
+          <div
+            className="flex items-start justify-between gap-3 rounded-[calc(var(--theme-radius)-4px)] border border-border/70 bg-panel/55 px-4 py-3"
+            key={item.id}
+          >
+            <div className="flex items-start gap-3">
+              <Plus className="mt-0.5 size-4 shrink-0 text-accent" />
+              <div>
+                <p className="text-sm font-semibold text-foreground">{item.title}</p>
+                <p className="text-xs leading-5 text-muted">${item.price.toLocaleString()}</p>
+                <p className="text-xs leading-5 text-muted">+{item.estimatedScoreLift.toFixed(1)} score</p>
+              </div>
+            </div>
+            <Button
+              aria-label={`Remove ${item.title}`}
+              size="sm"
+              variant="ghost"
+              onClick={() => toggleItem(report.id, item.id)}
+            >
+              <Minus className="size-4" />
+            </Button>
+          </div>
+        ))}
+      </div>
+
+      {summary.synergyNotes.length ? (
+        <div className="rounded-[calc(var(--theme-radius)-2px)] border border-accent/20 bg-accent/8 p-4">
+          <div className="mb-2 flex items-center gap-2 text-accent">
+            <TrendingUp className="size-4" />
+            Good combinations
+          </div>
+          <div className="space-y-2 text-sm leading-6 text-foreground">
+            {summary.synergyNotes.map((note) => (
+              <p key={note}>{note}</p>
+            ))}
+          </div>
+        </div>
+      ) : null}
+
+      <div className="space-y-2">
+        <p className="text-xs uppercase tracking-[0.18em] text-muted">Suggested next upgrades</p>
+        {summary.recommendedUpsells.map((item) => (
+          <div
+            className="flex items-center justify-between gap-3 rounded-[calc(var(--theme-radius)-4px)] border border-border/70 bg-background-alt/70 px-4 py-3"
+            key={item.id}
+          >
+            <div>
+              <p className="text-sm font-semibold text-foreground">{item.title}</p>
+              <p className="text-xs text-muted">
+                {item.estimatedLiftLabel} · +{item.estimatedScoreLift.toFixed(1)}
+              </p>
+            </div>
+            <CircleDashed className="size-4 shrink-0 text-accent" />
+          </div>
+        ))}
+      </div>
+
+      <div className="space-y-3">
+        <Button className="w-full" onClick={() => setContactModalOpen(true)}>
+          Book Strategy Call
+        </Button>
+      </div>
+    </>
+  );
 
   return (
     <section className="presentation-section" id="pricing">
@@ -429,147 +555,54 @@ export function PricingConfigurator({ report }: { report: AuditReport }) {
                 <Badge variant="accent">Proposal summary</Badge>
                 <CardTitle className="text-3xl">Current package</CardTitle>
               </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="rounded-[calc(var(--theme-radius)-2px)] border border-border/70 bg-background-alt/70 p-4">
-                  <p className="text-xs font-semibold uppercase tracking-[0.12em] text-muted">Total investment</p>
-                  <p
-                    aria-live="polite"
-                    className="mt-2 font-display text-[2.4rem] font-semibold leading-none text-accent"
-                  >
-                    ${offerSummary.finalTotal.toLocaleString()}
-                  </p>
-                  {report.proposalOffer ? (
-                    <div className="mt-2 space-y-1">
-                      <p className="text-sm font-semibold text-foreground">
-                        {report.proposalOffer.label}
-                      </p>
-                      <p className="text-xs leading-5 text-muted">
-                        {report.proposalOffer.reason}
-                      </p>
-                      <p className="text-xs leading-5 text-muted">
-                        {isProposalOfferActive(report.proposalOffer)
-                          ? `From $${offerSummary.originalTotal.toLocaleString()} · expires ${new Date(report.proposalOffer.expiresAt).toLocaleDateString()}`
-                          : "Offer expired"}
-                      </p>
-                    </div>
-                  ) : null}
-                  <p className="mt-2 text-sm leading-6 text-muted">
-                    {report.pricingBundle.stickyNote}
-                  </p>
-                  <div className="mt-4 rounded-[calc(var(--theme-radius)-4px)] border border-border/70 bg-background-alt/70 p-4">
-                    <ScoreMeter
-                      className="max-w-full"
-                      compact
-                      label="Projected impact"
-                      projectedScore={projectedScore}
-                      score={report.overallScore}
-                      valueClassName="text-[2.25rem] sm:text-[2.35rem]"
-                    />
-                    <p className="mt-3 text-sm leading-7 text-muted">
-                      Current score first, projected score underneath. Add-ons update the values so the lift stays obvious on every device.
-                    </p>
-                  </div>
-                </div>
-
-                <div className="space-y-3">
-                  <div className="flex items-start gap-3 rounded-[calc(var(--theme-radius)-4px)] border border-border/70 bg-panel/55 px-4 py-3">
-                    <CheckCircle2 className="mt-0.5 size-4 shrink-0 text-accent" />
-                    <div>
-                      <p className="text-sm font-semibold text-foreground">
-                        {summary.baseItem.title}
-                      </p>
-                      <p className="text-xs leading-5 text-muted">
-                        ${summary.baseItem.price.toLocaleString()}
-                      </p>
-                    </div>
-                  </div>
-                  {summary.selectedAddOns.length === 0 ? (
-                    <div className="rounded-[calc(var(--theme-radius)-4px)] border border-dashed border-border/70 bg-background-alt/50 px-4 py-3 text-sm text-muted">
-                      No add-ons selected.
-                    </div>
-                  ) : null}
-                  {summary.selectedAddOns.map((item) => (
-                    <div
-                      className="flex items-start justify-between gap-3 rounded-[calc(var(--theme-radius)-4px)] border border-border/70 bg-panel/55 px-4 py-3"
-                      key={item.id}
-                    >
-                      <div className="flex items-start gap-3">
-                        <Plus className="mt-0.5 size-4 shrink-0 text-accent" />
-                        <div>
-                          <p className="text-sm font-semibold text-foreground">{item.title}</p>
-                          <p className="text-xs leading-5 text-muted">
-                            ${item.price.toLocaleString()}
-                          </p>
-                          <p className="text-xs leading-5 text-muted">
-                            +{item.estimatedScoreLift.toFixed(1)} score
-                          </p>
-                        </div>
-                      </div>
-                      <Button
-                        aria-label={`Remove ${item.title}`}
-                        size="sm"
-                        variant="ghost"
-                        onClick={() => toggleItem(report.id, item.id)}
-                      >
-                        <Minus className="size-4" />
-                      </Button>
-                    </div>
-                  ))}
-                </div>
-
-                {summary.synergyNotes.length ? (
-                  <div className="rounded-[calc(var(--theme-radius)-2px)] border border-accent/20 bg-accent/8 p-4">
-                    <div className="mb-2 flex items-center gap-2 text-accent">
-                      <TrendingUp className="size-4" />
-                      Good combinations
-                    </div>
-                    <div className="space-y-2 text-sm leading-6 text-foreground">
-                      {summary.synergyNotes.map((note) => (
-                        <p key={note}>{note}</p>
-                      ))}
-                    </div>
-                  </div>
-                ) : null}
-
-                <div className="space-y-2">
-                  <p className="text-xs uppercase tracking-[0.18em] text-muted">
-                    Suggested next upgrades
-                  </p>
-                  {summary.recommendedUpsells.map((item) => (
-                    <div
-                      className="flex items-center justify-between gap-3 rounded-[calc(var(--theme-radius)-4px)] border border-border/70 bg-background-alt/70 px-4 py-3"
-                      key={item.id}
-                    >
-                      <div>
-                        <p className="text-sm font-semibold text-foreground">{item.title}</p>
-                        <p className="text-xs text-muted">
-                          {item.estimatedLiftLabel} · +{item.estimatedScoreLift.toFixed(1)}
-                        </p>
-                      </div>
-                      <CircleDashed className="size-4 shrink-0 text-accent" />
-                    </div>
-                  ))}
-                </div>
-
-                <div className="space-y-3">
-                  <Button className="w-full" onClick={() => setContactModalOpen(true)}>
-                    Book Strategy Call
-                  </Button>
-                </div>
-              </CardContent>
+              <CardContent className="space-y-4">{proposalSummarySections}</CardContent>
             </Card>
 
-            <div className="fixed inset-x-4 bottom-4 z-30 rounded-[calc(var(--theme-radius-lg))] border border-border bg-panel/90 p-4 shadow-[var(--theme-shadow)] backdrop-blur-xl lg:hidden">
-              <div className="flex items-center justify-between gap-4">
-                <div>
-                  <p className="text-xs uppercase tracking-[0.18em] text-muted">Proposal total</p>
-                  <p className="font-display text-3xl font-semibold text-accent">
+            <div className="fixed inset-x-4 bottom-4 z-30 rounded-[calc(var(--theme-radius-lg))] border border-border bg-panel/90 p-3 shadow-[var(--theme-shadow)] backdrop-blur-xl lg:hidden">
+              <div className="flex items-stretch gap-3">
+                <button
+                  type="button"
+                  className="flex min-w-0 flex-1 flex-col items-start justify-center rounded-[calc(var(--theme-radius)-4px)] px-2 py-1 text-left transition hover:bg-background-alt/55 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/40"
+                  aria-expanded={mobileSummaryOpen}
+                  aria-haspopup="dialog"
+                  aria-label="Open full proposal summary"
+                  onClick={() => setMobileSummaryOpen(true)}
+                >
+                  <span className="flex w-full items-center justify-between gap-2">
+                    <span className="text-xs uppercase tracking-[0.18em] text-muted">Proposal total</span>
+                    <ChevronUp aria-hidden className="size-4 shrink-0 text-muted" />
+                  </span>
+                  <span className="font-display text-3xl font-semibold text-accent">
                     ${offerSummary.finalTotal.toLocaleString()}
-                  </p>
-                </div>
-                <Button onClick={() => setContactModalOpen(true)}>Book call</Button>
+                  </span>
+                  <span className="mt-1 text-[11px] leading-4 text-muted">Summary, line items & score</span>
+                </button>
+                <Button className="self-center shrink-0" onClick={() => setContactModalOpen(true)}>
+                  Book call
+                </Button>
               </div>
             </div>
+
+            <Dialog onOpenChange={setMobileSummaryOpen} open={mobileSummaryOpen}>
+              <DialogContent
+                aria-describedby={undefined}
+                className={cn(
+                  "flex max-h-[min(88vh,720px)] w-full max-w-none flex-col gap-0 overflow-hidden p-0",
+                  "fixed right-0 bottom-0 left-0 top-auto translate-x-0 translate-y-0 rounded-t-[calc(var(--theme-radius-lg))] rounded-b-none border-b-0 sm:left-4 sm:right-4 lg:hidden",
+                )}
+              >
+                <DialogHeader className="shrink-0 space-y-2 border-b border-border/70 px-5 py-4">
+                  <DialogTitle>Proposal summary</DialogTitle>
+                  <DialogDescription>
+                    Same detail as the desktop sidebar: totals, selected scope, synergies, and projected
+                    score impact.
+                  </DialogDescription>
+                </DialogHeader>
+                <div className="min-h-0 flex-1 overflow-y-auto px-5 py-4">
+                  <div className="space-y-4">{proposalSummarySections}</div>
+                </div>
+              </DialogContent>
+            </Dialog>
           </aside>
         </div>
       </div>

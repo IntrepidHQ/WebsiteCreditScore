@@ -178,13 +178,18 @@ export default async function AppDashboardPage({
               Save the audit, capture the opportunity, and move straight into the outreach packet and brief. Each new live scan uses a token, so the dashboard keeps the score reveal and the remaining balance in the same place.
             </p>
             <form action={createLeadAction} className="flex flex-col gap-3 sm:flex-row">
-              <Input
-                autoComplete="url"
-                className="flex-1"
-                name="url"
-                placeholder="https://example.com"
-                type="url"
-              />
+              <div className="relative flex flex-1 items-center">
+                <span className="pointer-events-none absolute left-4 select-none text-sm text-muted">
+                  www.
+                </span>
+                <Input
+                  autoComplete="url"
+                  className="flex-1 pl-12"
+                  name="url"
+                  placeholder="example.com"
+                  type="url"
+                />
+              </div>
               <Button type="submit">
                 Generate saved audit
                 <ArrowRight className="size-4" />
