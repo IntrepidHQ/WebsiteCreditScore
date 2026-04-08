@@ -105,7 +105,15 @@ function HeaderLink({
   );
 }
 
-export function SiteHeader() {
+type SiteHeaderProps = {
+  isAuthenticated?: boolean;
+  accountHint?: string | null;
+};
+
+export function SiteHeader({
+  isAuthenticated = false,
+  accountHint = null,
+}: SiteHeaderProps) {
   const pathname = usePathname();
   const searchParams = useSearchParams();
   const [scrolled, setScrolled] = useState(false);
@@ -156,23 +164,33 @@ export function SiteHeader() {
   const currentPath = `${pathname}${normalizedUrl ? `?url=${encodeURIComponent(normalizedUrl)}` : ""}`;
   const signInHref = `/app/login?next=${encodeURIComponent(currentPath)}`;
   const signUpHref = `/app/login?mode=signup&next=${encodeURIComponent(currentPath)}`;
+  const workspaceHref = "/app";
+  const workspaceLabel = accountHint ? `Workspace (${accountHint})` : "Workspace";
+
+  const saveOrWorkspace = isAuthenticated
+    ? { href: workspaceHref, label: workspaceLabel }
+    : { href: signUpHref, label: "Save audit" };
+
+  const signInOrWorkspace = isAuthenticated
+    ? { href: workspaceHref, label: workspaceLabel }
+    : { href: signInHref, label: "Sign in" };
 
   const quickActions = isAuditPath
     ? [
         { href: packetHref, label: "Packet PDF", icon: FileText },
         { href: briefHref, label: "Brief", icon: ArrowUpRight },
-        { href: signUpHref, label: "Save audit" },
+        saveOrWorkspace,
       ]
     : isBriefPath
       ? [
           { href: auditHref, label: "Open audit", icon: ScanSearch },
           { href: packetHref, label: "Packet PDF", icon: FileText },
-          { href: signInHref, label: "Sign in" },
+          signInOrWorkspace,
         ]
       : [
           { href: "/examples", label: "Examples", icon: Compass },
           { href: "/audit/mark-deford-md", label: "Sample audit", icon: ScanSearch },
-          { href: signInHref, label: "Sign in" },
+          signInOrWorkspace,
         ];
   const mobileQuickActions = quickActions;
 

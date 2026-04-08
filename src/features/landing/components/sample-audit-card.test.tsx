@@ -2,6 +2,7 @@ import { render, screen } from "@testing-library/react";
 import { describe, expect, it } from "vitest";
 
 import { SampleAuditCard } from "@/features/landing/components/sample-audit-card";
+import { createWebsiteScreenshotUrl } from "@/lib/utils/url";
 
 describe("SampleAuditCard", () => {
   it("renders the live preview route and score summary", () => {
@@ -13,8 +14,7 @@ describe("SampleAuditCard", () => {
           url: "https://markdeford.dr-leonardo.com",
           profile: "healthcare",
           summary: "Provider details are present, but the page still feels like a stock medical profile.",
-          previewImage:
-            "/api/preview?url=https%3A%2F%2Fmarkdeford.dr-leonardo.com&device=desktop&v=static-shot-2",
+          previewImage: createWebsiteScreenshotUrl("https://markdeford.dr-leonardo.com", "desktop"),
           score: 4.9,
         }}
       />,
