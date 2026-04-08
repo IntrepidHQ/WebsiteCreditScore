@@ -17,6 +17,8 @@ export type RecentScanEntry = {
   summary: string;
   scannedAt: string;
   reportId: string;
+  /** `/api/preview?...` URL aligned with Supabase storage keys; omitted on older cache rows. */
+  previewImage?: string;
 };
 
 function cacheKey(normalizedUrl: string) {
