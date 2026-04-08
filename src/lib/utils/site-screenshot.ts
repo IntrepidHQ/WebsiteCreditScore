@@ -418,6 +418,35 @@ async function captureScreenshot(url: string, device: PreviewDevice) {
 }
 
 /**
+ * Browserless `waitForFunction` body: scrolls so lazy-hydrated pages (e.g. Wikipedia
+ * mobile) paint main content, then scrolls back to top before the screenshot.
+ * @see https://docs.browserless.io/rest-apis/request-configuration#waitforfunction
+ */
+const BROWSERLESS_SCROLL_SETTLE_FN = `async () => {
+  const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
+  try {
+    await document.fonts?.ready;
+  } catch {
+    /* ignore */
+  }
+  document.querySelectorAll('img[loading="lazy"]').forEach((el) => el.setAttribute("loading", "eager"));
+  const root = document.scrollingElement || document.documentElement;
+  const maxScroll = Math.max(0, root.scrollHeight - window.innerHeight);
+  const step = Math.max(260, Math.floor(window.innerHeight * 0.58));
+  let y = 0;
+  let i = 0;
+  while (y <= maxScroll && i < 36) {
+    window.scrollTo(0, y);
+    await sleep(120);
+    y += step;
+    i += 1;
+  }
+  window.scrollTo(0, 0);
+  await sleep(320);
+  return true;
+}`;
+
+/**
  * Capture a full-page screenshot via the Browserless REST API.
  * This is the primary live-capture method in serverless environments — it
  * offloads headless Chrome to a reliable external service, eliminating the
@@ -466,16 +495,20 @@ async function captureViaBrowserless(
         `,
       },
     ],
+    bestAttempt: true,
+    waitForFunction: {
+      fn: BROWSERLESS_SCROLL_SETTLE_FN,
+      timeout: 16_000,
+    },
   };
 
-  // `networkidle0` often never resolves on SPAs and analytics-heavy sites.
-  // Prefer load + post-navigation wait (Browserless `waitFor` ms), then fall back.
+  // Use `waitForTimeout` (Browserless REST); `waitFor` is not documented and may be ignored.
   const attempts: Array<{
     gotoOptions: { waitUntil: string; timeout: number };
-    waitFor?: number;
+    waitForTimeout?: number;
   }> = [
-    { gotoOptions: { waitUntil: "load", timeout: 30_000 }, waitFor: 2500 },
-    { gotoOptions: { waitUntil: "domcontentloaded", timeout: 28_000 }, waitFor: 3800 },
+    { gotoOptions: { waitUntil: "load", timeout: 26_000 }, waitForTimeout: 1000 },
+    { gotoOptions: { waitUntil: "domcontentloaded", timeout: 24_000 }, waitForTimeout: 1800 },
   ];
 
   let lastError: unknown;
@@ -485,14 +518,14 @@ async function captureViaBrowserless(
       const body = {
         ...basePayload,
         gotoOptions: attempt.gotoOptions,
-        ...(attempt.waitFor != null ? { waitFor: attempt.waitFor } : {}),
+        ...(attempt.waitForTimeout != null ? { waitForTimeout: attempt.waitForTimeout } : {}),
       };
 
       const response = await fetch(apiUrl, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(body),
-        signal: AbortSignal.timeout(32_000),
+        signal: AbortSignal.timeout(48_000),
       });
 
       if (!response.ok) {
@@ -710,7 +743,7 @@ async function buildPreviewImage(
     try {
       const rawBuffer = await withTimeout(
         captureViaBrowserless(captureUrl, device),
-        68_000,
+        58_000,
         "Browserless capture timed out.",
       );
 
