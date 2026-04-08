@@ -6,8 +6,8 @@ import { cn } from "@/lib/utils/cn";
 const WORDMARK_SRC = "/brand/website-credit-score.svg";
 
 /**
- * Static SVG wordmark from `/public/brand`. Use `on-dark` on deep backgrounds (paths are white);
- * use `on-light` on light panels (invert to near-black).
+ * Static SVG wordmark from `/public/brand`. Use `on-dark` on dark `background` / panel (default SVG is light);
+ * use `on-light` only on truly light surfaces (inverts to near-black).
  */
 export const BrandWordmarkLink = ({
   className,
@@ -21,7 +21,7 @@ export const BrandWordmarkLink = ({
       className={cn(
         "inline-block rounded-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2",
         variant === "on-light" && "focus-visible:ring-offset-background",
-        variant === "on-dark" && "focus-visible:ring-offset-[#040910]",
+        variant === "on-dark" && "focus-visible:ring-offset-background",
         className,
       )}
       href="/"
