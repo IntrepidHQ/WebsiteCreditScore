@@ -3,6 +3,7 @@ import { promises as fs } from "node:fs";
 import path from "node:path";
 
 import type { AuditReport } from "@/lib/types/audit";
+import { createWebsiteScreenshotUrl, normalizeUrl } from "@/lib/utils/url";
 
 const CACHE_DIR = path.join("/tmp", "craydl-scan-cache");
 const RECENT_FILE = path.join(CACHE_DIR, "_recent-scans.json");
@@ -16,6 +17,8 @@ export type RecentScanEntry = {
   summary: string;
   scannedAt: string;
   reportId: string;
+  /** `/api/preview?...` URL aligned with Supabase storage keys; omitted on older cache rows. */
+  previewImage?: string;
 };
 
 function cacheKey(normalizedUrl: string) {
@@ -67,6 +70,10 @@ export async function cacheReport(
       summary: report.executiveSummary,
       scannedAt: new Date().toISOString(),
       reportId: report.id,
+      previewImage: createWebsiteScreenshotUrl(
+        normalizeUrl(normalizedUrl, { stripWww: false }),
+        "desktop",
+      ),
     });
   } catch {
     // Non-critical — silently fail

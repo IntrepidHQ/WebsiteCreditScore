@@ -1,5 +1,6 @@
 import { createClient } from "@supabase/supabase-js";
 
+/** Public bucket for screenshot bytes; keys match `createCacheKey` in `site-screenshot.ts` (durable L2 cache). */
 const BUCKET = "site-previews";
 
 export type ScreenshotImageFormat = "webp" | "png";

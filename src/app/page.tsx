@@ -2,7 +2,11 @@ import { LandingPageContent } from "@/features/landing/components/landing-page-c
 import { getDesignPatternNotesForProfile } from "@/lib/benchmarks/library";
 import { buildAuditReportById, getPublicScanHistoryCards } from "@/lib/mock/report-builder";
 import { getRecentScans } from "@/lib/utils/scan-cache";
-import { createWebsiteScreenshotUrl, inferProfileType } from "@/lib/utils/url";
+import {
+  createWebsiteScreenshotUrl,
+  inferProfileType,
+  normalizeUrl,
+} from "@/lib/utils/url";
 import { buildBenchmarkTargetCategoryScores } from "@/lib/utils/score-visuals";
 import type { SampleAuditCard } from "@/lib/types/audit";
 
@@ -23,7 +27,9 @@ export default async function Home() {
       url: scan.normalizedUrl,
       profile: inferProfileType(scan.normalizedUrl),
       summary: scan.summary,
-      previewImage: createWebsiteScreenshotUrl(scan.normalizedUrl, "desktop"),
+      previewImage:
+        scan.previewImage ??
+        createWebsiteScreenshotUrl(normalizeUrl(scan.normalizedUrl, { stripWww: false }), "desktop"),
       score: scan.score,
       scannedAt: scan.scannedAt,
     }));

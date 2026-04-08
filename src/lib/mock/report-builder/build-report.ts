@@ -15,6 +15,7 @@ import { fetchPageSpeedMetrics } from "@/lib/utils/pagespeed";
 import { generateOutreachEmail } from "@/lib/utils/outreach";
 import { createDefaultProposalOffer } from "@/lib/utils/proposal-offers";
 import { calculatePricingSummary, getDefaultSelectedIds } from "@/lib/utils/pricing";
+import { ensurePreviewCachedForObservation } from "@/lib/utils/preview-warm";
 import { aggregateOverallScore } from "@/lib/utils/scores";
 import { createFallbackObservation, inspectWebsite } from "@/lib/utils/site-observation";
 import {
@@ -107,10 +108,14 @@ export async function buildLiveAuditReportFromUrl(rawUrl: string): Promise<Audit
 
   let report = buildAuditReportFromUrl(rawUrl, enrichedObservation);
 
-  // Enrich benchmarks and run AI analysis in parallel.
+  // Enrich benchmarks, AI, and desktop preview warm in parallel — warm persists to Supabase Storage (L2)
+  // so repeat `/api/preview` loads skip Browserless when storage is configured.
   const [enriched, aiAnalysis] = await Promise.all([
     enrichReportBenchmarks(report),
     analyzeSiteWithAI(normalizedUrl, enrichedObservation, report.overallScore),
+    ensurePreviewCachedForObservation(normalizedUrl, enrichedObservation).catch((err) => {
+      console.warn("[preview-warm]", err);
+    }),
   ]);
 
   report = enriched;
@@ -388,6 +393,8 @@ export async function buildLiveAuditReportById(id: string) {
     return null;
   }
 
+  const normalizedUrl = normalizeUrl(sample.url);
+
   const [observation, pageSpeedMetrics] = await Promise.all([
     inspectWebsite(sample.url),
     fetchPageSpeedMetrics(sample.url, "mobile"),
@@ -410,6 +417,9 @@ export async function buildLiveAuditReportById(id: string) {
   const [enriched, aiAnalysis] = await Promise.all([
     enrichReportBenchmarks(report),
     analyzeSiteWithAI(sample.url, enrichedObservation, report.overallScore),
+    ensurePreviewCachedForObservation(normalizedUrl, enrichedObservation).catch((err) => {
+      console.warn("[preview-warm]", err);
+    }),
   ]);
 
   report = enriched;
