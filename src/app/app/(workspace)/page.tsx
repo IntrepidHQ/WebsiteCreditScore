@@ -21,6 +21,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { LeadStageBadge } from "@/features/app/components/lead-stage-badge";
 import { CreateLeadScanForm } from "@/features/app/components/create-lead-scan-form";
+import { LoginShowcaseStrip } from "@/features/auth/components/login-showcase-strip";
 import { ScanHistorySection } from "@/features/app/components/scan-history-section";
 import { WorkspaceTokenLinkButton } from "@/features/app/components/workspace-token-link-button";
 import { getWorkspaceDashboardContext } from "@/lib/product/context";
@@ -229,10 +230,15 @@ export default async function AppDashboardPage({
               </div>
             ) : null}
             {error === "session-required" ? (
-              <div className="rounded-[18px] border border-danger/25 bg-danger/10 px-4 py-3 text-sm leading-6 text-foreground">
-                <p>We could not read your sign-in on this request. Sign in again, then return here.</p>
-                <Button asChild className="mt-3" size="sm" variant="secondary">
-                  <Link href="/app/login?next=%2Fapp">Sign in</Link>
+              <div className="space-y-4 rounded-[18px] border border-danger/25 bg-danger/10 px-4 py-4 text-sm leading-6 text-foreground">
+                <p className="font-medium">
+                  We could not read your sign-in on this request (often a cookie scope issue between{" "}
+                  <span className="whitespace-nowrap">www</span> and the bare domain, or an expired session).
+                  Sign in again, then run your scan.
+                </p>
+                <LoginShowcaseStrip tone="light" />
+                <Button asChild className="w-full sm:w-auto" size="sm" variant="secondary">
+                  <Link href="/app/login?error=session-required&next=%2Fapp">Sign in</Link>
                 </Button>
               </div>
             ) : null}

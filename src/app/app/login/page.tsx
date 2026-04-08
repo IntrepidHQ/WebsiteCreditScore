@@ -12,6 +12,9 @@ import { getOptionalWorkspaceSession, sanitizeInternalNextPath } from "@/lib/aut
 import { hasSupabaseEnv } from "@/lib/supabase/config";
 
 import { AnimatedExampleScoreBadge } from "@/features/auth/components/animated-example-score-badge";
+import { LoginShowcaseStrip } from "@/features/auth/components/login-showcase-strip";
+
+import { BrandWordmarkLink } from "@/components/common/brand-wordmark-link";
 
 import { LoginSupabaseEnvBanner } from "./login-supabase-env-banner";
 
@@ -87,36 +90,29 @@ export default async function AppLoginPage({
   return (
     <div className="flex min-h-screen">
       {/* ── Left: Brand panel ── */}
-      <div className="relative hidden overflow-hidden md:flex md:flex-1 md:flex-col md:justify-between md:p-14">
+      <div className="relative hidden overflow-hidden md:flex md:flex-1 md:flex-col md:justify-between md:bg-gradient-to-b md:from-[#030810] md:via-[#061420] md:to-[#071a28] md:p-14 md:text-white">
         {/* Ambient glow */}
         <div
           aria-hidden="true"
           className="pointer-events-none absolute -left-32 -top-32 h-[36rem] w-[36rem] rounded-full"
           style={{
-            background: "radial-gradient(circle, rgba(247,178,27,0.18) 0%, transparent 65%)",
+            background: "radial-gradient(circle, rgba(247,178,27,0.22) 0%, transparent 65%)",
             filter: "blur(24px)",
           }}
         />
 
         <div className="relative">
-          {/* Wordmark */}
-          <a className="inline-flex items-center gap-2.5" href="/">
-            <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-accent text-xs font-black tracking-tight text-accent-foreground">
-              WCS
-            </span>
-            <span className="text-sm font-semibold tracking-tight text-foreground">
-              WebsiteCreditScore.com
-            </span>
-          </a>
+          <BrandWordmarkLink className="block" variant="on-dark" />
 
           {/* Headline */}
-          <h1 className="font-display mt-14 text-[3.25rem] leading-[1.05] text-foreground">
+          <h1 className="font-display mt-14 text-[3.25rem] leading-[1.05] text-foreground md:text-white">
             Your website&apos;s<br />
-            <span className="gradient-type">credit score,</span><br />
+            <span className="gradient-type md:bg-none md:text-[#fcd34d]">credit score,</span>
+            <br />
             starts here.
           </h1>
 
-          <p className="mt-5 max-w-sm text-base leading-7 text-muted">
+          <p className="mt-5 max-w-sm text-base leading-7 text-muted md:text-white/75">
             Audit any site in seconds. See exactly what&apos;s holding back the score — and what to fix first.
           </p>
 
@@ -124,22 +120,24 @@ export default async function AppLoginPage({
           <ul className="mt-8 space-y-3">
             {features.map((f) => (
               <li className="flex items-center gap-3" key={f}>
-                <span className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-accent/15">
+                <span className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-accent/15 md:bg-accent/25">
                   <Check className="size-3 text-accent" strokeWidth={2.5} />
                 </span>
-                <span className="text-sm text-muted">{f}</span>
+                <span className="text-sm text-muted md:text-white/75">{f}</span>
               </li>
             ))}
           </ul>
+
+          <LoginShowcaseStrip className="mt-12 max-w-3xl" tone="dark" />
         </div>
 
         {/* Score badge */}
-        <div className="relative flex items-end gap-6">
+        <div className="relative flex flex-wrap items-end gap-6">
           <AnimatedExampleScoreBadge />
           <div>
             <p className="text-xs uppercase tracking-widest text-accent">Example audit</p>
-            <p className="mt-1 text-sm font-semibold text-foreground">acme-example.com</p>
-            <p className="text-sm text-muted">Scored in 4.2 seconds</p>
+            <p className="mt-1 text-sm font-semibold text-foreground md:text-white">acme-example.com</p>
+            <p className="text-sm text-muted md:text-white/65">Scored in 4.2 seconds</p>
           </div>
         </div>
       </div>
@@ -147,6 +145,7 @@ export default async function AppLoginPage({
       {/* ── Right: Form panel ── */}
       <div className="flex w-full flex-col justify-center px-6 py-12 md:w-[min(100%,460px)] md:shrink-0 md:border-l md:border-border/60 md:px-12 lg:w-[460px]">
         <LoginSupabaseEnvBanner />
+        <BrandWordmarkLink className="mb-8 hidden md:block" variant="on-light" />
         {/* Mobile / small tablet: same visual language as the left panel (hidden from md where split layout shows) */}
         <div className="mb-8 flex flex-col items-center md:hidden">
           <div
@@ -163,15 +162,8 @@ export default async function AppLoginPage({
             Example audit · acme-example.com
           </p>
         </div>
-        {/* Mobile wordmark when split panel is hidden */}
-        <a className="mb-10 inline-flex items-center gap-2.5 md:hidden" href="/">
-          <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-accent text-xs font-black tracking-tight text-accent-foreground">
-            WCS
-          </span>
-          <span className="text-sm font-semibold tracking-tight text-foreground">
-            WebsiteCreditScore.com
-          </span>
-        </a>
+        <LoginShowcaseStrip className="mb-8 md:hidden" tone="light" />
+        <BrandWordmarkLink className="mb-10 md:hidden" variant="on-light" />
 
         {sentConfirm ? (
           <div className="space-y-4">
@@ -390,6 +382,8 @@ export default async function AppLoginPage({
                 </form>
               )}
             </fieldset>
+
+            <LoginShowcaseStrip className="hidden md:block" tone="light" />
 
             {error && (
               <p className="rounded-lg border border-danger/30 bg-danger/10 px-4 py-3 text-sm text-danger">

@@ -9,6 +9,7 @@ import { workspaceSessionFromSupabaseUser } from "@/lib/auth/session";
 import { getSupabaseCookieOptions } from "@/lib/supabase/cookie-options";
 import { getSupabaseEnv, hasSupabaseEnv } from "@/lib/supabase/config";
 import { getProductRepository } from "@/lib/product/repository";
+import { mergeCookieHeaderWithStore } from "@/lib/supabase/merge-request-cookies";
 
 export const dynamic = "force-dynamic";
 
@@ -17,6 +18,9 @@ const copyResponseCookies = (from: NextResponse, to: NextResponse) => {
     to.cookies.set(c);
   }
 };
+
+const mergedCookiePairs = (request: NextRequest, cookieStore: Awaited<ReturnType<typeof cookies>>) =>
+  mergeCookieHeaderWithStore(request.headers.get("cookie"), cookieStore.getAll());
 
 /**
  * HTML form POST from `/app`. When Supabase is enabled, bind `getUser()` (and any refresh)
@@ -57,14 +61,7 @@ export const POST = async (request: NextRequest) => {
     cookieOptions: cookieOpts,
     cookies: {
       getAll() {
-        const merged = new Map<string, { name: string; value: string }>();
-        for (const c of request.cookies.getAll()) {
-          merged.set(c.name, c);
-        }
-        for (const c of cookieStore.getAll()) {
-          merged.set(c.name, c);
-        }
-        return Array.from(merged.values());
+        return mergedCookiePairs(request, cookieStore);
       },
       setAll(cookiesToSet) {
         cookiesToSet.forEach(({ name, value, options }) => {

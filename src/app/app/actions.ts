@@ -9,7 +9,7 @@ import { redirectOnRecoverableProductError } from "@/lib/product/workspace-load-
 import { getProductRepository } from "@/lib/product/repository";
 import type { LeadStage } from "@/lib/types/product";
 import { hasSupabaseEnv } from "@/lib/supabase/config";
-import { createSupabaseServerClient } from "@/lib/supabase/server";
+import { createSupabaseServerClientForServerAction } from "@/lib/supabase/server-action-client";
 
 /**
  * Dashboard scan: Server Action reads `cookies()` in the same request context as `/app` RSC,
@@ -38,13 +38,27 @@ export const submitWorkspaceScanFromDashboardAction = async (formData: FormData)
     }
   }
 
-  const supabase = await createSupabaseServerClient();
-  const {
+  const supabase = await createSupabaseServerClientForServerAction();
+  let {
     data: { user },
     error: userError,
   } = await supabase.auth.getUser();
 
   if (userError || !user) {
+    const { data: sessionData } = await supabase.auth.getSession();
+    if (sessionData.session?.refresh_token) {
+      await supabase.auth.refreshSession({
+        refresh_token: sessionData.session.refresh_token,
+      });
+      ({
+        data: { user },
+        error: userError,
+      } = await supabase.auth.getUser());
+    }
+  }
+
+  if (userError || !user) {
+    console.error("[workspace-scan] No Supabase user after getUser/refresh:", userError?.message);
     redirect("/app/login?error=session-required&next=%2Fapp");
   }
 
