@@ -167,15 +167,24 @@ function buildAuditReport(
   const previewUrl = sample?.previewUrl ?? rawUrl;
   const livePreviewDesktop = createWebsiteScreenshotUrl(previewUrl, "desktop");
   const livePreviewMobile = createWebsiteScreenshotUrl(previewUrl, "mobile");
-  const currentPreviewImage =
-    observation.fetchSucceeded || !sample?.previewImage
+  /** Committed assets under `/previews/` — never replace with live `/api/preview` when fetch succeeds. */
+  const bundledPreview =
+    typeof sample?.previewImage === "string" && sample.previewImage.startsWith("/previews/");
+  const currentPreviewImage = bundledPreview
+    ? sample!.previewImage
+    : observation.fetchSucceeded || !sample?.previewImage
       ? livePreviewDesktop
       : sample.previewImage;
+  const currentMobilePreview = bundledPreview
+    ? sample!.previewImage
+    : observation.fetchSucceeded
+      ? livePreviewMobile
+      : livePreviewDesktop;
   const livePreviewSet = {
     ...previewSet,
     current: {
       desktop: currentPreviewImage,
-      mobile: observation.fetchSucceeded ? livePreviewMobile : livePreviewDesktop,
+      mobile: currentMobilePreview,
     },
     future: previewSet.future,
     fallbackCurrent: {

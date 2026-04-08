@@ -40,8 +40,8 @@ export const sampleAudits: SampleAuditCard[] = [
     summary:
       "The story is credible, but the page still makes visitors read too much before acting.",
     scannedAt: new Date("2026-03-28T10:30:00-04:00").toISOString(),
-    // Capture the homepage for previews: Squarespace /about often fails headless/PageSpeed; the audit still opens /about.
-    previewImage: createWebsiteScreenshotUrl("https://www.saunderswoodworkllc.com", "desktop"),
+    // Bundled placeholder: live `/api/preview` is skipped in report builder so homepage + audit stay fast/reliable.
+    previewImage: "/previews/samples/saunders-woodwork-desktop.svg",
     fallbackPreviewImage: "/previews/service-current.svg",
     executiveSummary:
       "This example is based on the live Saunders Wood Work LLC About page. The business story is credible and detailed, but the page asks visitors to read a lot before it creates a clear next step.",
