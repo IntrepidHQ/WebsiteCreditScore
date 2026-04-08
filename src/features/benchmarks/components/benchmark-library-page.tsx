@@ -23,7 +23,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
   selectFeaturedBenchmarkReferences,
   sortBenchmarkReferencesByRecentScan,
-} from "@/lib/benchmarks/scans";
+} from "@/lib/benchmarks/scans-core";
 import type {
   BenchmarkReference,
   BenchmarkScan,
