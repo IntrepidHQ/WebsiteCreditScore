@@ -17,13 +17,15 @@ const primaryLinks = [
   { href: "/audit/mark-deford-md", label: "Sample Audit" },
 ];
 
-const toolLinks = [
-  { href: "/brief/mark-deford-md", label: "Discovery Brief" },
-  { href: "/app/login", label: "Sign in" },
-];
-
-export function SiteFooter() {
+export function SiteFooter({ isAuthenticated }: { isAuthenticated: boolean }) {
   const pathname = usePathname();
+
+  const toolLinks = [
+    { href: "/brief/mark-deford-md", label: "Discovery Brief" },
+    isAuthenticated
+      ? { href: "/app", label: "Workspace" }
+      : { href: "/app/login", label: "Sign in" },
+  ];
 
   if (pathname.startsWith("/app")) {
     return null;
