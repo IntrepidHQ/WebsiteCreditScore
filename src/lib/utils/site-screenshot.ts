@@ -427,7 +427,9 @@ async function captureViaExternalApi(
   device: PreviewDevice,
 ): Promise<Buffer> {
   const strategy = device === "mobile" ? "mobile" : "desktop";
-  const apiUrl = `https://www.googleapis.com/pagespeedonline/v5/runPagespeed?url=${encodeURIComponent(url)}&strategy=${strategy}&category=performance`;
+  const apiKey = process.env.GOOGLE_PAGESPEED_API_KEY?.trim();
+  const keyParam = apiKey ? `&key=${encodeURIComponent(apiKey)}` : "";
+  const apiUrl = `https://www.googleapis.com/pagespeedonline/v5/runPagespeed?url=${encodeURIComponent(url)}&strategy=${strategy}&category=performance${keyParam}`;
 
   const response = await fetch(apiUrl, {
     signal: AbortSignal.timeout(15000),

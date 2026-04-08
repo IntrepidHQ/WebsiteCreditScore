@@ -68,7 +68,7 @@ NEXT_PUBLIC_SUPABASE_URL=...
 NEXT_PUBLIC_SITE_URL=http://localhost:3000
 ```
 
-Optional: `STRIPE_SECRET_KEY`, `STRIPE_WEBHOOK_SECRET`, `SUPABASE_SERVICE_ROLE_KEY` (storage uploads).
+Optional: `STRIPE_SECRET_KEY`, `STRIPE_WEBHOOK_SECRET`, `SUPABASE_SERVICE_ROLE_KEY` (storage uploads), `GOOGLE_PAGESPEED_API_KEY` (PageSpeed screenshot fallback quota; create a key in Google Cloud Console with PageSpeed Insights API enabled).
 
 ## Production sign-in checklist (Plan A)
 
