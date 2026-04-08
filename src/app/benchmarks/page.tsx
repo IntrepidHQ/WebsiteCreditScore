@@ -6,6 +6,7 @@ import {
   getBenchmarkDesignNotes,
   getBenchmarkRubric,
 } from "@/lib/benchmarks/library";
+import { mergeReferenceShowcase } from "@/lib/benchmarks/public-reference-showcase";
 import { buildAuditReportById } from "@/lib/mock/report-builder";
 import type { BenchmarkVertical } from "@/lib/types/audit";
 import { buildBenchmarkTargetCategoryScores } from "@/lib/utils/score-visuals";
@@ -54,13 +55,15 @@ export default function BenchmarksPage() {
         href: `/audit/${featuredAuditReport.id}`,
       }}
       featuredAuditBreakdown={featuredAuditReport.categoryScores}
-      featuredExamples={benchmarkProfiles
-        .map((item) =>
-          buildBenchmarkReferencesForVertical(item.id).find(
-            (reference) => reference.tier === "flagship",
-          ) ?? buildBenchmarkReferencesForVertical(item.id)[0],
-        )
-        .filter(Boolean)}
+      featuredExamples={mergeReferenceShowcase(
+        benchmarkProfiles
+          .map((item) =>
+            buildBenchmarkReferencesForVertical(item.id).find(
+              (reference) => reference.tier === "flagship",
+            ) ?? buildBenchmarkReferencesForVertical(item.id)[0],
+          )
+          .filter(Boolean),
+      )}
       featuredNotes={getBenchmarkDesignNotes("service-providers").slice(0, 3)}
       targetBreakdown={buildBenchmarkTargetCategoryScores(
         featuredAuditReport.categoryScores,

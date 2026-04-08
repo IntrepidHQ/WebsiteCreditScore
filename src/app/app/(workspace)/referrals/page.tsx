@@ -3,7 +3,7 @@ import { HandCoins, TicketPercent } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { CopyLinkButton } from "@/features/app/components/copy-link-button";
-import { getWorkspaceAppContext } from "@/lib/product/context";
+import { getWorkspaceDashboardContext } from "@/lib/product/context";
 
 function PromoCard({
   promo,
@@ -54,8 +54,7 @@ function PromoCard({
 }
 
 export default async function ReferralsPage() {
-  const { repository, session, workspace } = await getWorkspaceAppContext();
-  const dashboard = await repository.getDashboard(workspace.id, session);
+  const { dashboard } = await getWorkspaceDashboardContext();
   const referralCode = dashboard.referralCode;
   const pendingCredits = dashboard.referralEvents
     .filter((entry) => entry.status === "pending")

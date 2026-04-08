@@ -50,7 +50,7 @@ function userFacingContentError(classification: ContentClassification, redirectT
 
 export async function POST(request: Request) {
   try {
-    const body = (await request.json()) as { url?: string };
+    const body = (await request.json()) as { url?: string; persist?: boolean };
 
     if (!body.url) {
       return NextResponse.json(
@@ -93,13 +93,16 @@ export async function POST(request: Request) {
       );
     }
 
-    // If authenticated, persist to database
+    // Persist only when the client opts in (e.g. /app). Homepage scans stay on the
+    // public /audit route so a partial session never sends users to /app/leads (which
+    // requires a stable session and caused session-required loops).
     const session = await getOptionalWorkspaceSession();
+    const shouldPersist = body.persist === true && session;
 
-    if (session) {
+    if (shouldPersist) {
       const repository = getProductRepository(session);
       const workspace = await repository.ensureWorkspace(session);
-      const lead = await repository.createLeadFromUrl(workspace.id, body.url, session);
+      const lead = await repository.createLeadFromUrl(workspace.id, normalizedUrl, session);
 
       return NextResponse.json({
         id: lead.id,
@@ -123,7 +126,7 @@ export async function POST(request: Request) {
 
     // Build report with real observation data
     const report = await enrichReportBenchmarks(
-      buildAuditReportFromUrl(body.url, observation),
+      buildAuditReportFromUrl(normalizedUrl, observation),
     );
 
     // Cache for future requests (non-blocking)

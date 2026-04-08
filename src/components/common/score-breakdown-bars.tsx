@@ -77,60 +77,83 @@ export function ScoreBreakdownBars({
   }
 
   return (
-    <div className={cn("rounded-[24px] border border-border/60 bg-panel/45 p-5", className)}>
-      <div className="space-y-4">
-        {items.map((item, index) => {
-          const tone = getScoreTone(item.score);
-          const target = targetMap.get(item.key);
+    <div className={cn("space-y-2", className)}>
+      {items.map((item, index) => {
+        const tone = getScoreTone(item.score);
+        const target = targetMap.get(item.key);
+        const pct = Math.min(100, Math.max(0, item.score * 10));
 
-          return (
-            <div key={item.key}>
-              <div className="mb-2 flex flex-wrap items-center justify-between gap-3">
-                <div className="flex min-w-0 items-center gap-2">
-                  <h3 className="truncate text-sm font-semibold text-foreground">{item.label}</h3>
-                  {showWeights ? (
-                    <Badge className="normal-case tracking-normal" variant="neutral">
-                      {item.weight.toFixed(2)}x
-                    </Badge>
-                  ) : null}
-                </div>
-                <div className="flex items-center gap-2">
-                  {target ? (
-                    <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-muted">
-                      Target {target.score.toFixed(1)}
-                    </p>
-                  ) : null}
-                  <p className="text-sm font-semibold text-foreground">{item.score.toFixed(1)}</p>
-                </div>
+        return (
+          <div
+            className="rounded-2xl border border-border/60 bg-[linear-gradient(180deg,color-mix(in_srgb,var(--theme-panel)_92%,transparent),color-mix(in_srgb,var(--theme-background-alt)_88%,transparent))] px-3 py-2.5 shadow-sm shadow-background/20"
+            key={item.key}
+          >
+            <div className="flex items-start justify-between gap-3">
+              <div className="min-w-0 flex flex-wrap items-center gap-2">
+                <h3 className="truncate text-sm font-semibold text-foreground">{item.label}</h3>
+                {showWeights ? (
+                  <Badge className="normal-case tracking-normal" variant="neutral">
+                    {item.weight.toFixed(2)}x
+                  </Badge>
+                ) : null}
               </div>
-              <div className="relative h-3 overflow-hidden rounded-full bg-background/65">
+              <div className="shrink-0 text-right leading-none">
+                <div
+                  aria-label={`${item.label} score ${item.score.toFixed(1)} out of 10`}
+                  className="flex items-baseline justify-end gap-0.5 tabular-nums"
+                >
+                  <span className="text-lg font-semibold tracking-tight text-foreground sm:text-xl">
+                    {item.score.toFixed(1)}
+                  </span>
+                  <span className="text-[10px] font-semibold uppercase tracking-[0.12em] text-muted">
+                    /10
+                  </span>
+                </div>
+                {target ? (
+                  <p className="mt-1 text-[10px] font-semibold uppercase tracking-[0.14em] text-muted">
+                    Target{" "}
+                    <span className="tabular-nums text-foreground">{target.score.toFixed(1)}</span>
+                  </p>
+                ) : null}
+              </div>
+            </div>
+
+            <div className="relative mt-2" role="presentation">
+              <div className="relative h-2.5 w-full">
+                <div className="absolute inset-0 rounded-full bg-background/65" />
                 {target ? (
                   <div
                     aria-hidden="true"
-                    className="absolute inset-y-0 border-r border-dashed border-accent/65"
-                    style={{ left: `calc(${target.score * 10}% - 1px)` }}
+                    className="pointer-events-none absolute inset-y-0 z-[1] border-r border-dashed border-accent/70"
+                    style={{ left: `calc(${Math.min(100, target.score * 10)}% - 1px)` }}
                   />
                 ) : null}
                 <div
-                  className="h-full rounded-full"
+                  className="relative z-[2] h-2.5 min-w-0 overflow-hidden rounded-full"
+                  data-testid={`score-bar-fill-${item.key}`}
                   ref={(node) => {
                     barRefs.current[index] = node;
                   }}
                   style={{
-                    backgroundImage: toneFills[tone],
-                    width: reduceMotion ? `${item.score * 10}%` : "0%",
+                    width: reduceMotion ? `${pct}%` : "0%",
                   }}
-                />
+                >
+                  <div
+                    className="h-full w-full rounded-full shadow-[inset_0_1px_0_rgba(255,255,255,0.12)]"
+                    style={{ backgroundImage: toneFills[tone] }}
+                  />
+                </div>
               </div>
-              {showWeights ? (
-                <p className="mt-2 text-[11px] uppercase tracking-[0.14em] text-muted">
-                  Weight {Math.round((item.weight / maxWeight) * 100)}%
-                </p>
-              ) : null}
             </div>
-          );
-        })}
-      </div>
+
+            {showWeights ? (
+              <p className="mt-2 text-[10px] uppercase tracking-[0.14em] text-muted">
+                Weight {Math.round((item.weight / maxWeight) * 100)}%
+              </p>
+            ) : null}
+          </div>
+        );
+      })}
     </div>
   );
 }

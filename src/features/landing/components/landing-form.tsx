@@ -1,12 +1,17 @@
 "use client";
 
 import { startTransition, useId, useState } from "react";
-import { ArrowRight, LoaderCircle, Sparkles } from "lucide-react";
+import { ArrowRight, Loader2, Sparkles } from "lucide-react";
 import { useRouter } from "next/navigation";
 
+import { ScanUrlFieldGroup } from "@/components/common/scan-url-field-group";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 
+/**
+ * Public homepage scan: same URL field pattern as the signed-in workspace (`ScanUrlFieldGroup` +
+ * `CreateLeadScanForm`), but submits to `/api/audit` with `persist: false` so no login is required.
+ * Do not POST to `/api/app/create-lead` here — that route requires a workspace session.
+ */
 export function LandingForm() {
   const router = useRouter();
   const inputId = useId();
@@ -17,8 +22,13 @@ export function LandingForm() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
 
-  async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
+  const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
+    const trimmed = url.trim();
+    if (!trimmed) {
+      return;
+    }
+
     setLoading(true);
     setError("");
 
@@ -28,7 +38,8 @@ export function LandingForm() {
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({ url }),
+        credentials: "include",
+        body: JSON.stringify({ url: trimmed, persist: false }),
       });
 
       const payload = (await response.json()) as
@@ -49,7 +60,6 @@ export function LandingForm() {
           return;
         }
 
-        // Public scan — redirect to audit with signup hint
         router.push(
           `/audit/${payload.id}?url=${encodeURIComponent(payload.normalizedUrl)}&ref=landing`,
         );
@@ -63,7 +73,7 @@ export function LandingForm() {
     } finally {
       setLoading(false);
     }
-  }
+  };
 
   return (
     <form
@@ -81,45 +91,39 @@ export function LandingForm() {
         </p>
       </div>
       <div className="flex flex-col gap-3 sm:flex-row">
-        <div className="relative flex flex-1 items-center">
-          <span className="pointer-events-none absolute left-4 select-none text-sm text-muted">
-            www.
-          </span>
-          <Input
-            aria-describedby={error ? `${helperId} ${metaId} ${errorId}` : `${helperId} ${metaId}`}
-            aria-invalid={Boolean(error)}
-            autoComplete="url"
-            className="h-14 flex-1 pl-12"
-            enterKeyHint="go"
-            id={inputId}
-            onChange={(event) => setUrl(event.target.value)}
-            placeholder="yourwebsite.com"
-            type="url"
-            value={url}
-          />
-        </div>
+        <ScanUrlFieldGroup
+          aria-describedby={error ? `${helperId} ${metaId} ${errorId}` : `${helperId} ${metaId}`}
+          aria-invalid={Boolean(error)}
+          autoFocus={false}
+          disabled={loading}
+          id={inputId}
+          onValueChange={setUrl}
+          placeholder="example.com"
+          value={url}
+        />
         <Button
-          className="h-14 sm:min-w-56"
+          aria-busy={loading}
+          className="min-w-[10.5rem] sm:min-w-[12rem]"
           disabled={loading || !url.trim()}
           size="lg"
           type="submit"
         >
           {loading ? (
             <>
-              <LoaderCircle aria-hidden="true" className="size-4 animate-spin" />
+              <Loader2 aria-hidden className="size-4 animate-spin" />
               Generating audit
             </>
           ) : (
             <>
               Generate audit
-              <ArrowRight aria-hidden="true" className="size-4" />
+              <ArrowRight aria-hidden className="size-4" />
             </>
           )}
         </Button>
       </div>
       <div className="flex flex-wrap items-center gap-3 text-sm text-muted" id={metaId}>
         <span className="inline-flex items-center gap-2">
-          <Sparkles aria-hidden="true" className="size-4 text-accent" />
+          <Sparkles aria-hidden className="size-4 text-accent" />
           Audit, score breakdown, packet PDF, and brief
         </span>
         <span className="hidden text-border sm:inline">•</span>

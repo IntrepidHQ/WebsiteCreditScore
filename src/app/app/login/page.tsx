@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { redirect } from "next/navigation";
 import { Check } from "lucide-react";
 
@@ -10,37 +11,9 @@ import { isDemoWorkspaceAllowed } from "@/lib/auth/demo-flag";
 import { getOptionalWorkspaceSession, sanitizeInternalNextPath } from "@/lib/auth/session";
 import { hasSupabaseEnv } from "@/lib/supabase/config";
 
-// Decorative score ring for the left panel
-function ScoreBadge() {
-  const score = 87;
-  const radius = 54;
-  const circumference = 2 * Math.PI * radius;
-  const filled = (score / 100) * circumference;
-  return (
-    <div className="relative inline-flex items-center justify-center">
-      <svg className="rotate-[-90deg]" height="136" viewBox="0 0 136 136" width="136">
-        <circle
-          cx="68" cy="68" r={radius}
-          fill="none"
-          stroke="rgba(247,178,27,0.12)"
-          strokeWidth="10"
-        />
-        <circle
-          cx="68" cy="68" r={radius}
-          fill="none"
-          stroke="#f7b21b"
-          strokeDasharray={`${filled} ${circumference - filled}`}
-          strokeLinecap="round"
-          strokeWidth="10"
-        />
-      </svg>
-      <div className="absolute flex flex-col items-center">
-        <span className="font-display text-4xl leading-none text-foreground">{score}</span>
-        <span className="mt-1 text-[10px] font-medium uppercase tracking-widest text-accent">Score</span>
-      </div>
-    </div>
-  );
-}
+import { AnimatedExampleScoreBadge } from "@/features/auth/components/animated-example-score-badge";
+
+import { LoginSupabaseEnvBanner } from "./login-supabase-env-banner";
 
 export default async function AppLoginPage({
   searchParams,
@@ -61,7 +34,13 @@ export default async function AppLoginPage({
     "/app",
   );
 
-  if (session) redirect(next);
+  // Never auto-redirect to /app while ?error= is present — any code can indicate a failed workspace
+  // load or auth handoff; redirecting back causes /app ↔ /login loops when session is still valid.
+  const skipAutoRedirectToWorkspace = Boolean(authError);
+
+  if (session && !skipAutoRedirectToWorkspace) {
+    redirect(next);
+  }
 
   const errorMessage = (code: string | null): string | null => {
     switch (code) {
@@ -83,8 +62,14 @@ export default async function AppLoginPage({
         return "Auth is not configured in this environment.";
       case "callback-failed":
         return "The link expired or was already used. Request a new one below.";
+      case "missing-code":
+        return "That sign-in link did not include a valid code (wrong redirect URL, or the link was opened in a different browser). Use the same site address as in the email (www vs non-www), or sign in again from this page.";
+      case "session-required":
+        return "Sign in to continue to your workspace.";
       case "db-not-ready":
         return "The database tables are not set up yet. Run the migration SQL in your Supabase project (SQL Editor → paste supabase/migrations/20260330232000_init_schema.sql → Run), then sign in again.";
+      case "workspace-unavailable":
+        return "We could not open your workspace (database permission or a stale session). Sign out and sign in again. If it keeps happening, confirm Supabase migrations are applied and Row Level Security policies match your project.";
       default:
         return code ? "Something went wrong. Please try again." : null;
     }
@@ -102,7 +87,7 @@ export default async function AppLoginPage({
   return (
     <div className="flex min-h-screen">
       {/* ── Left: Brand panel ── */}
-      <div className="relative hidden overflow-hidden lg:flex lg:flex-1 lg:flex-col lg:justify-between lg:p-14">
+      <div className="relative hidden overflow-hidden md:flex md:flex-1 md:flex-col md:justify-between md:p-14">
         {/* Ambient glow */}
         <div
           aria-hidden="true"
@@ -150,7 +135,7 @@ export default async function AppLoginPage({
 
         {/* Score badge */}
         <div className="relative flex items-end gap-6">
-          <ScoreBadge />
+          <AnimatedExampleScoreBadge />
           <div>
             <p className="text-xs uppercase tracking-widest text-accent">Example audit</p>
             <p className="mt-1 text-sm font-semibold text-foreground">acme-example.com</p>
@@ -160,9 +145,26 @@ export default async function AppLoginPage({
       </div>
 
       {/* ── Right: Form panel ── */}
-      <div className="flex w-full flex-col justify-center px-6 py-12 lg:w-[460px] lg:shrink-0 lg:border-l lg:border-border/60 lg:px-12">
-        {/* Mobile wordmark */}
-        <a className="mb-10 inline-flex items-center gap-2.5 lg:hidden" href="/">
+      <div className="flex w-full flex-col justify-center px-6 py-12 md:w-[min(100%,460px)] md:shrink-0 md:border-l md:border-border/60 md:px-12 lg:w-[460px]">
+        <LoginSupabaseEnvBanner />
+        {/* Mobile / small tablet: same visual language as the left panel (hidden from md where split layout shows) */}
+        <div className="mb-8 flex flex-col items-center md:hidden">
+          <div
+            aria-hidden
+            className="pointer-events-none mb-5 h-28 w-full max-w-[17rem] rounded-[1.75rem]"
+            style={{
+              background:
+                "radial-gradient(ellipse at 50% 25%, rgba(247,178,27,0.2) 0%, transparent 72%)",
+              filter: "blur(0.5px)",
+            }}
+          />
+          <AnimatedExampleScoreBadge />
+          <p className="mt-4 max-w-xs text-center text-[11px] font-semibold uppercase tracking-[0.2em] text-muted">
+            Example audit · acme-example.com
+          </p>
+        </div>
+        {/* Mobile wordmark when split panel is hidden */}
+        <a className="mb-10 inline-flex items-center gap-2.5 md:hidden" href="/">
           <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-accent text-xs font-black tracking-tight text-accent-foreground">
             WCS
           </span>
@@ -171,14 +173,7 @@ export default async function AppLoginPage({
           </span>
         </a>
 
-        {!hasSupabaseEnv() ? (
-          <div className="rounded-xl border border-border/70 bg-panel/70 p-5 text-sm leading-6 text-muted">
-            Auth environment variables are not set. Add{" "}
-            <code className="text-foreground">NEXT_PUBLIC_SUPABASE_URL</code> and{" "}
-            <code className="text-foreground">NEXT_PUBLIC_SUPABASE_PUBLISHABLE_DEFAULT_KEY</code>{" "}
-            to your Vercel project settings, then redeploy.
-          </div>
-        ) : sentConfirm ? (
+        {sentConfirm ? (
           <div className="space-y-4">
             <div className="flex h-12 w-12 items-center justify-center rounded-full bg-success/15">
               <Check className="size-5 text-success" strokeWidth={2.5} />
@@ -212,157 +207,189 @@ export default async function AppLoginPage({
             </a>
           </div>
         ) : mode === "reset" ? (
-          <div className="space-y-6">
-            <div>
-              <h2 className="text-2xl font-semibold text-foreground">Reset your password</h2>
-              <p className="mt-1.5 text-sm text-muted">
-                Enter your email and we&apos;ll send a link to set a new password.
-              </p>
-            </div>
-            <form action="/auth/reset" className="space-y-4" method="post">
-              <div className="space-y-1.5">
-                <label className="text-sm font-medium text-foreground" htmlFor="reset-email">
-                  Email
-                </label>
-                <Input
-                  autoComplete="email"
-                  autoFocus
-                  defaultValue={prefillEmail}
-                  id="reset-email"
-                  name="email"
-                  placeholder="you@yourbusiness.com"
-                  required
-                  type="email"
-                />
-              </div>
-              <Button className="w-full" type="submit">
-                Send reset link
-              </Button>
-            </form>
-            {error && (
-              <p className="rounded-lg border border-danger/30 bg-danger/10 px-4 py-3 text-sm text-danger">
-                {error}
-              </p>
-            )}
-            <a
-              className="block text-center text-sm text-muted hover:text-foreground"
-              href={`/app/login?next=${encodeURIComponent(next)}`}
+          <>
+            <fieldset
+              className="min-w-0 space-y-6 border-0 p-0 disabled:pointer-events-none disabled:opacity-60"
+              disabled={!hasSupabaseEnv()}
             >
-              Back to sign in
-            </a>
-          </div>
-        ) : (
-          <div className="space-y-6">
-            {/* Tab switcher */}
-            <div>
-              <div className="inline-flex rounded-lg border border-border/70 bg-panel/60 p-1">
-                <a
-                  className={`rounded-md px-4 py-1.5 text-sm font-medium transition-colors ${
-                    mode === "signin"
-                      ? "bg-elevated text-foreground shadow-sm"
-                      : "text-muted hover:text-foreground"
-                  }`}
-                  href={`/app/login?next=${encodeURIComponent(next)}`}
-                >
-                  Sign in
-                </a>
-                <a
-                  className={`rounded-md px-4 py-1.5 text-sm font-medium transition-colors ${
-                    mode === "signup"
-                      ? "bg-elevated text-foreground shadow-sm"
-                      : "text-muted hover:text-foreground"
-                  }`}
-                  href={`/app/login?mode=signup&next=${encodeURIComponent(next)}`}
-                >
-                  Create account
-                </a>
+              <div>
+                <h2 className="text-2xl font-semibold text-foreground">Reset your password</h2>
+                <p className="mt-1.5 text-sm text-muted">
+                  Enter your email and we&apos;ll send a link to set a new password.
+                </p>
               </div>
-              <h2 className="mt-5 text-2xl font-semibold text-foreground">
-                {mode === "signup" ? "Create your account" : "Welcome back"}
-              </h2>
-              {mode === "signup" && (
-                <p className="mt-1 text-sm text-muted">Free to start — no credit card required.</p>
-              )}
-            </div>
-
-            {/* Email + Password form */}
-            {mode === "signup" ? (
-              <form action="/auth/signup" className="space-y-4" method="post">
+              <form action="/auth/reset" className="space-y-4" method="post">
                 <div className="space-y-1.5">
-                  <label className="text-sm font-medium text-foreground" htmlFor="signup-email">
+                  <label className="text-sm font-medium text-foreground" htmlFor="reset-email">
                     Email
                   </label>
                   <Input
                     autoComplete="email"
                     autoFocus
                     defaultValue={prefillEmail}
-                    id="signup-email"
+                    id="reset-email"
                     name="email"
                     placeholder="you@yourbusiness.com"
                     required
                     type="email"
                   />
                 </div>
-                <div className="space-y-1.5">
-                  <label className="text-sm font-medium text-foreground" htmlFor="signup-password">
-                    Password
-                  </label>
-                  <Input
-                    autoComplete="new-password"
-                    id="signup-password"
-                    name="password"
-                    required
-                    type="password"
-                  />
-                  <p className="text-xs text-muted">At least 8 characters</p>
-                </div>
-                <input name="next" type="hidden" value={next} />
                 <Button className="w-full" type="submit">
-                  Create account
+                  Send reset link
                 </Button>
               </form>
-            ) : (
-              <form action="/auth/password" className="space-y-4" method="post">
-                <div className="space-y-1.5">
-                  <label className="text-sm font-medium text-foreground" htmlFor="signin-email">
-                    Email
-                  </label>
-                  <Input
-                    autoComplete="email"
-                    defaultValue={prefillEmail}
-                    id="signin-email"
-                    name="email"
-                    placeholder="you@yourbusiness.com"
-                    required
-                    type="email"
-                  />
+              <a
+                className="block text-center text-sm text-muted hover:text-foreground"
+                href={`/app/login?next=${encodeURIComponent(next)}`}
+              >
+                Back to sign in
+              </a>
+            </fieldset>
+            {error ? (
+              <p className="rounded-lg border border-danger/30 bg-danger/10 px-4 py-3 text-sm text-danger">
+                {error}
+              </p>
+            ) : null}
+          </>
+        ) : (
+          <div className="space-y-6">
+            {session &&
+            skipAutoRedirectToWorkspace &&
+            ["db-not-ready", "workspace-unavailable", "supabase-not-configured"].includes(authError ?? "") ? (
+              <div className="rounded-xl border border-accent/35 bg-accent/10 p-4 text-sm leading-6 text-foreground">
+                <p className="font-semibold">You are signed in, but the workspace did not open.</p>
+                <p className="mt-2 text-muted">
+                  Staying on this page avoids a redirect loop with /app. After fixing the database (or
+                  signing out), try again.
+                </p>
+                <Button asChild className="mt-4 w-full" variant="secondary">
+                  <Link href="/auth/logout">Sign out and start over</Link>
+                </Button>
+                <p className="mt-4 text-xs leading-5 text-muted">
+                  Technical check: open{" "}
+                  <a className="text-accent underline" href="/api/workspace/gate">
+                    /api/workspace/gate
+                  </a>{" "}
+                  while signed in on this site to see which step fails.
+                </p>
+              </div>
+            ) : null}
+
+            <fieldset
+              className="min-w-0 space-y-6 border-0 p-0 disabled:pointer-events-none disabled:opacity-60"
+              disabled={!hasSupabaseEnv()}
+            >
+              {/* Tab switcher */}
+              <div>
+                <div className="inline-flex rounded-lg border border-border/70 bg-panel/60 p-1">
+                  <a
+                    className={`rounded-md px-4 py-1.5 text-sm font-medium transition-colors ${
+                      mode === "signin"
+                        ? "bg-elevated text-foreground shadow-sm"
+                        : "text-muted hover:text-foreground"
+                    }`}
+                    href={`/app/login?next=${encodeURIComponent(next)}`}
+                  >
+                    Sign in
+                  </a>
+                  <a
+                    className={`rounded-md px-4 py-1.5 text-sm font-medium transition-colors ${
+                      mode === "signup"
+                        ? "bg-elevated text-foreground shadow-sm"
+                        : "text-muted hover:text-foreground"
+                    }`}
+                    href={`/app/login?mode=signup&next=${encodeURIComponent(next)}`}
+                  >
+                    Create account
+                  </a>
                 </div>
-                <div className="space-y-1.5">
-                  <div className="flex items-center justify-between">
-                    <label className="text-sm font-medium text-foreground" htmlFor="signin-password">
+                <h2 className="mt-5 text-2xl font-semibold text-foreground">
+                  {mode === "signup" ? "Create your account" : "Welcome back"}
+                </h2>
+                {mode === "signup" && (
+                  <p className="mt-1 text-sm text-muted">Free to start — no credit card required.</p>
+                )}
+              </div>
+
+              {/* Email + Password form */}
+              {mode === "signup" ? (
+                <form action="/auth/signup" className="space-y-4" method="post">
+                  <div className="space-y-1.5">
+                    <label className="text-sm font-medium text-foreground" htmlFor="signup-email">
+                      Email
+                    </label>
+                    <Input
+                      autoComplete="email"
+                      autoFocus
+                      defaultValue={prefillEmail}
+                      id="signup-email"
+                      name="email"
+                      placeholder="you@yourbusiness.com"
+                      required
+                      type="email"
+                    />
+                  </div>
+                  <div className="space-y-1.5">
+                    <label className="text-sm font-medium text-foreground" htmlFor="signup-password">
                       Password
                     </label>
-                    <a
-                      className="text-xs text-muted hover:text-foreground"
-                      href={`/app/login?mode=reset&email=${encodeURIComponent(prefillEmail)}&next=${encodeURIComponent(next)}`}
-                    >
-                      Forgot password?
-                    </a>
+                    <Input
+                      autoComplete="new-password"
+                      id="signup-password"
+                      name="password"
+                      required
+                      type="password"
+                    />
+                    <p className="text-xs text-muted">At least 8 characters</p>
                   </div>
-                  <Input
-                    autoComplete="current-password"
-                    id="signin-password"
-                    name="password"
-                    required
-                    type="password"
-                  />
-                </div>
-                <input name="next" type="hidden" value={next} />
-                <Button className="w-full" type="submit">
-                  Sign in
-                </Button>
-              </form>
-            )}
+                  <input name="next" type="hidden" value={next} />
+                  <Button className="w-full" type="submit">
+                    Create account
+                  </Button>
+                </form>
+              ) : (
+                <form action="/auth/password" className="space-y-4" method="post">
+                  <div className="space-y-1.5">
+                    <label className="text-sm font-medium text-foreground" htmlFor="signin-email">
+                      Email
+                    </label>
+                    <Input
+                      autoComplete="email"
+                      defaultValue={prefillEmail}
+                      id="signin-email"
+                      name="email"
+                      placeholder="you@yourbusiness.com"
+                      required
+                      type="email"
+                    />
+                  </div>
+                  <div className="space-y-1.5">
+                    <div className="flex items-center justify-between">
+                      <label className="text-sm font-medium text-foreground" htmlFor="signin-password">
+                        Password
+                      </label>
+                      <a
+                        className="text-xs text-muted hover:text-foreground"
+                        href={`/app/login?mode=reset&email=${encodeURIComponent(prefillEmail)}&next=${encodeURIComponent(next)}`}
+                      >
+                        Forgot password?
+                      </a>
+                    </div>
+                    <Input
+                      autoComplete="current-password"
+                      id="signin-password"
+                      name="password"
+                      required
+                      type="password"
+                    />
+                  </div>
+                  <input name="next" type="hidden" value={next} />
+                  <Button className="w-full" type="submit">
+                    Sign in
+                  </Button>
+                </form>
+              )}
+            </fieldset>
 
             {error && (
               <p className="rounded-lg border border-danger/30 bg-danger/10 px-4 py-3 text-sm text-danger">
@@ -384,6 +411,15 @@ export default async function AppLoginPage({
                 </Button>
               </>
             )}
+
+            {hasSupabaseEnv() ? (
+              <p className="text-center text-xs leading-5 text-muted">
+                <a className="text-accent underline" href="/api/workspace/gate">
+                  Workspace connection check
+                </a>{" "}
+                — JSON status after sign-in
+              </p>
+            ) : null}
           </div>
         )}
       </div>

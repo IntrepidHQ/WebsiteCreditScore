@@ -2,11 +2,10 @@ import { saveTemplateAction } from "@/app/app/actions";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { getWorkspaceAppContext } from "@/lib/product/context";
+import { getWorkspaceDashboardContext } from "@/lib/product/context";
 
 export default async function TemplatesPage() {
-  const { repository, session, workspace } = await getWorkspaceAppContext();
-  const dashboard = await repository.getDashboard(workspace.id, session);
+  const { dashboard } = await getWorkspaceDashboardContext();
 
   return (
     <div className="grid gap-6 xl:grid-cols-[minmax(0,1.15fr)_minmax(0,0.85fr)]">

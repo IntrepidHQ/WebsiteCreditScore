@@ -1,6 +1,5 @@
 import Link from "next/link";
 import {
-  ArrowRight,
   ArrowUpRight,
   BellDot,
   ClipboardList,
@@ -12,17 +11,20 @@ import {
   Sparkles,
 } from "lucide-react";
 
-import { createLeadAction, completeReminderAction } from "@/app/app/actions";
+import { completeReminderAction } from "@/app/app/actions";
+import { getTokenActionCost } from "@/lib/billing/catalog";
+import { isUnlimitedWorkspace } from "@/lib/product/unlimited-workspace";
 import { ScoreBreakdownBars } from "@/components/common/score-breakdown-bars";
 import { ScoreDial } from "@/components/common/score-dial";
-import { PreviewImage } from "@/components/common/preview-image";
+import { PreviewWithLiveToggle } from "@/components/common/preview-with-live-toggle";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
 import { LeadStageBadge } from "@/features/app/components/lead-stage-badge";
+import { CreateLeadScanForm } from "@/features/app/components/create-lead-scan-form";
 import { ScanHistorySection } from "@/features/app/components/scan-history-section";
 import { WorkspaceTokenLinkButton } from "@/features/app/components/workspace-token-link-button";
-import { getWorkspaceAppContext } from "@/lib/product/context";
+import { getWorkspaceDashboardContext } from "@/lib/product/context";
+import { buildBenchmarkTargetCategoryScores } from "@/lib/utils/score-visuals";
 import type { LeadRecord, SavedReport } from "@/lib/types/product";
 
 function formatTimestamp(input: string) {
@@ -45,6 +47,15 @@ function SearchRow({
   lead?: LeadRecord;
 }) {
   const report = savedReport.reportSnapshot;
+  if (!report) {
+    return null;
+  }
+
+  const desktopShot =
+    report.previewSet?.current?.desktop ?? "/previews/fallback-desktop.svg";
+  const fallbackShot =
+    report.previewSet?.fallbackCurrent?.desktop ?? desktopShot;
+
   const auditHref = `/audit/${report.id}?url=${encodeURIComponent(report.normalizedUrl)}`;
   const leadHref = `/app/leads/${savedReport.leadId}`;
   const domain = savedReport.normalizedUrl.replace(/^https?:\/\//, "");
@@ -52,22 +63,20 @@ function SearchRow({
   return (
     <div className="rounded-[18px] border border-border/60 bg-background-alt/60 p-3 sm:p-4">
       <div className="grid gap-4 md:grid-cols-[8.5rem_minmax(0,1fr)_auto] md:items-center">
-        <Link className="block overflow-hidden rounded-[14px]" href={auditHref}>
-          <PreviewImage
-            alt={`${savedReport.title} preview`}
-            className="aspect-[16/11]"
-            fallbackLabel="Preview unavailable"
-            fallbackSrc={report.previewSet.fallbackCurrent.desktop}
-            loadingLabel="Capturing desktop screenshot"
-            src={report.previewSet.current.desktop}
-          />
-        </Link>
+        <PreviewWithLiveToggle
+          alt={`${savedReport.title} preview`}
+          fallbackLabel="Preview unavailable"
+          fallbackSrc={fallbackShot}
+          loadingLabel="Capturing desktop screenshot"
+          normalizedUrl={savedReport.normalizedUrl}
+          screenshotSrc={desktopShot}
+        />
 
         <div className="min-w-0 space-y-2">
           <div className="flex flex-wrap items-center gap-2">
             {lead ? <LeadStageBadge stage={lead.stage} /> : null}
             <span className="rounded-full border border-accent/25 bg-accent/10 px-2.5 py-1 text-[11px] font-semibold uppercase tracking-[0.16em] text-accent">
-              {report.overallScore.toFixed(1)}
+              {Number(report.overallScore ?? 0).toFixed(1)}
             </span>
           </div>
           <div className="space-y-1">
@@ -76,7 +85,9 @@ function SearchRow({
                 {savedReport.title}
               </Link>
             </h3>
-            <p className="line-clamp-2 text-sm leading-6 text-muted">{report.executiveSummary}</p>
+            <p className="line-clamp-2 text-sm leading-6 text-muted">
+              {report.executiveSummary ?? ""}
+            </p>
           </div>
           <div className="flex flex-wrap items-center gap-x-4 gap-y-2 text-[11px] font-semibold uppercase tracking-[0.16em] text-muted">
             <span className="inline-flex items-center gap-2">
@@ -114,12 +125,16 @@ export default async function AppDashboardPage({
   const resolvedSearchParams = (await searchParams) ?? {};
   const error =
     typeof resolvedSearchParams.error === "string" ? resolvedSearchParams.error : null;
-  const { repository, session, workspace } = await getWorkspaceAppContext();
-  const dashboard = await repository.getDashboard(workspace.id, session);
+  const { dashboard } = await getWorkspaceDashboardContext();
   const workspaceState = dashboard.workspace;
+  const unlimitedWorkspace = isUnlimitedWorkspace();
+  const welcomeFreeScanAvailable =
+    !unlimitedWorkspace && workspaceState.onboardingWelcomeScanUsed === false;
+  const scanTokenCost = getTokenActionCost("scan-site");
   const visibleLeads = dashboard.leads.filter((lead) => lead.title !== "Provider Pages");
   const visibleSavedReports = dashboard.savedReports.filter(
-    (savedReport) => savedReport.title !== "Provider Pages",
+    (savedReport) =>
+      savedReport.title !== "Provider Pages" && Boolean(savedReport.reportSnapshot),
   );
   const latestSavedReport = visibleSavedReports[0];
   const latestLead = latestSavedReport
@@ -127,14 +142,14 @@ export default async function AppDashboardPage({
     : undefined;
   const latestReport = latestSavedReport?.reportSnapshot;
   const lowScoreCount = visibleSavedReports.filter(
-    (savedReport) => savedReport.reportSnapshot.overallScore < 6.5,
+    (savedReport) => (savedReport.reportSnapshot?.overallScore ?? 0) < 6.5,
   ).length;
   const openReminderCount = dashboard.reminders.filter((reminder) => reminder.status === "open").length;
   const averageScore = visibleSavedReports.length
     ? Number(
         (
           visibleSavedReports.reduce(
-            (sum, savedReport) => sum + savedReport.reportSnapshot.overallScore,
+            (sum, savedReport) => sum + (savedReport.reportSnapshot?.overallScore ?? 0),
             0,
           ) / visibleSavedReports.length
         ).toFixed(1),
@@ -149,11 +164,13 @@ export default async function AppDashboardPage({
   const latestPacketPdfHref = latestReport
     ? `${latestPacketHref}&print=1`
     : undefined;
-  const emailHref = latestReport
-    ? buildMailtoHref(latestReport.outreachEmail.subject, latestReport.outreachEmail.body)
-    : undefined;
-  const emailPreview = latestReport
-    ? latestReport.outreachEmail.body
+  const latestOutreach = latestReport?.outreachEmail;
+  const emailHref =
+    latestReport && latestOutreach
+      ? buildMailtoHref(latestOutreach.subject ?? "Site review", latestOutreach.body ?? "")
+      : undefined;
+  const emailPreview = latestOutreach?.body
+    ? latestOutreach.body
         .split("\n")
         .map((line) => line.trim())
         .filter(Boolean)
@@ -163,41 +180,60 @@ export default async function AppDashboardPage({
   return (
     <div className="grid gap-6">
       <section className="grid gap-5 xl:grid-cols-[minmax(0,1.02fr)_minmax(23rem,0.98fr)]">
-        <Card id="new-lead">
+        <Card className="scroll-mt-[8.75rem]" id="new-lead">
           <CardHeader className="pb-3">
             <div className="flex items-center gap-2 text-accent">
               <ScanSearch className="size-4" />
-              <p className="text-xs uppercase tracking-[0.24em] text-accent">Run a new search</p>
+              <p className="text-xs uppercase tracking-[0.24em] text-accent">
+                {welcomeFreeScanAvailable ? "Start here" : "Run a new search"}
+              </p>
             </div>
             <CardTitle className="text-[clamp(4rem,3.15rem+1.1vw,5.5rem)] leading-[0.92]">
-              Turn any live site into a score reveal worth sending.
+              {welcomeFreeScanAvailable
+                ? "Paste a URL — your first live scan is free."
+                : "Turn any live site into a score reveal worth sending."}
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-5">
-            <p className="max-w-3xl text-sm leading-7 text-muted">
-              Save the audit, capture the opportunity, and move straight into the outreach packet and brief. Each new live scan uses a token, so the dashboard keeps the score reveal and the remaining balance in the same place.
-            </p>
-            <form action={createLeadAction} className="flex flex-col gap-3 sm:flex-row">
-              <div className="relative flex flex-1 items-center">
-                <span className="pointer-events-none absolute left-4 select-none text-sm text-muted">
-                  www.
-                </span>
-                <Input
-                  autoComplete="url"
-                  className="flex-1 pl-12"
-                  name="url"
-                  placeholder="example.com"
-                  type="url"
-                />
+            {welcomeFreeScanAvailable ? (
+              <div className="rounded-[18px] border border-accent/35 bg-accent/10 px-4 py-3 text-sm leading-6 text-foreground">
+                <p className="font-semibold text-foreground">Welcome — this scan does not use a token.</p>
+                <p className="mt-1 text-muted">
+                  Your workspace is ready. After this, each new live scan uses {scanTokenCost} token
+                  {scanTokenCost === 1 ? "" : "s"} from your balance (you still have {workspaceState.tokenBalance}{" "}
+                  to explore with).
+                </p>
               </div>
-              <Button type="submit">
-                Generate saved audit
-                <ArrowRight className="size-4" />
-              </Button>
-            </form>
+            ) : null}
+            <p className="max-w-3xl text-sm leading-7 text-muted">
+              {welcomeFreeScanAvailable
+                ? "We will run the live score, save the full audit to your workspace, and open the lead so you can share the packet and brief."
+                : `Save the audit, capture the opportunity, and move straight into the outreach packet and brief. Each new live scan uses ${scanTokenCost} token${scanTokenCost === 1 ? "" : "s"}, so the dashboard keeps the score reveal and the remaining balance in the same place.`}
+            </p>
+            <CreateLeadScanForm
+              autoFocus={welcomeFreeScanAvailable}
+              idleSubmitLabel={
+                welcomeFreeScanAvailable ? "Run free first scan" : "Generate saved audit"
+              }
+              pendingSubmitLabel="Scanning site…"
+              placeholder="example.com"
+            />
             {error === "insufficient-tokens" ? (
               <div className="rounded-[18px] border border-danger/25 bg-danger/10 px-4 py-3 text-sm leading-6 text-foreground">
                 This workspace is out of tokens. Add more on pricing before running another live scan.
+              </div>
+            ) : null}
+            {error === "missing-url" ? (
+              <div className="rounded-[18px] border border-danger/25 bg-danger/10 px-4 py-3 text-sm leading-6 text-foreground">
+                Enter a domain (e.g. example.com) or a full URL before starting the scan.
+              </div>
+            ) : null}
+            {error === "session-required" ? (
+              <div className="rounded-[18px] border border-danger/25 bg-danger/10 px-4 py-3 text-sm leading-6 text-foreground">
+                <p>We could not read your sign-in on this request. Sign in again, then return here.</p>
+                <Button asChild className="mt-3" size="sm" variant="secondary">
+                  <Link href="/app/login?next=%2Fapp">Sign in</Link>
+                </Button>
               </div>
             ) : null}
             <div className="flex flex-wrap gap-2">
@@ -226,8 +262,10 @@ export default async function AppDashboardPage({
                 {
                   icon: Coins,
                   label: "Tokens available",
-                  value: workspaceState.tokenBalance,
-                  detail: "Enough balance for the next live scan or export.",
+                  value: unlimitedWorkspace ? "Unlimited" : workspaceState.tokenBalance,
+                  detail: unlimitedWorkspace
+                    ? "Pro mode — token checks are off for this deployment."
+                    : "Enough balance for the next live scan or export.",
                 },
                 {
                   icon: BellDot,
@@ -274,7 +312,7 @@ export default async function AppDashboardPage({
                     className="h-full"
                     label="Site score"
                     projectedScore={latestLead?.projectedScore}
-                    score={latestReport.overallScore}
+                    score={latestReport.overallScore ?? 0}
                   />
                   <div className="space-y-3 rounded-[22px] border border-border/60 bg-background-alt/60 p-4">
                     <div className="flex flex-wrap items-center gap-2">
@@ -284,7 +322,7 @@ export default async function AppDashboardPage({
                       </span>
                     </div>
                     <p className="text-base leading-7 text-foreground">
-                      {latestReport.executiveSummary}
+                      {latestReport.executiveSummary ?? ""}
                     </p>
                     <div className="flex flex-wrap gap-2">
                       {latestAuditHref ? (
@@ -306,7 +344,13 @@ export default async function AppDashboardPage({
                     </div>
                   </div>
                 </div>
-                <ScoreBreakdownBars items={latestReport.categoryScores} showWeights />
+                <ScoreBreakdownBars
+                  items={latestReport.categoryScores ?? []}
+                  showWeights
+                  targetItems={buildBenchmarkTargetCategoryScores(
+                    latestReport.categoryScores ?? [],
+                  )}
+                />
               </>
             ) : (
               <div className="rounded-[20px] border border-border/60 bg-background-alt/60 p-5 text-sm leading-7 text-muted">
@@ -358,10 +402,10 @@ export default async function AppDashboardPage({
                       Subject
                     </p>
                     <p className="mt-2 text-sm font-semibold text-foreground">
-                      {latestReport.outreachEmail.subject}
+                      {latestOutreach?.subject ?? "—"}
                     </p>
                     <p className="mt-3 text-sm leading-6 text-muted">
-                      {latestReport.outreachEmail.previewLine}
+                      {latestOutreach?.previewLine ?? "—"}
                     </p>
                   </div>
 

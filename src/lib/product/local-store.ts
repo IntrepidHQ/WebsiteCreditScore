@@ -9,6 +9,8 @@ import { buildAuditReportById, buildAuditReportFromUrl, buildLiveAuditReportFrom
 import { sampleAudits } from "@/lib/mock/sample-audits";
 import { prepareReportForStorage, passesReportQualityCheck } from "@/lib/product/report-quality";
 import type {
+  BillingPlan,
+  BillingStatus,
   DashboardSnapshot,
   EmailTemplateRecord,
   LeadActivity,
@@ -29,6 +31,7 @@ import type {
   WorkspaceSession,
 } from "@/lib/types/product";
 import { createDefaultProposalOffer } from "@/lib/utils/proposal-offers";
+import { isUnlimitedWorkspace } from "@/lib/product/unlimited-workspace";
 import { calculatePricingSummary, calculateProjectedScore, getDefaultSelectedIds } from "@/lib/utils/pricing";
 import { createThemeTokens } from "@/lib/utils/theme";
 import { slugFromUrl } from "@/lib/utils/url";
@@ -81,6 +84,7 @@ function getSurfaceToken(leadId: string, surface: ShareSurface) {
 
 function getWorkspaceDefaults(ownerUserId: string) {
   const createdAt = new Date().toISOString();
+  const unlimited = isUnlimitedWorkspace();
 
   return {
     id: "workspace-websitecreditscore",
@@ -89,11 +93,11 @@ function getWorkspaceDefaults(ownerUserId: string) {
     slug: "websitecreditscore",
     createdAt,
     updatedAt: createdAt,
-    billingStatus: "trial" as const,
-    billingPlan: "free" as const,
-    creditBalance: 10,
-    tokenBalance: 10,
-    entitlements: [] as WorkspaceEntitlement[],
+    billingStatus: (unlimited ? "active" : "trial") as BillingStatus,
+    billingPlan: (unlimited ? "pro" : "free") as BillingPlan,
+    creditBalance: unlimited ? 999_999 : 10,
+    tokenBalance: unlimited ? 999_999 : 10,
+    entitlements: unlimited ? (["seo-benchmark", "max-stealth"] as WorkspaceEntitlement[]) : [],
     branding: {
       agencyName: "WebsiteCreditScore.com",
       logoMark: "WCS",
@@ -110,6 +114,7 @@ function getWorkspaceDefaults(ownerUserId: string) {
       mode: "dark",
       accentColor: "#f7b21b",
     }),
+    onboardingWelcomeScanUsed: false,
   };
 }
 
@@ -154,6 +159,7 @@ function normalizeWorkspaceRecord(workspace: WorkspaceRecord) {
       : workspace.creditBalance ?? normalizedTokenBalance,
     tokenBalance: normalizedTokenBalance,
     entitlements: workspace.entitlements ?? [],
+    onboardingWelcomeScanUsed: workspace.onboardingWelcomeScanUsed !== false,
     branding,
   };
 }
@@ -726,8 +732,10 @@ export async function createLocalLeadFromUrl(
   return updateStore(ownerUserId, async (store) => {
     const workspace = getWorkspaceOrThrow(store, workspaceId);
     const tokenCost = getTokenActionCost("scan-site");
+    const unlimited = isUnlimitedWorkspace();
+    const welcomeScanFree = !unlimited && workspace.onboardingWelcomeScanUsed === false;
 
-    if (workspace.tokenBalance < tokenCost) {
+    if (!unlimited && !welcomeScanFree && workspace.tokenBalance < tokenCost) {
       throw new Error("INSUFFICIENT_TOKENS");
     }
 
@@ -770,7 +778,7 @@ export async function createLocalLeadFromUrl(
       title: report.title,
       companyName: report.title,
       normalizedUrl: report.normalizedUrl,
-      previewImage: report.previewSet.current.desktop,
+      previewImage: report.previewSet?.current?.desktop ?? "/previews/fallback-desktop.svg",
       stage: "audit-ready",
       createdAt,
       updatedAt: createdAt,
@@ -810,7 +818,11 @@ export async function createLocalLeadFromUrl(
         leadId,
         type: "audit-created",
         title: "Audit created",
-        detail: `Saved a working audit for ${report.title}.`,
+        detail: unlimited
+          ? `Saved a working audit for ${report.title}.`
+          : welcomeScanFree
+            ? `Welcome scan — no tokens charged. Saved a working audit for ${report.title}.`
+            : `Saved a working audit for ${report.title}.`,
         occurredAt: createdAt,
       },
       {
@@ -832,18 +844,23 @@ export async function createLocalLeadFromUrl(
       dueAt: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString(),
       status: "open",
     });
-    workspace.tokenBalance -= tokenCost;
-    workspace.creditBalance = workspace.tokenBalance;
+    if (!unlimited) {
+      workspace.onboardingWelcomeScanUsed = true;
+    }
+    if (!unlimited && !welcomeScanFree) {
+      workspace.tokenBalance -= tokenCost;
+      workspace.creditBalance = workspace.tokenBalance;
+      store.workspaceCredits.push({
+        ...createBalanceEntry(workspaceId, -tokenCost, "Live site scan", {
+          type: "spend",
+          source: "workspace",
+          actionId: "scan-site",
+          actionKey: `lead:${leadId}:scan`,
+        }),
+        createdAt,
+      });
+    }
     workspace.updatedAt = createdAt;
-    store.workspaceCredits.push({
-      ...createBalanceEntry(workspaceId, -tokenCost, "Live site scan", {
-        type: "spend",
-        source: "workspace",
-        actionId: "scan-site",
-        actionKey: `lead:${leadId}:scan`,
-      }),
-      createdAt,
-    });
 
     return lead;
   });
@@ -909,6 +926,11 @@ export async function consumeLocalWorkspaceTokens(
 ) {
   return updateStore(ownerUserId, (store) => {
     const workspace = getWorkspaceOrThrow(store, workspaceId);
+
+    if (isUnlimitedWorkspace()) {
+      return workspace;
+    }
+
     const tokenCost = getTokenActionCost(input.actionId);
     const spendAlreadyLogged = store.workspaceCredits.some(
       (entry) =>

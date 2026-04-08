@@ -31,7 +31,7 @@ describe("LandingForm", () => {
 
     render(<LandingForm />);
 
-    await user.type(screen.getByLabelText(/run a live scan/i), "https://bad-url.test");
+    await user.type(screen.getByLabelText(/run a live scan/i), "bad-url.test");
     await user.click(screen.getByRole("button", { name: /generate audit/i }));
 
     expect(await screen.findByText(/use a valid website url/i)).toBeInTheDocument();
@@ -53,7 +53,7 @@ describe("LandingForm", () => {
 
     render(<LandingForm />);
 
-    await user.type(screen.getByLabelText(/run a live scan/i), "https://example.com");
+    await user.type(screen.getByLabelText(/run a live scan/i), "example.com");
     await user.click(screen.getByRole("button", { name: /generate audit/i }));
 
     expect(
@@ -77,6 +77,45 @@ describe("LandingForm", () => {
       expect(pushMock).toHaveBeenCalledWith(
         "/audit/example-com?url=https%3A%2F%2Fexample.com&ref=landing",
       ),
+    );
+  });
+
+  it("submits a bare domain like starbucks.com and navigates to the audit", async () => {
+    const user = userEvent.setup();
+    vi.stubGlobal(
+      "fetch",
+      vi.fn().mockResolvedValue(
+        new Response(
+          JSON.stringify({
+            id: "starbucks-com",
+            normalizedUrl: "https://starbucks.com",
+          }),
+          {
+            status: 200,
+            headers: { "Content-Type": "application/json" },
+          },
+        ),
+      ),
+    );
+
+    render(<LandingForm />);
+
+    await user.type(screen.getByLabelText(/run a live scan/i), "starbucks.com");
+    await user.click(screen.getByRole("button", { name: /generate audit/i }));
+
+    await waitFor(() =>
+      expect(pushMock).toHaveBeenCalledWith(
+        "/audit/starbucks-com?url=https%3A%2F%2Fstarbucks.com&ref=landing",
+      ),
+    );
+
+    const fetchMock = vi.mocked(fetch);
+    expect(fetchMock).toHaveBeenCalledWith(
+      "/api/audit",
+      expect.objectContaining({
+        method: "POST",
+        body: JSON.stringify({ url: "starbucks.com", persist: false }),
+      }),
     );
   });
 });

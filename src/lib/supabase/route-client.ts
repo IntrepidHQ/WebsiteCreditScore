@@ -2,7 +2,19 @@ import { createServerClient, parseCookieHeader } from "@supabase/ssr";
 import type { CookieOptions } from "@supabase/ssr";
 import type { NextResponse } from "next/server";
 
+import { getSupabaseCookieOptions } from "@/lib/supabase/cookie-options";
 import { getSupabaseEnv } from "@/lib/supabase/config";
+
+const getAllCookiesFromRequest = (request: Request) => {
+  const withCookies = request as Request & {
+    cookies?: { getAll: () => { name: string; value: string }[] };
+  };
+  if (typeof withCookies.cookies?.getAll === "function") {
+    return withCookies.cookies.getAll();
+  }
+  return parseCookieHeader(request.headers.get("cookie") ?? "")
+    .filter((row): row is { name: string; value: string } => row.value !== undefined);
+};
 
 /**
  * Supabase client for route handlers where session cookies must be written to a
@@ -10,16 +22,17 @@ import { getSupabaseEnv } from "@/lib/supabase/config";
  */
 export const createSupabaseRouteHandlerClient = (request: Request, response: NextResponse) => {
   const { url, anonKey } = getSupabaseEnv();
+  const defaults = getSupabaseCookieOptions(request);
 
   return createServerClient(url, anonKey, {
+    cookieOptions: defaults,
     cookies: {
       getAll() {
-        return parseCookieHeader(request.headers.get("cookie") ?? "")
-          .filter((row): row is { name: string; value: string } => row.value !== undefined);
+        return getAllCookiesFromRequest(request);
       },
       setAll(cookiesToSet) {
         cookiesToSet.forEach(({ name, value, options }) => {
-          response.cookies.set(name, value, options);
+          response.cookies.set(name, value, { ...defaults, ...options });
         });
       },
     },
@@ -35,10 +48,10 @@ export const createSupabaseOAuthRouteClient = (request: Request) => {
   const pending: { name: string; value: string; options: CookieOptions }[] = [];
 
   const supabase = createServerClient(url, anonKey, {
+    cookieOptions: getSupabaseCookieOptions(request),
     cookies: {
       getAll() {
-        return parseCookieHeader(request.headers.get("cookie") ?? "")
-          .filter((row): row is { name: string; value: string } => row.value !== undefined);
+        return getAllCookiesFromRequest(request);
       },
       setAll(cookiesToSet) {
         cookiesToSet.forEach(({ name, value, options }) => {
@@ -49,8 +62,9 @@ export const createSupabaseOAuthRouteClient = (request: Request) => {
   });
 
   const applyCookiesToResponse = (res: NextResponse) => {
+    const defaults = getSupabaseCookieOptions(request);
     pending.forEach(({ name, value, options }) => {
-      res.cookies.set(name, value, options);
+      res.cookies.set(name, value, { ...defaults, ...options });
     });
     return res;
   };

@@ -703,12 +703,19 @@ function deriveMotionSignals(html: string, text: string) {
   return uniqueTexts([...signals], 8);
 }
 
+type ContentStructureSignals = {
+  internalLinkCount: number;
+  htmlLength: number;
+  schemaKindCount: number;
+};
+
 function classifyContent(
   requestUrl: string,
   finalUrl: string,
   text: string,
   pageTitle: string,
   headingCount: number,
+  structure: ContentStructureSignals,
 ): ContentClassification {
   const requestHostname = new URL(requestUrl).hostname.replace(/^www\./, "");
   const finalHostname = new URL(finalUrl).hostname.replace(/^www\./, "");
@@ -729,8 +736,16 @@ function classifyContent(
   const lower = text.toLowerCase();
   const strippedLength = text.replace(/\s+/g, " ").trim().length;
 
-  // Empty or nearly empty page
-  if (strippedLength < 80 && headingCount === 0) {
+  const { internalLinkCount, htmlLength, schemaKindCount } = structure;
+  // SPAs and marketing sites often ship little extractable body text / no classic h1–h2 in the
+  // first HTML payload, but still return a large document with links or JSON-LD.
+  const looksLikeRealDocument =
+    htmlLength >= 6000 ||
+    internalLinkCount >= 3 ||
+    schemaKindCount > 0;
+
+  // Empty or nearly empty page — require weak text *and* no structural hints
+  if (strippedLength < 80 && headingCount === 0 && !looksLikeRealDocument) {
     return "empty-page";
   }
 
@@ -834,9 +849,13 @@ async function fetchObservation(normalizedUrl: string): Promise<SiteObservation>
   try {
     const response = await fetch(normalizedUrl, {
       headers: {
+        // Browser-like UA: some chains return a tiny “bot” shell to generic crawlers, which
+        // tripped our empty-page gate even when the real site has content.
         "user-agent":
-          "Mozilla/5.0 (compatible; WebsiteCreditScoreAudit/1.0; +https://websitecreditscore.com)",
-        accept: "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
+          "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36",
+        accept:
+          "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8",
+        "accept-language": "en-US,en;q=0.9",
       },
       redirect: "follow",
       signal: AbortSignal.timeout(8000),
@@ -870,7 +889,10 @@ async function fetchObservation(normalizedUrl: string): Promise<SiteObservation>
     const hasViewport = /<meta[^>]*name=["']viewport["']/i.test(html);
     const hasLang = /<html[^>]*lang=["'][^"']+["']/i.test(html);
     const internalLinkCount = countInternalLinks(links, hostname);
-    const headingCount = extractTagTexts(html, "h1", 6).length + extractTagTexts(html, "h2", 12).length;
+    const headingCount =
+      extractTagTexts(html, "h1", 6).length +
+      extractTagTexts(html, "h2", 12).length +
+      extractTagTexts(html, "h3", 8).length;
     const formCount = [...html.matchAll(/<form\b/gi)].length;
     const missingAltRatio = computeMissingAltRatio(html);
     const templateSignals = deriveTemplateSignals(text);
@@ -878,7 +900,11 @@ async function fetchObservation(normalizedUrl: string): Promise<SiteObservation>
     const securitySignals = deriveSecuritySignals(response.headers);
     const motionSignals = deriveMotionSignals(html, text);
     const strippedTextLength = text.replace(/\s+/g, " ").trim().length;
-    const contentClassification = classifyContent(normalizedUrl, finalUrl, text, pageTitle, headingCount);
+    const contentClassification = classifyContent(normalizedUrl, finalUrl, text, pageTitle, headingCount, {
+      internalLinkCount,
+      htmlLength: html.length,
+      schemaKindCount: schemaKinds.length,
+    });
     const seoSignals = uniqueTexts(
       [
         pageTitle ? `Title tag present: ${pageTitle}` : "",

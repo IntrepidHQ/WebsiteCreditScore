@@ -10,7 +10,7 @@ import { DeleteLeadButton } from "@/features/app/components/delete-lead-button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { LeadStageBadge } from "@/features/app/components/lead-stage-badge";
 import { ShareLinksPanel } from "@/features/app/components/share-links-panel";
-import { getWorkspaceAppContext } from "@/lib/product/context";
+import { getWorkspaceLeadDetailContext } from "@/lib/product/context";
 import { applyProposalOffer, isProposalOfferActive } from "@/lib/utils/proposal-offers";
 import { calculatePricingSummary, getDefaultSelectedIds } from "@/lib/utils/pricing";
 
@@ -31,10 +31,9 @@ export default async function LeadDetailPage({
   params: Promise<{ leadId: string }>;
 }) {
   const { leadId } = await params;
-  const { repository, session, workspace } = await getWorkspaceAppContext();
-  const detail = await repository.getLeadDetail(workspace.id, leadId, session);
+  const { detail } = await getWorkspaceLeadDetailContext(leadId);
 
-  if (!detail) {
+  if (!detail?.savedReport?.reportSnapshot) {
     notFound();
   }
 

@@ -50,13 +50,15 @@ describe("ScoreBreakdownBars", () => {
 
     expect(screen.getByText("Visual design")).toBeInTheDocument();
     expect(screen.getByText("1.25x")).toBeInTheDocument();
-    expect(screen.getByText("Target 9.1")).toBeInTheDocument();
-    expect(screen.getByText("7.2")).toBeInTheDocument();
+    expect(screen.getAllByText("Target")).toHaveLength(2);
+    expect(screen.getAllByText("9.1").length).toBeGreaterThanOrEqual(1);
+    expect(screen.getAllByText("7.2").length).toBeGreaterThanOrEqual(1);
     expect(screen.getByText("Weight 100%")).toBeInTheDocument();
 
-    const bars = container.querySelectorAll("div.h-full.rounded-full");
+    const bar0 = container.querySelector("[data-testid=\"score-bar-fill-visual-design\"]");
+    const bar1 = container.querySelector("[data-testid=\"score-bar-fill-ux-conversion\"]");
 
-    expect(bars[0]).toHaveStyle({ width: "72%" });
-    expect(bars[1]).toHaveStyle({ width: "68%" });
+    expect(bar0).toHaveStyle({ width: "72%" });
+    expect(bar1).toHaveStyle({ width: "68%" });
   });
 });

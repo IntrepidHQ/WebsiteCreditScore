@@ -6,6 +6,7 @@ import { getTokenActionCost } from "@/lib/billing/catalog";
 import { buildAuditReportById, buildAuditReportFromUrl, buildLiveAuditReportFromUrl } from "@/lib/mock/report-builder";
 import { sampleAudits } from "@/lib/mock/sample-audits";
 import { prepareReportForStorage, passesReportQualityCheck } from "@/lib/product/report-quality";
+import { isUnlimitedWorkspace } from "@/lib/product/unlimited-workspace";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import type {
   DashboardSnapshot,
@@ -59,6 +60,7 @@ function sortNewestFirst<
 
 function buildWorkspace(ownerUserId: string, session: WorkspaceSession): WorkspaceRecord {
   const createdAt = new Date().toISOString();
+  const unlimited = isUnlimitedWorkspace();
 
   return {
     id: createId("workspace"),
@@ -67,11 +69,11 @@ function buildWorkspace(ownerUserId: string, session: WorkspaceSession): Workspa
     slug: session.name.toLowerCase().replace(/[^a-z0-9]+/g, "-"),
     createdAt,
     updatedAt: createdAt,
-    billingStatus: "trial",
-    billingPlan: "free",
-    creditBalance: 10,
-    tokenBalance: 10,
-    entitlements: [],
+    billingStatus: unlimited ? "active" : "trial",
+    billingPlan: unlimited ? "pro" : "free",
+    creditBalance: unlimited ? 999_999 : 10,
+    tokenBalance: unlimited ? 999_999 : 10,
+    entitlements: unlimited ? (["seo-benchmark", "max-stealth"] as WorkspaceEntitlement[]) : [],
     branding: {
       agencyName: "WebsiteCreditScore.com",
       logoMark: "WCS",
@@ -88,18 +90,32 @@ function buildWorkspace(ownerUserId: string, session: WorkspaceSession): Workspa
       mode: "dark",
       accentColor: "#f7b21b",
     }),
+    onboardingWelcomeScanUsed: false,
   };
 }
 
 function normalizeWorkspaceRecord(workspace: WorkspaceRecord) {
+  const branding = workspace.branding ?? {
+    agencyName: "",
+    logoMark: "",
+    logoColor: "",
+    logoScale: 1,
+    contactName: "",
+    contactTitle: "",
+    contactEmail: "",
+    contactPhone: "",
+    headshot: "",
+    accentOverride: "",
+  };
+
   const usesLegacyBrand = [
     workspace.name,
     workspace.slug,
-    workspace.branding.agencyName,
-    workspace.branding.logoMark,
-    workspace.branding.contactName,
-    workspace.branding.contactEmail,
-    workspace.branding.headshot,
+    branding.agencyName,
+    branding.logoMark,
+    branding.contactName,
+    branding.contactEmail,
+    branding.headshot,
   ].some((value) => LEGACY_BRAND_PATTERN.test(value));
   const usesLegacyBilling = workspace.tokenBalance == null && workspace.billingPlan == null;
   const normalizedTokenBalance = usesLegacyBilling
@@ -118,15 +134,17 @@ function normalizeWorkspaceRecord(workspace: WorkspaceRecord) {
       : workspace.creditBalance ?? normalizedTokenBalance,
     tokenBalance: normalizedTokenBalance,
     entitlements: workspace.entitlements ?? [],
+    // Legacy payloads without the field are treated as already past welcome (no retroactive free scan).
+    onboardingWelcomeScanUsed: workspace.onboardingWelcomeScanUsed !== false,
     branding: {
-      ...workspace.branding,
-      agencyName: usesLegacyBrand ? "WebsiteCreditScore.com" : workspace.branding.agencyName,
-      logoMark: usesLegacyBrand || workspace.branding.logoMark === "CR" ? "WCS" : workspace.branding.logoMark,
-      logoColor: workspace.branding.logoColor ?? "",
-      logoScale: workspace.branding.logoScale ?? 1,
-      contactName: usesLegacyBrand ? "WebsiteCreditScore.com team" : workspace.branding.contactName,
-      contactEmail: usesLegacyBrand ? "hello@websitecreditscore.com" : workspace.branding.contactEmail,
-      headshot: usesLegacyBrand ? "/previews/agency-avatar.svg" : workspace.branding.headshot,
+      ...branding,
+      agencyName: usesLegacyBrand ? "WebsiteCreditScore.com" : branding.agencyName,
+      logoMark: usesLegacyBrand || branding.logoMark === "CR" ? "WCS" : branding.logoMark,
+      logoColor: branding.logoColor ?? "",
+      logoScale: branding.logoScale ?? 1,
+      contactName: usesLegacyBrand ? "WebsiteCreditScore.com team" : branding.contactName,
+      contactEmail: usesLegacyBrand ? "hello@websitecreditscore.com" : branding.contactEmail,
+      headshot: usesLegacyBrand ? "/previews/agency-avatar.svg" : branding.headshot,
     },
   };
 }
@@ -183,14 +201,21 @@ function isLegacyProviderPagesLead(lead: LeadRecord, report?: SavedReport) {
 
 function buildSeededLead(
   workspaceId: string,
-  reportId: string,
+  sampleReportId: string,
   fallbackUrl?: string,
   createdAt = new Date().toISOString(),
 ) {
   const sourceReport =
-    buildAuditReportById(reportId) ??
+    buildAuditReportById(sampleReportId) ??
     buildAuditReportFromUrl(fallbackUrl ?? "https://www.onemedical.com");
-  const report = prepareReportForStorage(sourceReport);
+  // DB enforces GLOBAL uniqueness on saved_reports.lead_id and share_links.token.
+  // Sample IDs must be namespaced per workspace or the second signup hits duplicate key errors.
+  const scopedLeadId = `${workspaceId}__sample__${sampleReportId}`;
+  const baseReport = prepareReportForStorage(sourceReport);
+  const report = {
+    ...baseReport,
+    id: scopedLeadId,
+  };
   const summary = calculatePricingSummary(
     report.pricingBundle,
     getDefaultSelectedIds(report.pricingBundle),
@@ -199,7 +224,7 @@ function buildSeededLead(
     ...report,
     proposalOffer: createDefaultProposalOffer(summary.total, new Date(createdAt)),
   };
-  const leadId = report.id;
+  const leadId = scopedLeadId;
 
   const savedReport: SavedReport = {
     id: leadId,
@@ -277,7 +302,8 @@ async function ensurePublicSampleSeeds(workspaceId: string) {
   const existingReportIds = new Set(existingReports.map((report) => report.id));
 
   for (const sample of sampleAudits) {
-    if (existingReportIds.has(sample.id)) {
+    const scopedSavedReportId = `${workspaceId}__sample__${sample.id}`;
+    if (existingReportIds.has(scopedSavedReportId) || existingReportIds.has(sample.id)) {
       continue;
     }
 
@@ -479,10 +505,13 @@ export async function saveSupabaseTheme(
 
 export async function ensureSupabaseWorkspace(session: WorkspaceSession) {
   const supabase = await createSupabaseServerClient();
+  // Prefer oldest row; limit(1) avoids PostgREST errors when duplicate owner rows exist.
   const { data, error } = await supabase
     .from("workspaces")
     .select("payload")
     .eq("owner_user_id", session.userId)
+    .order("created_at", { ascending: true })
+    .limit(1)
     .maybeSingle();
 
   if (error) {
@@ -577,14 +606,20 @@ export async function getSupabaseDashboard(workspaceId: string): Promise<Dashboa
   const reportByLeadId = new Map(savedReports.map((report) => [report.leadId, report]));
   const filteredLeads = leads.filter((lead) => !isLegacyProviderPagesLead(lead, reportByLeadId.get(lead.id)));
   const filteredLeadIds = new Set(filteredLeads.map((lead) => lead.id));
-  const filteredSavedReports = savedReports.filter(
-    (report) =>
+  const filteredSavedReports = savedReports.filter((report) => {
+    const snap = report.reportSnapshot;
+    if (!snap) {
+      return false;
+    }
+
+    return (
       filteredLeadIds.has(report.leadId) &&
       !isLegacyProviderPagesText(report.title) &&
       !isLegacyProviderPagesText(report.normalizedUrl) &&
-      !isLegacyProviderPagesText(report.reportSnapshot.title) &&
-      !isLegacyProviderPagesText(report.reportSnapshot.executiveSummary),
-  );
+      !isLegacyProviderPagesText(snap.title) &&
+      !isLegacyProviderPagesText(snap.executiveSummary)
+    );
+  });
 
   return {
     workspace,
@@ -659,8 +694,11 @@ export async function createSupabaseLeadFromUrl(workspaceId: string, rawUrl: str
   }
 
   const tokenCost = getTokenActionCost("scan-site");
+  const unlimited = isUnlimitedWorkspace();
+  const welcomeScanFree = !unlimited && workspace.onboardingWelcomeScanUsed === false;
+  const balance = workspace.tokenBalance ?? workspace.creditBalance ?? 0;
 
-  if ((workspace.tokenBalance ?? workspace.creditBalance ?? 0) < tokenCost) {
+  if (!unlimited && !welcomeScanFree && balance < tokenCost) {
     throw new Error("INSUFFICIENT_TOKENS");
   }
 
@@ -700,7 +738,7 @@ export async function createSupabaseLeadFromUrl(workspaceId: string, rawUrl: str
     title: report.title,
     companyName: report.title,
     normalizedUrl: report.normalizedUrl,
-    previewImage: report.previewSet.current.desktop,
+    previewImage: report.previewSet?.current?.desktop ?? "/previews/fallback-desktop.svg",
     stage: "audit-ready",
     createdAt,
     updatedAt: createdAt,
@@ -753,33 +791,41 @@ export async function createSupabaseLeadFromUrl(workspaceId: string, rawUrl: str
       leadId: lead.id,
       type: "audit-created",
       title: "Audit created",
-      detail: `Saved a working audit for ${report.title}.`,
+      detail: unlimited
+        ? `Saved a working audit for ${report.title}.`
+        : welcomeScanFree
+          ? `Welcome scan — no tokens charged. Saved a working audit for ${report.title}.`
+          : `Saved a working audit for ${report.title}.`,
       occurredAt: createdAt,
     } satisfies LeadActivity,
   });
+  const nextBalance = unlimited || welcomeScanFree ? balance : balance - tokenCost;
   await upsertPayloadRecord("workspaces", {
     id: workspace.id,
     owner_user_id: workspace.ownerUserId,
     payload: {
       ...workspace,
-      tokenBalance: (workspace.tokenBalance ?? workspace.creditBalance ?? 0) - tokenCost,
-      creditBalance: (workspace.tokenBalance ?? workspace.creditBalance ?? 0) - tokenCost,
+      onboardingWelcomeScanUsed: unlimited ? workspace.onboardingWelcomeScanUsed : true,
+      tokenBalance: nextBalance,
+      creditBalance: nextBalance,
       updatedAt: createdAt,
     } satisfies WorkspaceRecord,
   });
-  await upsertPayloadRecord("workspace_credits", {
-    id: createId("credit"),
-    workspace_id: workspaceId,
-    payload: {
-      ...createBalanceEntry(workspaceId, -tokenCost, "Live site scan", {
-        type: "spend",
-        source: "workspace",
-        actionId: "scan-site",
-        actionKey: `lead:${leadId}:scan`,
-      }),
-      createdAt,
-    } satisfies WorkspaceCreditEntry,
-  });
+  if (!unlimited && !welcomeScanFree) {
+    await upsertPayloadRecord("workspace_credits", {
+      id: createId("credit"),
+      workspace_id: workspaceId,
+      payload: {
+        ...createBalanceEntry(workspaceId, -tokenCost, "Live site scan", {
+          type: "spend",
+          source: "workspace",
+          actionId: "scan-site",
+          actionKey: `lead:${leadId}:scan`,
+        }),
+        createdAt,
+      } satisfies WorkspaceCreditEntry,
+    });
+  }
 
   return lead;
 }
@@ -851,6 +897,10 @@ export async function consumeSupabaseWorkspaceTokens(
 
   if (!workspace) {
     throw new Error("Workspace not found.");
+  }
+
+  if (isUnlimitedWorkspace()) {
+    return workspace;
   }
 
   const tokenCost = getTokenActionCost(input.actionId);

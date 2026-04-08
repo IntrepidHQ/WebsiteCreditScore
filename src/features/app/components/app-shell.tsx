@@ -5,46 +5,62 @@ import { WebsiteCreditScoreLogo } from "@/components/common/website-credit-score
 import { Button } from "@/components/ui/button";
 import { AppShellNav } from "@/features/app/components/app-shell-nav";
 
+/**
+ * `fixed` header so it stays pinned to the viewport while scrolling. Plain `sticky` was
+ * unreliable because the root layout uses `overflow-x-hidden`, which creates a scroll
+ * containment context and prevents sticky from behaving like a global docked bar.
+ */
 export function AppShell({ children }: { children: React.ReactNode }) {
   return (
     <main className="flex min-h-screen flex-col bg-background" id="main-content">
-      <section className="sticky top-5 z-50 mx-4 rounded-[20px] border border-border/50 bg-background/82 backdrop-blur-xl print:hidden sm:mx-6 lg:mx-8">
-        <div className="mx-auto flex w-full max-w-7xl flex-col gap-3 px-4 py-4 sm:px-6 lg:px-8">
-          <div className="flex flex-wrap items-center justify-between gap-3">
-            <Link className="min-w-0 shrink-0" href="/">
-              <WebsiteCreditScoreLogo size="header" />
-            </Link>
-            <div className="flex flex-wrap items-center gap-2 sm:justify-end">
-              <Button asChild className="shrink-0" size="sm">
-                <Link href="/app#new-lead">
-                  <PlusCircle className="size-4" />
-                  New audit
-                </Link>
-              </Button>
-              <Button asChild className="shrink-0" size="sm" variant="secondary">
-                <Link href="/examples">
-                  <ArrowUpRight className="size-4" />
-                  Public examples
-                </Link>
-              </Button>
-              <Button asChild className="shrink-0" size="sm" variant="ghost">
-                <Link href="/auth/logout">
-                  <LogOut className="size-4" />
-                  Log out
-                </Link>
-              </Button>
+      <header className="fixed inset-x-0 top-0 z-[100] print:hidden">
+        <div className="border-b border-border/60 bg-background/92 shadow-sm backdrop-blur-xl supports-[backdrop-filter]:bg-background/84">
+          <div className="mx-auto flex w-full max-w-7xl flex-col gap-3 px-4 py-3 sm:px-6 lg:px-8">
+            <div className="flex flex-wrap items-center justify-between gap-3">
+              <Link
+                aria-label="WebsiteCreditScore.com — Dashboard"
+                className="min-w-0 shrink-0"
+                href="/app"
+              >
+                <WebsiteCreditScoreLogo size="header" />
+              </Link>
+              <div className="flex flex-wrap items-center gap-2 sm:justify-end">
+                <Button asChild className="shrink-0" size="sm">
+                  <Link href="/app#new-lead">
+                    <PlusCircle className="size-4" />
+                    New audit
+                  </Link>
+                </Button>
+                <Button asChild className="shrink-0" size="sm" variant="secondary">
+                  <Link href="/examples">
+                    <ArrowUpRight className="size-4" />
+                    Public examples
+                  </Link>
+                </Button>
+                <Button asChild className="shrink-0" size="sm" variant="ghost">
+                  <Link href="/auth/logout">
+                    <LogOut className="size-4" />
+                    Log out
+                  </Link>
+                </Button>
+              </div>
             </div>
+            <AppShellNav />
           </div>
-          <AppShellNav />
         </div>
-      </section>
-      <div className="mx-auto flex w-full max-w-7xl flex-1 flex-col gap-8 px-4 pt-2 pb-8 sm:px-6 lg:px-8">
+      </header>
+      {/* Reserve space for fixed header (~ toolbar + nav tabs + borders) */}
+      <div
+        aria-hidden
+        className="h-[7.5rem] shrink-0 sm:h-[8.25rem] md:h-[8.75rem] print:hidden"
+      />
+      <div className="mx-auto flex w-full max-w-7xl flex-1 flex-col gap-8 px-4 pb-8 pt-2 sm:px-6 lg:px-8">
         {children}
       </div>
       <footer className="border-t border-border/60 bg-background/84 print:hidden">
         <div className="mx-auto flex w-full max-w-7xl flex-col gap-6 px-4 py-8 sm:px-6 lg:flex-row lg:items-center lg:justify-between lg:px-8">
           <div className="space-y-2">
-            <Link className="inline-flex" href="/">
+            <Link aria-label="WebsiteCreditScore.com — Dashboard" className="inline-flex" href="/app">
               <WebsiteCreditScoreLogo compact />
             </Link>
             <p className="max-w-xl text-sm leading-6 text-muted">

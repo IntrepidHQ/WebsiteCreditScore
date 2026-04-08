@@ -29,8 +29,13 @@ describe("url utilities", () => {
     expect(inferProfileType("https://rivercareclinic.com")).toBe("healthcare");
   });
 
-  it("treats short single-word brand domains as polished product sites by default", () => {
-    expect(inferProfileType("https://apple.com")).toBe("saas");
+  it("treats Starbucks-like brands as local / physical footprint, not SaaS", () => {
+    expect(inferProfileType("https://starbucks.com")).toBe("local-service");
+  });
+
+  it("infers SaaS from clear hostname cues (not substring false positives)", () => {
+    expect(inferProfileType("https://intercom.com")).toBe("saas");
+    expect(inferProfileType("https://app.hubspot.com")).toBe("saas");
   });
 
   it("creates device-specific preview routes", () => {
