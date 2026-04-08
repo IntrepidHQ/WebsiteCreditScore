@@ -9,6 +9,8 @@ import {
   buildObservedFindings,
 } from "@/lib/mock/report-enhancements";
 import { sampleAudits } from "@/lib/mock/sample-audits";
+import { analyzeSiteWithAI } from "@/lib/ai/site-analysis";
+import type { AISiteAnalysis } from "@/lib/ai/site-analysis";
 import { generateOutreachEmail } from "@/lib/utils/outreach";
 import { createDefaultProposalOffer } from "@/lib/utils/proposal-offers";
 import { calculatePricingSummary, getDefaultSelectedIds } from "@/lib/utils/pricing";
@@ -53,12 +55,57 @@ function deriveReportTitle(
   return pageTitle || formatDomainTitle(normalizedUrl);
 }
 
+/**
+ * Apply AI-generated content to replace template-based report fields.
+ * Only overrides fields where AI produced a non-empty value; heuristic
+ * values remain as-is if AI analysis failed or returned nothing.
+ */
+function applyAIAnalysis(report: AuditReport, ai: AISiteAnalysis): AuditReport {
+  return {
+    ...report,
+    executiveSummary: ai.executiveSummary,
+    outreachEmail: {
+      subject: ai.outreachSubject,
+      previewLine: ai.outreachPreview,
+      body: ai.outreachBody,
+    },
+    clientProfile: {
+      ...report.clientProfile,
+      industryLabel: ai.industryLabel,
+      audience: ai.audienceProfile,
+      primaryGoal: ai.primaryGoal,
+      // observedPositioning holds the most visible business description in the UI
+      observedPositioning: ai.businessDescription,
+      observedAudienceInference: ai.audienceProfile,
+    },
+  };
+}
+
 export async function buildLiveAuditReportFromUrl(rawUrl: string): Promise<AuditReport> {
   const normalizedUrl = normalizeUrl(rawUrl);
-  const observation = await inspectWebsite(normalizedUrl);
-  const report = buildAuditReportFromUrl(rawUrl, observation);
 
-  return enrichReportBenchmarks(report);
+  // Run site observation and AI analysis concurrently when possible.
+  // AI analysis depends on observation, so we await observation first, then
+  // fire AI in parallel with benchmark enrichment.
+  const observation = await inspectWebsite(normalizedUrl);
+  let report = buildAuditReportFromUrl(rawUrl, observation);
+
+  // Enrich benchmarks and run AI analysis in parallel — both are async and
+  // independent of each other.
+  const [enriched, aiAnalysis] = await Promise.all([
+    enrichReportBenchmarks(report),
+    analyzeSiteWithAI(normalizedUrl, observation, report.overallScore),
+  ]);
+
+  report = enriched;
+
+  // Apply AI-written copy if available. Heuristic fallbacks remain when AI
+  // returns null (API key absent, fetch failed, parse error).
+  if (aiAnalysis) {
+    report = applyAIAnalysis(report, aiAnalysis);
+  }
+
+  return report;
 }
 
 export function buildAuditReportFromUrl(
@@ -314,7 +361,18 @@ export async function buildLiveAuditReportById(id: string) {
   }
 
   const observation = await inspectWebsite(sample.url);
-  const report = buildAuditReport(sample.url, sample, observation);
+  let report = buildAuditReport(sample.url, sample, observation);
 
-  return enrichReportBenchmarks(report);
+  const [enriched, aiAnalysis] = await Promise.all([
+    enrichReportBenchmarks(report),
+    analyzeSiteWithAI(sample.url, observation, report.overallScore),
+  ]);
+
+  report = enriched;
+
+  if (aiAnalysis) {
+    report = applyAIAnalysis(report, aiAnalysis);
+  }
+
+  return report;
 }
