@@ -19,66 +19,50 @@ const SHOWCASE = [
   },
 ] as const;
 
-type ShowcaseTone = "dark" | "light";
+type Layout = "horizontal" | "stacked";
 
-/** Product preview strip for auth marketing surfaces. */
+/**
+ * Product preview cards for the login hero. Uses theme tokens so cards match the active theme.
+ */
 export const LoginShowcaseStrip = ({
   className,
-  tone,
+  layout = "horizontal",
 }: {
   className?: string;
-  tone: ShowcaseTone;
+  layout?: Layout;
 }) => {
-  const dark = tone === "dark";
+  const stacked = layout === "stacked";
 
   return (
-    <div className={className}>
-      <p
-        className={cn(
-          "text-[11px] font-semibold uppercase tracking-[0.2em]",
-          dark ? "text-white/55" : "text-muted",
-        )}
-      >
-        Inside the workspace
-      </p>
-      <div className="mt-4 grid gap-3 sm:grid-cols-3">
-        {SHOWCASE.map((item) => (
-          <div
-            className={cn(
-              "overflow-hidden rounded-2xl border shadow-sm",
-              dark
-                ? "border-white/10 bg-white/[0.06] shadow-none"
-                : "border-border/50 bg-panel/40",
-            )}
-            key={item.src}
-          >
-            <div
-              className={cn(
-                "relative aspect-[4/3] w-full overflow-hidden",
-                dark ? "bg-black/25" : "bg-background-alt/80",
-              )}
-            >
-              <img
-                alt=""
-                className="h-full w-full object-cover object-top"
-                height={300}
-                src={item.src}
-                width={400}
-              />
-            </div>
-            <div className="space-y-0.5 px-3 py-2.5">
-              <p
-                className={cn("text-xs font-semibold", dark ? "text-white" : "text-foreground")}
-              >
-                {item.label}
-              </p>
-              <p className={cn("text-[11px] leading-snug", dark ? "text-white/60" : "text-muted")}>
-                {item.caption}
-              </p>
-            </div>
+    <div
+      className={cn(
+        "grid gap-2.5",
+        stacked ? "grid-cols-1" : "grid-cols-3",
+        className,
+      )}
+    >
+      {SHOWCASE.map((item) => (
+        <div
+          className={cn(
+            "overflow-hidden rounded-2xl border border-border/60 bg-panel/50 shadow-sm backdrop-blur-[2px]",
+          )}
+          key={item.src}
+        >
+          <div className="relative aspect-[4/3] w-full overflow-hidden bg-background-alt/60">
+            <img
+              alt=""
+              className="h-full w-full object-cover object-top opacity-[0.92]"
+              height={300}
+              src={item.src}
+              width={400}
+            />
           </div>
-        ))}
-      </div>
+          <div className="space-y-0.5 px-3 py-2.5">
+            <p className="text-xs font-semibold text-foreground">{item.label}</p>
+            <p className="text-[11px] leading-snug text-muted">{item.caption}</p>
+          </div>
+        </div>
+      ))}
     </div>
   );
 };

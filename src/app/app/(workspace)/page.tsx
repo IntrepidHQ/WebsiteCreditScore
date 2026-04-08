@@ -236,7 +236,7 @@ export default async function AppDashboardPage({
                   <span className="whitespace-nowrap">www</span> and the bare domain, or an expired session).
                   Sign in again, then run your scan.
                 </p>
-                <LoginShowcaseStrip tone="light" />
+                <LoginShowcaseStrip layout="horizontal" />
                 <Button asChild className="w-full sm:w-auto" size="sm" variant="secondary">
                   <Link href="/app/login?error=session-required&next=%2Fapp">Sign in</Link>
                 </Button>
