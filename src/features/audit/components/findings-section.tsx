@@ -40,9 +40,9 @@ const sectionMeta: Record<
     icon: Zap,
   },
   "security-posture": {
-    title: "Security Posture",
+    title: "Security posture",
     description:
-      "These are passive, observable trust and hardening indicators presented without fear-based framing.",
+      "What we can infer from HTTPS and response headers in a quick scan — not a penetration test.",
     icon: ShieldAlert,
   },
 };
@@ -122,6 +122,16 @@ export function FindingsSection({
             Swipe or scroll sideways to move through these findings.
           </p>
           <div aria-label={`${meta.title} cards`} className="horizontal-rail" tabIndex={0}>
+            {findings.length === 0 ? (
+              <Card className="h-full min-w-[20rem] max-w-[25rem] border-dashed border-border/80 bg-background-alt/40">
+                <CardContent className="p-6 sm:p-7">
+                  <p className="text-sm leading-6 text-muted">
+                    No findings landed in this rail from the captured page data. Re-run the scan or try a
+                    different URL if this looks wrong.
+                  </p>
+                </CardContent>
+              </Card>
+            ) : null}
             {findings.map((finding) => (
               <Card
                 data-finding-card

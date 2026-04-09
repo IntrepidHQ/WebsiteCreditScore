@@ -143,7 +143,8 @@ function normalizeWorkspaceRecord(workspace: WorkspaceRecord) {
       logoColor: branding.logoColor ?? "",
       logoScale: branding.logoScale ?? 1,
       contactName: usesLegacyBrand ? "WebsiteCreditScore.com team" : branding.contactName,
-      contactEmail: usesLegacyBrand ? "hello@websitecreditscore.com" : branding.contactEmail,
+      contactEmail: usesLegacyBrand ? "" : branding.contactEmail,
+      contactPhone: usesLegacyBrand ? "" : branding.contactPhone,
       headshot: usesLegacyBrand ? "/previews/agency-avatar.svg" : branding.headshot,
     },
   };

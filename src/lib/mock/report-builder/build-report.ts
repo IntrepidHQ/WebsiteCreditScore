@@ -284,9 +284,9 @@ function buildAuditReport(
       .map((item) => item.benchmarkScanId)
       .filter(Boolean) as string[],
     objectionHandling: [
-      "Patching the current site usually preserves the same structural compromises that are already suppressing trust and conversion.",
-      "A phased rebuild lowers risk because strategy, content, design, and implementation can be validated in sequence instead of guessed all at once.",
-      "The pricing options below are designed to match ambition to budget without losing the core strategic gains.",
+      "Small fixes on the current site usually keep the same weak structure that is holding trust and conversion back.",
+      "A phased rebuild lets you validate strategy, copy, design, and build in order instead of betting everything on one big guess.",
+      "Use the tiers below to match budget to ambition — you can add or trim scope once priorities are clear.",
     ],
     roiDefaults,
     previewSet: livePreviewSet,

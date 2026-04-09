@@ -218,8 +218,8 @@ export const defaultBranding: AgencyBranding = {
   logoScale: 1,
   contactName: "WebsiteCreditScore.com Team",
   contactTitle: "Website Strategy",
-  contactEmail: "hello@websitecreditscore.com",
-  contactPhone: "(555) 019-2093",
+  contactEmail: "",
+  contactPhone: "",
   headshot: "/previews/agency-avatar.svg",
   accentOverride: "",
 };

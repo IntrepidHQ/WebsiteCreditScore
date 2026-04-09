@@ -403,7 +403,7 @@ export function createCatalog(): PricingBundle {
     addOns,
     recommendedIds: [baseItem.id],
     stickyNote:
-      "Start with the rebuild that visibly changes the score, then add only the upgrades that match the sales goal.",
+      "Dollar amounts are ballpark estimates for planning — not a fixed quote. Start with the rebuild that moves the score, then add upgrades that match the sales goal.",
   };
 }
 

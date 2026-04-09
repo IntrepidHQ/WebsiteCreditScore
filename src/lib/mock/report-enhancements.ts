@@ -975,6 +975,27 @@ export function buildObservedFindings(
         tags: ["security", "headers"],
       }),
     );
+  } else {
+    findings.push(
+      createFinding({
+        id: "security-headers-strong",
+        title: "Several security headers are present",
+        summary: `The HTTP response includes ${observation.securitySignals.length} common hardening signals (for example HSTS, CSP, or frame controls).`,
+        severity: "low",
+        category: "security-posture",
+        section: "security-posture",
+        businessImpact:
+          "Visible header hygiene supports trust with technical buyers and reduces some common browser-level risks.",
+        recommendation:
+          "Keep headers current as the stack changes, and review CSP when adding third-party scripts or tags.",
+        confidenceLevel: "detected",
+        evidence: observation.securitySignals.map((signal, index) =>
+          createEvidence(`security-strong-${index}`, "Observed header signal", signal, "technical"),
+        ),
+        screenshots: [previewImage],
+        tags: ["security", "headers"],
+      }),
+    );
   }
 
   return findings;

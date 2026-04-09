@@ -107,8 +107,8 @@ export const getOptionalWorkspaceSession = async (): Promise<WorkspaceSession | 
         return {
           mode: "demo",
           userId: "demo-owner",
-          email: "hello@websitecreditscore.com",
-          name: "WebsiteCreditScore",
+          email: "",
+          name: "Demo workspace",
         };
       }
 
@@ -134,8 +134,8 @@ export const getOptionalWorkspaceSession = async (): Promise<WorkspaceSession | 
   return {
     mode: "demo",
     userId: "demo-owner",
-    email: "hello@websitecreditscore.com",
-    name: "WebsiteCreditScore",
+    email: "",
+    name: "Demo workspace",
   };
 };
 

@@ -12,6 +12,7 @@ import {
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { cn } from "@/lib/utils/cn";
 import { useThemeStore } from "@/store/theme-store";
 import { useUiStore } from "@/store/ui-store";
 
@@ -146,20 +147,29 @@ export function ContactModal() {
 
         <div
           aria-describedby={submitted ? successId : helperId}
-          className="grid gap-3 rounded-[calc(var(--theme-radius))] border border-border/70 bg-background-alt/75 p-4 text-sm text-muted sm:grid-cols-3"
+          className={cn(
+            "grid gap-3 rounded-[calc(var(--theme-radius))] border border-border/70 bg-background-alt/75 p-4 text-sm text-muted",
+            branding.contactEmail?.trim() || branding.contactPhone?.trim()
+              ? "sm:grid-cols-2 lg:grid-cols-3"
+              : "",
+          )}
         >
           <div className="flex items-center gap-2">
             <Calendar aria-hidden="true" className="size-4 text-accent" />
             45-minute strategy review
           </div>
-          <div className="flex items-center gap-2">
-            <Mail aria-hidden="true" className="size-4 text-accent" />
-            {branding.contactEmail}
-          </div>
-          <div className="flex items-center gap-2">
-            <Phone aria-hidden="true" className="size-4 text-accent" />
-            {branding.contactPhone}
-          </div>
+          {branding.contactEmail?.trim() ? (
+            <div className="flex min-w-0 items-center gap-2">
+              <Mail aria-hidden="true" className="size-4 shrink-0 text-accent" />
+              <span className="truncate">{branding.contactEmail.trim()}</span>
+            </div>
+          ) : null}
+          {branding.contactPhone?.trim() ? (
+            <div className="flex min-w-0 items-center gap-2">
+              <Phone aria-hidden="true" className="size-4 shrink-0 text-accent" />
+              <span className="truncate">{branding.contactPhone.trim()}</span>
+            </div>
+          ) : null}
         </div>
       </DialogContent>
     </Dialog>

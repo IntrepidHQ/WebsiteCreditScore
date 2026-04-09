@@ -105,8 +105,8 @@ function getWorkspaceDefaults(ownerUserId: string) {
       logoScale: 1,
       contactName: "WebsiteCreditScore.com team",
       contactTitle: "Founder",
-      contactEmail: "hello@websitecreditscore.com",
-      contactPhone: "(843) 555-0198",
+      contactEmail: "",
+      contactPhone: "",
       headshot: "/previews/agency-avatar.svg",
       accentOverride: "#f7b21b",
     },
@@ -136,7 +136,8 @@ function normalizeWorkspaceRecord(workspace: WorkspaceRecord) {
     logoColor: workspace.branding.logoColor ?? "",
     logoScale: workspace.branding.logoScale ?? 1,
     contactName: usesLegacyBrand ? "WebsiteCreditScore.com team" : workspace.branding.contactName,
-    contactEmail: usesLegacyBrand ? "hello@websitecreditscore.com" : workspace.branding.contactEmail,
+    contactEmail: usesLegacyBrand ? "" : workspace.branding.contactEmail,
+    contactPhone: usesLegacyBrand ? "" : workspace.branding.contactPhone,
     headshot: usesLegacyBrand ? "/previews/agency-avatar.svg" : workspace.branding.headshot,
   };
 

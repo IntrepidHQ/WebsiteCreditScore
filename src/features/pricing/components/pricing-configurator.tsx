@@ -185,20 +185,20 @@ export function PricingConfigurator({ report }: { report: AuditReport }) {
   const projectedScore = calculateProjectedScore(report.overallScore, summary.selectedPackageItems);
   const objectionCards = [
     {
-      title: "Patching preserves the same drag",
-      subtitle: "Why quick fixes rarely move the score enough",
+      title: "Patches rarely fix the root problem",
+      subtitle: "Why band-aids stall the score",
       icon: ShieldCheck,
       body: report.objectionHandling[0],
     },
     {
-      title: "A phased rebuild lowers risk",
-      subtitle: "Why strategy and validation beat guesswork",
+      title: "Phased work is lower risk",
+      subtitle: "Validate step by step",
       icon: Layers3,
       body: report.objectionHandling[1],
     },
     {
-      title: "Scope should scale with ambition",
-      subtitle: "Why the estimate stays flexible without losing the core gain",
+      title: "Scope can flex with budget",
+      subtitle: "Keep the strategy, trim the extras",
       icon: WalletCards,
       body: report.objectionHandling[2],
     },
@@ -213,6 +213,9 @@ export function PricingConfigurator({ report }: { report: AuditReport }) {
           className="mt-2 font-display text-[2.4rem] font-semibold leading-none text-accent"
         >
           ${offerSummary.finalTotal.toLocaleString()}
+        </p>
+        <p className="mt-1 text-xs leading-5 text-muted">
+          Planning estimate only — final scope and price depend on discovery.
         </p>
         {report.proposalOffer ? (
           <div className="mt-2 space-y-1">
@@ -326,7 +329,7 @@ export function PricingConfigurator({ report }: { report: AuditReport }) {
         <SectionHeading
           eyebrow="Choose your price"
           title="Scope the proposal like a real estimate"
-          description="The base rebuild should create a visible lift on its own. Add-ons are only for broader page coverage, search growth, or follow-up systems."
+          description="The base rebuild should create a visible lift on its own. Add-ons are only for broader page coverage, search growth, or follow-up systems. Shown prices are estimates for planning, not a binding quote."
         />
         <div className="grid gap-6 xl:grid-cols-[minmax(0,1fr)_20rem] 2xl:grid-cols-[minmax(0,1fr)_21rem]">
           <div className="space-y-6">
@@ -365,9 +368,9 @@ export function PricingConfigurator({ report }: { report: AuditReport }) {
 
             <Card>
               <CardHeader className="space-y-2 pb-5">
-                <Badge variant="neutral">Why this matters now</Badge>
+                <Badge variant="neutral">Straight answers</Badge>
                 <CardTitle className="text-[clamp(2.85rem,2.35rem+0.8vw,3.55rem)] leading-[0.96] tracking-[-0.04em]">
-                  Objection handling inside the estimate
+                  What clients ask before they sign
                 </CardTitle>
               </CardHeader>
               <CardContent className="grid gap-3 lg:grid-cols-3">
