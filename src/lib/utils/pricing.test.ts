@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 
 import { buildAuditReportFromUrl } from "@/lib/mock/report-builder";
 import {
+  applyProposalPriceDisplayMultiplier,
   calculateProjectedScore,
   calculatePricingSummary,
   calculateRoiScenario,
@@ -42,6 +43,18 @@ describe("pricing utilities", () => {
 
     expect(projected).toBeGreaterThan(report.overallScore);
     expect(projected).toBeLessThanOrEqual(9.8);
+  });
+
+  it("applies display multiplier to currency only", () => {
+    const summary = calculatePricingSummary(bundle, getDefaultSelectedIds(bundle));
+    const scaled = applyProposalPriceDisplayMultiplier(summary, 1.1);
+
+    expect(scaled.baseItem.price).toBe(Math.round(summary.baseItem.price * 1.1));
+    expect(scaled.total).toBe(
+      scaled.baseItem.price + scaled.selectedAddOns.reduce((s, item) => s + item.price, 0),
+    );
+    expect(scaled.projectedScoreLift).toBe(summary.projectedScoreLift);
+    expect(scaled.baseItem.estimatedScoreLift).toBe(summary.baseItem.estimatedScoreLift);
   });
 
   it("calculates the ROI scenario", () => {

@@ -88,6 +88,39 @@ export function getRecommendedUpsells(
     .slice(0, limit);
 }
 
+/**
+ * Scales all currency amounts in a summary (for workspace “client-facing” price adjustment).
+ * Score lifts and IDs are unchanged.
+ */
+export function applyProposalPriceDisplayMultiplier(
+  summary: PricingSummary,
+  multiplier: number,
+): PricingSummary {
+  if (!Number.isFinite(multiplier) || multiplier <= 0) {
+    return summary;
+  }
+
+  const m = Math.min(1.5, Math.max(0.5, multiplier));
+  const scale = (n: number) => Math.round(n * m);
+  const baseItem = { ...summary.baseItem, price: scale(summary.baseItem.price) };
+  const selectedAddOns = summary.selectedAddOns.map((item) => ({ ...item, price: scale(item.price) }));
+  const selectedPackageItems = [baseItem, ...selectedAddOns];
+  const addOnsTotal = selectedAddOns.reduce((sum, item) => sum + item.price, 0);
+
+  return {
+    ...summary,
+    baseItem,
+    selectedAddOns,
+    selectedPackageItems,
+    addOnsTotal,
+    total: baseItem.price + addOnsTotal,
+    recommendedUpsells: summary.recommendedUpsells.map((item) => ({
+      ...item,
+      price: scale(item.price),
+    })),
+  };
+}
+
 export function calculatePricingSummary(
   bundle: PricingBundle,
   selectedIds: string[],

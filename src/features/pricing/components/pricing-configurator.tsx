@@ -1,10 +1,9 @@
 "use client";
 
-import { useEffect, useId, useState } from "react";
+import { useEffect, useId, useMemo } from "react";
 import {
   Calculator,
   CheckCircle2,
-  ChevronUp,
   CircleDashed,
   Layers3,
   Minus,
@@ -25,23 +24,17 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
-import { cn } from "@/lib/utils/cn";
 import type { AuditReport, PricingItem } from "@/lib/types/audit";
 import { applyProposalOffer, isProposalOfferActive } from "@/lib/utils/proposal-offers";
 import {
+  applyProposalPriceDisplayMultiplier,
   calculateProjectedScore,
   calculatePricingSummary,
   calculateRoiScenario,
   getDefaultSelectedIds,
 } from "@/lib/utils/pricing";
+import { usePricingDisplayStore } from "@/store/pricing-display-store";
 import { usePricingStore } from "@/store/pricing-store";
 import { useUiStore } from "@/store/ui-store";
 
@@ -62,14 +55,17 @@ function PricingRow({
   synergyTitles,
   selected,
   onToggle,
+  priceMultiplier = 1,
 }: {
   item: PricingItem;
   synergyTitles: string[];
   selected: boolean;
   onToggle: () => void;
+  priceMultiplier?: number;
 }) {
   const descriptionId = useId();
   const benchmarkId = useId();
+  const displayPrice = Math.round(item.price * priceMultiplier);
 
   return (
     <div
@@ -134,7 +130,7 @@ function PricingRow({
 
       <div className="space-y-2 md:text-right" role="cell">
         <p className="font-display text-[2rem] font-semibold text-accent">
-          ${item.price.toLocaleString()}
+          ${displayPrice.toLocaleString()}
         </p>
       </div>
 
@@ -156,7 +152,6 @@ function PricingRow({
 }
 
 export function PricingConfigurator({ report }: { report: AuditReport }) {
-  const [mobileSummaryOpen, setMobileSummaryOpen] = useState(false);
   const monthlyLeadId = useId();
   const leadToClientId = useId();
   const averageClientValueId = useId();
@@ -167,6 +162,7 @@ export function PricingConfigurator({ report }: { report: AuditReport }) {
   const storedSelections = usePricingStore((state) => state.selectionsByReport[report.id]);
   const storedRoi = usePricingStore((state) => state.roiByReport[report.id]);
   const setContactModalOpen = useUiStore((state) => state.setContactModalOpen);
+  const proposalPriceMultiplier = usePricingDisplayStore((state) => state.proposalPriceMultiplier);
   const selections = storedSelections ?? getDefaultSelectedIds(report.pricingBundle);
   const roi = storedRoi ?? report.roiDefaults;
   const baseOnlySelections = [report.pricingBundle.baseItem.id];
@@ -180,7 +176,11 @@ export function PricingConfigurator({ report }: { report: AuditReport }) {
   }, [initializeReport, report.id, report.pricingBundle, report.roiDefaults]);
 
   const summary = calculatePricingSummary(report.pricingBundle, selections);
-  const offerSummary = applyProposalOffer(summary.total, report.proposalOffer);
+  const displaySummary = useMemo(
+    () => applyProposalPriceDisplayMultiplier(summary, proposalPriceMultiplier),
+    [summary, proposalPriceMultiplier],
+  );
+  const offerSummary = applyProposalOffer(displaySummary.total, report.proposalOffer);
   const roiScenario = calculateRoiScenario(offerSummary.finalTotal, roi);
   const projectedScore = calculateProjectedScore(report.overallScore, summary.selectedPackageItems);
   const objectionCards = [
@@ -246,16 +246,16 @@ export function PricingConfigurator({ report }: { report: AuditReport }) {
         <div className="flex items-start gap-3 rounded-[calc(var(--theme-radius)-4px)] border border-border/70 bg-panel/55 px-4 py-3">
           <CheckCircle2 className="mt-0.5 size-4 shrink-0 text-accent" />
           <div>
-            <p className="text-sm font-semibold text-foreground">{summary.baseItem.title}</p>
-            <p className="text-xs leading-5 text-muted">${summary.baseItem.price.toLocaleString()}</p>
+            <p className="text-sm font-semibold text-foreground">{displaySummary.baseItem.title}</p>
+            <p className="text-xs leading-5 text-muted">${displaySummary.baseItem.price.toLocaleString()}</p>
           </div>
         </div>
-        {summary.selectedAddOns.length === 0 ? (
+        {displaySummary.selectedAddOns.length === 0 ? (
           <div className="rounded-[calc(var(--theme-radius)-4px)] border border-dashed border-border/70 bg-background-alt/50 px-4 py-3 text-sm text-muted">
             No add-ons selected.
           </div>
         ) : null}
-        {summary.selectedAddOns.map((item) => (
+        {displaySummary.selectedAddOns.map((item) => (
           <div
             className="flex items-start justify-between gap-3 rounded-[calc(var(--theme-radius)-4px)] border border-border/70 bg-panel/55 px-4 py-3"
             key={item.id}
@@ -280,14 +280,14 @@ export function PricingConfigurator({ report }: { report: AuditReport }) {
         ))}
       </div>
 
-      {summary.synergyNotes.length ? (
+      {displaySummary.synergyNotes.length ? (
         <div className="rounded-[calc(var(--theme-radius)-2px)] border border-accent/20 bg-accent/8 p-4">
           <div className="mb-2 flex items-center gap-2 text-accent">
             <TrendingUp className="size-4" />
             Good combinations
           </div>
           <div className="space-y-2 text-sm leading-6 text-foreground">
-            {summary.synergyNotes.map((note) => (
+            {displaySummary.synergyNotes.map((note) => (
               <p key={note}>{note}</p>
             ))}
           </div>
@@ -296,7 +296,7 @@ export function PricingConfigurator({ report }: { report: AuditReport }) {
 
       <div className="space-y-2">
         <p className="text-xs uppercase tracking-[0.18em] text-muted">Suggested next upgrades</p>
-        {summary.recommendedUpsells.map((item) => (
+        {displaySummary.recommendedUpsells.map((item) => (
           <div
             className="flex items-center justify-between gap-3 rounded-[calc(var(--theme-radius)-4px)] border border-border/70 bg-background-alt/70 px-4 py-3"
             key={item.id}
@@ -341,7 +341,8 @@ export function PricingConfigurator({ report }: { report: AuditReport }) {
                     </p>
                   </div>
                   <p className="font-display text-4xl font-semibold text-accent">
-                    ${report.pricingBundle.baseItem.price.toLocaleString()}
+                    $
+                    {Math.round(report.pricingBundle.baseItem.price * proposalPriceMultiplier).toLocaleString()}
                   </p>
                 </div>
               </CardHeader>
@@ -435,6 +436,7 @@ export function PricingConfigurator({ report }: { report: AuditReport }) {
                     <PricingRow
                       item={item}
                       key={item.id}
+                      priceMultiplier={proposalPriceMultiplier}
                       synergyTitles={item.synergyWith
                         .map(
                           (relatedId) =>
@@ -558,51 +560,6 @@ export function PricingConfigurator({ report }: { report: AuditReport }) {
               <CardContent className="space-y-4">{proposalSummarySections}</CardContent>
             </Card>
 
-            <div className="fixed inset-x-4 bottom-4 z-30 rounded-[calc(var(--theme-radius-lg))] border border-border bg-panel/90 p-3 shadow-[var(--theme-shadow)] backdrop-blur-xl lg:hidden">
-              <div className="flex items-stretch gap-3">
-                <button
-                  type="button"
-                  className="flex min-w-0 flex-1 flex-col items-start justify-center rounded-[calc(var(--theme-radius)-4px)] px-2 py-1 text-left transition hover:bg-background-alt/55 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/40"
-                  aria-expanded={mobileSummaryOpen}
-                  aria-haspopup="dialog"
-                  aria-label="Open full proposal summary"
-                  onClick={() => setMobileSummaryOpen(true)}
-                >
-                  <span className="flex w-full items-center justify-between gap-2">
-                    <span className="text-xs uppercase tracking-[0.18em] text-muted">Proposal total</span>
-                    <ChevronUp aria-hidden className="size-4 shrink-0 text-muted" />
-                  </span>
-                  <span className="font-display text-3xl font-semibold text-accent">
-                    ${offerSummary.finalTotal.toLocaleString()}
-                  </span>
-                  <span className="mt-1 text-[11px] leading-4 text-muted">Summary, line items & score</span>
-                </button>
-                <Button className="self-center shrink-0" onClick={() => setContactModalOpen(true)}>
-                  Book call
-                </Button>
-              </div>
-            </div>
-
-            <Dialog onOpenChange={setMobileSummaryOpen} open={mobileSummaryOpen}>
-              <DialogContent
-                aria-describedby={undefined}
-                className={cn(
-                  "flex max-h-[min(88vh,720px)] w-full max-w-none flex-col gap-0 overflow-hidden p-0",
-                  "fixed right-0 bottom-0 left-0 top-auto translate-x-0 translate-y-0 rounded-t-[calc(var(--theme-radius-lg))] rounded-b-none border-b-0 sm:left-4 sm:right-4 lg:hidden",
-                )}
-              >
-                <DialogHeader className="shrink-0 space-y-2 border-b border-border/70 px-5 py-4">
-                  <DialogTitle>Proposal summary</DialogTitle>
-                  <DialogDescription>
-                    Same detail as the desktop sidebar: totals, selected scope, synergies, and projected
-                    score impact.
-                  </DialogDescription>
-                </DialogHeader>
-                <div className="min-h-0 flex-1 overflow-y-auto px-5 py-4">
-                  <div className="space-y-4">{proposalSummarySections}</div>
-                </div>
-              </DialogContent>
-            </Dialog>
           </aside>
         </div>
       </div>
