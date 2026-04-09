@@ -9,8 +9,8 @@ type PricingDisplayState = {
   setProposalPriceMultiplier: (value: number) => void;
 };
 
-export const usePricingDisplayStore = create(
-  persist<PricingDisplayState>(
+export const usePricingDisplayStore = create<PricingDisplayState>()(
+  persist(
     (set) => ({
       proposalPriceMultiplier: 1,
       setProposalPriceMultiplier: (proposalPriceMultiplier) => set({ proposalPriceMultiplier }),

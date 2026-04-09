@@ -24,9 +24,11 @@ export async function POST(request: Request) {
 
   const raw = Array.isArray(body.messages) ? body.messages : [];
   const messages = raw
-    .filter((m) => (m.role === "user" || m.role === "assistant") && typeof m.content === "string")
-    .map((m) => ({ role: m.role as "user" | "assistant", content: m.content.trim() }))
-    .filter((m) => m.content.length > 0)
+    .filter(
+      (m): m is ChatMessage & { role: "user" | "assistant"; content: string } =>
+        (m.role === "user" || m.role === "assistant") && typeof m.content === "string" && m.content.trim().length > 0,
+    )
+    .map((m) => ({ role: m.role, content: m.content.trim() }))
     .slice(-20);
 
   if (messages.length === 0) {
