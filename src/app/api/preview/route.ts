@@ -44,6 +44,12 @@ export async function GET(request: Request) {
         "X-Content-Type-Options": "nosniff",
         "X-Preview-Source": preview.source,
         "X-Preview-Reason": preview.reason,
+        "X-Preview-Layers": preview.diagnostics
+          ? preview.diagnostics.layers
+              .map((l) => `${l.layer}:${l.status}:${l.ms}ms`)
+              .join(",")
+          : "unknown",
+        "X-Preview-TotalMs": String(preview.diagnostics?.totalMs ?? 0),
       },
     });
   } catch (err) {

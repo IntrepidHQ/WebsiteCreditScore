@@ -28,6 +28,7 @@ if (process.env.NODE_ENV === "production") {
 const nextConfig: NextConfig = {
   poweredByHeader: false,
   reactStrictMode: true,
+  serverExternalPackages: ["playwright-core", "@sparticuz/chromium", "sharp"],
   experimental: {
     optimizePackageImports: ["lucide-react"],
   },

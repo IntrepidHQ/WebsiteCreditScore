@@ -35,8 +35,8 @@ describe("getBrowserlessEndpointBases", () => {
 
   it("returns defaults when BROWSERLESS_ENDPOINT is unset", () => {
     expect(getBrowserlessEndpointBases()).toEqual([
-      "https://chrome.browserless.io",
       "https://production-sfo.browserless.io",
+      "https://chrome.browserless.io",
     ]);
   });
 

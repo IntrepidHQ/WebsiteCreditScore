@@ -14,7 +14,8 @@ export const getBrowserlessApiKey = (): string | undefined => {
 /** Tries custom endpoint first, then Browserless cloud clusters (404 on one region is common). */
 export const getBrowserlessEndpointBases = (): string[] => {
   const custom = process.env.BROWSERLESS_ENDPOINT?.trim();
-  const defaults = ["https://chrome.browserless.io", "https://production-sfo.browserless.io"];
+  // Official quickstart uses production-sfo; chrome.* is a legacy/alternate cluster.
+  const defaults = ["https://production-sfo.browserless.io", "https://chrome.browserless.io"];
   const ordered = custom ? [custom, ...defaults.filter((d) => d.replace(/\/$/, "") !== custom.replace(/\/$/, ""))] : defaults;
   return [...new Set(ordered.map((b) => b.replace(/\/$/, "")))];
 };

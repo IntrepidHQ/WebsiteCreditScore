@@ -22,7 +22,7 @@ export async function GET() {
   const pagespeedKey = Boolean(process.env.GOOGLE_PAGESPEED_API_KEY?.trim());
   const l2CanResolvePublicUrl = getScreenshotPublicUrl("health-probe", "webp") !== null;
 
-  const readyForServerlessCapture = serverless ? browserless : true;
+  const readyForServerlessCapture = serverless ? browserless || pagespeedKey : true;
 
   return NextResponse.json(
     {
@@ -42,9 +42,8 @@ export async function GET() {
       hints: readyForServerlessCapture
         ? []
         : [
-            "Set BROWSERLESS_API (or BROWSERLESS_TOKEN / BROWSERLESS_KEY) in Vercel → Project → Settings → Environment Variables for Production.",
+            "Set BROWSERLESS_API (or BROWSERLESS_TOKEN / BROWSERLESS_KEY) and/or GOOGLE_PAGESPEED_API_KEY in Vercel → Environment Variables for Production (serverless capture skips local Playwright).",
             "Vercel Hobby limits function duration (~10s); use Pro or expect timeouts for slow sites — /api/preview uses maxDuration 60 when your plan allows it.",
-            "Add GOOGLE_PAGESPEED_API_KEY as a fallback when Browserless is down or rate-limited.",
             "Set NEXT_PUBLIC_SUPABASE_URL + SUPABASE_SERVICE_ROLE_KEY so successful captures persist to Storage and repeat views skip Browserless.",
           ],
     },

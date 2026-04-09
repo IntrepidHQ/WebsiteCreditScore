@@ -487,10 +487,11 @@ async function captureViaBrowserless(
 
   const basePayload = {
     url,
+    // Puppeteer screenshot options only — do not send Playwright-only keys like
+    // `animations` or `caret`; Browserless cloud rejects unknown option fields with 400.
     options: {
       fullPage: true,
       type: "png",
-      animations: "disabled",
     },
     viewport: isDesktop
       ? { width: 1440, height: 900, deviceScaleFactor: 1 }
@@ -522,8 +523,8 @@ async function captureViaBrowserless(
     gotoOptions: { waitUntil: string; timeout: number };
     waitForTimeout?: number;
   }> = [
-    { gotoOptions: { waitUntil: "load", timeout: 20_000 }, waitForTimeout: 800 },
-    { gotoOptions: { waitUntil: "domcontentloaded", timeout: 18_000 }, waitForTimeout: 1200 },
+    { gotoOptions: { waitUntil: "load", timeout: 15_000 }, waitForTimeout: 800 },
+    { gotoOptions: { waitUntil: "domcontentloaded", timeout: 12_000 }, waitForTimeout: 1200 },
   ];
 
   let lastError: unknown;
@@ -543,12 +544,16 @@ async function captureViaBrowserless(
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify(body),
-          signal: AbortSignal.timeout(40_000),
+          signal: AbortSignal.timeout(25_000),
         });
 
         if (!response.ok) {
           const detail = await response.text().catch(() => "");
-          throw new Error(`Browserless ${baseEndpoint} returned ${response.status}: ${detail.slice(0, 200)}`);
+          const targetCode = response.headers.get("x-response-code");
+          const suffix = targetCode ? ` targetHttp=${targetCode}` : "";
+          throw new Error(
+            `Browserless ${baseEndpoint} returned ${response.status}${suffix}: ${detail.slice(0, 200)}`,
+          );
         }
 
         const buffer = Buffer.from(await response.arrayBuffer());
@@ -597,7 +602,7 @@ async function captureViaExternalApi(
   const apiUrl = `https://www.googleapis.com/pagespeedonline/v5/runPagespeed?url=${encodeURIComponent(url)}&strategy=${strategy}&category=performance${keyParam}`;
 
   const response = await fetch(apiUrl, {
-    signal: AbortSignal.timeout(25_000),
+    signal: AbortSignal.timeout(28_000),
     cache: "no-store",
   });
 
@@ -647,6 +652,64 @@ async function captureViaExternalApi(
   }
 
   throw new Error("No screenshot data in PageSpeed response");
+}
+
+/**
+ * Lightweight OG image discovery: fetches only the first ~16KB of a page
+ * (the <head> section) to extract og:image or twitter:image meta tags.
+ * Much cheaper than a full inspectWebsite/Firecrawl call.
+ */
+async function fetchOgImageUrl(pageUrl: string): Promise<string | undefined> {
+  try {
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), 5000);
+    const response = await fetch(pageUrl, {
+      headers: {
+        accept: "text/html",
+        "user-agent":
+          "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/134.0.0.0 Safari/537.36",
+      },
+      signal: controller.signal,
+      redirect: "follow",
+    });
+
+    if (!response.ok || !response.body) {
+      clearTimeout(timeout);
+      return undefined;
+    }
+
+    const reader = response.body.getReader();
+    const chunks: Uint8Array[] = [];
+    let totalBytes = 0;
+    const MAX_BYTES = 16_384;
+
+    while (totalBytes < MAX_BYTES) {
+      const { done, value } = await reader.read();
+      if (done || !value) break;
+      chunks.push(value);
+      totalBytes += value.length;
+    }
+    controller.abort();
+    clearTimeout(timeout);
+
+    const html = Buffer.concat(chunks).toString("utf-8");
+    const ogMatch = html.match(
+      /<meta[^>]*property=["']og:image["'][^>]*content=["']([^"']+)["'][^>]*>/i,
+    ) ?? html.match(
+      /<meta[^>]*content=["']([^"']+)["'][^>]*property=["']og:image["'][^>]*>/i,
+    );
+    const twitterMatch = html.match(
+      /<meta[^>]*name=["']twitter:image["'][^>]*content=["']([^"']+)["'][^>]*>/i,
+    ) ?? html.match(
+      /<meta[^>]*content=["']([^"']+)["'][^>]*name=["']twitter:image["'][^>]*>/i,
+    );
+    const imageUrl = ogMatch?.[1] || twitterMatch?.[1];
+
+    if (!imageUrl) return undefined;
+    return new URL(imageUrl, pageUrl).toString();
+  } catch {
+    return undefined;
+  }
 }
 
 async function fetchRemoteImage(imageUrl: string) {
@@ -812,7 +875,7 @@ async function buildPreviewImage(
     try {
       const rawBuffer = await withTimeout(
         captureViaBrowserless(captureUrl, device),
-        58_000,
+        28_000,
         "Browserless capture timed out.",
       );
       trackLayer("L3a-browserless", "hit", t);
@@ -851,7 +914,7 @@ async function buildPreviewImage(
     try {
       const rawBuffer = await withTimeout(
         captureViaExternalApi(captureUrl, device),
-        16000,
+        30_000,
         "External screenshot API timed out.",
       );
       trackLayer("L4-pagespeed", "hit", t);
@@ -861,28 +924,32 @@ async function buildPreviewImage(
     }
   }
 
-  // L5: OG image fallback
-  if (fallbackImageUrl) {
-    const t = Date.now();
-    try {
-      const remoteImage = await withTimeout(
-        fetchRemoteImage(fallbackImageUrl),
-        REMOTE_IMAGE_TIMEOUT_MS,
-        "Remote image fallback timed out.",
-      );
-      const compressed = await compressScreenshot(remoteImage.buffer, device);
-      trackLayer("L5-og-image", "hit", t);
-      return attachDiagnostics({
-        buffer: compressed.buffer,
-        contentType: compressed.contentType,
-        source: "remote-image",
-        reason: "fallback-og-image",
-      });
-    } catch (err) {
-      trackLayer("L5-og-image", "fail", t, err instanceof Error ? err.message : String(err));
+  // L5: OG image fallback — discover og:image if not provided
+  {
+    const ogUrl = fallbackImageUrl ?? await fetchOgImageUrl(captureUrl).catch(() => undefined);
+
+    if (ogUrl) {
+      const t = Date.now();
+      try {
+        const remoteImage = await withTimeout(
+          fetchRemoteImage(ogUrl),
+          REMOTE_IMAGE_TIMEOUT_MS,
+          "Remote image fallback timed out.",
+        );
+        const compressed = await compressScreenshot(remoteImage.buffer, device);
+        trackLayer("L5-og-image", "hit", t);
+        return attachDiagnostics({
+          buffer: compressed.buffer,
+          contentType: compressed.contentType,
+          source: "remote-image",
+          reason: "fallback-og-image",
+        });
+      } catch (err) {
+        trackLayer("L5-og-image", "fail", t, err instanceof Error ? err.message : String(err));
+      }
+    } else {
+      trackLayer("L5-og-image", "skip", Date.now(), "no-og-url");
     }
-  } else {
-    trackLayer("L5-og-image", "skip", Date.now(), "no-og-url");
   }
 
   // L6: SVG placeholder (last resort)
