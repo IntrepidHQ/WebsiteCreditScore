@@ -160,8 +160,8 @@ export default async function AppLoginPage({
         </div>
       </div>
 
-      {/* ── Right: Form panel ── */}
-      <div className="flex min-h-0 w-full flex-1 flex-col justify-center px-5 py-8 sm:px-6 md:h-full md:max-h-[100dvh] md:w-[20.5rem] md:shrink-0 md:overflow-y-auto md:border-l md:border-border/60 md:px-6 lg:w-[22rem] lg:px-7">
+      {/* ── Right: Form panel (fixed width on md+ — avoid flex-1 or the column eats half the viewport) ── */}
+      <div className="flex min-h-0 w-full flex-1 flex-col justify-center px-5 py-8 sm:px-6 md:h-full md:max-h-[100dvh] md:w-[19rem] md:flex-none md:shrink-0 md:overflow-y-auto md:border-l md:border-border/60 md:px-5 lg:w-[20rem] lg:px-6">
         <LoginSupabaseEnvBanner />
         <BrandWordmarkLink className="mb-6 hidden md:block" variant="on-dark" />
         {/* Mobile: minimal score strip above the form */}
@@ -179,6 +179,7 @@ export default async function AppLoginPage({
         </div>
         <BrandWordmarkLink className="mb-8 md:hidden" variant="on-dark" />
 
+        <div className="w-full min-w-0 max-w-xs self-center sm:max-w-sm md:max-w-[16.75rem] md:self-start">
         {sentConfirm ? (
           <div className="space-y-4">
             <div className="flex h-12 w-12 items-center justify-center rounded-full bg-success/15">
@@ -295,9 +296,9 @@ export default async function AppLoginPage({
               ) : null}
               {/* Tab switcher */}
               <div>
-                <div className="inline-flex rounded-lg border border-border/70 bg-panel/60 p-1">
+                <div className="inline-flex max-w-full rounded-lg border border-border/70 bg-panel/60 p-1">
                   <a
-                    className={`rounded-md px-4 py-1.5 text-sm font-medium transition-colors ${
+                    className={`rounded-md px-3 py-1.5 text-sm font-medium transition-colors sm:px-4 ${
                       mode === "signin"
                         ? "bg-elevated text-foreground shadow-sm"
                         : "text-muted hover:text-foreground"
@@ -307,7 +308,7 @@ export default async function AppLoginPage({
                     Sign in
                   </a>
                   <a
-                    className={`rounded-md px-4 py-1.5 text-sm font-medium transition-colors ${
+                    className={`rounded-md px-3 py-1.5 text-sm font-medium transition-colors sm:px-4 ${
                       mode === "signup"
                         ? "bg-elevated text-foreground shadow-sm"
                         : "text-muted hover:text-foreground"
@@ -436,6 +437,7 @@ export default async function AppLoginPage({
             ) : null}
           </div>
         )}
+        </div>
       </div>
     </div>
   );
