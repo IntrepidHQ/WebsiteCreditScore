@@ -26,9 +26,16 @@ const LOAD_STATE_TIMEOUT_MS = 11000;
 const NETWORK_IDLE_TIMEOUT_MS = 6500;
 const REMOTE_IMAGE_TIMEOUT_MS = 7000;
 const CAPTURE_VERSION = PREVIEW_CAPTURE_VERSION;
-const COMPRESSION_MAX_WIDTH = 1440;
-const COMPRESSION_MAX_HEIGHT = 2400;
-const COMPRESSION_QUALITY = 82;
+/** Desktop: keep up to ~1080p-wide canvas; tall pages cap height to limit bytes. */
+const COMPRESSION_MAX_WIDTH_DESKTOP = 1920;
+const COMPRESSION_MAX_HEIGHT_DESKTOP = 3600;
+/**
+ * Mobile captures use deviceScaleFactor 3 (390 CSS px → ~1170px wide). Downsampling to 780
+ * destroyed sharpness; keep near-native width with a modest cap.
+ */
+const COMPRESSION_MAX_WIDTH_MOBILE = 1120;
+const COMPRESSION_MAX_HEIGHT_MOBILE = 2800;
+const COMPRESSION_QUALITY = 88;
 
 const previewCache = new Map<string, Promise<PreviewImageResult>>();
 
@@ -89,8 +96,10 @@ async function compressScreenshot(
   device: PreviewDevice,
 ): Promise<{ buffer: Buffer; contentType: string }> {
   try {
-    const maxWidth = device === "mobile" ? 780 : COMPRESSION_MAX_WIDTH;
-    const maxHeight = device === "mobile" ? 1800 : COMPRESSION_MAX_HEIGHT;
+    const maxWidth =
+      device === "mobile" ? COMPRESSION_MAX_WIDTH_MOBILE : COMPRESSION_MAX_WIDTH_DESKTOP;
+    const maxHeight =
+      device === "mobile" ? COMPRESSION_MAX_HEIGHT_MOBILE : COMPRESSION_MAX_HEIGHT_DESKTOP;
 
     const pipeline = sharp(input)
       .resize({
@@ -98,11 +107,12 @@ async function compressScreenshot(
         height: maxHeight,
         fit: "inside",
         withoutEnlargement: true,
+        kernel: sharp.kernel.lanczos3,
       });
 
     const webpBuffer = await pipeline
       .clone()
-      .webp({ quality: COMPRESSION_QUALITY, effort: 4 })
+      .webp({ quality: COMPRESSION_QUALITY, effort: 5, smartSubsample: true })
       .toBuffer();
 
     const pngBuffer = await pipeline
@@ -536,6 +546,7 @@ async function captureViaBrowserless(
       fullPage: true,
       type: "png",
       captureBeyondViewport: true,
+      fromSurface: true,
     },
     viewport: isDesktop
       ? { width: 1440, height: 900, deviceScaleFactor: 1 }
@@ -567,8 +578,12 @@ async function captureViaBrowserless(
     gotoOptions: { waitUntil: string; timeout: number };
     waitForTimeout?: number;
   }> = [
-    { gotoOptions: { waitUntil: "load", timeout: 15_000 }, waitForTimeout: 800 },
-    { gotoOptions: { waitUntil: "domcontentloaded", timeout: 12_000 }, waitForTimeout: 1200 },
+    { gotoOptions: { waitUntil: "load", timeout: 20_000 }, waitForTimeout: 1400 },
+    {
+      gotoOptions: { waitUntil: "networkidle2", timeout: 22_000 },
+      waitForTimeout: 1000,
+    },
+    { gotoOptions: { waitUntil: "domcontentloaded", timeout: 16_000 }, waitForTimeout: 2200 },
   ];
 
   let lastError: unknown;
@@ -588,7 +603,8 @@ async function captureViaBrowserless(
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify(body),
-          signal: AbortSignal.timeout(38_000),
+          // Must exceed goto + waitForFunction + screenshot (slow sites often > 38s).
+          signal: AbortSignal.timeout(52_000),
         });
 
         if (!response.ok) {
@@ -646,7 +662,7 @@ async function captureViaExternalApi(
   const apiUrl = `https://www.googleapis.com/pagespeedonline/v5/runPagespeed?url=${encodeURIComponent(url)}&strategy=${strategy}&category=performance${keyParam}`;
 
   const response = await fetch(apiUrl, {
-    signal: AbortSignal.timeout(28_000),
+    signal: AbortSignal.timeout(40_000),
     cache: "no-store",
   });
 
@@ -919,7 +935,7 @@ async function buildPreviewImage(
     try {
       const rawBuffer = await withTimeout(
         captureViaBrowserless(captureUrl, device),
-        42_000,
+        58_000,
         "Browserless capture timed out.",
       );
       trackLayer("L3a-browserless", "hit", t);
@@ -958,7 +974,7 @@ async function buildPreviewImage(
     try {
       const rawBuffer = await withTimeout(
         captureViaExternalApi(captureUrl, device),
-        30_000,
+        42_000,
         "External screenshot API timed out.",
       );
       trackLayer("L4-pagespeed", "hit", t);
