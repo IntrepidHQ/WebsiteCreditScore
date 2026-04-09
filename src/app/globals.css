@@ -273,12 +273,11 @@ a {
 @media print {
   @page {
     size: letter portrait;
-    /* Tighter margins give more content area without feeling crowded */
-    margin: 0.35in 0.4in;
+    margin: 0;
   }
 
   @page :first {
-    margin-top: 0.3in;
+    margin: 0;
   }
 
   /*
@@ -310,7 +309,7 @@ a {
   body {
     background: #ffffff !important;
     background-image: none !important;
-    font-size: 13px;
+    font-size: 14.5px;
     color: var(--theme-foreground);
   }
 

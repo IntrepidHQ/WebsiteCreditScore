@@ -48,7 +48,7 @@ function PacketMetricCard({
         className,
       ].join(" ")}
     >
-      <p className="text-[10px] uppercase tracking-[0.18em] text-muted print:tracking-[0.06em] print:text-slate-500">
+      <p className="text-[10px] uppercase tracking-[0.18em] text-muted print:text-[10.5px] print:tracking-[0.03em] print:text-slate-500">
         {label}
       </p>
       <div className="mt-1.5">{value}</div>
@@ -76,7 +76,7 @@ function PacketFactCard({
         <p className="text-[10px] uppercase tracking-[0.18em] text-muted print:tracking-[0.06em] print:text-slate-500">
           {label}
         </p>
-        <span className="text-[10px] font-semibold uppercase tracking-[0.14em] text-[var(--packet-accent)] print:tracking-[0.05em]">
+        <span className="text-[10px] font-semibold uppercase tracking-[0.14em] text-[var(--packet-accent)] print:text-[10.5px] print:tracking-[0.03em]">
           {confidence}
         </span>
       </div>
@@ -148,7 +148,7 @@ function PacketSection({
         breakAfter ? "print:break-after-page" : "",
       ].join(" ")}
     >
-      <p className="text-xs uppercase tracking-[0.24em] text-muted print:mb-2 print:text-[9px] print:tracking-[0.08em] print:text-slate-500">
+      <p className="text-xs uppercase tracking-[0.24em] text-muted print:mb-2.5 print:text-[10px] print:tracking-[0.03em] print:text-slate-500">
         {eyebrow}
       </p>
       <div className="mt-3 space-y-4 print:mt-0 print:space-y-2.5">{children}</div>
@@ -230,7 +230,7 @@ export function PacketDocument({
 
   return (
     <main
-      className="min-h-screen bg-background px-3 py-5 text-foreground print:bg-white print:px-0 print:py-0 print:text-slate-950"
+      className="min-h-screen bg-background px-3 py-5 text-foreground print:bg-white print:px-[0.42in] print:py-[0.34in] print:text-slate-950"
       id="main-content"
       style={packetStyle}
     >
@@ -249,30 +249,30 @@ export function PacketDocument({
         />
       </div>
 
-      <div className="mx-auto w-full max-w-6xl space-y-3 print:max-w-none print:space-y-3">
+      <div className="mx-auto w-full max-w-6xl space-y-3 print:max-w-none print:space-y-4">
 
         {/* ── PAGE 1: Website review ── */}
         <PacketSection breakAfter eyebrow="Website review · redesign direction">
 
           {/* Title row */}
-          <div className="print:mb-2">
+          <div className="print:mb-3">
             <h1 className="font-display text-4xl font-semibold tracking-[-0.05em] text-foreground sm:text-5xl lg:text-[3.6rem] print:text-[2rem] print:leading-[1.08] print:text-slate-950">
               {report.title}
             </h1>
-            <p className="mt-1.5 text-base leading-6 text-muted print:mt-1 print:text-[12px] print:leading-5 print:text-slate-500">
+            <p className="mt-1.5 text-base leading-6 text-muted print:mt-1.5 print:text-[13.5px] print:leading-6 print:text-slate-600">
               {report.normalizedUrl} · Website trust, clarity, and conversion audit
             </p>
           </div>
 
           {/* Screenshot — tighter crop in print */}
-          <div className="overflow-hidden rounded-[6px] border border-border/70 bg-elevated/80 print:rounded-[4px] print:border-slate-300">
-            <div className="relative aspect-[16/7] overflow-hidden bg-background-alt print:aspect-[16/5]">
+          <div className="overflow-hidden rounded-[6px] border border-border/70 bg-elevated/80 print:rounded-[4px] print:border-slate-300 print:bg-white">
+            <div className="relative aspect-[16/7] overflow-hidden bg-background-alt print:aspect-[16/8] print:bg-white">
               <Image
                 alt={`${report.title} current site`}
-                className="object-cover object-top"
+                className="object-cover object-top print:object-contain print:object-top"
                 fill
                 priority
-                sizes="(min-width: 1024px) 1000px, 100vw"
+                sizes="(min-width: 1024px) 1200px, 100vw"
                 src={report.previewSet.current.desktop}
                 unoptimized
               />
@@ -280,7 +280,7 @@ export function PacketDocument({
           </div>
 
           {/* Executive summary */}
-          <div className="rounded-[6px] border border-border/70 bg-elevated/80 p-3 print:rounded-[4px] print:border-slate-200 print:bg-slate-50 print:p-2">
+          <div className="rounded-[6px] border border-border/70 bg-elevated/80 p-3 print:rounded-[4px] print:border-slate-200 print:bg-slate-50 print:p-2.5">
             <div className="flex flex-wrap items-baseline justify-between gap-2">
               <p className="text-[10px] uppercase tracking-[0.18em] text-muted print:tracking-[0.06em] print:text-slate-500">
                 Executive summary
@@ -291,7 +291,7 @@ export function PacketDocument({
                 </p>
               ) : null}
             </div>
-            <p className="mt-1.5 text-[15px] leading-7 text-foreground print:mt-1 print:text-[12.5px] print:leading-[1.55] print:text-slate-700">
+            <p className="mt-1.5 text-[15px] leading-7 text-foreground print:mt-1.5 print:text-[14px] print:leading-[1.6] print:text-slate-700">
               {report.executiveSummary}
             </p>
           </div>
