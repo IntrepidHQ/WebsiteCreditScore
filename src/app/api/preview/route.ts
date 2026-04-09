@@ -1,7 +1,6 @@
 import { NextResponse } from "next/server";
 
 import type { PreviewDevice } from "@/lib/types/audit";
-import { inspectWebsite } from "@/lib/utils/site-observation";
 import { getSitePreviewImage } from "@/lib/utils/site-screenshot";
 import { normalizeUrl } from "@/lib/utils/url";
 
@@ -23,16 +22,17 @@ export async function GET(request: Request) {
     return new NextResponse("Invalid device", { status: 400 });
   }
 
+  let normalizedUrl: string;
   try {
-    const normalizedUrl = normalizeUrl(rawUrl, { stripWww: false });
-    const observation = await inspectWebsite(normalizedUrl).catch(() => null);
-    const captureUrl = observation?.finalUrl ?? normalizedUrl;
-    const preview = await getSitePreviewImage(
-      normalizedUrl,
-      device,
-      observation?.ogImage,
-      captureUrl,
-    );
+    normalizedUrl = normalizeUrl(rawUrl, { stripWww: false });
+  } catch {
+    return new NextResponse("Invalid url", { status: 400 });
+  }
+
+  try {
+    // Skip inspectWebsite here: it runs Firecrawl + long fetches and burns the serverless
+    // budget before Browserless/PageSpeed run. Capture APIs resolve redirects themselves.
+    const preview = await getSitePreviewImage(normalizedUrl, device, undefined, normalizedUrl);
 
     // Always stream bytes through this route. Redirecting to Supabase often breaks
     // <img> loads (referrer/CORB/CDN quirks) and masks bad objects as “broken” images.
@@ -46,7 +46,8 @@ export async function GET(request: Request) {
         "X-Preview-Reason": preview.reason,
       },
     });
-  } catch {
+  } catch (err) {
+    console.error("[api/preview] fatal:", err);
     return new NextResponse("Preview unavailable", { status: 404 });
   }
 }

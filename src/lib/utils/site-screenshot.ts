@@ -13,7 +13,7 @@ import {
   uploadScreenshot,
   type ScreenshotImageFormat,
 } from "@/lib/supabase/storage";
-import { getBrowserlessApiKey } from "@/lib/utils/browserless-env";
+import { getBrowserlessApiKey, getBrowserlessEndpointBases } from "@/lib/utils/browserless-env";
 import { PREVIEW_CAPTURE_VERSION } from "@/lib/utils/preview-capture-version";
 
 const CACHE_DIR = path.join("/tmp", "craydl-site-previews");
@@ -228,22 +228,26 @@ async function readFreshScreenshotFromCache(cacheKey: string) {
       continue;
     }
 
-    const buffer = await fs.readFile(filePath);
+    try {
+      const buffer = await fs.readFile(filePath);
 
-    if (!bufferLooksLikeRasterImage(buffer)) {
-      await fs.unlink(filePath).catch(() => undefined);
+      if (!bufferLooksLikeRasterImage(buffer)) {
+        await fs.unlink(filePath).catch(() => undefined);
+        continue;
+      }
+
+      const format = detectBufferImageFormat(buffer);
+      const contentType = format === "webp" ? "image/webp" : "image/png";
+
+      return {
+        buffer,
+        contentType,
+        source: "screenshot" as const,
+        reason: "cache-hit",
+      };
+    } catch {
       continue;
     }
-
-    const format = detectBufferImageFormat(buffer);
-    const contentType = format === "webp" ? "image/webp" : "image/png";
-
-    return {
-      buffer,
-      contentType,
-      source: "screenshot" as const,
-      reason: "cache-hit",
-    };
   }
 
   return null;
@@ -462,67 +466,6 @@ const BROWSERLESS_SCROLL_SETTLE_FN = `async () => {
 }`;
 
 /**
- * Lazy health check — runs once per process lifetime on the first
- * Browserless call.  If the API key or endpoint is bad we flag it and
- * skip all future attempts, saving up to 96 seconds of wasted timeout.
- */
-let browserlessVerified: boolean | null = null;
-
-async function verifyBrowserlessOnce(): Promise<boolean> {
-  if (browserlessVerified !== null) return browserlessVerified;
-
-  const apiKey = getBrowserlessApiKey();
-  if (!apiKey) {
-    browserlessVerified = false;
-    return false;
-  }
-
-  const baseEndpoint =
-    process.env.BROWSERLESS_ENDPOINT?.trim() ?? "https://chrome.browserless.io";
-  const pingUrl = `${baseEndpoint}/screenshot?token=${encodeURIComponent(apiKey)}`;
-
-  try {
-    const res = await fetch(pingUrl, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        url: "about:blank",
-        options: { type: "png" },
-        gotoOptions: { waitUntil: "domcontentloaded", timeout: 8000 },
-      }),
-      signal: AbortSignal.timeout(12_000),
-    });
-
-    if (res.ok) {
-      console.info("[site-preview] Browserless health check passed ✓");
-      browserlessVerified = true;
-      return true;
-    }
-
-    const detail = await res.text().catch(() => "");
-
-    if (res.status === 401) {
-      console.error(
-        "[site-preview] Browserless API key is invalid or expired (BROWSERLESS_API / BROWSERLESS_TOKEN). Falling back to PageSpeed.",
-      );
-    } else if (res.status === 404) {
-      console.error(`[site-preview] Browserless endpoint returned 404. Try setting BROWSERLESS_ENDPOINT to https://production-sfo.browserless.io`);
-    } else if (res.status === 400) {
-      console.error(`[site-preview] Browserless rejected the payload (400). Check API version compatibility. Detail: ${detail.slice(0, 200)}`);
-    } else {
-      console.error(`[site-preview] Browserless health check failed with ${res.status}: ${detail.slice(0, 200)}`);
-    }
-
-    browserlessVerified = false;
-    return false;
-  } catch (err) {
-    console.error("[site-preview] Browserless health check failed (network error):", err);
-    browserlessVerified = false;
-    return false;
-  }
-}
-
-/**
  * Capture a full-page screenshot via the Browserless REST API.
  * This is the primary live-capture method in serverless environments — it
  * offloads headless Chrome to a reliable external service, eliminating the
@@ -539,14 +482,8 @@ async function captureViaBrowserless(
   const apiKey = getBrowserlessApiKey();
   if (!apiKey) throw new Error("Browserless API key not configured (BROWSERLESS_API or BROWSERLESS_TOKEN)");
 
-  const healthy = await verifyBrowserlessOnce();
-  if (!healthy) throw new Error("Browserless health check failed — skipping");
-
   const isDesktop = device === "desktop";
-  const baseEndpoint =
-    process.env.BROWSERLESS_ENDPOINT?.trim() ?? "https://chrome.browserless.io";
-
-  const apiUrl = `${baseEndpoint}/screenshot?token=${encodeURIComponent(apiKey)}`;
+  const endpointBases = getBrowserlessEndpointBases();
 
   const basePayload = {
     url,
@@ -577,51 +514,54 @@ async function captureViaBrowserless(
     bestAttempt: true,
     waitForFunction: {
       fn: BROWSERLESS_SCROLL_SETTLE_FN,
-      timeout: 16_000,
+      timeout: 12_000,
     },
   };
 
-  // Use `waitForTimeout` (Browserless REST); `waitFor` is not documented and may be ignored.
   const attempts: Array<{
     gotoOptions: { waitUntil: string; timeout: number };
     waitForTimeout?: number;
   }> = [
-    { gotoOptions: { waitUntil: "load", timeout: 26_000 }, waitForTimeout: 1000 },
-    { gotoOptions: { waitUntil: "domcontentloaded", timeout: 24_000 }, waitForTimeout: 1800 },
+    { gotoOptions: { waitUntil: "load", timeout: 20_000 }, waitForTimeout: 800 },
+    { gotoOptions: { waitUntil: "domcontentloaded", timeout: 18_000 }, waitForTimeout: 1200 },
   ];
 
   let lastError: unknown;
 
-  for (const attempt of attempts) {
-    try {
-      const body = {
-        ...basePayload,
-        gotoOptions: attempt.gotoOptions,
-        ...(attempt.waitForTimeout != null ? { waitForTimeout: attempt.waitForTimeout } : {}),
-      };
+  for (const baseEndpoint of endpointBases) {
+    const apiUrl = `${baseEndpoint}/screenshot?token=${encodeURIComponent(apiKey)}`;
 
-      const response = await fetch(apiUrl, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(body),
-        signal: AbortSignal.timeout(48_000),
-      });
+    for (const attempt of attempts) {
+      try {
+        const body = {
+          ...basePayload,
+          gotoOptions: attempt.gotoOptions,
+          ...(attempt.waitForTimeout != null ? { waitForTimeout: attempt.waitForTimeout } : {}),
+        };
 
-      if (!response.ok) {
-        const detail = await response.text().catch(() => "");
-        throw new Error(`Browserless API returned ${response.status}: ${detail.slice(0, 200)}`);
+        const response = await fetch(apiUrl, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(body),
+          signal: AbortSignal.timeout(40_000),
+        });
+
+        if (!response.ok) {
+          const detail = await response.text().catch(() => "");
+          throw new Error(`Browserless ${baseEndpoint} returned ${response.status}: ${detail.slice(0, 200)}`);
+        }
+
+        const buffer = Buffer.from(await response.arrayBuffer());
+
+        if (!bufferLooksLikeRasterImage(buffer)) {
+          throw new Error("Browserless returned a non-image response body.");
+        }
+
+        return buffer;
+      } catch (err) {
+        lastError = err;
+        console.warn(`[site-preview] Browserless attempt failed (${baseEndpoint}):`, err);
       }
-
-      const buffer = Buffer.from(await response.arrayBuffer());
-
-      if (!bufferLooksLikeRasterImage(buffer)) {
-        throw new Error("Browserless returned a non-image response body.");
-      }
-
-      return buffer;
-    } catch (err) {
-      lastError = err;
-      console.warn("[site-preview] Browserless capture attempt failed:", err);
     }
   }
 
@@ -633,6 +573,20 @@ async function captureViaBrowserless(
  * capture fails (common in serverless environments with binary size limits).
  * Uses Google PageSpeed Insights which is free and returns a real rendered screenshot.
  */
+function bufferFromLighthouseDataUrl(dataUrl: string | undefined): Buffer | null {
+  if (!dataUrl) {
+    return null;
+  }
+
+  const raw = dataUrl.replace(/^data:image\/\w+;base64,/, "");
+
+  try {
+    return Buffer.from(raw, "base64");
+  } catch {
+    return null;
+  }
+}
+
 async function captureViaExternalApi(
   url: string,
   device: PreviewDevice,
@@ -643,7 +597,7 @@ async function captureViaExternalApi(
   const apiUrl = `https://www.googleapis.com/pagespeedonline/v5/runPagespeed?url=${encodeURIComponent(url)}&strategy=${strategy}&category=performance${keyParam}`;
 
   const response = await fetch(apiUrl, {
-    signal: AbortSignal.timeout(15000),
+    signal: AbortSignal.timeout(25_000),
     cache: "no-store",
   });
 
@@ -651,34 +605,48 @@ async function captureViaExternalApi(
     throw new Error(`PageSpeed API returned ${response.status}`);
   }
 
-  const data = (await response.json()) as {
-    lighthouseResult?: {
-      audits?: {
-        "final-screenshot"?: {
-          details?: { data?: string };
-        };
-        "full-page-screenshot"?: {
-          details?: { screenshot?: { data?: string } };
-        };
-      };
-    };
-  };
-
-  // Try full-page screenshot first, then final screenshot
-  const fullPage =
-    data.lighthouseResult?.audits?.["full-page-screenshot"]?.details?.screenshot
-      ?.data;
-  const finalShot =
-    data.lighthouseResult?.audits?.["final-screenshot"]?.details?.data;
-  const base64Data = fullPage ?? finalShot;
-
-  if (!base64Data) {
-    throw new Error("No screenshot data in PageSpeed response");
+  let data: unknown;
+  try {
+    data = await response.json();
+  } catch {
+    throw new Error("PageSpeed API returned invalid JSON");
   }
 
-  // Strip data URL prefix if present
-  const raw = base64Data.replace(/^data:image\/\w+;base64,/, "");
-  return Buffer.from(raw, "base64");
+  const audits = (data as { lighthouseResult?: { audits?: Record<string, { details?: unknown }> } })
+    .lighthouseResult?.audits;
+
+  if (!audits) {
+    throw new Error("No Lighthouse audits in PageSpeed response");
+  }
+
+  const fullPageShot = audits["full-page-screenshot"]?.details as
+    | { screenshot?: { data?: string } }
+    | undefined;
+  const fromFull = bufferFromLighthouseDataUrl(fullPageShot?.screenshot?.data);
+  if (fromFull && fromFull.length > 100) {
+    return fromFull;
+  }
+
+  const finalShot = audits["final-screenshot"]?.details as { data?: string } | undefined;
+  const fromFinal = bufferFromLighthouseDataUrl(finalShot?.data);
+  if (fromFinal && fromFinal.length > 100) {
+    return fromFinal;
+  }
+
+  const thumbs = audits["screenshot-thumbnails"]?.details as
+    | { items?: Array<{ data?: string }> }
+    | undefined;
+  const items = thumbs?.items;
+  if (items?.length) {
+    for (let i = items.length - 1; i >= 0; i -= 1) {
+      const buf = bufferFromLighthouseDataUrl(items[i]?.data);
+      if (buf && buf.length > 100) {
+        return buf;
+      }
+    }
+  }
+
+  throw new Error("No screenshot data in PageSpeed response");
 }
 
 async function fetchRemoteImage(imageUrl: string) {
@@ -944,9 +912,17 @@ export const getSitePreviewImage = async (
     navigateTo,
     device,
     fallbackImageUrl,
-  ).finally(() => {
-    previewCache.delete(dedupeKey);
-  });
+  )
+    .catch((err) => {
+      console.error("[site-preview] buildPreviewImage threw — serving placeholder:", err);
+      return {
+        ...createPlaceholderImage(cacheIdentityUrl, device),
+        reason: "error-placeholder",
+      };
+    })
+    .finally(() => {
+      previewCache.delete(dedupeKey);
+    });
   previewCache.set(dedupeKey, pending);
 
   return pending;
