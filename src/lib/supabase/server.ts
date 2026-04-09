@@ -11,8 +11,17 @@ export async function createSupabaseServerClient() {
   const cookieHeader = headerList.get("cookie");
   const { url, anonKey } = getSupabaseEnv();
 
+  const forwardedHost = headerList.get("x-forwarded-host")?.split(",")[0]?.trim();
+  const host = forwardedHost || headerList.get("host");
+  const forwardedProto = headerList.get("x-forwarded-proto")?.split(",")[0]?.trim();
+  const proto = forwardedProto === "http" || forwardedProto === "https" ? forwardedProto : "https";
+  const cookieOptions =
+    host && process.env.NODE_ENV === "production"
+      ? getSupabaseCookieOptions(new Request(`${proto}://${host}/`))
+      : getSupabaseCookieOptions();
+
   return createServerClient(url, anonKey, {
-    cookieOptions: getSupabaseCookieOptions(),
+    cookieOptions,
     cookies: {
       getAll() {
         return mergeCookieHeaderWithStore(cookieHeader, cookieStore.getAll());

@@ -2,7 +2,6 @@ import Link from "next/link";
 import {
   ArrowUpRight,
   BellDot,
-  ClipboardList,
   Coins,
   FolderKanban,
   Globe2,
@@ -57,18 +56,16 @@ function SearchRow({
     report.previewSet?.fallbackCurrent?.desktop ?? desktopShot;
 
   const auditHref = `/audit/${report.id}?url=${encodeURIComponent(report.normalizedUrl)}`;
-  const leadHref = `/app/leads/${savedReport.leadId}`;
   const domain = savedReport.normalizedUrl.replace(/^https?:\/\//, "");
 
   return (
     <div className="rounded-[18px] border border-border/60 bg-background-alt/60 p-3 sm:p-4">
-      <div className="grid gap-4 md:grid-cols-[8.5rem_minmax(0,1fr)_auto] md:items-center">
+      <div className="grid gap-4 md:grid-cols-[8.5rem_minmax(0,1fr)] md:items-center">
         <PreviewWithLiveToggle
           alt={`${savedReport.title} preview`}
           fallbackLabel="Preview unavailable"
           fallbackSrc={fallbackShot}
           loadingLabel="Capturing desktop screenshot"
-          normalizedUrl={savedReport.normalizedUrl}
           screenshotSrc={desktopShot}
         />
 
@@ -96,21 +93,6 @@ function SearchRow({
             </span>
             <span>Scored {formatTimestamp(savedReport.createdAt)}</span>
           </div>
-        </div>
-
-        <div className="flex flex-wrap items-center gap-2 md:justify-end">
-          <Button asChild size="sm" variant="secondary">
-            <Link href={leadHref}>
-              Lead
-              <ClipboardList className="size-4" />
-            </Link>
-          </Button>
-          <Button asChild size="sm" variant="outline">
-            <Link href={auditHref}>
-              Audit
-              <ArrowUpRight className="size-4" />
-            </Link>
-          </Button>
         </div>
       </div>
     </div>
@@ -234,6 +216,12 @@ export default async function AppDashboardPage({
                   We could not read your sign-in on this request (often a cookie scope issue between{" "}
                   <span className="whitespace-nowrap">www</span> and the bare domain, or an expired session).
                   Sign in again, then run your scan.
+                </p>
+                <p className="text-muted">
+                  Production fix: set{" "}
+                  <code className="rounded bg-background-alt px-1 py-0.5 text-xs">AUTH_COOKIE_DOMAIN=.yourdomain.com</code>{" "}
+                  and <code className="rounded bg-background-alt px-1 py-0.5 text-xs">NEXT_PUBLIC_SITE_URL</code> to your
+                  canonical URL in Vercel.
                 </p>
                 <Button asChild className="w-full sm:w-auto" size="sm" variant="secondary">
                   <Link href="/app/login?error=session-required&next=%2Fapp">Sign in</Link>
