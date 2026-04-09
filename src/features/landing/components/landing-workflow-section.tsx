@@ -105,13 +105,13 @@ export function LandingWorkflowSection({
             <div className="grid gap-4 md:grid-cols-3">
               {notes.map((note) => (
                 <Card className="h-full rounded-[22px] border-border/60 bg-panel/35 shadow-none" key={note.id}>
-                  <CardHeader className="space-y-3">
+                  <CardHeader className="space-y-2 pb-2">
                     <Badge variant="neutral">{note.category}</Badge>
                     <CardTitle className="text-[clamp(1.95rem,1.72rem+0.35vw,2.35rem)] leading-[0.98] tracking-[-0.04em]">
                       {note.title}
                     </CardTitle>
                   </CardHeader>
-                  <CardContent className="pt-0">
+                  <CardContent className="pt-2">
                     <p className="text-sm leading-6 text-muted">{note.takeaways[0]}</p>
                   </CardContent>
                 </Card>

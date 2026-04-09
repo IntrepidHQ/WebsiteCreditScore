@@ -22,3 +22,14 @@ export const enrichBenchmarkReferences = async (
 
   return selectBenchmarkReferencesForReport(currentUrl, currentOverallScore, references);
 };
+
+/** Broader ranked pool for Claude reranking (still only library-measured sites). */
+export const listRankedBenchmarkCandidates = (
+  currentUrl: string,
+  currentOverallScore: number,
+  references: BenchmarkReference[],
+  limit = 16,
+) => {
+  const ranked = rankMeasuredBenchmarkReferences(currentUrl, currentOverallScore, references);
+  return ranked.slice(0, limit);
+};

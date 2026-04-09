@@ -8,6 +8,14 @@ export function RouteScrollReset() {
   const searchParams = useSearchParams();
 
   useEffect(() => {
+    const hash = typeof window !== "undefined" ? window.location.hash : "";
+    if (hash.length > 1) {
+      const id = decodeURIComponent(hash.slice(1));
+      requestAnimationFrame(() => {
+        document.getElementById(id)?.scrollIntoView({ behavior: "smooth", block: "start" });
+      });
+      return;
+    }
     window.scrollTo({ top: 0, left: 0, behavior: "auto" });
   }, [pathname, searchParams]);
 

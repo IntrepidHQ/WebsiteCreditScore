@@ -10,7 +10,7 @@ import {
   type LucideIcon,
 } from "lucide-react";
 import { usePathname, useSearchParams } from "next/navigation";
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 
 import { WebsiteCreditScoreLogo } from "@/components/common/website-credit-score-logo";
 import {
@@ -91,6 +91,25 @@ function isActiveItem(pathname: string, activeHash: string, item: NavItem) {
   return pathname === item.href;
 }
 
+function searchParamsToQueryString(searchParams: ReturnType<typeof useSearchParams>) {
+  const qs = searchParams.toString();
+  return qs ? `?${qs}` : "";
+}
+
+function scrollToSectionHash(hash: string) {
+  if (!hash.startsWith("#") || hash.length < 2) {
+    return;
+  }
+  const id = decodeURIComponent(hash.slice(1));
+  const el = document.getElementById(id);
+  if (el) {
+    el.scrollIntoView({ behavior: "smooth", block: "start" });
+  }
+  const path = `${window.location.pathname}${window.location.search}${hash}`;
+  window.history.replaceState(null, "", path);
+  window.dispatchEvent(new HashChangeEvent("hashchange"));
+}
+
 function HeaderLink({
   item,
   active,
@@ -109,6 +128,38 @@ function HeaderLink({
     >
       {item.label}
     </Link>
+  );
+}
+
+function SectionHashLink({
+  item,
+  active,
+  fullHref,
+}: {
+  item: NavItem;
+  active: boolean;
+  fullHref: string;
+}) {
+  const handleClick = useCallback(
+    (e: { preventDefault: () => void }) => {
+      e.preventDefault();
+      scrollToSectionHash(item.href);
+    },
+    [item.href],
+  );
+
+  return (
+    <a
+      aria-current={active ? "page" : undefined}
+      className={cn(
+        "whitespace-nowrap rounded-[10px] border border-border/55 bg-panel/45 px-3 py-1.5 text-sm font-medium text-muted transition hover:border-border/80 hover:bg-elevated hover:text-foreground",
+        active && "border-accent/30 bg-elevated text-foreground",
+      )}
+      href={fullHref}
+      onClick={handleClick}
+    >
+      {item.label}
+    </a>
   );
 }
 
@@ -137,6 +188,7 @@ export function SiteHeader({
   const packetHref = buildRouteWithOptionalUrl(`/packet/${reportId}`, normalizedUrl);
   const briefHref = buildRouteWithOptionalUrl(`/brief/${reportId}`, normalizedUrl);
   const auditHref = buildRouteWithOptionalUrl(`/audit/${reportId}`, normalizedUrl);
+  const queryString = searchParamsToQueryString(searchParams);
 
   useEffect(() => {
     let frame = 0;
@@ -170,7 +222,13 @@ export function SiteHeader({
 
   const currentPath = `${pathname}${normalizedUrl ? `?url=${encodeURIComponent(normalizedUrl)}` : ""}`;
   const signInHref = `/app/login?next=${encodeURIComponent(currentPath)}`;
-  const signUpHref = `/app/login?mode=signup&next=${encodeURIComponent(currentPath)}`;
+  const saveIntentParams = new URLSearchParams(searchParams.toString());
+  saveIntentParams.set("save", "1");
+  const auditPathWithSaveIntent = `${pathname}?${saveIntentParams.toString()}`;
+  const signUpHref =
+    isAuditPath && normalizedUrl
+      ? `/app/login?mode=signup&next=${encodeURIComponent(auditPathWithSaveIntent)}`
+      : `/app/login?mode=signup&next=${encodeURIComponent(currentPath)}`;
   const workspaceHref = "/app";
   const workspaceLabel = accountHint ? `Workspace (${accountHint})` : "Workspace";
 
@@ -310,16 +368,17 @@ export function SiteHeader({
                           <div className="grid gap-2">
                             {sectionNavigation.map((item) => (
                               <DialogClose asChild key={item.href}>
-                                <a
+                                <button
                                   className={cn(
-                                    "rounded-[8px] border border-border/70 bg-background-alt/70 px-4 py-3 text-sm font-medium text-foreground transition hover:border-accent/30 hover:bg-elevated",
+                                    "w-full rounded-[8px] border border-border/70 bg-background-alt/70 px-4 py-3 text-left text-sm font-medium text-foreground transition hover:border-accent/30 hover:bg-elevated",
                                     isActiveItem(pathname, activeHash, item) &&
                                       "border-accent/30 bg-elevated",
                                   )}
-                                  href={item.href}
+                                  type="button"
+                                  onClick={() => scrollToSectionHash(item.href)}
                                 >
                                   {item.label}
-                                </a>
+                                </button>
                               </DialogClose>
                             ))}
                           </div>
@@ -373,8 +432,9 @@ export function SiteHeader({
               )}
             >
               {sectionNavigation.map((item) => (
-                <HeaderLink
+                <SectionHashLink
                   active={isActiveItem(pathname, activeHash, item)}
+                  fullHref={`${pathname}${queryString}${item.href}`}
                   item={item}
                   key={item.href}
                 />

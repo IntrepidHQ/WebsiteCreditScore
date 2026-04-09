@@ -11,7 +11,7 @@ import { isDemoWorkspaceAllowed } from "@/lib/auth/demo-flag";
 import { getOptionalWorkspaceSession, sanitizeInternalNextPath } from "@/lib/auth/session";
 import { hasSupabaseEnv } from "@/lib/supabase/config";
 
-import { AnimatedExampleScoreBadge } from "@/features/auth/components/animated-example-score-badge";
+import { LoginScoreShowcase } from "@/features/auth/components/login-score-showcase";
 
 import { BrandWordmarkLink } from "@/components/common/brand-wordmark-link";
 
@@ -86,6 +86,23 @@ export default async function AppLoginPage({
     "Benchmark against real competitors",
   ];
 
+  const loginIntentHint = (() => {
+    const lower = next.toLowerCase();
+    if (lower.includes("save=1")) {
+      return "After you sign in, we'll save this audit to your Leads.";
+    }
+    if (lower.includes("/app/leads")) {
+      return "Sign in to open Leads.";
+    }
+    if (lower.includes("/app/max")) {
+      return "Sign in to open MAX.";
+    }
+    if (lower.includes("/app/seo")) {
+      return "Sign in to open the SEO workspace.";
+    }
+    return null;
+  })();
+
   return (
     <div className="flex min-h-screen">
       {/* ── Left: Brand panel ── */}
@@ -128,12 +145,12 @@ export default async function AppLoginPage({
           </div>
         </div>
 
-        <div className="relative mt-10 flex flex-wrap items-end gap-6 border-t border-border/40 pt-8 lg:mt-12">
-          <AnimatedExampleScoreBadge />
+        <div className="relative mt-10 space-y-6 border-t border-border/40 pt-8 lg:mt-12">
+          <LoginScoreShowcase variant="full" />
           <div>
             <p className="text-xs uppercase tracking-widest text-accent">Example audit</p>
             <p className="mt-1 text-sm font-semibold text-foreground">acme-example.com</p>
-            <p className="text-sm text-muted">Scored in 4.2 seconds</p>
+            <p className="text-sm text-muted">Scored in seconds after the page is fetched</p>
           </div>
         </div>
       </div>
@@ -153,7 +170,7 @@ export default async function AppLoginPage({
               filter: "blur(0.5px)",
             }}
           />
-          <AnimatedExampleScoreBadge />
+          <LoginScoreShowcase variant="compact" />
           <p className="mt-4 max-w-xs text-center text-[11px] font-semibold uppercase tracking-[0.2em] text-muted">
             Example audit · acme-example.com
           </p>
@@ -266,6 +283,14 @@ export default async function AppLoginPage({
               className="min-w-0 space-y-6 border-0 p-0 disabled:pointer-events-none disabled:opacity-60"
               disabled={!hasSupabaseEnv()}
             >
+              {loginIntentHint ? (
+                <p
+                  className="rounded-lg border border-accent/30 bg-accent/10 px-4 py-3 text-sm leading-6 text-foreground"
+                  role="status"
+                >
+                  {loginIntentHint}
+                </p>
+              ) : null}
               {/* Tab switcher */}
               <div>
                 <div className="inline-flex rounded-lg border border-border/70 bg-panel/60 p-1">

@@ -6,6 +6,7 @@ import { useRouter } from "next/navigation";
 
 import { ScanUrlFieldGroup } from "@/components/common/scan-url-field-group";
 import { Button } from "@/components/ui/button";
+import { ScanLoadingOverlay } from "@/features/landing/components/scan-loading-overlay";
 
 /**
  * Public homepage scan: same URL field pattern as the signed-in workspace (`ScanUrlFieldGroup` +
@@ -20,6 +21,7 @@ export function LandingForm() {
   const errorId = useId();
   const [url, setUrl] = useState("");
   const [loading, setLoading] = useState(false);
+  const [showScanOverlay, setShowScanOverlay] = useState(false);
   const [error, setError] = useState("");
 
   const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
@@ -30,6 +32,7 @@ export function LandingForm() {
     }
 
     setLoading(true);
+    setShowScanOverlay(true);
     setError("");
 
     try {
@@ -72,6 +75,7 @@ export function LandingForm() {
       );
     } finally {
       setLoading(false);
+      setShowScanOverlay(false);
     }
   };
 
@@ -138,6 +142,7 @@ export function LandingForm() {
           {error}
         </p>
       ) : null}
+      <ScanLoadingOverlay active={showScanOverlay} />
     </form>
   );
 }

@@ -9,8 +9,10 @@ import {
   buildObservedFindings,
 } from "@/lib/mock/report-enhancements";
 import { sampleAudits } from "@/lib/mock/sample-audits";
+import { rerankBenchmarkReferencesWithClaude } from "@/lib/ai/benchmark-rerank";
 import { analyzeSiteWithAI } from "@/lib/ai/site-analysis";
 import type { AISiteAnalysis } from "@/lib/ai/site-analysis";
+import { measureBenchmarkReferences } from "@/lib/benchmarks/scans";
 import { fetchPageSpeedMetrics } from "@/lib/utils/pagespeed";
 import { generateOutreachEmail } from "@/lib/utils/outreach";
 import { createDefaultProposalOffer } from "@/lib/utils/proposal-offers";
@@ -27,7 +29,7 @@ import {
   slugFromUrl,
 } from "@/lib/utils/url";
 
-import { enrichBenchmarkReferences, selectBenchmarkReferencesForReport } from "./benchmark-selection";
+import { listRankedBenchmarkCandidates, selectBenchmarkReferencesForReport } from "./benchmark-selection";
 import { profileClientProfiles } from "./constants";
 import {
   buildCompetitors,
@@ -310,11 +312,19 @@ function buildAuditReport(
 }
 
 export async function enrichReportBenchmarks(report: AuditReport): Promise<AuditReport> {
-  const measuredBenchmarkReferences = await enrichBenchmarkReferences(
+  const { references: allMeasured } = await measureBenchmarkReferences(report.clientProfile.type);
+  const measuredBenchmarkReferences = selectBenchmarkReferencesForReport(
     report.normalizedUrl,
     report.overallScore,
-    report.clientProfile.type,
+    allMeasured,
   );
+  const candidatePool = listRankedBenchmarkCandidates(
+    report.normalizedUrl,
+    report.overallScore,
+    allMeasured,
+    18,
+  );
+
   const currentSnapshot = report.competitorSnapshots.find(
     (snapshot) => snapshot.relationship === "your-site",
   );
@@ -325,14 +335,28 @@ export async function enrichReportBenchmarks(report: AuditReport): Promise<Audit
   const nicheReferences = nicheRefs
     ? nicheCompetitorsToReferences(nicheRefs, getBenchmarkVerticalForProfile(report.clientProfile.type))
     : null;
-  // Niche references replace both the benchmark cards and comparison chart;
-  // fall back to measured design references when no niche is detected.
-  const competitorReferences = nicheReferences ?? measuredBenchmarkReferences;
+
+  let competitorReferences = nicheReferences ?? measuredBenchmarkReferences;
+  let benchmarkSelectionSource: NonNullable<AuditReport["provenance"]["benchmarkSelectionSource"]> =
+    nicheReferences ? "niche" : "heuristic";
+
+  if (!nicheReferences) {
+    const aiOrdered = await rerankBenchmarkReferencesWithClaude({
+      siteObservation: report.siteObservation,
+      clientProfileType: report.clientProfile.type,
+      normalizedUrl: report.normalizedUrl,
+      candidates: candidatePool,
+    });
+    if (aiOrdered && aiOrdered.length === 3) {
+      competitorReferences = aiOrdered;
+      benchmarkSelectionSource = "claude-rerank";
+    }
+  }
 
   return {
     ...report,
     benchmarkReferences: competitorReferences,
-    benchmarkScanIds: measuredBenchmarkReferences
+    benchmarkScanIds: competitorReferences
       .map((item) => item.benchmarkScanId)
       .filter(Boolean) as string[],
     competitorSnapshots: buildCompetitors(
@@ -349,6 +373,10 @@ export async function enrichReportBenchmarks(report: AuditReport): Promise<Audit
     clientProfile: {
       ...report.clientProfile,
       competitors: competitorReferences.map((item) => item.name),
+    },
+    provenance: {
+      ...report.provenance,
+      benchmarkSelectionSource,
     },
   };
 }

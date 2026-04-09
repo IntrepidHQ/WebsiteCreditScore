@@ -41,7 +41,7 @@ export function SampleAuditCard({ audit }: { audit: SampleAuditCardType }) {
         >
           <div className="pointer-events-none absolute inset-x-0 top-0 h-28 bg-gradient-to-b from-background/35 via-transparent to-transparent" />
         </PreviewImage>
-        <CardHeader className="space-y-4">
+        <CardHeader className="space-y-2 pb-2">
           <div className="flex items-center justify-between gap-3">
             <Badge variant="accent">{audit.profile.replace("-", " ")}</Badge>
             <div className="flex items-center gap-3">
@@ -57,7 +57,7 @@ export function SampleAuditCard({ audit }: { audit: SampleAuditCardType }) {
             {audit.title}
           </CardTitle>
         </CardHeader>
-        <CardContent className="space-y-2">
+        <CardContent className="space-y-1.5 pt-0">
           <p className="line-clamp-3 text-[1rem] leading-7 text-muted">{summary}</p>
           <p className="truncate text-xs uppercase tracking-[0.18em] text-muted">{audit.url}</p>
           {scannedAt ? (

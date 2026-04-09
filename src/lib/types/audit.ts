@@ -541,6 +541,8 @@ export interface AuditReport {
     note: string;
     /** Executive summary and outreach copy from Claude when set. */
     narrativeSource?: "claude" | "heuristic";
+    /** How the three benchmark / competitor reference sites were chosen. */
+    benchmarkSelectionSource?: "heuristic" | "claude-rerank" | "niche";
   };
 }
 

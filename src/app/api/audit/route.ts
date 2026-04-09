@@ -4,7 +4,7 @@ import { buildAuditReportFromUrl, enrichReportBenchmarks } from "@/lib/mock/repo
 import { inspectWebsite } from "@/lib/utils/site-observation";
 import { normalizeUrl } from "@/lib/utils/url";
 import { ensurePreviewCachedForObservation } from "@/lib/utils/preview-warm";
-import { getCachedReport, cacheReport } from "@/lib/utils/scan-cache";
+import { getCachedReport, cacheReport, touchRecentScanFromReport } from "@/lib/utils/scan-cache";
 import { getOptionalWorkspaceSession } from "@/lib/auth/session";
 import { getProductRepository } from "@/lib/product/repository";
 import type { ContentClassification, FetchErrorReason } from "@/lib/types/audit";
@@ -117,6 +117,7 @@ export async function POST(request: Request) {
     const cached = await getCachedReport(normalizedUrl);
 
     if (cached) {
+      touchRecentScanFromReport(cached).catch(() => {});
       return NextResponse.json({
         id: cached.id,
         normalizedUrl: cached.normalizedUrl,

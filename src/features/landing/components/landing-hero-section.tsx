@@ -27,9 +27,10 @@ export function LandingHeroSection({
 
   return (
     <section className="presentation-section pb-8 pt-10 sm:pt-14" id="generate">
-      <div className="pointer-events-none absolute inset-x-0 top-0 -z-10 h-[34rem]">
-        <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_left,color-mix(in_srgb,var(--theme-glow)_18%,transparent),transparent_38%)]" />
-        <div className="signal-grid absolute inset-x-0 top-14 h-[26rem] opacity-18" />
+      {/* Begin glow/grid below sticky header so body background reads continuously at the top */}
+      <div className="pointer-events-none absolute inset-x-0 top-24 -z-10 h-[30rem] sm:top-28 sm:h-[32rem]">
+        <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_left,color-mix(in_srgb,var(--theme-glow)_calc(18%_*_var(--theme-glow-intensity)),transparent),transparent_34%)]" />
+        <div className="signal-grid absolute inset-x-0 top-10 h-[24rem] opacity-18 sm:h-[26rem]" />
       </div>
       <div className="mx-auto w-full max-w-7xl px-4 sm:px-6 lg:px-8">
         <div className="grid gap-8 xl:grid-cols-[minmax(0,1fr)_minmax(22rem,0.9fr)]">
