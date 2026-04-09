@@ -437,8 +437,9 @@ async function captureScreenshot(url: string, device: PreviewDevice) {
 }
 
 /**
- * Browserless `waitForFunction` body: scrolls so lazy-hydrated pages (e.g. Wikipedia
- * mobile) paint main content, then scrolls back to top before the screenshot.
+ * Browserless `waitForFunction` body: scrolls the document and common app-shell
+ * containers so lazy-loaded content paints, then returns to the top for a full-page shot.
+ * Complements top-level `scrollPage: true` on the REST payload.
  * @see https://docs.browserless.io/rest-apis/request-configuration#waitforfunction
  */
 const BROWSERLESS_SCROLL_SETTLE_FN = `async () => {
@@ -449,19 +450,59 @@ const BROWSERLESS_SCROLL_SETTLE_FN = `async () => {
     /* ignore */
   }
   document.querySelectorAll('img[loading="lazy"]').forEach((el) => el.setAttribute("loading", "eager"));
-  const root = document.scrollingElement || document.documentElement;
-  const maxScroll = Math.max(0, root.scrollHeight - window.innerHeight);
-  const step = Math.max(260, Math.floor(window.innerHeight * 0.58));
-  let y = 0;
-  let i = 0;
-  while (y <= maxScroll && i < 36) {
-    window.scrollTo(0, y);
-    await sleep(120);
-    y += step;
-    i += 1;
+
+  const scrollOne = async (root, syncWindow) => {
+    if (!root || root.scrollHeight <= root.clientHeight + 2) return;
+    const maxScroll = Math.max(0, root.scrollHeight - root.clientHeight);
+    const step = Math.max(220, Math.floor(root.clientHeight * 0.7));
+    const maxSteps = Math.min(200, Math.ceil(maxScroll / step) + 8);
+    let y = 0;
+    for (let i = 0; i < maxSteps && y <= maxScroll; i += 1) {
+      root.scrollTop = y;
+      if (syncWindow) window.scrollTo(0, y);
+      await sleep(165);
+      y += step;
+    }
+    root.scrollTop = maxScroll;
+    if (syncWindow) window.scrollTo(0, maxScroll);
+    await sleep(220);
+    root.scrollTop = 0;
+    if (syncWindow) window.scrollTo(0, 0);
+    await sleep(260);
+  };
+
+  const docRoot = document.scrollingElement || document.documentElement || document.body;
+  await scrollOne(docRoot, true);
+
+  const innerSelectors = "main, article, #__next, #root, [data-scroll-container]";
+  for (const el of document.querySelectorAll(innerSelectors)) {
+    if (!el || el === docRoot) continue;
+    const cs = getComputedStyle(el);
+    const oy = cs.overflowY;
+    if (
+      (oy === "auto" || oy === "scroll" || oy === "overlay") &&
+      el.scrollHeight > el.clientHeight + 80
+    ) {
+      await scrollOne(el, false);
+    }
   }
-  window.scrollTo(0, 0);
-  await sleep(320);
+
+  await Promise.all(
+    Array.from(document.images)
+      .slice(0, 120)
+      .map(
+        (img) =>
+          img.complete
+            ? Promise.resolve()
+            : new Promise((res) => {
+                const done = () => res();
+                img.addEventListener("load", done, { once: true });
+                img.addEventListener("error", done, { once: true });
+                setTimeout(done, 2000);
+              }),
+      ),
+  );
+
   return true;
 }`;
 
@@ -487,11 +528,14 @@ async function captureViaBrowserless(
 
   const basePayload = {
     url,
+    /** Native Browserless: walk the page vertically before capture (lazy-load / infinite scroll). */
+    scrollPage: true,
     // Puppeteer screenshot options only — do not send Playwright-only keys like
     // `animations` or `caret`; Browserless cloud rejects unknown option fields with 400.
     options: {
       fullPage: true,
       type: "png",
+      captureBeyondViewport: true,
     },
     viewport: isDesktop
       ? { width: 1440, height: 900, deviceScaleFactor: 1 }
@@ -515,7 +559,7 @@ async function captureViaBrowserless(
     bestAttempt: true,
     waitForFunction: {
       fn: BROWSERLESS_SCROLL_SETTLE_FN,
-      timeout: 12_000,
+      timeout: 22_000,
     },
   };
 
@@ -544,7 +588,7 @@ async function captureViaBrowserless(
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify(body),
-          signal: AbortSignal.timeout(25_000),
+          signal: AbortSignal.timeout(38_000),
         });
 
         if (!response.ok) {
@@ -875,7 +919,7 @@ async function buildPreviewImage(
     try {
       const rawBuffer = await withTimeout(
         captureViaBrowserless(captureUrl, device),
-        28_000,
+        42_000,
         "Browserless capture timed out.",
       );
       trackLayer("L3a-browserless", "hit", t);
