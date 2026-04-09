@@ -24,11 +24,14 @@ export function ScoreBreakdownBars({
   targetItems,
   showWeights,
   className,
+  dense = false,
 }: {
   items: BreakdownItem[];
   targetItems?: BreakdownItem[];
   showWeights?: boolean;
   className?: string;
+  /** Tighter rows for compact layouts (e.g. auth preview rail). */
+  dense?: boolean;
 }) {
   const { reduceMotion } = useMotionSettings();
   const barRefs = useRef<Array<HTMLDivElement | null>>([]);
@@ -77,7 +80,7 @@ export function ScoreBreakdownBars({
   }
 
   return (
-    <div className={cn("space-y-2", className)}>
+    <div className={cn(dense ? "space-y-1" : "space-y-2", className)}>
       {items.map((item, index) => {
         const tone = getScoreTone(item.score);
         const target = targetMap.get(item.key);
@@ -85,12 +88,22 @@ export function ScoreBreakdownBars({
 
         return (
           <div
-            className="rounded-2xl border border-border/60 bg-[linear-gradient(180deg,color-mix(in_srgb,var(--theme-panel)_92%,transparent),color-mix(in_srgb,var(--theme-background-alt)_88%,transparent))] px-3 py-2.5 shadow-sm shadow-background/20"
+            className={cn(
+              "rounded-2xl border border-border/60 bg-[linear-gradient(180deg,color-mix(in_srgb,var(--theme-panel)_92%,transparent),color-mix(in_srgb,var(--theme-background-alt)_88%,transparent))] shadow-sm shadow-background/20",
+              dense ? "px-2 py-1.5" : "px-3 py-2.5",
+            )}
             key={item.key}
           >
-            <div className="flex items-start justify-between gap-3">
-              <div className="min-w-0 flex flex-wrap items-center gap-2">
-                <h3 className="truncate text-sm font-semibold text-foreground">{item.label}</h3>
+            <div className="flex items-start justify-between gap-2">
+              <div className="min-w-0 flex flex-wrap items-center gap-1.5">
+                <h3
+                  className={cn(
+                    "truncate font-semibold text-foreground",
+                    dense ? "text-[11px] leading-tight" : "text-sm",
+                  )}
+                >
+                  {item.label}
+                </h3>
                 {showWeights ? (
                   <Badge className="normal-case tracking-normal" variant="neutral">
                     {item.weight.toFixed(2)}x
@@ -102,15 +115,30 @@ export function ScoreBreakdownBars({
                   aria-label={`${item.label} score ${item.score.toFixed(1)} out of 10`}
                   className="flex items-baseline justify-end gap-0.5 tabular-nums"
                 >
-                  <span className="text-lg font-semibold tracking-tight text-foreground sm:text-xl">
+                  <span
+                    className={cn(
+                      "font-semibold tracking-tight text-foreground",
+                      dense ? "text-sm" : "text-lg sm:text-xl",
+                    )}
+                  >
                     {item.score.toFixed(1)}
                   </span>
-                  <span className="text-[10px] font-semibold uppercase tracking-[0.12em] text-muted">
+                  <span
+                    className={cn(
+                      "font-semibold uppercase tracking-[0.12em] text-muted",
+                      dense ? "text-[8px]" : "text-[10px]",
+                    )}
+                  >
                     /10
                   </span>
                 </div>
                 {target ? (
-                  <p className="mt-1 text-[10px] font-semibold uppercase tracking-[0.14em] text-muted">
+                  <p
+                    className={cn(
+                      "font-semibold uppercase tracking-[0.14em] text-muted",
+                      dense ? "mt-0.5 text-[8px]" : "mt-1 text-[10px]",
+                    )}
+                  >
                     Target{" "}
                     <span className="tabular-nums text-foreground">{target.score.toFixed(1)}</span>
                   </p>
@@ -118,8 +146,8 @@ export function ScoreBreakdownBars({
               </div>
             </div>
 
-            <div className="relative mt-2" role="presentation">
-              <div className="relative h-2.5 w-full">
+            <div className={cn("relative", dense ? "mt-1" : "mt-2")} role="presentation">
+              <div className={cn("relative w-full", dense ? "h-1.5" : "h-2.5")}>
                 <div className="absolute inset-0 rounded-full bg-background/65" />
                 {target ? (
                   <div
@@ -129,7 +157,10 @@ export function ScoreBreakdownBars({
                   />
                 ) : null}
                 <div
-                  className="relative z-[2] h-2.5 min-w-0 overflow-hidden rounded-full"
+                  className={cn(
+                    "relative z-[2] min-w-0 overflow-hidden rounded-full",
+                    dense ? "h-1.5" : "h-2.5",
+                  )}
                   data-testid={`score-bar-fill-${item.key}`}
                   ref={(node) => {
                     barRefs.current[index] = node;
@@ -147,7 +178,12 @@ export function ScoreBreakdownBars({
             </div>
 
             {showWeights ? (
-              <p className="mt-2 text-[10px] uppercase tracking-[0.14em] text-muted">
+              <p
+                className={cn(
+                  "uppercase tracking-[0.14em] text-muted",
+                  dense ? "mt-1 text-[8px]" : "mt-2 text-[10px]",
+                )}
+              >
                 Weight {Math.round((item.weight / maxWeight) * 100)}%
               </p>
             ) : null}

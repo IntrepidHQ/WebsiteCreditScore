@@ -33,10 +33,53 @@ export function LoginScoreShowcase({
   variant,
   className,
 }: {
-  variant: "full" | "compact";
+  variant: "full" | "compact" | "rail" | "mobile";
   className?: string;
 }) {
   const radarItems = DEMO_BREAKDOWN.map(({ key, label, score }) => ({ key, label, score }));
+
+  if (variant === "mobile") {
+    return (
+      <div
+        className={cn(
+          "flex w-full max-w-[16rem] flex-row items-center justify-center gap-4 sm:max-w-none sm:justify-start",
+          className,
+        )}
+      >
+        <div className="shrink-0 scale-[0.52] origin-center sm:scale-[0.58] sm:origin-left">
+          <ScoreDial
+            bandLabel="Strong"
+            className="w-[196px] p-3 shadow-[0_12px_36px_rgba(0,0,0,0.2)]"
+            label="Example"
+            score={DEMO_SCORE}
+            showFooter={false}
+          />
+        </div>
+        <div className="min-w-0 text-left">
+          <p className="text-[10px] font-semibold uppercase tracking-[0.2em] text-accent">Example audit</p>
+          <p className="mt-0.5 truncate text-sm font-semibold text-foreground">acme-example.com</p>
+          <p className="text-xs text-muted">Live score preview</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (variant === "rail") {
+    return (
+      <div className={cn("flex w-full max-w-[11rem] flex-col items-stretch gap-2 lg:max-w-[11.5rem]", className)}>
+        <div className="w-full scale-[0.56] origin-top">
+          <ScoreDial
+            bandLabel="Strong"
+            className="w-[196px] p-3 shadow-[0_14px_40px_rgba(0,0,0,0.2)]"
+            label="Example audit"
+            score={DEMO_SCORE}
+            showFooter={false}
+          />
+        </div>
+        <ScoreBreakdownBars dense items={DEMO_BREAKDOWN.slice(0, 4)} />
+      </div>
+    );
+  }
 
   if (variant === "compact") {
     return (

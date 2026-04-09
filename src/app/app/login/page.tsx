@@ -104,78 +104,80 @@ export default async function AppLoginPage({
   })();
 
   return (
-    <div className="flex min-h-screen">
-      {/* ── Left: Brand panel ── */}
-      <div className="relative hidden overflow-hidden md:flex md:flex-1 md:flex-col md:justify-between md:bg-background md:p-14 md:pr-10 lg:pr-14">
+    <div className="flex min-h-screen flex-col md:h-[100dvh] md:flex-row md:overflow-hidden">
+      {/* ── Left: Brand + copy + compact score rail (desktop) ── */}
+      <div className="relative hidden min-h-0 md:flex md:min-w-0 md:flex-1 md:flex-col md:justify-center md:overflow-y-auto md:bg-background md:px-8 md:py-6 lg:px-10 lg:py-8 xl:px-12">
         <div
           aria-hidden="true"
-          className="pointer-events-none absolute -left-32 -top-32 h-[36rem] w-[36rem] rounded-full opacity-90"
+          className="pointer-events-none absolute -left-32 top-0 h-[28rem] w-[28rem] rounded-full opacity-90 md:top-1/2 md:-translate-y-1/2"
           style={{
             background:
-              "radial-gradient(circle, color-mix(in srgb, var(--theme-accent) 24%, transparent) 0%, transparent 65%)",
-            filter: "blur(24px)",
+              "radial-gradient(circle, color-mix(in srgb, var(--theme-accent) 22%, transparent) 0%, transparent 65%)",
+            filter: "blur(22px)",
           }}
         />
 
-        <div className="relative flex min-h-0 flex-1 flex-col">
-          <BrandWordmarkLink className="block" variant="on-dark" />
+        <div className="relative flex min-h-0 w-full max-w-3xl flex-col gap-6 lg:max-w-4xl">
+          <BrandWordmarkLink className="block shrink-0" variant="on-dark" />
 
-          <div className="mt-10 min-w-0 max-w-xl">
-            <h1 className="font-display text-[3.25rem] leading-[1.05] text-foreground">
-              Your website&apos;s<br />
-              <span className="gradient-type">credit score,</span>
-              <br />
-              starts here.
-            </h1>
+          <div className="flex min-h-0 flex-row items-start gap-5 lg:gap-8">
+            <div className="min-w-0 flex-1">
+              <h1 className="font-display text-[2.35rem] leading-[1.06] text-foreground lg:text-[2.75rem] xl:text-[2.95rem]">
+                Your website&apos;s<br />
+                <span className="gradient-type">credit score,</span>
+                <br />
+                starts here.
+              </h1>
 
-            <p className="mt-5 max-w-sm text-base leading-7 text-muted">
-              Audit any site in seconds. See exactly what&apos;s holding back the score — and what to fix first.
-            </p>
+              <p className="mt-3 max-w-sm text-sm leading-6 text-muted lg:mt-4 lg:text-[0.95rem] lg:leading-7">
+                Audit any site in seconds. See exactly what&apos;s holding back the score — and what to fix
+                first.
+              </p>
 
-            <ul className="mt-8 space-y-3">
-              {features.map((f) => (
-                <li className="flex items-center gap-3" key={f}>
-                  <span className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-accent/15">
-                    <Check className="size-3 text-accent" strokeWidth={2.5} />
-                  </span>
-                  <span className="text-sm text-muted">{f}</span>
-                </li>
-              ))}
-            </ul>
-          </div>
-        </div>
+              <ul className="mt-4 space-y-1.5 lg:mt-5 lg:space-y-2">
+                {features.map((f) => (
+                  <li className="flex items-center gap-2.5" key={f}>
+                    <span className="flex h-4 w-4 shrink-0 items-center justify-center rounded-full bg-accent/15">
+                      <Check className="size-2.5 text-accent" strokeWidth={2.5} />
+                    </span>
+                    <span className="text-xs leading-snug text-muted lg:text-[0.8125rem] lg:leading-relaxed">
+                      {f}
+                    </span>
+                  </li>
+                ))}
+              </ul>
+            </div>
 
-        <div className="relative mt-10 space-y-6 border-t border-border/40 pt-8 lg:mt-12">
-          <LoginScoreShowcase variant="full" />
-          <div>
-            <p className="text-xs uppercase tracking-widest text-accent">Example audit</p>
-            <p className="mt-1 text-sm font-semibold text-foreground">acme-example.com</p>
-            <p className="text-sm text-muted">Scored in seconds after the page is fetched</p>
+            <aside
+              aria-label="Example score preview"
+              className="w-[10.5rem] shrink-0 border-l border-border/35 pl-4 lg:w-[11.75rem] lg:pl-5"
+            >
+              <LoginScoreShowcase variant="rail" />
+              <p className="mt-2 text-[10px] uppercase tracking-[0.14em] text-muted">Example audit</p>
+              <p className="mt-0.5 truncate text-xs font-semibold text-foreground">acme-example.com</p>
+            </aside>
           </div>
         </div>
       </div>
 
       {/* ── Right: Form panel ── */}
-      <div className="flex w-full flex-col justify-center px-6 py-12 md:w-[min(100%,460px)] md:shrink-0 md:border-l md:border-border/60 md:px-12 lg:w-[460px]">
+      <div className="flex min-h-0 w-full flex-1 flex-col justify-center px-5 py-8 sm:px-6 md:h-full md:max-h-[100dvh] md:w-[min(100%,400px)] md:shrink-0 md:overflow-y-auto md:border-l md:border-border/60 md:px-9 lg:w-[420px] lg:px-10">
         <LoginSupabaseEnvBanner />
-        <BrandWordmarkLink className="mb-8 hidden md:block" variant="on-dark" />
-        {/* Mobile / small tablet: same visual language as the left panel (hidden from md where split layout shows) */}
-        <div className="mb-8 flex flex-col items-center md:hidden">
+        <BrandWordmarkLink className="mb-6 hidden md:block" variant="on-dark" />
+        {/* Mobile: minimal score strip above the form */}
+        <div className="mb-6 md:hidden">
           <div
             aria-hidden
-            className="pointer-events-none mb-5 h-28 w-full max-w-[17rem] rounded-[1.75rem]"
+            className="pointer-events-none mb-4 h-20 w-full max-w-md rounded-2xl"
             style={{
               background:
-                "radial-gradient(ellipse at 50% 25%, color-mix(in srgb, var(--theme-accent) 22%, transparent) 0%, transparent 72%)",
+                "radial-gradient(ellipse at 50% 25%, color-mix(in srgb, var(--theme-accent) 20%, transparent) 0%, transparent 70%)",
               filter: "blur(0.5px)",
             }}
           />
-          <LoginScoreShowcase variant="compact" />
-          <p className="mt-4 max-w-xs text-center text-[11px] font-semibold uppercase tracking-[0.2em] text-muted">
-            Example audit · acme-example.com
-          </p>
+          <LoginScoreShowcase variant="mobile" />
         </div>
-        <BrandWordmarkLink className="mb-10 md:hidden" variant="on-dark" />
+        <BrandWordmarkLink className="mb-8 md:hidden" variant="on-dark" />
 
         {sentConfirm ? (
           <div className="space-y-4">

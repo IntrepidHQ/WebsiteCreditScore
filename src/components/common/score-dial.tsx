@@ -23,12 +23,15 @@ export function ScoreDial({
   bandLabel,
   projectedScore,
   className,
+  showFooter = true,
 }: {
   score: number;
   label: string;
   bandLabel?: string;
   projectedScore?: number;
   className?: string;
+  /** When false, hides the benchmark hint row (e.g. compact login preview). */
+  showFooter?: boolean;
 }) {
   const { reduceMotion } = useMotionSettings();
   const radius = 76;
@@ -138,14 +141,16 @@ export function ScoreDial({
         </div>
       </div>
 
-      <div className="mt-5 flex items-center justify-between gap-3">
-        <p className="text-sm leading-6 text-muted">Benchmark-ready work generally clears 8.</p>
-        {showProjected ? (
-          <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-accent">
-            Target {projectedScore.toFixed(1)}
-          </p>
-        ) : null}
-      </div>
+      {showFooter ? (
+        <div className="mt-5 flex items-center justify-between gap-3">
+          <p className="text-sm leading-6 text-muted">Benchmark-ready work generally clears 8.</p>
+          {showProjected ? (
+            <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-accent">
+              Target {projectedScore.toFixed(1)}
+            </p>
+          ) : null}
+        </div>
+      ) : null}
     </div>
   );
 }
