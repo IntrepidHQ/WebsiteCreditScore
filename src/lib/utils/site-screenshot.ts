@@ -13,6 +13,7 @@ import {
   uploadScreenshot,
   type ScreenshotImageFormat,
 } from "@/lib/supabase/storage";
+import { getBrowserlessApiKey } from "@/lib/utils/browserless-env";
 import { PREVIEW_CAPTURE_VERSION } from "@/lib/utils/preview-capture-version";
 
 const CACHE_DIR = path.join("/tmp", "craydl-site-previews");
@@ -120,6 +121,18 @@ async function compressScreenshot(
   }
 }
 
+export type LayerDiagnostic = {
+  layer: string;
+  status: "hit" | "skip" | "fail";
+  ms: number;
+  error?: string;
+};
+
+export type PreviewDiagnostics = {
+  layers: LayerDiagnostic[];
+  totalMs: number;
+};
+
 export type PreviewImageResult = {
   buffer: Buffer;
   contentType: string;
@@ -127,6 +140,8 @@ export type PreviewImageResult = {
   reason: string;
   /** Public CDN URL when the image is persisted to Supabase Storage. */
   storageUrl?: string;
+  /** Per-layer timing and status diagnostics. */
+  diagnostics?: PreviewDiagnostics;
 };
 
 const browserCandidates = [
@@ -447,12 +462,73 @@ const BROWSERLESS_SCROLL_SETTLE_FN = `async () => {
 }`;
 
 /**
+ * Lazy health check — runs once per process lifetime on the first
+ * Browserless call.  If the API key or endpoint is bad we flag it and
+ * skip all future attempts, saving up to 96 seconds of wasted timeout.
+ */
+let browserlessVerified: boolean | null = null;
+
+async function verifyBrowserlessOnce(): Promise<boolean> {
+  if (browserlessVerified !== null) return browserlessVerified;
+
+  const apiKey = getBrowserlessApiKey();
+  if (!apiKey) {
+    browserlessVerified = false;
+    return false;
+  }
+
+  const baseEndpoint =
+    process.env.BROWSERLESS_ENDPOINT?.trim() ?? "https://chrome.browserless.io";
+  const pingUrl = `${baseEndpoint}/screenshot?token=${encodeURIComponent(apiKey)}`;
+
+  try {
+    const res = await fetch(pingUrl, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        url: "about:blank",
+        options: { type: "png" },
+        gotoOptions: { waitUntil: "domcontentloaded", timeout: 8000 },
+      }),
+      signal: AbortSignal.timeout(12_000),
+    });
+
+    if (res.ok) {
+      console.info("[site-preview] Browserless health check passed ✓");
+      browserlessVerified = true;
+      return true;
+    }
+
+    const detail = await res.text().catch(() => "");
+
+    if (res.status === 401) {
+      console.error(
+        "[site-preview] Browserless API key is invalid or expired (BROWSERLESS_API / BROWSERLESS_TOKEN). Falling back to PageSpeed.",
+      );
+    } else if (res.status === 404) {
+      console.error(`[site-preview] Browserless endpoint returned 404. Try setting BROWSERLESS_ENDPOINT to https://production-sfo.browserless.io`);
+    } else if (res.status === 400) {
+      console.error(`[site-preview] Browserless rejected the payload (400). Check API version compatibility. Detail: ${detail.slice(0, 200)}`);
+    } else {
+      console.error(`[site-preview] Browserless health check failed with ${res.status}: ${detail.slice(0, 200)}`);
+    }
+
+    browserlessVerified = false;
+    return false;
+  } catch (err) {
+    console.error("[site-preview] Browserless health check failed (network error):", err);
+    browserlessVerified = false;
+    return false;
+  }
+}
+
+/**
  * Capture a full-page screenshot via the Browserless REST API.
  * This is the primary live-capture method in serverless environments — it
  * offloads headless Chrome to a reliable external service, eliminating the
  * binary-size issues that plague @sparticuz/chromium on Vercel/Lambda.
  *
- * Requires the BROWSERLESS_API environment variable (API token).
+ * Requires BROWSERLESS_API, BROWSERLESS_TOKEN, or BROWSERLESS_KEY (API token).
  * The endpoint base can be overridden with BROWSERLESS_ENDPOINT; defaults
  * to the standard Browserless cloud cluster.
  */
@@ -460,8 +536,11 @@ async function captureViaBrowserless(
   url: string,
   device: PreviewDevice,
 ): Promise<Buffer> {
-  const apiKey = process.env.BROWSERLESS_API?.trim();
-  if (!apiKey) throw new Error("BROWSERLESS_API not configured");
+  const apiKey = getBrowserlessApiKey();
+  if (!apiKey) throw new Error("Browserless API key not configured (BROWSERLESS_API or BROWSERLESS_TOKEN)");
+
+  const healthy = await verifyBrowserlessOnce();
+  if (!healthy) throw new Error("Browserless health check failed — skipping");
 
   const isDesktop = device === "desktop";
   const baseEndpoint =
@@ -673,35 +752,58 @@ async function buildPreviewImage(
   device: PreviewDevice,
   fallbackImageUrl?: string,
 ): Promise<PreviewImageResult> {
+  const buildStart = Date.now();
+  const layers: LayerDiagnostic[] = [];
   const cacheKey = createCacheKey(cacheIdentityUrl, device);
 
-  // L1: in-process disk cache (warm serverless instances)
-  const cached = await readFreshScreenshotFromCache(cacheKey);
+  function trackLayer(layer: string, status: "hit" | "skip" | "fail", startMs: number, error?: string) {
+    layers.push({ layer, status, ms: Date.now() - startMs, error });
+  }
 
-  if (cached) {
-    return cached;
+  function attachDiagnostics(result: PreviewImageResult): PreviewImageResult {
+    const diagnostics: PreviewDiagnostics = { layers, totalMs: Date.now() - buildStart };
+    console.info(`[site-preview] ${cacheIdentityUrl} → ${result.reason} (${diagnostics.totalMs}ms) layers: ${layers.map((l) => `${l.layer}:${l.status}:${l.ms}ms`).join(", ")}`);
+    return { ...result, diagnostics };
+  }
+
+  // L1: in-process disk cache (warm serverless instances)
+  {
+    const t = Date.now();
+    const cached = await readFreshScreenshotFromCache(cacheKey);
+    if (cached) {
+      trackLayer("L1-disk", "hit", t);
+      return attachDiagnostics(cached);
+    }
+    trackLayer("L1-disk", "skip", t);
   }
 
   // L2: Supabase Storage (persists across deploys and cold starts)
-  const canUseRemote = getScreenshotPublicUrl(cacheKey) !== null;
+  {
+    const t = Date.now();
+    const canUseRemote = getScreenshotPublicUrl(cacheKey) !== null;
 
-  if (canUseRemote) {
-    // Skip HEAD checks: many public CDNs return 403/405 for HEAD while GET works.
-    const remoteBuffer = await downloadScreenshot(cacheKey);
+    if (canUseRemote) {
+      const remoteBuffer = await downloadScreenshot(cacheKey);
 
-    if (remoteBuffer && bufferLooksLikeRasterImage(remoteBuffer)) {
-      const format = detectBufferImageFormat(remoteBuffer);
-      const contentType = format === "webp" ? "image/webp" : "image/png";
+      if (remoteBuffer && bufferLooksLikeRasterImage(remoteBuffer)) {
+        const format = detectBufferImageFormat(remoteBuffer);
+        const contentType = format === "webp" ? "image/webp" : "image/png";
 
-      writeScreenshotToCache(cacheKey, remoteBuffer, contentType).catch(() => {});
+        writeScreenshotToCache(cacheKey, remoteBuffer, contentType).catch(() => {});
+        trackLayer("L2-storage", "hit", t);
 
-      return {
-        buffer: remoteBuffer,
-        contentType,
-        source: "storage",
-        reason: "storage-hit",
-        storageUrl: getScreenshotPublicUrl(cacheKey, format) ?? undefined,
-      };
+        return attachDiagnostics({
+          buffer: remoteBuffer,
+          contentType,
+          source: "storage",
+          reason: "storage-hit",
+          storageUrl: getScreenshotPublicUrl(cacheKey, format) ?? undefined,
+        });
+      }
+
+      trackLayer("L2-storage", "skip", t);
+    } else {
+      trackLayer("L2-storage", "skip", t, "unconfigured");
     }
   }
 
@@ -736,77 +838,91 @@ async function buildPreviewImage(
     };
   }
 
-  // L3a: Browserless API — primary live capture. Reliable in serverless because
-  // it offloads headless Chrome to an external service. Tried first whenever
-  // BROWSERLESS_API is set.
-  if (process.env.BROWSERLESS_API?.trim()) {
+  // L3a: Browserless API — primary live capture in serverless.
+  if (getBrowserlessApiKey()) {
+    const t = Date.now();
     try {
       const rawBuffer = await withTimeout(
         captureViaBrowserless(captureUrl, device),
         58_000,
         "Browserless capture timed out.",
       );
-
-      return await compressAndCache(rawBuffer, "browserless-api");
+      trackLayer("L3a-browserless", "hit", t);
+      return attachDiagnostics(await compressAndCache(rawBuffer, "browserless-api"));
     } catch (err) {
+      trackLayer("L3a-browserless", "fail", t, err instanceof Error ? err.message : String(err));
       console.warn("[site-preview] Browserless capture failed, trying next layer:", err);
     }
+  } else {
+    trackLayer("L3a-browserless", "skip", Date.now(), "unconfigured");
   }
 
-  // L3b: Local Playwright capture — works in local dev; usually fails in
-  // serverless due to binary size limits. Skipped when BROWSERLESS_API is set
-  // and succeeded above, or when running in serverless without a configured
-  // executable.
-  try {
-    const rawBuffer = await withTimeout(
-      captureScreenshot(captureUrl, device),
-      CAPTURE_BUDGET_MS,
-      "Screenshot capture budget exceeded.",
-    );
-
-    return await compressAndCache(rawBuffer, "captured-live");
-  } catch {
-    // L4: OG / social image — fast when live capture fails (often better than a long PageSpeed run)
-    if (fallbackImageUrl) {
-      try {
-        const remoteImage = await withTimeout(
-          fetchRemoteImage(fallbackImageUrl),
-          REMOTE_IMAGE_TIMEOUT_MS,
-          "Remote image fallback timed out.",
-        );
-        const compressed = await compressScreenshot(remoteImage.buffer, device);
-
-        return {
-          buffer: compressed.buffer,
-          contentType: compressed.contentType,
-          source: "remote-image",
-          reason: "fallback-og-image",
-        };
-      } catch {
-        /* continue to PageSpeed */
-      }
+  // L3b: Local Playwright capture — works in local dev; SKIPPED in serverless
+  // environments where @sparticuz/chromium binaries reliably fail (~22s waste).
+  if (!isServerlessRuntime) {
+    const t = Date.now();
+    try {
+      const rawBuffer = await withTimeout(
+        captureScreenshot(captureUrl, device),
+        CAPTURE_BUDGET_MS,
+        "Screenshot capture budget exceeded.",
+      );
+      trackLayer("L3b-playwright", "hit", t);
+      return attachDiagnostics(await compressAndCache(rawBuffer, "captured-live"));
+    } catch (err) {
+      trackLayer("L3b-playwright", "fail", t, err instanceof Error ? err.message : String(err));
+      console.warn("[site-preview] Playwright capture failed, trying next layer:", err);
     }
+  } else {
+    trackLayer("L3b-playwright", "skip", Date.now(), "serverless-runtime");
+  }
 
-    // L5: External screenshot API (serverless-friendly when Playwright and OG both fail)
+  // L4: External screenshot API fallback (Google PageSpeed — reliable in serverless)
+  {
+    const t = Date.now();
     try {
       const rawBuffer = await withTimeout(
         captureViaExternalApi(captureUrl, device),
         16000,
         "External screenshot API timed out.",
       );
-
-      return await compressAndCache(rawBuffer, "external-api-fallback");
-    } catch {
-      /* placeholder */
+      trackLayer("L4-pagespeed", "hit", t);
+      return attachDiagnostics(await compressAndCache(rawBuffer, "external-api-fallback"));
+    } catch (err) {
+      trackLayer("L4-pagespeed", "fail", t, err instanceof Error ? err.message : String(err));
     }
-
-    return {
-      ...createPlaceholderImage(cacheIdentityUrl, device),
-      reason: fallbackImageUrl
-        ? "fallback-placeholder-after-capture-og-pagespeed"
-        : "fallback-placeholder-no-og-image",
-    };
   }
+
+  // L5: OG image fallback
+  if (fallbackImageUrl) {
+    const t = Date.now();
+    try {
+      const remoteImage = await withTimeout(
+        fetchRemoteImage(fallbackImageUrl),
+        REMOTE_IMAGE_TIMEOUT_MS,
+        "Remote image fallback timed out.",
+      );
+      const compressed = await compressScreenshot(remoteImage.buffer, device);
+      trackLayer("L5-og-image", "hit", t);
+      return attachDiagnostics({
+        buffer: compressed.buffer,
+        contentType: compressed.contentType,
+        source: "remote-image",
+        reason: "fallback-og-image",
+      });
+    } catch (err) {
+      trackLayer("L5-og-image", "fail", t, err instanceof Error ? err.message : String(err));
+    }
+  } else {
+    trackLayer("L5-og-image", "skip", Date.now(), "no-og-url");
+  }
+
+  // L6: SVG placeholder (last resort)
+  trackLayer("L6-placeholder", "hit", Date.now());
+  return attachDiagnostics({
+    ...createPlaceholderImage(cacheIdentityUrl, device),
+    reason: fallbackImageUrl ? "fallback-placeholder-after-og-failed" : "fallback-placeholder-no-og-image",
+  });
 }
 
 export const getSitePreviewImage = async (

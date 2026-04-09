@@ -1,13 +1,11 @@
 "use client";
 
 import Link from "next/link";
-import { ArrowUpRight, CalendarDays, ClipboardList, Globe2, History } from "lucide-react";
+import { CalendarDays, Globe2, History } from "lucide-react";
 
 import { PreviewWithLiveToggle } from "@/components/common/preview-with-live-toggle";
 import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { DeleteLeadButton } from "@/features/app/components/delete-lead-button";
 import { LeadStageBadge } from "@/features/app/components/lead-stage-badge";
 import type { LeadRecord, SavedReport } from "@/lib/types/product";
 
@@ -47,7 +45,6 @@ function WorkspaceScanHistoryCard({
         fallbackSrc={fallbackShot}
         imageClassName="transition duration-500 group-hover:scale-[1.02]"
         loadingLabel="Capturing desktop screenshot"
-        normalizedUrl={savedReport.normalizedUrl}
         previewClassName="aspect-[21/10] w-full"
         screenshotOverlay={
           <div className="pointer-events-none absolute inset-x-0 top-0 h-28 bg-gradient-to-b from-background/35 via-transparent to-transparent" />
@@ -56,29 +53,9 @@ function WorkspaceScanHistoryCard({
       />
 
       <CardHeader className="space-y-4 pb-4">
-        <div className="flex items-start justify-between gap-3">
-          <div className="flex min-w-0 flex-wrap items-center gap-2">
-            {lead ? <LeadStageBadge stage={lead.stage} /> : null}
-            <Badge variant="accent">{score.toFixed(1)}</Badge>
-          </div>
-
-          <div className="flex items-center gap-2">
-            <DeleteLeadButton
-              label={`Delete ${savedReport.title}`}
-              leadId={savedReport.leadId}
-              returnTo="/app"
-            />
-            <Button asChild aria-label={`Open lead detail for ${savedReport.title}`} size="icon" variant="outline">
-              <Link href={`/app/leads/${savedReport.leadId}`}>
-                <ClipboardList className="size-4" />
-              </Link>
-            </Button>
-            <Button asChild aria-label={`Open audit for ${savedReport.title}`} size="icon" variant="outline">
-              <Link href={auditHref}>
-                <ArrowUpRight className="size-4" />
-              </Link>
-            </Button>
-          </div>
+        <div className="flex min-w-0 flex-wrap items-center gap-2">
+          {lead ? <LeadStageBadge stage={lead.stage} /> : null}
+          <Badge variant="accent">{score.toFixed(1)}</Badge>
         </div>
 
         <CardTitle className="font-display text-[clamp(2.35rem,1.95rem+0.6vw,3.1rem)] leading-[0.92]">
