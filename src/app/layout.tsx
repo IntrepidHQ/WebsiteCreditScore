@@ -47,10 +47,11 @@ export default async function RootLayout({
   return (
     <html data-scroll-behavior="smooth" lang="en" suppressHydrationWarning>
       <body
-        className={`${manrope.variable} ${spaceGrotesk.variable} ${instrumentSerif.variable} min-h-screen bg-background text-foreground antialiased`}
+        className={`${manrope.variable} ${spaceGrotesk.variable} ${instrumentSerif.variable} min-h-screen overflow-x-clip bg-background text-foreground antialiased`}
       >
         <ThemeStyleProvider>
-          <div className="relative isolate min-h-screen overflow-x-hidden">
+          {/* overflow-x must not clip the main column or sticky header will not stick to the viewport */}
+          <div className="relative isolate min-h-screen">
             <div className="relative z-10 flex min-h-screen flex-col">
               <Suspense fallback={null}>
                 <SiteHeader accountHint={accountHint} isAuthenticated={isAuthenticated} />

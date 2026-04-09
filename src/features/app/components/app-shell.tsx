@@ -6,9 +6,8 @@ import { Button } from "@/components/ui/button";
 import { AppShellNav } from "@/features/app/components/app-shell-nav";
 
 /**
- * `fixed` header so it stays pinned to the viewport while scrolling. Plain `sticky` was
- * unreliable because the root layout uses `overflow-x-hidden`, which creates a scroll
- * containment context and prevents sticky from behaving like a global docked bar.
+ * `fixed` header so the workspace chrome stays pinned while scrolling (separate from the
+ * marketing `SiteHeader`, which uses `sticky` against the document scroll).
  */
 export function AppShell({ children }: { children: React.ReactNode }) {
   return (

@@ -66,7 +66,7 @@ export function LoginScoreShowcase({
 
   if (variant === "rail") {
     return (
-      <div className={cn("flex w-full max-w-[11rem] flex-col items-stretch gap-2 lg:max-w-[11.5rem]", className)}>
+      <div className={cn("flex w-full flex-col items-stretch gap-2", className)}>
         <div className="w-full scale-[0.56] origin-top">
           <ScoreDial
             bandLabel="Strong"

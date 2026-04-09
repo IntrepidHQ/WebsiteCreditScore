@@ -120,7 +120,7 @@ export default async function AppLoginPage({
         <div className="relative flex min-h-0 w-full max-w-3xl flex-col gap-6 lg:max-w-4xl">
           <BrandWordmarkLink className="block shrink-0" variant="on-dark" />
 
-          <div className="flex min-h-0 flex-row items-start gap-5 lg:gap-8">
+          <div className="flex min-h-0 flex-row items-start gap-6 lg:gap-8">
             <div className="min-w-0 flex-1">
               <h1 className="font-display text-[2.35rem] leading-[1.06] text-foreground lg:text-[2.75rem] xl:text-[2.95rem]">
                 Your website&apos;s<br />
@@ -150,7 +150,7 @@ export default async function AppLoginPage({
 
             <aside
               aria-label="Example score preview"
-              className="w-[10.5rem] shrink-0 border-l border-border/35 pl-4 lg:w-[11.75rem] lg:pl-5"
+              className="w-[11.25rem] shrink-0 border-l border-border/35 pl-4 lg:w-[12.25rem] lg:pl-5"
             >
               <LoginScoreShowcase variant="rail" />
               <p className="mt-2 text-[10px] uppercase tracking-[0.14em] text-muted">Example audit</p>
@@ -161,7 +161,7 @@ export default async function AppLoginPage({
       </div>
 
       {/* ── Right: Form panel ── */}
-      <div className="flex min-h-0 w-full flex-1 flex-col justify-center px-5 py-8 sm:px-6 md:h-full md:max-h-[100dvh] md:w-[min(100%,400px)] md:shrink-0 md:overflow-y-auto md:border-l md:border-border/60 md:px-9 lg:w-[420px] lg:px-10">
+      <div className="flex min-h-0 w-full flex-1 flex-col justify-center px-5 py-8 sm:px-6 md:h-full md:max-h-[100dvh] md:w-[20.5rem] md:shrink-0 md:overflow-y-auto md:border-l md:border-border/60 md:px-6 lg:w-[22rem] lg:px-7">
         <LoginSupabaseEnvBanner />
         <BrandWordmarkLink className="mb-6 hidden md:block" variant="on-dark" />
         {/* Mobile: minimal score strip above the form */}
