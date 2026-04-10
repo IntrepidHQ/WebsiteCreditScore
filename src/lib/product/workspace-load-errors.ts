@@ -49,8 +49,9 @@ export const redirectOnRecoverableProductError = (err: unknown): void => {
     code === "PGRST301" ||
     /row-level security|violates row-level security|RLS|permission denied/i.test(haystack);
 
+  // Match Supabase/GoTrue style messages only — a bare "JWT" substring is too easy to false-positive.
   const isAuthDrift =
-    /JWT|jwt expired|refresh token|Auth session missing|session missing|invalid claim/i.test(
+    /auth session missing|session missing|jwt expired|expired jwt|invalid jwt|invalid refresh token|refresh token not found|invalid claim|token (?:has )?expired/i.test(
       haystack,
     );
 
@@ -61,12 +62,20 @@ export const redirectOnRecoverableProductError = (err: unknown): void => {
     redirect("/app/login?error=db-not-ready");
   }
 
-  if (isDuplicateKey || isRlsOrPermission || isAuthDrift || isNetworkOrUpstream) {
+  if (isDuplicateKey || isRlsOrPermission || isAuthDrift) {
     redirect("/app/login?error=workspace-unavailable");
   }
 
-  // Any other PostgREST / Postgres error code from Supabase (avoids opaque 500 digests in prod).
-  if (code.startsWith("PGRST") || /^\d{5}$/.test(code)) {
+  // Transient network / upstream issues: do not send users to login (session is usually still valid).
+  if (isNetworkOrUpstream) {
+    return;
+  }
+
+  // Remaining PGRST + Postgres codes (except common "no row" shape): still avoid login for PGRST116.
+  if (
+    (code.startsWith("PGRST") && code !== "PGRST116") ||
+    (/^\d{5}$/.test(code) && !["23505", "42P01"].includes(code))
+  ) {
     redirect("/app/login?error=workspace-unavailable");
   }
 };

@@ -430,9 +430,9 @@ export default async function AppLoginPage({
             {hasSupabaseEnv() ? (
               <p className="text-center text-xs leading-5 text-muted">
                 <a className="text-accent underline underline-offset-2" href="/api/workspace/gate">
-                  Workspace status
-                </a>{" "}
-                (after sign-in)
+                  Workspace connection check
+                </a>
+                — use if the app loads but the dashboard will not open.
               </p>
             ) : null}
           </div>

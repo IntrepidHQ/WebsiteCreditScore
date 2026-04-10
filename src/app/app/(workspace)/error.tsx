@@ -18,8 +18,9 @@ export default function WorkspaceErrorBoundary({
     <div className="mx-auto flex min-h-[50vh] max-w-lg flex-col justify-center gap-6 px-4 py-16 text-center">
       <h1 className="font-display text-3xl tracking-tight text-foreground">Something broke</h1>
       <p className="text-sm leading-7 text-muted">
-        The workspace screen hit an unexpected error. Try again, or sign out and back in. If you are
-        the site owner, check server logs for{" "}
+        The workspace screen hit an unexpected error — this is often a short network or database blip.
+        Try again first; you may still be signed in. If it keeps failing, sign out and back in. Site owners
+        can check server logs for{" "}
         <span className="font-mono text-xs text-foreground">{error.digest ?? "no-digest"}</span>.
       </p>
       <div className="flex flex-wrap justify-center gap-3">
