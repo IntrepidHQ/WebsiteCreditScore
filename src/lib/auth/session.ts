@@ -1,7 +1,7 @@
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 
-import type { SupabaseClient, User } from "@supabase/supabase-js";
+import type { AuthError, SupabaseClient, User } from "@supabase/supabase-js";
 
 import type { WorkspaceSession } from "@/lib/types/product";
 import { isDemoWorkspaceAllowed } from "@/lib/auth/demo-flag";
@@ -38,33 +38,47 @@ export const workspaceSessionFromSupabaseUser = (user: User): WorkspaceSession =
 });
 
 /**
- * Validates the JWT and, when the access token is stale but a refresh token exists,
- * refreshes once (Server Components cannot always rely on middleware timing vs RSC).
+ * Like `getUser()`, but when the access JWT is stale and a refresh token exists in cookies,
+ * refreshes once then re-fetches the user. Use in Route Handlers (`/api/*` skips middleware).
  */
-export const resolveSupabaseSessionUser = async (
+export const readSupabaseUserWithRefresh = async (
   supabase: SupabaseClient,
-): Promise<User | null> => {
+): Promise<{ user: User | null; error: AuthError | null }> => {
   let {
     data: { user },
     error,
   } = await supabase.auth.getUser();
 
   if (user?.id) {
-    return user;
+    return { user, error: null };
   }
 
-  if (!user) {
-    const { data: sessionData } = await supabase.auth.getSession();
-    if (sessionData.session?.refresh_token) {
-      await supabase.auth.refreshSession({
-        refresh_token: sessionData.session.refresh_token,
-      });
-      ({
-        data: { user },
-        error,
-      } = await supabase.auth.getUser());
-    }
+  const { data: sessionData } = await supabase.auth.getSession();
+  if (sessionData.session?.refresh_token) {
+    await supabase.auth.refreshSession({
+      refresh_token: sessionData.session.refresh_token,
+    });
+    ({
+      data: { user },
+      error,
+    } = await supabase.auth.getUser());
   }
+
+  if (user?.id) {
+    return { user, error: null };
+  }
+
+  return { user: null, error };
+};
+
+/**
+ * Validates the JWT and, when the access token is stale but a refresh token exists,
+ * refreshes once (Server Components cannot always rely on middleware timing vs RSC).
+ */
+export const resolveSupabaseSessionUser = async (
+  supabase: SupabaseClient,
+): Promise<User | null> => {
+  const { user, error } = await readSupabaseUserWithRefresh(supabase);
 
   if (error) {
     if (!isExpectedNoSessionError(error)) {

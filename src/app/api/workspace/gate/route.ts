@@ -3,6 +3,7 @@ import type { CookieOptions } from "@supabase/ssr";
 import type { NextRequest } from "next/server";
 import { NextResponse } from "next/server";
 
+import { readSupabaseUserWithRefresh } from "@/lib/auth/session";
 import { getSupabaseCookieOptions } from "@/lib/supabase/cookie-options";
 import { getSupabaseEnv, hasSupabaseEnv } from "@/lib/supabase/config";
 
@@ -12,8 +13,8 @@ export const dynamic = "force-dynamic";
  * Read-only diagnostics for why /app may not load after Plan A setup.
  * Open in the browser while signed in (same cookies as /app). No secrets returned.
  *
- * `/api/*` is excluded from Supabase middleware (see `src/middleware.ts`) so this handler
- * is the only `getUser()` on the request — avoids a double refresh with stale request cookies.
+ * `/api/*` is excluded from Supabase middleware (see `src/middleware.ts`), so this handler must
+ * refresh stale sessions itself (same pattern as `resolveSupabaseSessionUser` in RSC).
  */
 export const GET = async (request: NextRequest) => {
   const base: Record<string, unknown> = {
@@ -44,10 +45,7 @@ export const GET = async (request: NextRequest) => {
     },
   });
 
-  const {
-    data: { user },
-    error: userError,
-  } = await supabase.auth.getUser();
+  const { user, error: userError } = await readSupabaseUserWithRefresh(supabase);
 
   const applyCookies = (res: NextResponse) => {
     pendingCookies.forEach(({ name, value, options }) => {
@@ -56,7 +54,7 @@ export const GET = async (request: NextRequest) => {
     return res;
   };
 
-  if (userError) {
+  if (userError && !user?.id) {
     const isMissingSession =
       /session missing|auth session missing/i.test(userError.message) ||
       userError.message.includes("Auth session missing");
@@ -66,7 +64,7 @@ export const GET = async (request: NextRequest) => {
         step: "auth_read_failed",
         authError: userError.message,
         hint: isMissingSession
-          ? "No Supabase auth cookie on this request. Sign in at /app/login on this exact host (www vs non-www must match), or you are in a private window. If you were signed in, try one full page load of /app first, then open this URL again."
+          ? "No valid Supabase session on this request. Use the same hostname you signed in on (www vs apex). Load any /app page once in this tab so cookies refresh, then retry. If it persists, sign out and sign in again."
           : "Session cookies may be invalid. Try signing out at /auth/logout, then sign in again on the same hostname you use for the site.",
       }),
     );

@@ -35,6 +35,7 @@ export function AgentChatPanel() {
     try {
       const res = await fetch("/api/app/agent-chat", {
         method: "POST",
+        credentials: "same-origin",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           messages: nextMessages.map((m) => ({ role: m.role, content: m.content })),
