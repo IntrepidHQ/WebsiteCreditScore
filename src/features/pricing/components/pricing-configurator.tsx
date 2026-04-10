@@ -379,18 +379,18 @@ export function PricingConfigurator({ report }: { report: AuditReport }) {
                     className="rounded-[calc(var(--theme-radius)-4px)] border border-border/70 bg-background-alt/70 px-4 py-4"
                     key={item.title}
                   >
-                    <div className="flex items-center gap-3">
-                      <div className="rounded-[8px] border border-accent/20 bg-accent/10 p-2 text-accent">
-                        <item.icon className="size-4" />
+                    <div className="flex flex-col gap-3">
+                      <div className="w-fit rounded-[8px] border border-accent/20 bg-accent/10 p-2 text-accent">
+                        <item.icon aria-hidden className="size-4" />
                       </div>
-                      <h3 className="text-[clamp(1.8rem,1.55rem+0.35vw,2.15rem)] font-semibold leading-[1.08] tracking-[-0.03em] text-foreground">
+                      <h3 className="text-[clamp(1.8rem,1.55rem+0.35vw,2.15rem)] font-semibold leading-[1.04] tracking-[-0.03em] text-foreground">
                         {item.title}
                       </h3>
+                      <p className="text-[11px] font-bold uppercase tracking-[0.18em] text-muted">
+                        {item.subtitle}
+                      </p>
+                      <p className="text-[15px] leading-7 text-muted">{item.body}</p>
                     </div>
-                    <p className="mt-3 text-[11px] uppercase tracking-[0.18em] text-muted">
-                      {item.subtitle}
-                    </p>
-                    <p className="mt-3 text-[15px] leading-7 text-muted">{item.body}</p>
                   </div>
                 ))}
               </CardContent>
