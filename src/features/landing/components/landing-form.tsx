@@ -1,6 +1,6 @@
 "use client";
 
-import { startTransition, useId, useState } from "react";
+import { startTransition, useCallback, useId, useRef, useState } from "react";
 import { ArrowRight, Loader2, Sparkles } from "lucide-react";
 import { useRouter } from "next/navigation";
 
@@ -22,7 +22,32 @@ export function LandingForm() {
   const [url, setUrl] = useState("");
   const [loading, setLoading] = useState(false);
   const [showScanOverlay, setShowScanOverlay] = useState(false);
+  const [scanDataReady, setScanDataReady] = useState(false);
   const [error, setError] = useState("");
+  const pendingNavRef = useRef<
+    | { id: string; normalizedUrl: string; persisted?: boolean; leadId?: string }
+    | null
+  >(null);
+
+  const handleDialReachedTen = useCallback(() => {
+    const payload = pendingNavRef.current;
+    pendingNavRef.current = null;
+    if (!payload) {
+      return;
+    }
+
+    startTransition(() => {
+      if (payload.persisted && payload.leadId) {
+        router.push(`/app/leads/${payload.leadId}`);
+      } else {
+        router.push(
+          `/audit/${payload.id}?url=${encodeURIComponent(payload.normalizedUrl)}&ref=landing`,
+        );
+      }
+      setShowScanOverlay(false);
+      setScanDataReady(false);
+    });
+  }, [router]);
 
   const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
@@ -33,6 +58,8 @@ export function LandingForm() {
 
     setLoading(true);
     setShowScanOverlay(true);
+    setScanDataReady(false);
+    pendingNavRef.current = null;
     setError("");
 
     try {
@@ -57,17 +84,12 @@ export function LandingForm() {
         );
       }
 
-      startTransition(() => {
-        if (payload.persisted && payload.leadId) {
-          router.push(`/app/leads/${payload.leadId}`);
-          return;
-        }
-
-        router.push(
-          `/audit/${payload.id}?url=${encodeURIComponent(payload.normalizedUrl)}&ref=landing`,
-        );
-      });
+      pendingNavRef.current = payload;
+      setScanDataReady(true);
     } catch (caughtError) {
+      setShowScanOverlay(false);
+      setScanDataReady(false);
+      pendingNavRef.current = null;
       setError(
         caughtError instanceof Error
           ? caughtError.message
@@ -75,7 +97,6 @@ export function LandingForm() {
       );
     } finally {
       setLoading(false);
-      setShowScanOverlay(false);
     }
   };
 
@@ -142,7 +163,12 @@ export function LandingForm() {
           {error}
         </p>
       ) : null}
-      <ScanLoadingOverlay active={showScanOverlay} />
+      <ScanLoadingOverlay
+        active={showScanOverlay}
+        mode="landing"
+        scanDataReady={scanDataReady}
+        onDialReachedTen={handleDialReachedTen}
+      />
     </form>
   );
 }

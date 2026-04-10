@@ -80,6 +80,7 @@ export function PublicPricingPage({
       try {
         const response = await fetch("/api/stripe/checkout", {
           method: "POST",
+          credentials: "same-origin",
           headers: {
             "Content-Type": "application/json",
           },

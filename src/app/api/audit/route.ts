@@ -7,7 +7,7 @@ import { ensurePreviewCachedForObservation } from "@/lib/utils/preview-warm";
 import { getCachedReport, cacheReport, touchRecentScanFromReport } from "@/lib/utils/scan-cache";
 import { getOptionalWorkspaceSession } from "@/lib/auth/session";
 import { getProductRepository } from "@/lib/product/repository";
-import type { ContentClassification, FetchErrorReason } from "@/lib/types/audit";
+import type { ContentClassification, FetchErrorReason, SiteObservation } from "@/lib/types/audit";
 
 function userFacingFetchError(reason?: FetchErrorReason, httpStatus?: number): string {
   switch (reason) {
@@ -49,6 +49,35 @@ function userFacingContentError(classification: ContentClassification, redirectT
   }
 }
 
+async function inspectWithGates(
+  normalizedUrl: string,
+): Promise<{ ok: true; observation: SiteObservation } | { ok: false; response: NextResponse }> {
+  const observation = await inspectWebsite(normalizedUrl);
+
+  if (!observation.fetchSucceeded) {
+    return {
+      ok: false,
+      response: NextResponse.json(
+        { error: userFacingFetchError(observation.fetchError, observation.httpStatus) },
+        { status: 422 },
+      ),
+    };
+  }
+
+  const contentError = userFacingContentError(
+    observation.contentClassification ?? "normal",
+    observation.redirectTarget,
+  );
+  if (contentError) {
+    return {
+      ok: false,
+      response: NextResponse.json({ error: contentError }, { status: 422 }),
+    };
+  }
+
+  return { ok: true, observation };
+}
+
 export async function POST(request: Request) {
   try {
     const body = (await request.json()) as { url?: string; persist?: boolean };
@@ -60,7 +89,6 @@ export async function POST(request: Request) {
       );
     }
 
-    // Validate URL format early
     let normalizedUrl: string;
     try {
       normalizedUrl = normalizeUrl(body.url);
@@ -71,36 +99,15 @@ export async function POST(request: Request) {
       );
     }
 
-    // Fetch and observe the site
-    const observation = await inspectWebsite(normalizedUrl);
-
-    // Gate: fetch must succeed
-    if (!observation.fetchSucceeded) {
-      return NextResponse.json(
-        { error: userFacingFetchError(observation.fetchError, observation.httpStatus) },
-        { status: 422 },
-      );
-    }
-
-    // Gate: content must be a real, auditable website
-    const contentError = userFacingContentError(
-      observation.contentClassification ?? "normal",
-      observation.redirectTarget,
-    );
-    if (contentError) {
-      return NextResponse.json(
-        { error: contentError },
-        { status: 422 },
-      );
-    }
-
-    // Persist only when the client opts in (e.g. /app). Homepage scans stay on the
-    // public /audit route so a partial session never sends users to /app/leads (which
-    // requires a stable session and caused session-required loops).
     const session = await getOptionalWorkspaceSession();
-    const shouldPersist = body.persist === true && session;
+    const shouldPersist = body.persist === true && Boolean(session);
 
-    if (shouldPersist) {
+    if (shouldPersist && session) {
+      const gated = await inspectWithGates(normalizedUrl);
+      if (!gated.ok) {
+        return gated.response;
+      }
+
       const repository = getProductRepository(session);
       const workspace = await repository.ensureWorkspace(session);
       const lead = await repository.createLeadFromUrl(workspace.id, normalizedUrl, session);
@@ -113,9 +120,7 @@ export async function POST(request: Request) {
       });
     }
 
-    // Check scan cache first — avoid rebuilding the report for repeated URLs
     const cached = await getCachedReport(normalizedUrl);
-
     if (cached) {
       touchRecentScanFromReport(cached).catch(() => {});
       return NextResponse.json({
@@ -126,17 +131,19 @@ export async function POST(request: Request) {
       });
     }
 
-    // Build report with real observation data
-    const report = await enrichReportBenchmarks(
-      buildAuditReportFromUrl(normalizedUrl, observation),
-    );
+    const gated = await inspectWithGates(normalizedUrl);
+    if (!gated.ok) {
+      return gated.response;
+    }
+    const { observation } = gated;
+
+    const report = await enrichReportBenchmarks(buildAuditReportFromUrl(normalizedUrl, observation));
 
     await ensurePreviewCachedForObservation(normalizedUrl, observation).catch((err) => {
       console.warn("[audit] preview warm failed", err);
     });
 
-    // Cache for future requests (non-blocking)
-    cacheReport(normalizedUrl, report).catch(() => {});
+    await cacheReport(normalizedUrl, report);
 
     return NextResponse.json({
       id: report.id,

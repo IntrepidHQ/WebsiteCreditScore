@@ -73,10 +73,12 @@ describe("LandingForm", () => {
       ),
     );
 
-    await waitFor(() =>
-      expect(pushMock).toHaveBeenCalledWith(
-        "/audit/example-com?url=https%3A%2F%2Fexample.com&ref=landing",
-      ),
+    await waitFor(
+      () =>
+        expect(pushMock).toHaveBeenCalledWith(
+          "/audit/example-com?url=https%3A%2F%2Fexample.com&ref=landing",
+        ),
+      { timeout: 6000 },
     );
   });
 
@@ -103,10 +105,12 @@ describe("LandingForm", () => {
     await user.type(screen.getByLabelText(/run a live scan/i), "starbucks.com");
     await user.click(screen.getByRole("button", { name: /generate audit/i }));
 
-    await waitFor(() =>
-      expect(pushMock).toHaveBeenCalledWith(
-        "/audit/starbucks-com?url=https%3A%2F%2Fstarbucks.com&ref=landing",
-      ),
+    await waitFor(
+      () =>
+        expect(pushMock).toHaveBeenCalledWith(
+          "/audit/starbucks-com?url=https%3A%2F%2Fstarbucks.com&ref=landing",
+        ),
+      { timeout: 6000 },
     );
 
     const fetchMock = vi.mocked(fetch);

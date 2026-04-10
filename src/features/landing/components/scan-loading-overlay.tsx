@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 
 import gsap from "gsap";
 
@@ -15,43 +15,134 @@ const skeletonCategories = [
   { label: "Trust / credibility", key: "tr" },
 ] as const;
 
+type ScanLoadingOverlayProps = {
+  active: boolean;
+  /**
+   * Landing: set true when `/api/audit` succeeded. Dial finishes to 10.0, then `onDialReachedTen` runs once.
+   */
+  scanDataReady?: boolean;
+  /** Landing only: navigate / tear down overlay after the dial shows 10.0 and data is ready. */
+  onDialReachedTen?: () => void;
+  /**
+   * `landing` — tied to scan API completion.
+   * `route` — audit page loading shell: one climb 0→10, hold (no loop).
+   */
+  mode?: "landing" | "route";
+};
+
 /**
- * Full-screen loading state for live scans: dial counts toward 10 while category bars pulse.
+ * Full-screen loading state for live scans: dial eases toward 10 (slower near the end). No looping.
  */
-export function ScanLoadingOverlay({ active }: { active: boolean }) {
+export function ScanLoadingOverlay({
+  active,
+  scanDataReady = false,
+  onDialReachedTen,
+  mode = "landing",
+}: ScanLoadingOverlayProps) {
   const { reduceMotion } = useMotionSettings();
   const radius = 64;
   const size = 168;
   const strokeWidth = 11;
   const [displayScore, setDisplayScore] = useState(0);
   const { circumference, dashOffset } = getDialMetrics(Math.min(displayScore, 10), radius);
+  const onDialReachedTenRef = useRef(onDialReachedTen);
+  const firedRef = useRef(false);
+  const counterRef = useRef({ value: 0 });
+
+  onDialReachedTenRef.current = onDialReachedTen;
 
   useEffect(() => {
+    const counter = counterRef.current;
+
     if (!active) {
+      gsap.killTweensOf(counter);
+      counter.value = 0;
+      firedRef.current = false;
       setDisplayScore(0);
       return;
     }
 
     if (reduceMotion) {
-      setDisplayScore(7.2);
+      gsap.killTweensOf(counter);
+      if (mode === "route") {
+        counter.value = 10;
+        setDisplayScore(10);
+        return;
+      }
+      if (scanDataReady) {
+        counter.value = 10;
+        setDisplayScore(10);
+        if (!firedRef.current) {
+          firedRef.current = true;
+          queueMicrotask(() => onDialReachedTenRef.current?.());
+        }
+      } else {
+        counter.value = 8;
+        setDisplayScore(8);
+      }
       return;
     }
 
-    const counter = { value: 0 };
-    const scoreTween = gsap.to(counter, {
+    const tick = () => {
+      setDisplayScore(Number(counter.value.toFixed(1)));
+    };
+
+    gsap.killTweensOf(counter);
+    firedRef.current = false;
+
+    if (mode === "route") {
+      counter.value = 0;
+      tick();
+      gsap.to(counter, {
+        value: 10,
+        duration: 10,
+        ease: "power2.out",
+        onUpdate: tick,
+        onComplete: () => {
+          setDisplayScore(10);
+        },
+      });
+      return () => gsap.killTweensOf(counter);
+    }
+
+    const finishToTenAndExit = () => {
+      gsap.killTweensOf(counter);
+      const remaining = 10 - counter.value;
+      const duration = Math.min(0.55, Math.max(0.22, remaining * 0.09));
+      gsap.to(counter, {
+        value: 10,
+        duration,
+        ease: "power2.out",
+        onUpdate: tick,
+        onComplete: () => {
+          setDisplayScore(10);
+          if (!firedRef.current) {
+            firedRef.current = true;
+            onDialReachedTenRef.current?.();
+          }
+        },
+      });
+    };
+
+    if (scanDataReady) {
+      finishToTenAndExit();
+      return () => gsap.killTweensOf(counter);
+    }
+
+    counter.value = 0;
+    tick();
+    gsap.to(counter, {
       value: 10,
-      duration: 14,
-      ease: "none",
-      repeat: -1,
-      onUpdate: () => {
-        setDisplayScore(Number(counter.value.toFixed(1)));
+      duration: 26,
+      ease: "power2.out",
+      onUpdate: tick,
+      onComplete: () => {
+        setDisplayScore(10);
       },
     });
 
-    return () => {
-      scoreTween.kill();
-    };
-  }, [active, reduceMotion]);
+    return () => gsap.killTweensOf(counter);
+  }, [active, mode, reduceMotion, scanDataReady]);
 
   if (!active) {
     return null;

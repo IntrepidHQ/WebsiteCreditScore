@@ -5,7 +5,7 @@ import { type NextRequest, NextResponse } from "next/server";
 
 import { getWorkspaceAppContext } from "@/lib/product/context";
 import { redirectOnRecoverableProductError } from "@/lib/product/workspace-load-errors";
-import { workspaceSessionFromSupabaseUser } from "@/lib/auth/session";
+import { readSupabaseUserWithRefresh, workspaceSessionFromSupabaseUser } from "@/lib/auth/session";
 import { getSupabaseCookieOptions } from "@/lib/supabase/cookie-options";
 import { getSupabaseEnv, hasSupabaseEnv } from "@/lib/supabase/config";
 import { getProductRepository } from "@/lib/product/repository";
@@ -23,7 +23,7 @@ const mergedCookiePairs = (request: NextRequest, cookieStore: Awaited<ReturnType
   mergeCookieHeaderWithStore(request.headers.get("cookie"), cookieStore.getAll());
 
 /**
- * HTML form POST from `/app`. When Supabase is enabled, bind `getUser()` (and any refresh)
+ * HTML form POST from `/app`. When Supabase is enabled, bind `readSupabaseUserWithRefresh()` (and any refresh)
  * to the **redirect** response so rotated tokens are always `Set-Cookie` on the same reply
  * as the 302 — `cookies()` in this route can miss a refresh written only to middleware.
  */
@@ -71,12 +71,9 @@ export const POST = async (request: NextRequest) => {
     },
   });
 
-  const {
-    data: { user },
-    error: userError,
-  } = await supabase.auth.getUser();
+  const { user, error: userError } = await readSupabaseUserWithRefresh(supabase);
 
-  if (userError || !user) {
+  if ((userError && !user) || !user) {
     const login = NextResponse.redirect(
       new URL("/app/login?error=session-required&next=%2Fapp", base.origin),
     );
