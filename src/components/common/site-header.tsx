@@ -229,8 +229,9 @@ export function SiteHeader({
     isAuditPath && normalizedUrl
       ? `/app/login?mode=signup&next=${encodeURIComponent(auditPathWithSaveIntent)}`
       : `/app/login?mode=signup&next=${encodeURIComponent(currentPath)}`;
-  const workspaceHref = "/app";
-  const workspaceLabel = accountHint ? `Workspace (${accountHint})` : "Workspace";
+  /** Home is the primary hub (live scan + recent scans); `/app` stays for leads, tokens, settings. */
+  const workspaceHref = "/";
+  const workspaceLabel = accountHint ? `Home (${accountHint})` : "Home";
 
   const saveOrWorkspace = isAuthenticated
     ? { href: workspaceHref, label: workspaceLabel }

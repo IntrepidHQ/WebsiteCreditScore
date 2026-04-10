@@ -90,7 +90,7 @@ export const resolveSupabaseSessionUser = async (
   return user?.id ? user : null;
 };
 
-export const sanitizeInternalNextPath = (next: string | null | undefined, fallback = "/app") => {
+export const sanitizeInternalNextPath = (next: string | null | undefined, fallback = "/") => {
   if (!next) {
     return fallback;
   }

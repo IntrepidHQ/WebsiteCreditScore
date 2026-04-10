@@ -10,7 +10,8 @@ import { createWebsiteScreenshotUrl, normalizeUrl } from "@/lib/utils/url";
 const CACHE_DIR = path.join("/tmp", "craydl-scan-cache");
 const RECENT_FILE = path.join(CACHE_DIR, "_recent-scans.json");
 const CACHE_TTL_MS = 1000 * 60 * 60 * 4; // 4 hours
-const MAX_RECENT_SCANS = 24;
+/** Cap for stored list and homepage “recent scans” merge (single source of truth). */
+export const MAX_RECENT_SCANS = 24;
 const RECENT_SCANS_TABLE = "public_recent_scans";
 
 export type RecentScanEntry = {

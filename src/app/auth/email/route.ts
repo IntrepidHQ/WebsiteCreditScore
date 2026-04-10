@@ -8,7 +8,7 @@ export const POST = async (request: Request) => {
   const url = new URL(request.url);
   const formData = await request.formData();
   const email = String(formData.get("email") ?? "").trim();
-  const next = sanitizeInternalNextPath(String(formData.get("next") ?? "/app"), "/app");
+  const next = sanitizeInternalNextPath(String(formData.get("next") ?? "/"));
 
   if (!hasSupabaseEnv()) {
     return NextResponse.redirect(

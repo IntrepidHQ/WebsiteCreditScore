@@ -32,12 +32,12 @@ export default async function AppLoginPage({
   const authError = typeof resolvedSearchParams.error === "string" ? resolvedSearchParams.error : null;
   const prefillEmail = typeof resolvedSearchParams.email === "string" ? resolvedSearchParams.email : "";
   const next = sanitizeInternalNextPath(
-    typeof resolvedSearchParams.next === "string" ? resolvedSearchParams.next : "/app",
-    "/app",
+    typeof resolvedSearchParams.next === "string" ? resolvedSearchParams.next : "/",
+    "/",
   );
 
-  // Never auto-redirect to /app while ?error= is present — any code can indicate a failed workspace
-  // load or auth handoff; redirecting back causes /app ↔ /login loops when session is still valid.
+  // Never auto-redirect away from login while ?error= is present — any code can indicate a failed workspace
+  // load or auth handoff; redirecting back causes redirect loops when session is still valid.
   const skipAutoRedirectToWorkspace = Boolean(authError);
 
   if (session && !skipAutoRedirectToWorkspace) {

@@ -9,7 +9,7 @@ export async function POST(request: Request) {
   const formData = await request.formData();
   const email = String(formData.get("email") ?? "").trim();
   const password = String(formData.get("password") ?? "");
-  const next = sanitizeInternalNextPath(String(formData.get("next") ?? "/app"), "/app");
+  const next = sanitizeInternalNextPath(String(formData.get("next") ?? "/"));
 
   if (!hasSupabaseEnv()) {
     return NextResponse.redirect(new URL("/app/login?error=supabase-not-configured", url));

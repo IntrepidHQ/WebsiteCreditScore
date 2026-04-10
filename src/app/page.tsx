@@ -1,7 +1,7 @@
 import { LandingPageContent } from "@/features/landing/components/landing-page-content";
 import { getDesignPatternNotesForProfile } from "@/lib/benchmarks/library";
 import { buildAuditReportById, getPublicScanHistoryCards } from "@/lib/mock/report-builder";
-import { getRecentScans } from "@/lib/utils/scan-cache";
+import { getRecentScans, MAX_RECENT_SCANS } from "@/lib/utils/scan-cache";
 import {
   createWebsiteScreenshotUrl,
   inferProfileType,
@@ -20,7 +20,7 @@ export default async function Home() {
   const existingUrls = new Set(samples.map((s) => s.url));
   const recentCards: SampleAuditCard[] = recentScans
     .filter((scan) => !existingUrls.has(scan.normalizedUrl))
-    .slice(0, 6)
+    .slice(0, MAX_RECENT_SCANS)
     .map((scan) => ({
       id: scan.reportId,
       title: scan.title,

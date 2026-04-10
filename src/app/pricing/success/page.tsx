@@ -151,8 +151,8 @@ export default async function PricingSuccessPage({
           </CardHeader>
           <CardContent className="space-y-3 pt-0">
             <Button asChild className="w-full">
-              <Link href="/app">
-                Open workspace
+              <Link href="/">
+                Home
                 <ArrowRight className="size-4" />
               </Link>
             </Button>

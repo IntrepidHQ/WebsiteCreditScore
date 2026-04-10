@@ -6,7 +6,7 @@ import { createSupabaseOAuthRouteClient } from "@/lib/supabase/route-client";
 
 export const GET = async (request: Request) => {
   const url = new URL(request.url);
-  const next = sanitizeInternalNextPath(url.searchParams.get("next"), "/app");
+  const next = sanitizeInternalNextPath(url.searchParams.get("next"));
 
   if (!hasSupabaseEnv()) {
     return NextResponse.redirect(new URL("/app/login?error=supabase-not-configured", url));

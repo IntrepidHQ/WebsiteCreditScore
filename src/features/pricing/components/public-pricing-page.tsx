@@ -123,7 +123,7 @@ export function PublicPricingPage({
             {BILLING_PLANS.map((plan) => {
               const isFree = plan.id === "free";
               const isSelected = selectedPlanId === plan.id;
-              const ctaHref = workspaceName ? "/app" : startHref;
+              const ctaHref = workspaceName ? "/" : startHref;
 
               return (
                 <Card
@@ -171,7 +171,7 @@ export function PublicPricingPage({
                     {isFree ? (
                       <Button asChild className="w-full" size="lg" variant="secondary">
                         <Link href={ctaHref}>
-                          {workspaceName ? "Open workspace" : "Start free"}
+                          {workspaceName ? "Home" : "Start free"}
                           <ArrowRight className="size-4" />
                         </Link>
                       </Button>

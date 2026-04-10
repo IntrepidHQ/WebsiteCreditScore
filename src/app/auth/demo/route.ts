@@ -11,7 +11,7 @@ export const GET = async (request: Request) => {
     return NextResponse.redirect(new URL("/app/login", url));
   }
 
-  const next = sanitizeInternalNextPath(url.searchParams.get("next"), "/app");
+  const next = sanitizeInternalNextPath(url.searchParams.get("next"));
   const response = NextResponse.redirect(new URL(next, url));
 
   response.cookies.set(DEMO_SESSION_COOKIE, "owner", {

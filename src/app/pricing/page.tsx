@@ -22,7 +22,7 @@ export default async function PricingPage() {
   const checkoutSigninHref = hasSupabaseEnv()
     ? "/app/login?next=/pricing"
     : "/auth/demo?next=/pricing";
-  const startHref = hasSupabaseEnv() ? "/app/login?next=/app" : "/auth/demo?next=/app";
+  const startHref = hasSupabaseEnv() ? "/app/login?next=/" : "/auth/demo?next=/";
 
   return (
     <PublicPricingPage

@@ -20,7 +20,7 @@ export default function PricingCancelPage() {
                 <Link href="/pricing">Return to pricing</Link>
               </Button>
               <Button asChild variant="secondary">
-                <Link href="/app">Open workspace</Link>
+                <Link href="/">Home</Link>
               </Button>
             </div>
           </CardContent>
