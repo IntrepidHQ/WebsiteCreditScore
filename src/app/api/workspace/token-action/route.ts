@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 
 import type { TokenActionId } from "@/lib/billing/catalog";
+import { MAX_ENTITLEMENT_ERROR } from "@/lib/billing/max-access";
 import { getOptionalWorkspaceSession } from "@/lib/auth/session";
 import { getProductRepository } from "@/lib/product/repository";
 
@@ -52,6 +53,16 @@ export async function POST(request: Request) {
           redirectTo: "/pricing",
         },
         { status: 402 },
+      );
+    }
+
+    if (error instanceof Error && error.message === MAX_ENTITLEMENT_ERROR) {
+      return NextResponse.json(
+        {
+          error: "MAX upgrade required to use this action.",
+          redirectTo: "/pricing",
+        },
+        { status: 403 },
       );
     }
 

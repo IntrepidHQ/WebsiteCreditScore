@@ -12,7 +12,16 @@ import { cn } from "@/lib/utils/cn";
 
 type ChatTurn = { role: "user" | "assistant"; content: string };
 
-export function AgentChatPanel() {
+export type AgentChatReportContext = {
+  title: string;
+  normalizedUrl: string;
+  overallScore: number;
+  executiveSummary: string;
+  categoryScores: Array<{ key: string; label: string; score: number }>;
+  findings: Array<{ title: string; severity: string }>;
+};
+
+export function AgentChatPanel({ reportContext }: { reportContext?: AgentChatReportContext | null }) {
   const titleId = useId();
   const listRef = useRef<HTMLDivElement>(null);
   const [messages, setMessages] = useState<ChatTurn[]>([]);
@@ -39,6 +48,7 @@ export function AgentChatPanel() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           messages: nextMessages.map((m) => ({ role: m.role, content: m.content })),
+          reportContext: reportContext ?? undefined,
         }),
       });
       const data = (await res.json()) as { message?: string; error?: string };
@@ -59,7 +69,7 @@ export function AgentChatPanel() {
         listRef.current?.scrollTo({ top: listRef.current.scrollHeight, behavior: "smooth" });
       });
     }
-  }, [input, messages, pending]);
+  }, [input, messages, pending, reportContext]);
 
   const handleKeyDown = useCallback(
     (e: KeyboardEvent<HTMLInputElement>) => {
@@ -74,7 +84,7 @@ export function AgentChatPanel() {
   return (
     <section aria-labelledby={titleId} className="space-y-4">
       <SectionHeading
-        description="Ask about audits, proposals, or how to talk through scores with clients. Requires ANTHROPIC_API_KEY on the server."
+        description="Grounded in your latest saved audit when shown below. Ask for coding-agent prompts, benchmark interpretation, or client talk-tracks. Requires ANTHROPIC_API_KEY on the server."
         eyebrow="Assistant"
         title="Workspace agent"
       />
@@ -95,7 +105,9 @@ export function AgentChatPanel() {
           >
             {messages.length === 0 ? (
               <p className="text-sm text-muted">
-                Start a thread — e.g. “How should I explain the projected score to a skeptical client?”
+                {reportContext
+                  ? `Context loaded for ${reportContext.title}. Try: “Draft a Lovable-ready prompt that closes the top three findings.”`
+                  : "Start a thread — e.g. “How should I explain the projected score to a skeptical client?”"}
               </p>
             ) : null}
             {messages.map((m, i) => (

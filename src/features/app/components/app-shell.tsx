@@ -70,6 +70,9 @@ export function AppShell({ children }: { children: React.ReactNode }) {
             <Link className="hover:text-accent" href="/app">
               Dashboard
             </Link>
+            <Link className="hover:text-accent" href="/app/dataroom">
+              Dataroom
+            </Link>
             <Link className="hover:text-accent" href="/app/benchmarks">
               Benchmarks
             </Link>

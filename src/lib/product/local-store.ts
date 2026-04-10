@@ -4,6 +4,7 @@ import { randomUUID } from "node:crypto";
 
 import type { AgencyBranding, ThemeTokens } from "@/lib/types/audit";
 import type { BillingAddOnId, BillingPlanId, TokenActionId } from "@/lib/billing/catalog";
+import { assertWorkspaceAllowsMaxPrompt } from "@/lib/billing/max-access";
 import { getTokenActionCost } from "@/lib/billing/catalog";
 import { buildAuditReportById, buildAuditReportFromUrl, buildLiveAuditReportFromUrl } from "@/lib/mock/report-builder";
 import { sampleAudits } from "@/lib/mock/sample-audits";
@@ -930,6 +931,10 @@ export async function consumeLocalWorkspaceTokens(
 
     if (isUnlimitedWorkspace()) {
       return workspace;
+    }
+
+    if (input.actionId === "max-prompt") {
+      assertWorkspaceAllowsMaxPrompt(workspace);
     }
 
     const tokenCost = getTokenActionCost(input.actionId);
