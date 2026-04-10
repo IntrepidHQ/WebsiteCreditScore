@@ -1,10 +1,5 @@
-import Link from "next/link";
-import { ArrowUpRight } from "lucide-react";
-
-import { LeadOverviewCard } from "@/features/app/components/lead-overview-card";
+import { LeadsKanbanBoard } from "@/features/app/components/leads-kanban-board";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { LeadStageBadge } from "@/features/app/components/lead-stage-badge";
 import { getWorkspaceDashboardContext } from "@/lib/product/context";
 
 export default async function LeadsPage() {
@@ -15,34 +10,22 @@ export default async function LeadsPage() {
       <CardHeader>
         <p className="text-xs uppercase tracking-[0.24em] text-muted">Lead pipeline</p>
         <CardTitle className="mt-2 text-[clamp(3.8rem,3.1rem+1vw,5rem)] leading-[0.92]">
-          All saved opportunities
+          Manage leads
         </CardTitle>
+        <p className="mt-2 max-w-2xl text-sm leading-relaxed text-muted">
+          Drag-free Kanban: move deals through contacted, agreement, and payment phases using the stage
+          control on each card. Open a lead for the full audit and reminders.
+        </p>
       </CardHeader>
-      <CardContent className="grid gap-3">
-        {dashboard.leads.map((lead) => (
-          <LeadOverviewCard
-            actions={
-              <>
-                <LeadStageBadge stage={lead.stage} />
-                <Button asChild aria-label={`Open ${lead.title}`} size="icon" variant="outline">
-                  <Link href={`/app/leads/${lead.id}`}>
-                    <ArrowUpRight className="size-4" />
-                  </Link>
-                </Button>
-              </>
-            }
-            currentScore={lead.currentScore}
-            fallbackImage={lead.previewImage ?? "/previews/fallback-desktop.svg"}
-            previewAlt={`${lead.title} preview`}
-            previewImage={lead.previewImage ?? "/previews/fallback-desktop.svg"}
-            projectedScore={lead.projectedScore}
-            scoreLabel="Current score"
-            scoreValueClassName="text-[2rem] sm:text-[2.15rem]"
-            summary={lead.summary}
-            title={lead.title}
-            key={lead.id}
-          />
-        ))}
+      <CardContent>
+        {dashboard.leads.length === 0 ? (
+          <p className="rounded-xl border border-dashed border-border/60 bg-panel/30 px-4 py-10 text-center text-sm text-muted">
+            No leads yet. Save an audit from a report or scan a URL from the dashboard to populate this
+            board.
+          </p>
+        ) : (
+          <LeadsKanbanBoard leads={dashboard.leads} />
+        )}
       </CardContent>
     </Card>
   );

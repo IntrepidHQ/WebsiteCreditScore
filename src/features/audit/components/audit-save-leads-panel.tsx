@@ -119,6 +119,13 @@ export function AuditSaveLeadsPanel({
               >
                 Open lead
               </Link>
+              {" · "}
+              <Link
+                className="font-semibold text-accent underline-offset-4 hover:underline"
+                href="/app/leads"
+              >
+                View pipeline
+              </Link>
             </p>
           ) : (
             <p className="text-sm text-muted">

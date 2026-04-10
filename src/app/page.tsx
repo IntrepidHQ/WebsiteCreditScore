@@ -13,13 +13,28 @@ import type { SampleAuditCard } from "@/lib/types/audit";
 export const dynamic = "force-dynamic";
 
 export default async function Home() {
-  const samples = getPublicScanHistoryCards();
+  const catalogSamples = getPublicScanHistoryCards();
 
-  // Merge in real recent scans from the cache
+  // Hero + benchmark breakdown must use catalog IDs `buildAuditReportById` can resolve (sample audits).
+  const featuredAudit =
+    catalogSamples.find((sample) => sample.id === "saunders-woodworks") ?? catalogSamples[0];
+  const featuredReport = featuredAudit ? buildAuditReportById(featuredAudit.id) : null;
+
+  // Merge in real recent scans from the cache (dedupe by normalized URL vs catalog).
   const recentScans = await getRecentScans();
-  const existingUrls = new Set(samples.map((s) => s.url));
+  const catalogUrlKeys = new Set(
+    catalogSamples.map((s) => normalizeUrl(s.url, { stripWww: true })),
+  );
+  const seenRecentKeys = new Set<string>();
   const recentCards: SampleAuditCard[] = recentScans
-    .filter((scan) => !existingUrls.has(scan.normalizedUrl))
+    .filter((scan) => {
+      const key = normalizeUrl(scan.normalizedUrl, { stripWww: true });
+      if (catalogUrlKeys.has(key) || seenRecentKeys.has(key)) {
+        return false;
+      }
+      seenRecentKeys.add(key);
+      return true;
+    })
     .slice(0, MAX_RECENT_SCANS)
     .map((scan) => ({
       id: scan.reportId,
@@ -33,10 +48,7 @@ export default async function Home() {
       score: scan.score,
       scannedAt: scan.scannedAt,
     }));
-  const allSamples = [...recentCards, ...samples];
-
-  const featuredAudit = allSamples.find((sample) => sample.id === "saunders-woodworks") ?? allSamples[0];
-  const featuredReport = featuredAudit ? buildAuditReportById(featuredAudit.id) : null;
+  const allSamples = [...recentCards, ...catalogSamples];
 
   if (!featuredAudit || !featuredReport) {
     return null;

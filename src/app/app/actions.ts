@@ -5,6 +5,7 @@ import { redirect } from "next/navigation";
 
 import { getWorkspaceAppContext } from "@/lib/product/context";
 import type { AgencyBranding, ThemeTokens } from "@/lib/types/audit";
+import { isLeadStage } from "@/lib/product/lead-kanban";
 import type { LeadStage } from "@/lib/types/product";
 
 /**
@@ -32,6 +33,36 @@ export const submitWorkspaceScanFromDashboardAction = async (formData: FormData)
     throw error;
   }
 };
+
+/**
+ * Update pipeline stage from the Kanban board without a full-page redirect.
+ */
+export async function updateLeadStageInline(
+  leadId: string,
+  stage: string,
+): Promise<{ ok: true } | { ok: false; error: string }> {
+  if (!leadId.trim()) {
+    return { ok: false, error: "Missing lead." };
+  }
+  if (!isLeadStage(stage)) {
+    return { ok: false, error: "Invalid stage." };
+  }
+
+  try {
+    const { repository, session, workspace } = await getWorkspaceAppContext();
+    const updated = await repository.updateLeadStage(workspace.id, leadId, stage, session);
+    if (!updated) {
+      return { ok: false, error: "Lead not found." };
+    }
+    revalidatePath("/app");
+    revalidatePath("/app/leads");
+    revalidatePath(`/app/leads/${leadId}`);
+    return { ok: true };
+  } catch (error) {
+    const message = error instanceof Error ? error.message : "Could not update stage.";
+    return { ok: false, error: message };
+  }
+}
 
 export async function updateLeadStageAction(formData: FormData) {
   const leadId = String(formData.get("leadId") ?? "");
