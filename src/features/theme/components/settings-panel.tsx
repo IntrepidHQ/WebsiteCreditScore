@@ -3,7 +3,8 @@
 import { useCallback, useEffect, useId, useRef, useState } from "react";
 import { Download, RefreshCcw, Shuffle, Sparkles, Upload, Check, AlertCircle, Cloud } from "lucide-react";
 
-import { saveWorkspaceThemeAction, THEME_SAVE_NO_SESSION } from "@/app/app/actions";
+import { saveWorkspaceThemeAction } from "@/app/app/actions";
+import { THEME_SAVE_NO_SESSION } from "@/lib/theme/workspace-theme-save";
 
 import { SectionHeading } from "@/components/common/section-heading";
 import { Badge } from "@/components/ui/badge";

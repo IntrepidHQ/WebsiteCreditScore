@@ -8,6 +8,7 @@ import { getWorkspaceAppContext } from "@/lib/product/context";
 import { getProductRepository } from "@/lib/product/repository";
 import type { AgencyBranding, ThemeTokens } from "@/lib/types/audit";
 import { isLeadStage } from "@/lib/product/lead-kanban";
+import { THEME_SAVE_NO_SESSION } from "@/lib/theme/workspace-theme-save";
 import type { LeadStage } from "@/lib/types/product";
 
 /**
@@ -137,8 +138,6 @@ export async function saveTemplateAction(formData: FormData) {
   revalidatePath("/app/templates");
   redirect("/app/templates?saved=1");
 }
-
-export const THEME_SAVE_NO_SESSION = "THEME_SAVE_NO_SESSION";
 
 /**
  * Persists theme + branding to the signed-in workspace when a session exists.
