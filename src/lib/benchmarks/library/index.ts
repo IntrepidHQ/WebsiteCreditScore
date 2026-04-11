@@ -5,6 +5,7 @@ import type {
   BenchmarkTier,
   BenchmarkVertical,
   ReportProfileType,
+  ThemeFontStackId,
 } from "@/lib/types/audit";
 
 import { benchmarkRubrics } from "./benchmark-rubrics";
@@ -111,61 +112,195 @@ export function getDesignPatternNotesForProfile(profile: ReportProfileType) {
   return getBenchmarkDesignNotes(getBenchmarkVerticalForProfile(profile));
 }
 
-export function getAllThemePresetSeeds() {
+type ThemePresetSeedOptions = {
+  accentColor: string;
+  fontScale: number;
+  radius: number;
+  shadowIntensity: number;
+  spacingDensity: number;
+  fontDisplay?: ThemeFontStackId;
+  fontBody?: ThemeFontStackId;
+};
+
+export function getAllThemePresetSeeds(): Array<{
+  id: string;
+  name: string;
+  mode: "dark" | "light";
+  accentFamily: string;
+  mood: string;
+  recommendedUseCase: string;
+  options: ThemePresetSeedOptions;
+}> {
   return [
     {
       id: "signal-dark",
       name: "Signal Dark",
-      mode: "dark" as const,
+      mode: "dark",
       accentFamily: "WebsiteCreditScore amber",
       mood: "Confident, warm, and premium.",
       recommendedUseCase: "Default audit and packet workspace.",
-      options: { accentColor: "#f7b21b", fontScale: 1.02, radius: 10, shadowIntensity: 0.88, spacingDensity: 0.98 },
+      options: {
+        accentColor: "#f7b21b",
+        fontScale: 1.02,
+        radius: 10,
+        shadowIntensity: 0.88,
+        spacingDensity: 0.98,
+        fontDisplay: "instrument-serif",
+        fontBody: "manrope",
+      },
     },
     {
       id: "blueprint-dark",
       name: "Blueprint Dark",
-      mode: "dark" as const,
+      mode: "dark",
       accentFamily: "Blueprint blue",
       mood: "Sharper, more technical, and calm.",
       recommendedUseCase: "Benchmark analysis and technical review flows.",
-      options: { accentColor: "#7da8ff", fontScale: 1.01, radius: 9, shadowIntensity: 0.8, spacingDensity: 0.96 },
+      options: {
+        accentColor: "#7da8ff",
+        fontScale: 1.01,
+        radius: 9,
+        shadowIntensity: 0.8,
+        spacingDensity: 0.96,
+        fontDisplay: "space-grotesk",
+        fontBody: "manrope",
+      },
     },
     {
       id: "atelier-dark",
       name: "Atelier Dark",
-      mode: "dark" as const,
+      mode: "dark",
       accentFamily: "Verdant mint",
       mood: "Editorial, composed, and studio-like.",
       recommendedUseCase: "Presentation-heavy reviews and benchmark storytelling.",
-      options: { accentColor: "#7adbb3", fontScale: 1.04, radius: 11, shadowIntensity: 0.82, spacingDensity: 1.02 },
+      options: {
+        accentColor: "#7adbb3",
+        fontScale: 1.04,
+        radius: 11,
+        shadowIntensity: 0.82,
+        spacingDensity: 1.02,
+        fontDisplay: "instrument-serif",
+        fontBody: "manrope",
+      },
     },
     {
       id: "ledger-light",
       name: "Ledger Light",
-      mode: "light" as const,
+      mode: "light",
       accentFamily: "Ledger gold",
       mood: "Clean, bright, and proposal-friendly.",
       recommendedUseCase: "Client packet previews and lighter presentation modes.",
-      options: { accentColor: "#c58512", fontScale: 1.01, radius: 10, shadowIntensity: 0.72, spacingDensity: 0.98 },
+      options: {
+        accentColor: "#c58512",
+        fontScale: 1.01,
+        radius: 10,
+        shadowIntensity: 0.72,
+        spacingDensity: 0.98,
+        fontDisplay: "instrument-serif",
+        fontBody: "system-sans",
+      },
     },
     {
       id: "clinic-light",
       name: "Clinic Light",
-      mode: "light" as const,
+      mode: "light",
       accentFamily: "Clinic blue",
       mood: "Calm, precise, and trustworthy.",
       recommendedUseCase: "Dental and healthcare proposal reviews.",
-      options: { accentColor: "#4f7ff0", fontScale: 1.02, radius: 10, shadowIntensity: 0.68, spacingDensity: 1 },
+      options: {
+        accentColor: "#4f7ff0",
+        fontScale: 1.02,
+        radius: 10,
+        shadowIntensity: 0.68,
+        spacingDensity: 1,
+        fontDisplay: "instrument-serif",
+        fontBody: "manrope",
+      },
     },
     {
       id: "workshop-light",
       name: "Workshop Light",
-      mode: "light" as const,
+      mode: "light",
       accentFamily: "Workshop sage",
       mood: "Practical, grounded, and refined.",
       recommendedUseCase: "Service-business audits and internal benchmark reviews.",
-      options: { accentColor: "#1f9b74", fontScale: 1, radius: 9, shadowIntensity: 0.65, spacingDensity: 0.96 },
+      options: {
+        accentColor: "#1f9b74",
+        fontScale: 1,
+        radius: 9,
+        shadowIntensity: 0.65,
+        spacingDensity: 0.96,
+        fontDisplay: "space-grotesk",
+        fontBody: "manrope",
+      },
+    },
+    {
+      id: "tide-dark",
+      name: "Tide Dark",
+      mode: "dark",
+      accentFamily: "Cyan signal",
+      mood: "Crisp, modern, and high-contrast.",
+      recommendedUseCase: "Productized audits and SaaS-style scorecards.",
+      options: {
+        accentColor: "#22d3ee",
+        fontScale: 1,
+        radius: 10,
+        shadowIntensity: 0.84,
+        spacingDensity: 1,
+        fontDisplay: "space-grotesk",
+        fontBody: "manrope",
+      },
+    },
+    {
+      id: "noir-dark",
+      name: "Noir Dark",
+      mode: "dark",
+      accentFamily: "Violet ink",
+      mood: "Cinematic, luxe, and slightly playful.",
+      recommendedUseCase: "Creative proposals and premium positioning decks.",
+      options: {
+        accentColor: "#c4b5fd",
+        fontScale: 1.03,
+        radius: 12,
+        shadowIntensity: 0.9,
+        spacingDensity: 1.02,
+        fontDisplay: "instrument-serif",
+        fontBody: "system-sans",
+      },
+    },
+    {
+      id: "folio-light",
+      name: "Folio Light",
+      mode: "light",
+      accentFamily: "Indigo ribbon",
+      mood: "Bright, structured, and confident.",
+      recommendedUseCase: "Agency pitch packets and multi-page audits.",
+      options: {
+        accentColor: "#4f46e5",
+        fontScale: 1.02,
+        radius: 11,
+        shadowIntensity: 0.7,
+        spacingDensity: 1,
+        fontDisplay: "space-grotesk",
+        fontBody: "manrope",
+      },
+    },
+    {
+      id: "editorial-light",
+      name: "Editorial Light",
+      mode: "light",
+      accentFamily: "Rose editorial",
+      mood: "Warm paper, magazine-like pacing.",
+      recommendedUseCase: "Story-led reviews and narrative-heavy packets.",
+      options: {
+        accentColor: "#e11d48",
+        fontScale: 1.05,
+        radius: 12,
+        shadowIntensity: 0.66,
+        spacingDensity: 1.04,
+        fontDisplay: "instrument-serif",
+        fontBody: "system-serif",
+      },
     },
   ];
 }

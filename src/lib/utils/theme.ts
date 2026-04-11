@@ -1,11 +1,88 @@
 import type {
   AgencyBranding,
   ThemeFontProfile,
+  ThemeFontStackId,
   ThemeMode,
   ThemePreset,
   ThemeTokens,
 } from "@/lib/types/audit";
 import { getAllThemePresetSeeds } from "@/lib/benchmarks/library";
+
+type ThemeTokensInput = Partial<ThemeTokens> & { fontProfile?: ThemeFontProfile };
+
+const THEME_FONT_STACK_IDS: ThemeFontStackId[] = [
+  "instrument-serif",
+  "space-grotesk",
+  "manrope",
+  "system-serif",
+  "system-sans",
+];
+
+export const THEME_FONT_STACK_OPTIONS: Array<{
+  id: ThemeFontStackId;
+  label: string;
+  helper: string;
+}> = [
+  {
+    id: "instrument-serif",
+    label: "Instrument Serif",
+    helper: "Premium editorial display (loaded via Next font)",
+  },
+  {
+    id: "space-grotesk",
+    label: "Space Grotesk",
+    helper: "Geometric sans for headlines or UI",
+  },
+  {
+    id: "manrope",
+    label: "Manrope",
+    helper: "Rounded UI sans (loaded via Next font)",
+  },
+  {
+    id: "system-serif",
+    label: "System serif",
+    helper: "Georgia / Times — no webfont download",
+  },
+  {
+    id: "system-sans",
+    label: "System sans",
+    helper: "Native UI stack — fastest, neutral",
+  },
+];
+
+export function isThemeFontStackId(value: unknown): value is ThemeFontStackId {
+  return typeof value === "string" && (THEME_FONT_STACK_IDS as string[]).includes(value);
+}
+
+function resolveThemeFontStacks(input?: ThemeTokensInput): {
+  fontDisplay: ThemeFontStackId;
+  fontBody: ThemeFontStackId;
+} {
+  const display = isThemeFontStackId(input?.fontDisplay) ? input.fontDisplay : null;
+  const body = isThemeFontStackId(input?.fontBody) ? input.fontBody : null;
+  if (display && body) {
+    return { fontDisplay: display, fontBody: body };
+  }
+  if (display && !body) {
+    return { fontDisplay: display, fontBody: "manrope" };
+  }
+  if (!display && body) {
+    return { fontDisplay: "instrument-serif", fontBody: body };
+  }
+
+  const legacy = input?.fontProfile;
+  if (legacy === "precision") {
+    return { fontDisplay: "space-grotesk", fontBody: "manrope" };
+  }
+  if (legacy === "terminal") {
+    return { fontDisplay: "space-grotesk", fontBody: "space-grotesk" };
+  }
+  if (legacy === "instrument") {
+    return { fontDisplay: "instrument-serif", fontBody: "manrope" };
+  }
+
+  return { fontDisplay: "instrument-serif", fontBody: "manrope" };
+}
 
 function clamp(value: number, min: number, max: number) {
   return Math.min(max, Math.max(min, value));
@@ -156,23 +233,18 @@ export function rotateHexHue(hex: string, degrees: number) {
   }
 }
 
-export function getThemeFontStacks(profile: ThemeFontProfile) {
-  switch (profile) {
-    case "precision":
-      return {
-        display: `var(--font-space-grotesk), "Space Grotesk", ui-sans-serif, sans-serif`,
-        sans: `var(--font-manrope), "Manrope", ui-sans-serif, sans-serif`,
-      };
-    case "terminal":
-      return {
-        display: `var(--font-space-grotesk), "Space Grotesk", ui-sans-serif, sans-serif`,
-        sans: `var(--font-space-grotesk), "Space Grotesk", ui-sans-serif, sans-serif`,
-      };
+export function getThemeFontStack(stack: ThemeFontStackId): string {
+  switch (stack) {
+    case "space-grotesk":
+      return `var(--font-space-grotesk), "Space Grotesk", ui-sans-serif, sans-serif`;
+    case "manrope":
+      return `var(--font-manrope), "Manrope", ui-sans-serif, system-ui, sans-serif`;
+    case "system-serif":
+      return `ui-serif, Georgia, "Times New Roman", serif`;
+    case "system-sans":
+      return `ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif`;
     default:
-      return {
-        display: `var(--font-instrument-serif), "Instrument Serif", Georgia, "Times New Roman", serif`,
-        sans: `var(--font-manrope), "Manrope", ui-sans-serif, system-ui, sans-serif`,
-      };
+      return `var(--font-instrument-serif), "Instrument Serif", Georgia, "Times New Roman", serif`;
   }
 }
 
@@ -261,19 +333,20 @@ export const defaultBranding: AgencyBranding = {
   accentOverride: "",
 };
 
-export function createThemeTokens(options?: Partial<ThemeTokens>) {
+export function createThemeTokens(options?: ThemeTokensInput) {
   const mode = options?.mode ?? "dark";
   /** Canonical accent from the picker / presets (hue shift is applied on top for surfaces). */
   const userAccent = options?.accentColor ?? "#f7b21b";
   const hueShift = clamp(options?.accentHueShift ?? 0, -24, 24);
   const shiftedAccent = rotateHexHue(userAccent, hueShift);
-  const fontProfile: ThemeFontProfile = options?.fontProfile ?? "instrument";
+  const { fontDisplay, fontBody } = resolveThemeFontStacks(options);
 
   const tokens: ThemeTokens = {
     mode,
     accentColor: userAccent,
     accentHueShift: hueShift,
-    fontProfile,
+    fontDisplay,
+    fontBody,
     fontScale: clamp(options?.fontScale ?? 1, 0.9, 1.15),
     lineHeightScale: clamp(options?.lineHeightScale ?? 1, 0.9, 1.15),
     glowIntensity: clamp(options?.glowIntensity ?? 1, 0.55, 1.45),
@@ -297,10 +370,16 @@ export function createRandomTheme(mode: ThemeMode) {
   ];
   const accentColor =
     curatedAccents[Math.floor(Math.random() * curatedAccents.length)];
+  const fontDisplay =
+    THEME_FONT_STACK_IDS[Math.floor(Math.random() * THEME_FONT_STACK_IDS.length)]!;
+  const fontBody =
+    THEME_FONT_STACK_IDS[Math.floor(Math.random() * THEME_FONT_STACK_IDS.length)]!;
 
   return createThemeTokens({
     mode,
     accentColor,
+    fontDisplay,
+    fontBody,
     fontScale: clamp(0.94 + Math.random() * 0.16, 0.92, 1.12),
     lineHeightScale: clamp(0.94 + Math.random() * 0.18, 0.92, 1.12),
     glowIntensity: clamp(0.75 + Math.random() * 0.55, 0.65, 1.35),
@@ -321,6 +400,8 @@ export function getThemePresets(): ThemePreset[] {
     tokens: createThemeTokens({
       mode: preset.mode,
       accentColor: preset.options.accentColor,
+      fontDisplay: preset.options.fontDisplay,
+      fontBody: preset.options.fontBody,
       fontScale: preset.options.fontScale,
       lineHeightScale: 1,
       glowIntensity: 1,
@@ -332,11 +413,12 @@ export function getThemePresets(): ThemePreset[] {
 }
 
 export function getThemeCssVariables(tokens: ThemeTokens) {
-  const fonts = getThemeFontStacks(tokens.fontProfile ?? "instrument");
+  const displayStack = getThemeFontStack(tokens.fontDisplay);
+  const bodyStack = getThemeFontStack(tokens.fontBody);
 
   return {
-    "--theme-font-display-stack": fonts.display,
-    "--theme-font-sans-stack": fonts.sans,
+    "--theme-font-display-stack": displayStack,
+    "--theme-font-sans-stack": bodyStack,
     "--theme-background": tokens.surfaces.background,
     "--theme-background-alt": tokens.surfaces.backgroundAlt,
     "--theme-panel": tokens.surfaces.panel,
@@ -383,7 +465,11 @@ export function parseThemeImportPayload(raw: string): {
 } | null {
   try {
     const data = JSON.parse(raw) as {
-      tokens?: Partial<ThemeTokens> & { mode?: ThemeMode; accentColor?: string };
+      tokens?: Partial<ThemeTokens> & {
+        mode?: ThemeMode;
+        accentColor?: string;
+        fontProfile?: ThemeFontProfile;
+      };
       branding?: Partial<AgencyBranding>;
     };
 
@@ -408,20 +494,29 @@ export function parseThemeImportPayload(raw: string): {
         ? data.tokens.accentColor.trim()
         : "#f7b21b");
 
-    const fontProfile =
+    const legacyProfile: ThemeFontProfile | undefined =
       data.tokens.fontProfile === "precision" || data.tokens.fontProfile === "terminal"
         ? data.tokens.fontProfile
-        : "instrument";
+        : data.tokens.fontProfile === "instrument"
+          ? "instrument"
+          : undefined;
     const accentHueShift =
       typeof data.tokens.accentHueShift === "number" && Number.isFinite(data.tokens.accentHueShift)
         ? clamp(data.tokens.accentHueShift, -24, 24)
         : 0;
 
+    const fontDisplay = isThemeFontStackId(data.tokens.fontDisplay)
+      ? data.tokens.fontDisplay
+      : undefined;
+    const fontBody = isThemeFontStackId(data.tokens.fontBody) ? data.tokens.fontBody : undefined;
+
     const tokens = createThemeTokens({
       mode: data.tokens.mode ?? "dark",
       accentColor,
       accentHueShift,
-      fontProfile,
+      fontDisplay,
+      fontBody,
+      fontProfile: legacyProfile,
       fontScale: data.tokens.fontScale,
       lineHeightScale: data.tokens.lineHeightScale,
       glowIntensity: data.tokens.glowIntensity,

@@ -40,6 +40,19 @@ describe("theme generation", () => {
     expect(cssVars["--theme-font-sans-stack"]).toContain("Manrope");
   });
 
+  it("maps display and body font stacks independently", () => {
+    const tokens = createThemeTokens({
+      fontDisplay: "space-grotesk",
+      fontBody: "system-sans",
+    });
+    const cssVars = getThemeCssVariables(tokens);
+
+    expect(tokens.fontDisplay).toBe("space-grotesk");
+    expect(tokens.fontBody).toBe("system-sans");
+    expect(cssVars["--theme-font-display-stack"]).toContain("Space Grotesk");
+    expect(cssVars["--theme-font-sans-stack"]).toContain("ui-sans-serif");
+  });
+
   it("applies accent hue shift only to derived surfaces, not the stored brand hex", () => {
     const base = createThemeTokens({ accentColor: "#f7b21b", accentHueShift: 0 });
     const shifted = createThemeTokens({ accentColor: "#f7b21b", accentHueShift: 12 });
@@ -56,15 +69,15 @@ describe("theme generation", () => {
     expect(tokens.radius).toBeLessThanOrEqual(18);
   });
 
-  it("exposes six named presets with three dark and three light options", () => {
+  it("exposes named presets with balanced dark and light options", () => {
     const presets = getThemePresets();
     const dark = presets.filter((preset) => preset.mode === "dark");
     const light = presets.filter((preset) => preset.mode === "light");
 
-    expect(presets).toHaveLength(6);
-    expect(dark).toHaveLength(3);
-    expect(light).toHaveLength(3);
-    expect(new Set(presets.map((preset) => preset.id)).size).toBe(6);
+    expect(presets).toHaveLength(10);
+    expect(dark).toHaveLength(5);
+    expect(light).toHaveLength(5);
+    expect(new Set(presets.map((preset) => preset.id)).size).toBe(10);
     expect(
       presets.every(
         (preset) =>

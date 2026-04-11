@@ -16,9 +16,17 @@ import { Switch } from "@/components/ui/switch";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { WebsiteCreditScoreLogo } from "@/components/common/website-credit-score-logo";
 import { cn } from "@/lib/utils/cn";
-import type { ThemeFontProfile } from "@/lib/types/audit";
-import { getContrastChecks, getThemePresets, rotateHexHue } from "@/lib/utils/theme";
+import {
+  getContrastChecks,
+  getThemePresets,
+  isThemeFontStackId,
+  rotateHexHue,
+  THEME_FONT_STACK_OPTIONS,
+} from "@/lib/utils/theme";
 import { useThemeStore } from "@/store/theme-store";
+
+const FONT_SELECT_CLASSES =
+  "h-10 w-full max-w-md rounded-[calc(var(--theme-radius)-2px)] border border-border/70 bg-panel/70 px-3 text-sm text-foreground shadow-sm transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/40 focus-visible:ring-offset-2 focus-visible:ring-offset-background";
 
 const ACCENT_SWATCHES = [
   "#f7b21b",
@@ -41,16 +49,6 @@ const normalizeHex = (value: string) => {
 };
 
 const isValidHex = (value: string) => /^#([0-9a-fA-F]{3}|[0-9a-fA-F]{6})$/.test(value.trim());
-
-const FONT_PROFILE_OPTIONS: Array<{
-  id: ThemeFontProfile;
-  label: string;
-  description: string;
-}> = [
-  { id: "instrument", label: "Editorial", description: "Serif display + Manrope UI" },
-  { id: "precision", label: "Product", description: "Space Grotesk display + Manrope" },
-  { id: "terminal", label: "Systems", description: "Space Grotesk throughout" },
-];
 
 function SettingRow({
   titleId,
@@ -104,9 +102,13 @@ export function SettingsPanel() {
   const glowIntensityLabelId = useId();
   const motionLabelId = useId();
   const accentHueLabelId = useId();
-  const fontProfileLabelId = useId();
+  const headerFontLabelId = useId();
+  const bodyFontLabelId = useId();
   const layoutDensityLabelId = useId();
   const presetsGroupId = useId();
+  const presetSelectId = useId();
+  const headerFontSelectId = useId();
+  const bodyFontSelectId = useId();
   const importInputId = useId();
 
   const tokens = useThemeStore((state) => state.tokens);
@@ -123,11 +125,13 @@ export function SettingsPanel() {
   const setSpacingDensity = useThemeStore((state) => state.setSpacingDensity);
   const setLineHeightScale = useThemeStore((state) => state.setLineHeightScale);
   const setGlowIntensity = useThemeStore((state) => state.setGlowIntensity);
-  const setFontProfile = useThemeStore((state) => state.setFontProfile);
+  const setFontDisplay = useThemeStore((state) => state.setFontDisplay);
+  const setFontBody = useThemeStore((state) => state.setFontBody);
   const setAccentHueShift = useThemeStore((state) => state.setAccentHueShift);
   const applyLayoutDensity = useThemeStore((state) => state.applyLayoutDensity);
   const setMotionPreference = useThemeStore((state) => state.setMotionPreference);
   const applyPreset = useThemeStore((state) => state.applyPreset);
+  const clearPresetSelection = useThemeStore((state) => state.clearPresetSelection);
   const updateBranding = useThemeStore((state) => state.updateBranding);
   const randomizeTheme = useThemeStore((state) => state.randomizeTheme);
   const restoreDefaults = useThemeStore((state) => state.restoreDefaults);
@@ -316,56 +320,97 @@ export function SettingsPanel() {
 
                 <TabsContent className="space-y-4" value="appearance">
                   <div className="rounded-[calc(var(--theme-radius))] border border-border/70 bg-panel/40 p-4">
-                    <p className="text-sm font-semibold text-foreground" id={presetsGroupId}>
-                      Presets
-                    </p>
-                    <p className="mt-1 text-xs text-muted">
-                      Starting points — tweak tabs to the right for fine control.
-                    </p>
-                    <div
-                      aria-labelledby={presetsGroupId}
-                      className="mt-4 grid gap-2.5 sm:grid-cols-2 lg:grid-cols-3"
-                      role="radiogroup"
-                    >
-                      {presets.map((preset) => {
-                        const selected = presetId === preset.id;
-                        return (
-                          <button
-                            aria-checked={selected}
-                            className={cn(
-                              "rounded-[10px] border p-3.5 text-left transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/50 focus-visible:ring-offset-2 focus-visible:ring-offset-background",
-                              selected
-                                ? "border-accent/50 bg-accent/10 shadow-sm"
-                                : "border-border/70 bg-panel/50 hover:border-accent/25 hover:bg-panel/70",
-                            )}
-                            key={preset.id}
-                            onClick={() => applyPreset(preset.id)}
-                            role="radio"
-                            type="button"
-                          >
-                            <div className="flex items-start justify-between gap-3">
-                              <div className="min-w-0 flex-1">
-                                <p className="text-sm font-semibold leading-tight text-foreground sm:text-[0.95rem]">
-                                  {preset.name}
-                                </p>
-                                <p className="mt-1 text-[10px] font-medium uppercase leading-snug tracking-[0.06em] text-muted">
-                                  {preset.mode} · {preset.accentFamily}
-                                </p>
-                              </div>
-                              <span
-                                aria-hidden="true"
-                                className="mt-0.5 h-9 w-1.5 shrink-0 rounded-full border border-border/50"
-                                style={{ backgroundColor: preset.tokens.surfaces.accent }}
-                              />
-                            </div>
-                            <p className="mt-2 line-clamp-2 text-xs leading-snug text-muted">{preset.mood}</p>
-                            <p className="mt-2 line-clamp-2 text-[10px] font-medium uppercase leading-snug tracking-[0.05em] text-muted">
-                              {preset.recommendedUseCase}
-                            </p>
-                          </button>
-                        );
-                      })}
+                    <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
+                      <div className="min-w-0 flex-1">
+                        <p className="text-sm font-semibold text-foreground" id={presetsGroupId}>
+                          Color preset
+                        </p>
+                        <p className="mt-1 text-xs text-muted">
+                          Applies palette, surfaces, and bundled typography. Changes apply site-wide immediately.
+                        </p>
+                      </div>
+                      {presetId ? (
+                        <span className="shrink-0 rounded-full border border-accent/30 bg-accent/10 px-2.5 py-1 text-[11px] font-medium uppercase tracking-wide text-foreground">
+                          Preset active
+                        </span>
+                      ) : (
+                        <span className="shrink-0 rounded-full border border-border/70 bg-panel/60 px-2.5 py-1 text-[11px] font-medium uppercase tracking-wide text-muted">
+                          Custom
+                        </span>
+                      )}
                     </div>
+                    <label className="mt-4 grid gap-2" htmlFor={presetSelectId}>
+                      <span className="sr-only">Choose a color preset</span>
+                      <select
+                        aria-labelledby={presetsGroupId}
+                        className={FONT_SELECT_CLASSES}
+                        id={presetSelectId}
+                        onChange={(event) => {
+                          const value = event.target.value;
+                          if (value === "custom") {
+                            clearPresetSelection();
+                            return;
+                          }
+                          applyPreset(value);
+                        }}
+                        value={presetId ?? "custom"}
+                      >
+                        <option value="custom">Custom (manual tweaks)</option>
+                        {presets.map((preset) => (
+                          <option key={preset.id} value={preset.id}>
+                            {preset.name} · {preset.mode}
+                          </option>
+                        ))}
+                      </select>
+                    </label>
+                    <details className="mt-4 rounded-[calc(var(--theme-radius)-2px)] border border-border/60 bg-panel/30 p-3">
+                      <summary className="cursor-pointer text-xs font-semibold text-foreground">
+                        Browse all presets
+                      </summary>
+                      <div
+                        aria-label="Preset cards"
+                        className="mt-3 grid gap-2.5 sm:grid-cols-2 lg:grid-cols-3"
+                        role="group"
+                      >
+                        {presets.map((preset) => {
+                          const selected = presetId === preset.id;
+                          return (
+                            <button
+                              aria-pressed={selected}
+                              className={cn(
+                                "rounded-[10px] border p-3.5 text-left transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/50 focus-visible:ring-offset-2 focus-visible:ring-offset-background",
+                                selected
+                                  ? "border-accent/50 bg-accent/10 shadow-sm"
+                                  : "border-border/70 bg-panel/50 hover:border-accent/25 hover:bg-panel/70",
+                              )}
+                              key={preset.id}
+                              onClick={() => applyPreset(preset.id)}
+                              type="button"
+                            >
+                              <div className="flex items-start justify-between gap-3">
+                                <div className="min-w-0 flex-1">
+                                  <p className="text-sm font-semibold leading-tight text-foreground sm:text-[0.95rem]">
+                                    {preset.name}
+                                  </p>
+                                  <p className="mt-1 text-[10px] font-medium uppercase leading-snug tracking-[0.06em] text-muted">
+                                    {preset.mode} · {preset.accentFamily}
+                                  </p>
+                                </div>
+                                <span
+                                  aria-hidden="true"
+                                  className="mt-0.5 h-9 w-1.5 shrink-0 rounded-full border border-border/50"
+                                  style={{ backgroundColor: preset.tokens.surfaces.accent }}
+                                />
+                              </div>
+                              <p className="mt-2 line-clamp-2 text-xs leading-snug text-muted">{preset.mood}</p>
+                              <p className="mt-2 line-clamp-2 text-[10px] font-medium uppercase leading-snug tracking-[0.05em] text-muted">
+                                {preset.recommendedUseCase}
+                              </p>
+                            </button>
+                          );
+                        })}
+                      </div>
+                    </details>
                   </div>
 
                   <SettingRow
@@ -500,35 +545,68 @@ export function SettingsPanel() {
 
                 <TabsContent className="space-y-4" value="typography">
                   <SettingRow
-                    titleId={fontProfileLabelId}
-                    label="Type pairing"
-                    description="Display vs UI sans stacks used across the workspace and packet preview. Instrument keeps a premium editorial feel; Product and Systems lean crisper."
+                    titleId={headerFontLabelId}
+                    label="Header font (display)"
+                    description="Used for large headlines and `.font-display` across the marketing shell, workspace, and packet preview. Instrument Serif is the default editorial look."
                   >
-                    <div
-                      aria-labelledby={fontProfileLabelId}
-                      className="grid gap-2 sm:grid-cols-3"
-                      role="group"
-                    >
-                      {FONT_PROFILE_OPTIONS.map((option) => {
-                        const active = tokens.fontProfile === option.id;
-                        return (
-                          <button
-                            aria-pressed={active}
-                            className={cn(
-                              "rounded-[calc(var(--theme-radius))] border px-3 py-3 text-left text-sm transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/45 focus-visible:ring-offset-2 focus-visible:ring-offset-background",
-                              active
-                                ? "border-accent/45 bg-accent/10 text-foreground"
-                                : "border-border/70 bg-panel/50 text-muted hover:border-accent/25 hover:text-foreground",
-                            )}
-                            key={option.id}
-                            onClick={() => setFontProfile(option.id)}
-                            type="button"
-                          >
-                            <p className="font-semibold text-foreground">{option.label}</p>
-                            <p className="mt-1 text-xs leading-snug text-muted">{option.description}</p>
-                          </button>
-                        );
-                      })}
+                    <div className="grid gap-2">
+                      <label className="sr-only" htmlFor={headerFontSelectId}>
+                        Header font
+                      </label>
+                      <select
+                        aria-labelledby={headerFontLabelId}
+                        className={FONT_SELECT_CLASSES}
+                        id={headerFontSelectId}
+                        onChange={(event) => {
+                          const value = event.target.value;
+                          if (isThemeFontStackId(value)) {
+                            setFontDisplay(value);
+                          }
+                        }}
+                        value={tokens.fontDisplay}
+                      >
+                        {THEME_FONT_STACK_OPTIONS.map((option) => (
+                          <option key={option.id} value={option.id}>
+                            {option.label}
+                          </option>
+                        ))}
+                      </select>
+                      <p className="text-xs text-muted">
+                        {THEME_FONT_STACK_OPTIONS.find((item) => item.id === tokens.fontDisplay)?.helper}
+                      </p>
+                    </div>
+                  </SettingRow>
+
+                  <SettingRow
+                    titleId={bodyFontLabelId}
+                    label="Body font (UI)"
+                    description="Paragraphs, buttons, and dense UI. Manrope matches the default product chrome; switch to system stacks for zero webfont shift."
+                  >
+                    <div className="grid gap-2">
+                      <label className="sr-only" htmlFor={bodyFontSelectId}>
+                        Body font
+                      </label>
+                      <select
+                        aria-labelledby={bodyFontLabelId}
+                        className={FONT_SELECT_CLASSES}
+                        id={bodyFontSelectId}
+                        onChange={(event) => {
+                          const value = event.target.value;
+                          if (isThemeFontStackId(value)) {
+                            setFontBody(value);
+                          }
+                        }}
+                        value={tokens.fontBody}
+                      >
+                        {THEME_FONT_STACK_OPTIONS.map((option) => (
+                          <option key={option.id} value={option.id}>
+                            {option.label}
+                          </option>
+                        ))}
+                      </select>
+                      <p className="text-xs text-muted">
+                        {THEME_FONT_STACK_OPTIONS.find((item) => item.id === tokens.fontBody)?.helper}
+                      </p>
                     </div>
                   </SettingRow>
 
@@ -813,9 +891,9 @@ export function SettingsPanel() {
               </div>
               <CardTitle className="text-3xl">Packet styling</CardTitle>
               <p className="text-sm text-muted">
-                Reflects accent, radius, shadows, and spacing from the{" "}
-                <span className="text-foreground">Look &amp; color</span> and{" "}
-                <span className="text-foreground">Layout</span> tabs.
+                Reflects accent, radius, shadows, spacing, and{" "}
+                <span className="text-foreground">Typography</span> (header + body fonts) from the tabs — updates
+                apply instantly site-wide.
               </p>
             </CardHeader>
             <CardContent className="space-y-4">

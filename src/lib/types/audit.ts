@@ -204,16 +204,26 @@ export interface ThemeSurfaces {
   danger: string;
 }
 
-/** Controls display / UI sans stacks via CSS variables (see `getThemeCssVariables`). */
+/** Legacy preset pairing — migrated in `createThemeTokens` when `fontDisplay` / `fontBody` are absent. */
 export type ThemeFontProfile = "instrument" | "precision" | "terminal";
+
+/** Loaded via Next font CSS variables where available; system stacks need no loader. */
+export type ThemeFontStackId =
+  | "instrument-serif"
+  | "space-grotesk"
+  | "manrope"
+  | "system-serif"
+  | "system-sans";
 
 export interface ThemeTokens {
   mode: ThemeMode;
   accentColor: string;
   /** Degrees to rotate the accent hue before surfaces are rebuilt (−24…24). */
   accentHueShift: number;
-  /** Display vs UI sans pairing (Instrument, Space Grotesk, etc.). */
-  fontProfile: ThemeFontProfile;
+  /** Headlines / `.font-display` — Instrument Serif, Space Grotesk, etc. */
+  fontDisplay: ThemeFontStackId;
+  /** Body and UI sans — Manrope, Space Grotesk, or system stacks. */
+  fontBody: ThemeFontStackId;
   fontScale: number;
   lineHeightScale: number;
   glowIntensity: number;

@@ -3,7 +3,7 @@
 import { create } from "zustand";
 import { createJSONStorage, persist } from "zustand/middleware";
 
-import type { AgencyBranding, ThemeFontProfile, ThemeMode, ThemeTokens } from "@/lib/types/audit";
+import type { AgencyBranding, ThemeFontStackId, ThemeMode, ThemeTokens } from "@/lib/types/audit";
 import { themeScopedStorage } from "@/lib/theme/theme-scoped-storage";
 import {
   createRandomTheme,
@@ -29,13 +29,15 @@ interface ThemeState {
   setRadius: (radius: number) => void;
   setShadowIntensity: (shadowIntensity: number) => void;
   setSpacingDensity: (spacingDensity: number) => void;
-  setFontProfile: (fontProfile: ThemeFontProfile) => void;
+  setFontDisplay: (fontDisplay: ThemeFontStackId) => void;
+  setFontBody: (fontBody: ThemeFontStackId) => void;
   setAccentHueShift: (accentHueShift: number) => void;
   applyLayoutDensity: (density: "compact" | "comfortable" | "spacious") => void;
   setMotionPreference: (preference: MotionPreference) => void;
   setLogoColor: (logoColor: string) => void;
   setLogoScale: (logoScale: number) => void;
   applyPreset: (presetId: string) => void;
+  clearPresetSelection: () => void;
   randomizeTheme: () => void;
   restoreDefaults: () => void;
   updateBranding: (patch: Partial<AgencyBranding>) => void;
@@ -75,12 +77,20 @@ export const useThemeStore = create<ThemeState>()(
             accentHueShift: 0,
           }),
         })),
-      setFontProfile: (fontProfile) =>
+      setFontDisplay: (fontDisplay) =>
         set((state) => ({
           presetId: null,
           tokens: createThemeTokens({
             ...state.tokens,
-            fontProfile,
+            fontDisplay,
+          }),
+        })),
+      setFontBody: (fontBody) =>
+        set((state) => ({
+          presetId: null,
+          tokens: createThemeTokens({
+            ...state.tokens,
+            fontBody,
           }),
         })),
       setAccentHueShift: (accentHueShift) =>
@@ -210,10 +220,10 @@ export const useThemeStore = create<ThemeState>()(
               accentColor:
                 state.branding.accentOverride || preset.tokens.accentColor,
               accentHueShift: 0,
-              fontProfile: state.tokens.fontProfile,
             }),
           };
         }),
+      clearPresetSelection: () => set({ presetId: null }),
       randomizeTheme: () =>
         set((state) => ({
           presetId: null,
