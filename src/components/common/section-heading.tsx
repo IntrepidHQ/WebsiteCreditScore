@@ -6,17 +6,25 @@ export function SectionHeading({
   title,
   description,
   align = "left",
+  className,
+  contentMaxWidthClassName = "max-w-4xl",
 }: {
   eyebrow: string;
   title: string;
   description: string;
   align?: "left" | "center";
+  /** Extra classes on the outer wrapper (e.g. full width on wide settings). */
+  className?: string;
+  /** Override default `max-w-4xl` on the text block for wide layouts. */
+  contentMaxWidthClassName?: string;
 }) {
   return (
     <div
       className={cn(
-        "max-w-4xl space-y-3",
+        contentMaxWidthClassName,
+        "space-y-3",
         align === "center" && "mx-auto text-center",
+        className,
       )}
     >
       <Badge variant="accent" className="w-fit">

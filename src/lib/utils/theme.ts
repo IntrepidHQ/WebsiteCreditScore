@@ -1,5 +1,6 @@
 import type {
   AgencyBranding,
+  ThemeFontProfile,
   ThemeMode,
   ThemePreset,
   ThemeTokens,
@@ -139,6 +140,42 @@ function hslToHex(h: number, s: number, l: number) {
   return `#${toHex(r)}${toHex(g)}${toHex(b)}`;
 }
 
+/** Rotate a hex accent by hue degrees (for fine brand tuning). */
+export function rotateHexHue(hex: string, degrees: number) {
+  if (!degrees) {
+    return hex;
+  }
+
+  try {
+    const { red, green, blue } = hexToRgb(hex);
+    const { h, s, l } = rgbToHsl(red, green, blue);
+    const nextHue = (h + degrees + 360) % 360;
+    return hslToHex(nextHue, s, l);
+  } catch {
+    return hex;
+  }
+}
+
+export function getThemeFontStacks(profile: ThemeFontProfile) {
+  switch (profile) {
+    case "precision":
+      return {
+        display: `var(--font-space-grotesk), "Space Grotesk", ui-sans-serif, sans-serif`,
+        sans: `var(--font-manrope), "Manrope", ui-sans-serif, sans-serif`,
+      };
+    case "terminal":
+      return {
+        display: `var(--font-space-grotesk), "Space Grotesk", ui-sans-serif, sans-serif`,
+        sans: `var(--font-space-grotesk), "Space Grotesk", ui-sans-serif, sans-serif`,
+      };
+    default:
+      return {
+        display: `var(--font-instrument-serif), "Instrument Serif", Georgia, "Times New Roman", serif`,
+        sans: `var(--font-manrope), "Manrope", ui-sans-serif, system-ui, sans-serif`,
+      };
+  }
+}
+
 function buildSurfacePalette(accentHex: string, mode: ThemeMode) {
   const accentRgb = hexToRgb(accentHex);
   const { h } = rgbToHsl(accentRgb.red, accentRgb.green, accentRgb.blue);
@@ -225,19 +262,25 @@ export const defaultBranding: AgencyBranding = {
 };
 
 export function createThemeTokens(options?: Partial<ThemeTokens>) {
-  const accentColor = options?.accentColor ?? "#f7b21b";
   const mode = options?.mode ?? "dark";
+  /** Canonical accent from the picker / presets (hue shift is applied on top for surfaces). */
+  const userAccent = options?.accentColor ?? "#f7b21b";
+  const hueShift = clamp(options?.accentHueShift ?? 0, -24, 24);
+  const shiftedAccent = rotateHexHue(userAccent, hueShift);
+  const fontProfile: ThemeFontProfile = options?.fontProfile ?? "instrument";
 
   const tokens: ThemeTokens = {
     mode,
-    accentColor,
+    accentColor: userAccent,
+    accentHueShift: hueShift,
+    fontProfile,
     fontScale: clamp(options?.fontScale ?? 1, 0.9, 1.15),
     lineHeightScale: clamp(options?.lineHeightScale ?? 1, 0.9, 1.15),
     glowIntensity: clamp(options?.glowIntensity ?? 1, 0.55, 1.45),
     radius: clamp(options?.radius ?? 12, 8, 20),
     shadowIntensity: clamp(options?.shadowIntensity ?? 0.82, 0.3, 1.2),
     spacingDensity: clamp(options?.spacingDensity ?? 1, 0.82, 1.18),
-    surfaces: buildSurfacePalette(accentColor, mode),
+    surfaces: buildSurfacePalette(shiftedAccent, mode),
   };
 
   return ensureAccessibleAccent(tokens);
@@ -289,7 +332,11 @@ export function getThemePresets(): ThemePreset[] {
 }
 
 export function getThemeCssVariables(tokens: ThemeTokens) {
+  const fonts = getThemeFontStacks(tokens.fontProfile ?? "instrument");
+
   return {
+    "--theme-font-display-stack": fonts.display,
+    "--theme-font-sans-stack": fonts.sans,
     "--theme-background": tokens.surfaces.background,
     "--theme-background-alt": tokens.surfaces.backgroundAlt,
     "--theme-panel": tokens.surfaces.panel,
@@ -361,9 +408,20 @@ export function parseThemeImportPayload(raw: string): {
         ? data.tokens.accentColor.trim()
         : "#f7b21b");
 
+    const fontProfile =
+      data.tokens.fontProfile === "precision" || data.tokens.fontProfile === "terminal"
+        ? data.tokens.fontProfile
+        : "instrument";
+    const accentHueShift =
+      typeof data.tokens.accentHueShift === "number" && Number.isFinite(data.tokens.accentHueShift)
+        ? clamp(data.tokens.accentHueShift, -24, 24)
+        : 0;
+
     const tokens = createThemeTokens({
       mode: data.tokens.mode ?? "dark",
       accentColor,
+      accentHueShift,
+      fontProfile,
       fontScale: data.tokens.fontScale,
       lineHeightScale: data.tokens.lineHeightScale,
       glowIntensity: data.tokens.glowIntensity,

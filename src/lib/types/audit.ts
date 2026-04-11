@@ -204,9 +204,16 @@ export interface ThemeSurfaces {
   danger: string;
 }
 
+/** Controls display / UI sans stacks via CSS variables (see `getThemeCssVariables`). */
+export type ThemeFontProfile = "instrument" | "precision" | "terminal";
+
 export interface ThemeTokens {
   mode: ThemeMode;
   accentColor: string;
+  /** Degrees to rotate the accent hue before surfaces are rebuilt (−24…24). */
+  accentHueShift: number;
+  /** Display vs UI sans pairing (Instrument, Space Grotesk, etc.). */
+  fontProfile: ThemeFontProfile;
   fontScale: number;
   lineHeightScale: number;
   glowIntensity: number;

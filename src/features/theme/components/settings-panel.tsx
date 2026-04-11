@@ -15,10 +15,8 @@ import { Switch } from "@/components/ui/switch";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { WebsiteCreditScoreLogo } from "@/components/common/website-credit-score-logo";
 import { cn } from "@/lib/utils/cn";
-import {
-  getContrastChecks,
-  getThemePresets,
-} from "@/lib/utils/theme";
+import type { ThemeFontProfile } from "@/lib/types/audit";
+import { getContrastChecks, getThemePresets, rotateHexHue } from "@/lib/utils/theme";
 import { useThemeStore } from "@/store/theme-store";
 
 const ACCENT_SWATCHES = [
@@ -42,6 +40,16 @@ const normalizeHex = (value: string) => {
 };
 
 const isValidHex = (value: string) => /^#([0-9a-fA-F]{3}|[0-9a-fA-F]{6})$/.test(value.trim());
+
+const FONT_PROFILE_OPTIONS: Array<{
+  id: ThemeFontProfile;
+  label: string;
+  description: string;
+}> = [
+  { id: "instrument", label: "Editorial", description: "Serif display + Manrope UI" },
+  { id: "precision", label: "Product", description: "Space Grotesk display + Manrope" },
+  { id: "terminal", label: "Systems", description: "Space Grotesk throughout" },
+];
 
 function SettingRow({
   titleId,
@@ -94,6 +102,9 @@ export function SettingsPanel() {
   const lineHeightLabelId = useId();
   const glowIntensityLabelId = useId();
   const motionLabelId = useId();
+  const accentHueLabelId = useId();
+  const fontProfileLabelId = useId();
+  const layoutDensityLabelId = useId();
   const presetsGroupId = useId();
   const importInputId = useId();
 
@@ -111,6 +122,9 @@ export function SettingsPanel() {
   const setSpacingDensity = useThemeStore((state) => state.setSpacingDensity);
   const setLineHeightScale = useThemeStore((state) => state.setLineHeightScale);
   const setGlowIntensity = useThemeStore((state) => state.setGlowIntensity);
+  const setFontProfile = useThemeStore((state) => state.setFontProfile);
+  const setAccentHueShift = useThemeStore((state) => state.setAccentHueShift);
+  const applyLayoutDensity = useThemeStore((state) => state.applyLayoutDensity);
   const setMotionPreference = useThemeStore((state) => state.setMotionPreference);
   const applyPreset = useThemeStore((state) => state.applyPreset);
   const updateBranding = useThemeStore((state) => state.updateBranding);
@@ -210,9 +224,10 @@ export function SettingsPanel() {
 
   return (
     <section className="space-y-8" id="settings-panel">
-      <div className="grid gap-8 xl:grid-cols-[minmax(0,1fr)_24rem]">
+      <div className="grid gap-8 xl:grid-cols-[minmax(0,1fr)_minmax(18rem,24rem)] 2xl:grid-cols-[minmax(0,1fr)_26rem]">
         <div className="space-y-8">
           <SectionHeading
+            contentMaxWidthClassName="w-full max-w-[min(100%,88rem)]"
             eyebrow="Studio settings"
             title="Theme & proposal identity"
             description="Presets, typography, layout density, and agency fields stay in sync with your workspace when signed in — or locally on this device on the public theme page."
@@ -308,7 +323,7 @@ export function SettingsPanel() {
                     </p>
                     <div
                       aria-labelledby={presetsGroupId}
-                      className="mt-4 grid gap-3 sm:grid-cols-2 xl:grid-cols-3"
+                      className="mt-4 grid gap-2.5 sm:grid-cols-2 lg:grid-cols-3"
                       role="radiogroup"
                     >
                       {presets.map((preset) => {
@@ -317,7 +332,7 @@ export function SettingsPanel() {
                           <button
                             aria-checked={selected}
                             className={cn(
-                              "rounded-[10px] border p-4 text-left transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/50 focus-visible:ring-offset-2 focus-visible:ring-offset-background",
+                              "rounded-[10px] border p-3.5 text-left transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/50 focus-visible:ring-offset-2 focus-visible:ring-offset-background",
                               selected
                                 ? "border-accent/50 bg-accent/10 shadow-sm"
                                 : "border-border/70 bg-panel/50 hover:border-accent/25 hover:bg-panel/70",
@@ -327,21 +342,23 @@ export function SettingsPanel() {
                             role="radio"
                             type="button"
                           >
-                            <div className="flex items-center justify-between gap-3">
-                              <div>
-                                <p className="font-semibold text-foreground">{preset.name}</p>
-                                <p className="mt-1 text-xs uppercase tracking-[0.18em] text-muted">
+                            <div className="flex items-start justify-between gap-3">
+                              <div className="min-w-0 flex-1">
+                                <p className="text-sm font-semibold leading-tight text-foreground sm:text-[0.95rem]">
+                                  {preset.name}
+                                </p>
+                                <p className="mt-1 text-[10px] font-medium uppercase leading-snug tracking-[0.06em] text-muted">
                                   {preset.mode} · {preset.accentFamily}
                                 </p>
                               </div>
                               <span
                                 aria-hidden="true"
-                                className="size-5 shrink-0 rounded-full border border-border/60"
+                                className="mt-0.5 h-9 w-1.5 shrink-0 rounded-full border border-border/50"
                                 style={{ backgroundColor: preset.tokens.surfaces.accent }}
                               />
                             </div>
-                            <p className="mt-3 text-sm leading-6 text-muted">{preset.mood}</p>
-                            <p className="mt-2 text-xs uppercase tracking-[0.18em] text-muted">
+                            <p className="mt-2 line-clamp-2 text-xs leading-snug text-muted">{preset.mood}</p>
+                            <p className="mt-2 line-clamp-2 text-[10px] font-medium uppercase leading-snug tracking-[0.05em] text-muted">
                               {preset.recommendedUseCase}
                             </p>
                           </button>
@@ -447,9 +464,73 @@ export function SettingsPanel() {
                       </div>
                     </div>
                   </SettingRow>
+
+                  <SettingRow
+                    titleId={accentHueLabelId}
+                    label="Accent hue shift"
+                    description="Nudge the generated surfaces (background wash, panels, glow) without changing your saved brand hex. Picking a new swatch or hex resets this to 0°."
+                  >
+                    <div className="flex flex-wrap items-center gap-4">
+                      <Slider
+                        aria-labelledby={accentHueLabelId}
+                        className="max-w-md flex-1"
+                        max={24}
+                        min={-24}
+                        onValueChange={(value) => setAccentHueShift(value[0] ?? 0)}
+                        step={1}
+                        value={[tokens.accentHueShift]}
+                      />
+                      <div className="flex items-center gap-2 text-sm text-muted">
+                        <span
+                          aria-hidden="true"
+                          className="size-8 rounded-full border border-border/60"
+                          style={{
+                            backgroundColor: rotateHexHue(tokens.accentColor, tokens.accentHueShift),
+                          }}
+                        />
+                        <span className="font-mono text-xs text-foreground">
+                          {tokens.accentHueShift > 0 ? "+" : ""}
+                          {tokens.accentHueShift}°
+                        </span>
+                      </div>
+                    </div>
+                  </SettingRow>
                 </TabsContent>
 
                 <TabsContent className="space-y-4" value="typography">
+                  <SettingRow
+                    titleId={fontProfileLabelId}
+                    label="Type pairing"
+                    description="Display vs UI sans stacks used across the workspace and packet preview. Instrument keeps a premium editorial feel; Product and Systems lean crisper."
+                  >
+                    <div
+                      aria-labelledby={fontProfileLabelId}
+                      className="grid gap-2 sm:grid-cols-3"
+                      role="group"
+                    >
+                      {FONT_PROFILE_OPTIONS.map((option) => {
+                        const active = tokens.fontProfile === option.id;
+                        return (
+                          <button
+                            aria-pressed={active}
+                            className={cn(
+                              "rounded-[calc(var(--theme-radius))] border px-3 py-3 text-left text-sm transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/45 focus-visible:ring-offset-2 focus-visible:ring-offset-background",
+                              active
+                                ? "border-accent/45 bg-accent/10 text-foreground"
+                                : "border-border/70 bg-panel/50 text-muted hover:border-accent/25 hover:text-foreground",
+                            )}
+                            key={option.id}
+                            onClick={() => setFontProfile(option.id)}
+                            type="button"
+                          >
+                            <p className="font-semibold text-foreground">{option.label}</p>
+                            <p className="mt-1 text-xs leading-snug text-muted">{option.description}</p>
+                          </button>
+                        );
+                      })}
+                    </div>
+                  </SettingRow>
+
                   <SettingRow
                     titleId={fontScaleLabelId}
                     label="Font scale"
@@ -507,14 +588,44 @@ export function SettingsPanel() {
 
                 <TabsContent className="space-y-4" value="layout">
                   <SettingRow
+                    titleId={layoutDensityLabelId}
+                    label="Layout presets"
+                    description="One-click bundles for type size, line height, spacing, radius, and shadow. You can still fine-tune each slider below."
+                  >
+                    <div
+                      aria-labelledby={layoutDensityLabelId}
+                      className="flex flex-wrap gap-2"
+                      role="group"
+                    >
+                      {(
+                        [
+                          { id: "compact" as const, label: "Compact" },
+                          { id: "comfortable" as const, label: "Comfortable" },
+                          { id: "spacious" as const, label: "Spacious" },
+                        ] as const
+                      ).map((item) => (
+                        <Button
+                          key={item.id}
+                          onClick={() => applyLayoutDensity(item.id)}
+                          size="sm"
+                          type="button"
+                          variant="secondary"
+                        >
+                          {item.label}
+                        </Button>
+                      ))}
+                    </div>
+                  </SettingRow>
+
+                  <SettingRow
                     titleId={radiusLabelId}
                     label="Border radius"
                     description="From sharp editorial cards to softer product surfaces."
                   >
                     <Slider
                       aria-labelledby={radiusLabelId}
-                      max={16}
-                      min={6}
+                      max={20}
+                      min={8}
                       onValueChange={(value) => setRadius(value[0] ?? 12)}
                       step={1}
                       value={[tokens.radius]}

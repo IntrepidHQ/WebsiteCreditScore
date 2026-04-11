@@ -3,7 +3,7 @@
 import { create } from "zustand";
 import { createJSONStorage, persist } from "zustand/middleware";
 
-import type { AgencyBranding, ThemeMode, ThemeTokens } from "@/lib/types/audit";
+import type { AgencyBranding, ThemeFontProfile, ThemeMode, ThemeTokens } from "@/lib/types/audit";
 import { themeScopedStorage } from "@/lib/theme/theme-scoped-storage";
 import {
   createRandomTheme,
@@ -29,6 +29,9 @@ interface ThemeState {
   setRadius: (radius: number) => void;
   setShadowIntensity: (shadowIntensity: number) => void;
   setSpacingDensity: (spacingDensity: number) => void;
+  setFontProfile: (fontProfile: ThemeFontProfile) => void;
+  setAccentHueShift: (accentHueShift: number) => void;
+  applyLayoutDensity: (density: "compact" | "comfortable" | "spacious") => void;
   setMotionPreference: (preference: MotionPreference) => void;
   setLogoColor: (logoColor: string) => void;
   setLogoScale: (logoScale: number) => void;
@@ -69,8 +72,69 @@ export const useThemeStore = create<ThemeState>()(
           tokens: createThemeTokens({
             ...state.tokens,
             accentColor,
+            accentHueShift: 0,
           }),
         })),
+      setFontProfile: (fontProfile) =>
+        set((state) => ({
+          presetId: null,
+          tokens: createThemeTokens({
+            ...state.tokens,
+            fontProfile,
+          }),
+        })),
+      setAccentHueShift: (accentHueShift) =>
+        set((state) => ({
+          presetId: null,
+          tokens: createThemeTokens({
+            ...state.tokens,
+            accentHueShift,
+          }),
+        })),
+      applyLayoutDensity: (density) =>
+        set((state) => {
+          const base = {
+            ...state.tokens,
+            accentColor: state.branding.accentOverride || state.tokens.accentColor,
+          };
+          if (density === "compact") {
+            return {
+              presetId: null,
+              tokens: createThemeTokens({
+                ...base,
+                fontScale: 0.94,
+                lineHeightScale: 0.96,
+                spacingDensity: 0.9,
+                radius: 9,
+                shadowIntensity: 0.72,
+              }),
+            };
+          }
+          if (density === "spacious") {
+            return {
+              presetId: null,
+              tokens: createThemeTokens({
+                ...base,
+                fontScale: 1.06,
+                lineHeightScale: 1.06,
+                spacingDensity: 1.08,
+                radius: 14,
+                shadowIntensity: 0.92,
+              }),
+            };
+          }
+          return {
+            presetId: null,
+            tokens: createThemeTokens({
+              ...base,
+              fontScale: 1,
+              lineHeightScale: 1,
+              spacingDensity: 1,
+              radius: 12,
+              shadowIntensity: 0.82,
+            }),
+          };
+        }),
       setFontScale: (fontScale) =>
         set((state) => ({
           presetId: null,
@@ -145,6 +209,8 @@ export const useThemeStore = create<ThemeState>()(
               ...preset.tokens,
               accentColor:
                 state.branding.accentOverride || preset.tokens.accentColor,
+              accentHueShift: 0,
+              fontProfile: state.tokens.fontProfile,
             }),
           };
         }),

@@ -14,7 +14,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
     <main className="flex min-h-screen flex-col bg-background" id="main-content">
       <header className="fixed inset-x-0 top-0 z-[100] print:hidden">
         <div className="border-b border-border/60 bg-background/92 shadow-sm backdrop-blur-xl supports-[backdrop-filter]:bg-background/84">
-          <div className="mx-auto flex w-full max-w-7xl flex-col gap-3 px-4 py-3 sm:px-6 lg:px-8">
+          <div className="mx-auto flex w-full max-w-[min(100%,96rem)] flex-col gap-3 px-4 py-3 sm:px-6 lg:px-8">
             <div className="flex flex-wrap items-center justify-between gap-3">
               <Link
                 aria-label="WebsiteCreditScore.com — Dashboard"
@@ -53,11 +53,11 @@ export function AppShell({ children }: { children: React.ReactNode }) {
         aria-hidden
         className="h-[7.5rem] shrink-0 sm:h-[8.25rem] md:h-[8.75rem] print:hidden"
       />
-      <div className="mx-auto flex w-full max-w-7xl flex-1 flex-col gap-8 px-4 pb-8 pt-2 sm:px-6 lg:px-8">
+      <div className="mx-auto flex w-full max-w-[min(100%,96rem)] flex-1 flex-col gap-8 px-4 pb-8 pt-2 sm:px-6 lg:px-8">
         {children}
       </div>
       <footer className="border-t border-border/60 bg-background/84 print:hidden">
-        <div className="mx-auto flex w-full max-w-7xl flex-col gap-6 px-4 py-8 sm:px-6 lg:flex-row lg:items-center lg:justify-between lg:px-8">
+        <div className="mx-auto flex w-full max-w-[min(100%,96rem)] flex-col gap-6 px-4 py-8 sm:px-6 lg:flex-row lg:items-center lg:justify-between lg:px-8">
           <div className="space-y-2">
             <Link aria-label="WebsiteCreditScore.com — Dashboard" className="inline-flex" href="/app">
               <WebsiteCreditScoreLogo compact />

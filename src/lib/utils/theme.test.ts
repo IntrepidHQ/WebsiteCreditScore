@@ -36,6 +36,16 @@ describe("theme generation", () => {
 
     expect(cssVars["--theme-accent"]).toBe(tokens.surfaces.accent);
     expect(cssVars["--theme-radius"]).toBe(`${tokens.radius}px`);
+    expect(cssVars["--theme-font-display-stack"]).toContain("Instrument");
+    expect(cssVars["--theme-font-sans-stack"]).toContain("Manrope");
+  });
+
+  it("applies accent hue shift only to derived surfaces, not the stored brand hex", () => {
+    const base = createThemeTokens({ accentColor: "#f7b21b", accentHueShift: 0 });
+    const shifted = createThemeTokens({ accentColor: "#f7b21b", accentHueShift: 12 });
+
+    expect(base.accentColor).toBe(shifted.accentColor);
+    expect(shifted.surfaces.background).not.toBe(base.surfaces.background);
   });
 
   it("builds a cohesive random theme in the requested mode", () => {

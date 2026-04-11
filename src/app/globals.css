@@ -24,6 +24,9 @@
   --theme-radius-lg: 14px;
   --theme-shadow: 0 24px 80px rgba(0, 0, 0, 0.24), 0 8px 28px rgba(0, 0, 0, 0.12);
   --theme-spacing-density: 1;
+  --theme-font-display-stack: var(--font-instrument-serif), "Instrument Serif", Georgia,
+    "Times New Roman", serif;
+  --theme-font-sans-stack: var(--font-manrope), "Manrope", ui-sans-serif, system-ui, sans-serif;
 }
 
 @theme inline {
@@ -42,9 +45,9 @@
   --color-success: var(--theme-success);
   --color-warning: var(--theme-warning);
   --color-danger: var(--theme-danger);
-  --font-sans: var(--font-manrope);
-  --font-display: var(--font-instrument-serif);
-  --font-headline: var(--font-instrument-serif);
+  --font-sans: var(--theme-font-sans-stack);
+  --font-display: var(--theme-font-display-stack);
+  --font-headline: var(--theme-font-display-stack);
 }
 
 * {
@@ -57,7 +60,8 @@ html {
 
 .font-display,
 .font-headline {
-  font-family: "Instrument Serif", var(--font-instrument-serif), serif !important;
+  font-family: var(--theme-font-display-stack), "Instrument Serif", var(--font-instrument-serif),
+    serif !important;
   font-weight: 400 !important;
   font-optical-sizing: auto;
   letter-spacing: -0.03em;
@@ -87,7 +91,7 @@ body {
       var(--theme-background-alt) 100%
     );
   color: var(--theme-foreground);
-  font-family: var(--font-manrope), sans-serif;
+  font-family: var(--theme-font-sans-stack), var(--font-manrope), sans-serif;
   font-size: calc(16px * var(--theme-font-scale));
   line-height: calc(1.58 * var(--theme-line-height-scale));
   font-kerning: normal;
