@@ -3,7 +3,9 @@
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 
+import { getOptionalWorkspaceSession } from "@/lib/auth/session";
 import { getWorkspaceAppContext } from "@/lib/product/context";
+import { getProductRepository } from "@/lib/product/repository";
 import type { AgencyBranding, ThemeTokens } from "@/lib/types/audit";
 import { isLeadStage } from "@/lib/product/lead-kanban";
 import type { LeadStage } from "@/lib/types/product";
@@ -136,20 +138,29 @@ export async function saveTemplateAction(formData: FormData) {
   redirect("/app/templates?saved=1");
 }
 
+export const THEME_SAVE_NO_SESSION = "THEME_SAVE_NO_SESSION";
+
 /**
- * Persists the user's theme tokens and agency branding back to the workspace
- * record so the chosen theme is restored when the user signs in on a new
- * device or browser. Non-fatal: silently swallowed when called from an
- * unauthenticated context (e.g. the public /settings page).
+ * Persists theme + branding to the signed-in workspace when a session exists.
+ * Returns `{ ok: false, error: THEME_SAVE_NO_SESSION }` on the public theme page
+ * so the client can skip UI noise; other failures return a message for display.
  */
 export async function saveWorkspaceThemeAction(
   theme: ThemeTokens,
   branding: AgencyBranding,
-): Promise<void> {
+): Promise<{ ok: true } | { ok: false; error: string }> {
+  const session = await getOptionalWorkspaceSession();
+  if (!session) {
+    return { ok: false, error: THEME_SAVE_NO_SESSION };
+  }
+
   try {
-    const { repository, session, workspace } = await getWorkspaceAppContext();
+    const repository = getProductRepository(session);
+    const workspace = await repository.ensureWorkspace(session);
     await repository.saveTheme(workspace.id, session, theme, branding);
-  } catch {
-    // Non-fatal — silently ignore if session is missing or a DB error occurs.
+    return { ok: true };
+  } catch (err) {
+    const message = err instanceof Error ? err.message : "Could not save theme.";
+    return { ok: false, error: message };
   }
 }

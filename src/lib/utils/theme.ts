@@ -326,6 +326,58 @@ export function exportThemePayload(
   return JSON.stringify({ tokens, branding }, null, 2);
 }
 
+/**
+ * Parse exported theme JSON (or a minimal `{ tokens, branding }` object).
+ * Rebuilds surfaces via `createThemeTokens` so partial payloads stay valid.
+ */
+export function parseThemeImportPayload(raw: string): {
+  tokens: ThemeTokens;
+  branding: AgencyBranding;
+} | null {
+  try {
+    const data = JSON.parse(raw) as {
+      tokens?: Partial<ThemeTokens> & { mode?: ThemeMode; accentColor?: string };
+      branding?: Partial<AgencyBranding>;
+    };
+
+    if (!data.tokens || typeof data.tokens !== "object") {
+      return null;
+    }
+
+    const branding: AgencyBranding = {
+      ...defaultBranding,
+      ...data.branding,
+      logoColor: data.branding?.logoColor ?? defaultBranding.logoColor ?? "",
+      logoScale:
+        typeof data.branding?.logoScale === "number"
+          ? data.branding.logoScale
+          : defaultBranding.logoScale,
+    };
+
+    const accentFromBranding = branding.accentOverride?.trim();
+    const accentColor =
+      accentFromBranding ||
+      (typeof data.tokens.accentColor === "string" && data.tokens.accentColor.trim()
+        ? data.tokens.accentColor.trim()
+        : "#f7b21b");
+
+    const tokens = createThemeTokens({
+      mode: data.tokens.mode ?? "dark",
+      accentColor,
+      fontScale: data.tokens.fontScale,
+      lineHeightScale: data.tokens.lineHeightScale,
+      glowIntensity: data.tokens.glowIntensity,
+      radius: data.tokens.radius,
+      shadowIntensity: data.tokens.shadowIntensity,
+      spacingDensity: data.tokens.spacingDensity,
+    });
+
+    return { tokens, branding };
+  } catch {
+    return null;
+  }
+}
+
 export function getContrastChecks(tokens: ThemeTokens) {
   return {
     foregroundOnBackground: contrastRatio(

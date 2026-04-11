@@ -15,6 +15,7 @@ describe("SettingsPanel", () => {
 
     render(<SettingsPanel />);
 
+    await user.click(screen.getByRole("tab", { name: /^Agency$/ }));
     const agencyNameInput = screen.getByLabelText(/agency name/i);
     await user.clear(agencyNameInput);
     await user.type(agencyNameInput, "Studio North");

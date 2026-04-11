@@ -11,6 +11,7 @@ import {
   defaultBranding,
   exportThemePayload,
   getThemePresets,
+  parseThemeImportPayload,
 } from "@/lib/utils/theme";
 
 type MotionPreference = "system" | "reduced";
@@ -36,6 +37,7 @@ interface ThemeState {
   restoreDefaults: () => void;
   updateBranding: (patch: Partial<AgencyBranding>) => void;
   exportThemeJson: () => string;
+  importThemeJson: (raw: string) => boolean;
 }
 
 function clamp(value: number, min: number, max: number) {
@@ -172,6 +174,18 @@ export const useThemeStore = create<ThemeState>()(
           };
         }),
       exportThemeJson: () => exportThemePayload(get().tokens, get().branding),
+      importThemeJson: (raw) => {
+        const parsed = parseThemeImportPayload(raw);
+        if (!parsed) {
+          return false;
+        }
+        set({
+          presetId: null,
+          tokens: parsed.tokens,
+          branding: parsed.branding,
+        });
+        return true;
+      },
     }),
     {
       name: "premium-audit-theme-store",
