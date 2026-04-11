@@ -38,6 +38,8 @@ describe("theme generation", () => {
     expect(cssVars["--theme-radius"]).toBe(`${tokens.radius}px`);
     expect(cssVars["--theme-font-display-stack"]).toContain("Instrument");
     expect(cssVars["--theme-font-sans-stack"]).toContain("Manrope");
+    expect(cssVars["--theme-heading-scale-h1"]).toBe("1");
+    expect(cssVars["--theme-heading-scale-h6"]).toBe("1");
   });
 
   it("maps display and body font stacks independently", () => {

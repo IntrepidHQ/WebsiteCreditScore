@@ -1,6 +1,14 @@
 import { Suspense } from "react";
 import type { Metadata } from "next";
-import { Instrument_Serif, Manrope, Space_Grotesk } from "next/font/google";
+import {
+  DM_Sans,
+  Instrument_Serif,
+  Inter,
+  JetBrains_Mono,
+  Manrope,
+  Playfair_Display,
+  Space_Grotesk,
+} from "next/font/google";
 
 import { ContactModal } from "@/components/common/contact-modal";
 import { RouteScrollReset } from "@/components/common/route-scroll-reset";
@@ -16,18 +24,55 @@ export const dynamic = "force-dynamic";
 const manrope = Manrope({
   variable: "--font-manrope",
   subsets: ["latin"],
+  display: "swap",
 });
 
 const spaceGrotesk = Space_Grotesk({
   variable: "--font-space-grotesk",
   subsets: ["latin"],
+  display: "swap",
 });
 
 const instrumentSerif = Instrument_Serif({
   variable: "--font-instrument-serif",
   subsets: ["latin"],
   weight: "400",
+  display: "swap",
 });
+
+const inter = Inter({
+  variable: "--font-inter",
+  subsets: ["latin"],
+  display: "swap",
+});
+
+const playfairDisplay = Playfair_Display({
+  variable: "--font-playfair-display",
+  subsets: ["latin"],
+  display: "swap",
+});
+
+const dmSans = DM_Sans({
+  variable: "--font-dm-sans",
+  subsets: ["latin"],
+  display: "swap",
+});
+
+const jetbrainsMono = JetBrains_Mono({
+  variable: "--font-jetbrains-mono",
+  subsets: ["latin"],
+  display: "swap",
+});
+
+const fontVariableClassName = [
+  manrope.variable,
+  spaceGrotesk.variable,
+  instrumentSerif.variable,
+  inter.variable,
+  playfairDisplay.variable,
+  dmSans.variable,
+  jetbrainsMono.variable,
+].join(" ");
 
 export const metadata: Metadata = {
   title: "WebsiteCreditScore.com",
@@ -45,10 +90,13 @@ export default async function RootLayout({
   const accountHint = session?.name?.trim() || session?.email?.split("@")[0] || null;
 
   return (
-    <html data-scroll-behavior="smooth" lang="en" suppressHydrationWarning>
-      <body
-        className={`${manrope.variable} ${spaceGrotesk.variable} ${instrumentSerif.variable} min-h-screen overflow-x-clip bg-background text-foreground antialiased`}
-      >
+    <html
+      className={fontVariableClassName}
+      data-scroll-behavior="smooth"
+      lang="en"
+      suppressHydrationWarning
+    >
+      <body className="min-h-screen overflow-x-clip bg-background text-foreground antialiased">
         <ThemeStyleProvider>
           {/* overflow-x must not clip the main column or sticky header will not stick to the viewport */}
           <div className="relative isolate min-h-screen">

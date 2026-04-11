@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect } from "react";
+import { useLayoutEffect } from "react";
 
 import { createThemeTokens, getThemeCssVariables } from "@/lib/utils/theme";
 import { useThemeStore } from "@/store/theme-store";
@@ -12,7 +12,7 @@ export function ThemeStyleProvider({
 }) {
   const tokens = useThemeStore((state) => state.tokens);
 
-  useEffect(() => {
+  useLayoutEffect(() => {
     const normalizedTokens = createThemeTokens(tokens);
     const variables = getThemeCssVariables(normalizedTokens);
 

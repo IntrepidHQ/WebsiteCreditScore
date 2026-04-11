@@ -27,6 +27,12 @@
   --theme-font-display-stack: var(--font-instrument-serif), "Instrument Serif", Georgia,
     "Times New Roman", serif;
   --theme-font-sans-stack: var(--font-manrope), "Manrope", ui-sans-serif, system-ui, sans-serif;
+  --theme-heading-scale-h1: 1;
+  --theme-heading-scale-h2: 1;
+  --theme-heading-scale-h3: 1;
+  --theme-heading-scale-h4: 1;
+  --theme-heading-scale-h5: 1;
+  --theme-heading-scale-h6: 1;
 }
 
 @theme inline {
@@ -60,8 +66,7 @@ html {
 
 .font-display,
 .font-headline {
-  font-family: var(--theme-font-display-stack), "Instrument Serif", var(--font-instrument-serif),
-    serif !important;
+  font-family: var(--theme-font-display-stack) !important;
   font-weight: 400 !important;
   font-optical-sizing: auto;
   letter-spacing: -0.03em;
@@ -74,6 +79,42 @@ li,
 figcaption {
   line-height: 1.7;
   text-wrap: pretty;
+}
+
+@layer base {
+  h1 {
+    font-size: calc(2.55rem * var(--theme-heading-scale-h1) * var(--theme-font-scale));
+    line-height: 1.05;
+    letter-spacing: -0.02em;
+  }
+
+  h2 {
+    font-size: calc(2.05rem * var(--theme-heading-scale-h2) * var(--theme-font-scale));
+    line-height: 1.08;
+    letter-spacing: -0.02em;
+  }
+
+  h3 {
+    font-size: calc(1.65rem * var(--theme-heading-scale-h3) * var(--theme-font-scale));
+    line-height: 1.12;
+    letter-spacing: -0.01em;
+  }
+
+  h4 {
+    font-size: calc(1.35rem * var(--theme-heading-scale-h4) * var(--theme-font-scale));
+    line-height: 1.18;
+  }
+
+  h5 {
+    font-size: calc(1.12rem * var(--theme-heading-scale-h5) * var(--theme-font-scale));
+    line-height: 1.22;
+  }
+
+  h6 {
+    font-size: calc(1rem * var(--theme-heading-scale-h6) * var(--theme-font-scale));
+    line-height: 1.28;
+    letter-spacing: 0.01em;
+  }
 }
 
 body {

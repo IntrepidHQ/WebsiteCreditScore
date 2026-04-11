@@ -22,6 +22,7 @@ import {
   isThemeFontStackId,
   rotateHexHue,
   THEME_FONT_STACK_OPTIONS,
+  THEME_HEADING_LEVELS,
 } from "@/lib/utils/theme";
 import { useThemeStore } from "@/store/theme-store";
 
@@ -104,6 +105,7 @@ export function SettingsPanel() {
   const accentHueLabelId = useId();
   const headerFontLabelId = useId();
   const bodyFontLabelId = useId();
+  const headingScalesLabelId = useId();
   const layoutDensityLabelId = useId();
   const presetsGroupId = useId();
   const presetSelectId = useId();
@@ -127,6 +129,7 @@ export function SettingsPanel() {
   const setGlowIntensity = useThemeStore((state) => state.setGlowIntensity);
   const setFontDisplay = useThemeStore((state) => state.setFontDisplay);
   const setFontBody = useThemeStore((state) => state.setFontBody);
+  const setHeadingScale = useThemeStore((state) => state.setHeadingScale);
   const setAccentHueShift = useThemeStore((state) => state.setAccentHueShift);
   const applyLayoutDensity = useThemeStore((state) => state.applyLayoutDensity);
   const setMotionPreference = useThemeStore((state) => state.setMotionPreference);
@@ -607,6 +610,66 @@ export function SettingsPanel() {
                       <p className="text-xs text-muted">
                         {THEME_FONT_STACK_OPTIONS.find((item) => item.id === tokens.fontBody)?.helper}
                       </p>
+                    </div>
+                  </SettingRow>
+
+                  <SettingRow
+                    titleId={headingScalesLabelId}
+                    label="Heading scale (H1–H6)"
+                    description="Per-level multipliers for semantic HTML headings. Tailwind text-* utilities on the same tag still win when present. Changes apply instantly via theme variables."
+                  >
+                    <div className="grid gap-4">
+                      <div
+                        aria-labelledby={headingScalesLabelId}
+                        className="grid gap-4 sm:grid-cols-2"
+                        role="group"
+                      >
+                        {THEME_HEADING_LEVELS.map((level) => {
+                          const value =
+                            level === 1
+                              ? tokens.headingScaleH1
+                              : level === 2
+                                ? tokens.headingScaleH2
+                                : level === 3
+                                  ? tokens.headingScaleH3
+                                  : level === 4
+                                    ? tokens.headingScaleH4
+                                    : level === 5
+                                      ? tokens.headingScaleH5
+                                      : tokens.headingScaleH6;
+                          const sliderId = `heading-scale-h${level}`;
+                          return (
+                            <div className="grid gap-2" key={level}>
+                              <div className="flex items-center justify-between gap-2">
+                                <label className="text-sm font-semibold text-foreground" htmlFor={sliderId}>
+                                  H{level}
+                                </label>
+                                <span className="font-mono text-xs text-muted">{value.toFixed(2)}×</span>
+                              </div>
+                              <Slider
+                                aria-label={`Scale for heading H${level}`}
+                                id={sliderId}
+                                max={1.45}
+                                min={0.72}
+                                onValueChange={(next) => setHeadingScale(level, next[0] ?? 1)}
+                                step={0.01}
+                                value={[value]}
+                              />
+                            </div>
+                          );
+                        })}
+                      </div>
+                      <div className="rounded-[calc(var(--theme-radius))] border border-border/70 bg-panel/50 p-4">
+                        <p className="text-xs font-semibold text-muted">Live preview</p>
+                        <div className="mt-3 space-y-2 text-foreground">
+                          <h1 className="font-display border-b border-border/40 pb-1">Heading 1 preview</h1>
+                          <h2 className="font-display border-b border-border/40 pb-1">Heading 2 preview</h2>
+                          <h3 className="border-b border-border/40 pb-1">Heading 3 preview</h3>
+                          <h4 className="border-b border-border/40 pb-1">Heading 4 preview</h4>
+                          <h5 className="border-b border-border/40 pb-1">Heading 5 preview</h5>
+                          <h6 className="border-b border-border/40 pb-1">Heading 6 preview</h6>
+                        </div>
+                      </div>
                     </div>
                   </SettingRow>
 

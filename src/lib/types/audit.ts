@@ -212,6 +212,10 @@ export type ThemeFontStackId =
   | "instrument-serif"
   | "space-grotesk"
   | "manrope"
+  | "inter"
+  | "playfair-display"
+  | "dm-sans"
+  | "jetbrains-mono"
   | "system-serif"
   | "system-sans";
 
@@ -224,6 +228,13 @@ export interface ThemeTokens {
   fontDisplay: ThemeFontStackId;
   /** Body and UI sans — Manrope, Space Grotesk, or system stacks. */
   fontBody: ThemeFontStackId;
+  /** Multipliers for semantic `h1`–`h6` (pairs with global base heading sizes). */
+  headingScaleH1: number;
+  headingScaleH2: number;
+  headingScaleH3: number;
+  headingScaleH4: number;
+  headingScaleH5: number;
+  headingScaleH6: number;
   fontScale: number;
   lineHeightScale: number;
   glowIntensity: number;

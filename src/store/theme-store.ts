@@ -4,6 +4,7 @@ import { create } from "zustand";
 import { createJSONStorage, persist } from "zustand/middleware";
 
 import type { AgencyBranding, ThemeFontStackId, ThemeMode, ThemeTokens } from "@/lib/types/audit";
+import type { ThemeHeadingLevel } from "@/lib/utils/theme";
 import { themeScopedStorage } from "@/lib/theme/theme-scoped-storage";
 import {
   createRandomTheme,
@@ -31,6 +32,7 @@ interface ThemeState {
   setSpacingDensity: (spacingDensity: number) => void;
   setFontDisplay: (fontDisplay: ThemeFontStackId) => void;
   setFontBody: (fontBody: ThemeFontStackId) => void;
+  setHeadingScale: (level: ThemeHeadingLevel, scale: number) => void;
   setAccentHueShift: (accentHueShift: number) => void;
   applyLayoutDensity: (density: "compact" | "comfortable" | "spacious") => void;
   setMotionPreference: (preference: MotionPreference) => void;
@@ -93,6 +95,28 @@ export const useThemeStore = create<ThemeState>()(
             fontBody,
           }),
         })),
+      setHeadingScale: (level, scale) =>
+        set((state) => {
+          const base = { ...state.tokens };
+          if (level === 1) {
+            base.headingScaleH1 = scale;
+          } else if (level === 2) {
+            base.headingScaleH2 = scale;
+          } else if (level === 3) {
+            base.headingScaleH3 = scale;
+          } else if (level === 4) {
+            base.headingScaleH4 = scale;
+          } else if (level === 5) {
+            base.headingScaleH5 = scale;
+          } else {
+            base.headingScaleH6 = scale;
+          }
+
+          return {
+            presetId: null,
+            tokens: createThemeTokens(base),
+          };
+        }),
       setAccentHueShift: (accentHueShift) =>
         set((state) => ({
           presetId: null,

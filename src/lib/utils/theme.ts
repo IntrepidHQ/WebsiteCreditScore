@@ -14,6 +14,10 @@ const THEME_FONT_STACK_IDS: ThemeFontStackId[] = [
   "instrument-serif",
   "space-grotesk",
   "manrope",
+  "inter",
+  "playfair-display",
+  "dm-sans",
+  "jetbrains-mono",
   "system-serif",
   "system-sans",
 ];
@@ -26,17 +30,37 @@ export const THEME_FONT_STACK_OPTIONS: Array<{
   {
     id: "instrument-serif",
     label: "Instrument Serif",
-    helper: "Premium editorial display (loaded via Next font)",
+    helper: "Premium editorial display (Google font via Next)",
+  },
+  {
+    id: "playfair-display",
+    label: "Playfair Display",
+    helper: "High-contrast editorial serif (Google font via Next)",
   },
   {
     id: "space-grotesk",
     label: "Space Grotesk",
-    helper: "Geometric sans for headlines or UI",
+    helper: "Geometric sans for headlines or UI (Google font via Next)",
   },
   {
     id: "manrope",
     label: "Manrope",
-    helper: "Rounded UI sans (loaded via Next font)",
+    helper: "Rounded UI sans (Google font via Next)",
+  },
+  {
+    id: "dm-sans",
+    label: "DM Sans",
+    helper: "Friendly geometric sans (Google font via Next)",
+  },
+  {
+    id: "inter",
+    label: "Inter",
+    helper: "Neutral UI sans (Google font via Next)",
+  },
+  {
+    id: "jetbrains-mono",
+    label: "JetBrains Mono",
+    helper: "Technical monospace (Google font via Next)",
   },
   {
     id: "system-serif",
@@ -49,6 +73,10 @@ export const THEME_FONT_STACK_OPTIONS: Array<{
     helper: "Native UI stack — fastest, neutral",
   },
 ];
+
+export type ThemeHeadingLevel = 1 | 2 | 3 | 4 | 5 | 6;
+
+export const THEME_HEADING_LEVELS: ThemeHeadingLevel[] = [1, 2, 3, 4, 5, 6];
 
 export function isThemeFontStackId(value: unknown): value is ThemeFontStackId {
   return typeof value === "string" && (THEME_FONT_STACK_IDS as string[]).includes(value);
@@ -235,10 +263,20 @@ export function rotateHexHue(hex: string, degrees: number) {
 
 export function getThemeFontStack(stack: ThemeFontStackId): string {
   switch (stack) {
+    case "instrument-serif":
+      return `var(--font-instrument-serif), "Instrument Serif", Georgia, "Times New Roman", serif`;
+    case "playfair-display":
+      return `var(--font-playfair-display), "Playfair Display", Georgia, "Times New Roman", serif`;
     case "space-grotesk":
       return `var(--font-space-grotesk), "Space Grotesk", ui-sans-serif, sans-serif`;
     case "manrope":
       return `var(--font-manrope), "Manrope", ui-sans-serif, system-ui, sans-serif`;
+    case "dm-sans":
+      return `var(--font-dm-sans), "DM Sans", ui-sans-serif, system-ui, sans-serif`;
+    case "inter":
+      return `var(--font-inter), "Inter", ui-sans-serif, system-ui, sans-serif`;
+    case "jetbrains-mono":
+      return `var(--font-jetbrains-mono), "JetBrains Mono", ui-monospace, SFMono-Regular, monospace`;
     case "system-serif":
       return `ui-serif, Georgia, "Times New Roman", serif`;
     case "system-sans":
@@ -341,12 +379,20 @@ export function createThemeTokens(options?: ThemeTokensInput) {
   const shiftedAccent = rotateHexHue(userAccent, hueShift);
   const { fontDisplay, fontBody } = resolveThemeFontStacks(options);
 
+  const headingClamp = (value: number | undefined) => clamp(value ?? 1, 0.72, 1.45);
+
   const tokens: ThemeTokens = {
     mode,
     accentColor: userAccent,
     accentHueShift: hueShift,
     fontDisplay,
     fontBody,
+    headingScaleH1: headingClamp(options?.headingScaleH1),
+    headingScaleH2: headingClamp(options?.headingScaleH2),
+    headingScaleH3: headingClamp(options?.headingScaleH3),
+    headingScaleH4: headingClamp(options?.headingScaleH4),
+    headingScaleH5: headingClamp(options?.headingScaleH5),
+    headingScaleH6: headingClamp(options?.headingScaleH6),
     fontScale: clamp(options?.fontScale ?? 1, 0.9, 1.15),
     lineHeightScale: clamp(options?.lineHeightScale ?? 1, 0.9, 1.15),
     glowIntensity: clamp(options?.glowIntensity ?? 1, 0.55, 1.45),
@@ -445,6 +491,12 @@ export function getThemeCssVariables(tokens: ThemeTokens) {
         ? `0 22px 80px rgba(0, 0, 0, ${0.22 * tokens.shadowIntensity}), 0 10px 28px rgba(0, 0, 0, ${0.16 * tokens.shadowIntensity})`
         : `0 24px 64px rgba(16, 23, 35, ${0.14 * tokens.shadowIntensity}), 0 8px 24px rgba(16, 23, 35, ${0.08 * tokens.shadowIntensity})`,
     "--theme-spacing-density": `${tokens.spacingDensity}`,
+    "--theme-heading-scale-h1": `${tokens.headingScaleH1}`,
+    "--theme-heading-scale-h2": `${tokens.headingScaleH2}`,
+    "--theme-heading-scale-h3": `${tokens.headingScaleH3}`,
+    "--theme-heading-scale-h4": `${tokens.headingScaleH4}`,
+    "--theme-heading-scale-h5": `${tokens.headingScaleH5}`,
+    "--theme-heading-scale-h6": `${tokens.headingScaleH6}`,
   };
 }
 
@@ -517,6 +569,12 @@ export function parseThemeImportPayload(raw: string): {
       fontDisplay,
       fontBody,
       fontProfile: legacyProfile,
+      headingScaleH1: data.tokens.headingScaleH1,
+      headingScaleH2: data.tokens.headingScaleH2,
+      headingScaleH3: data.tokens.headingScaleH3,
+      headingScaleH4: data.tokens.headingScaleH4,
+      headingScaleH5: data.tokens.headingScaleH5,
+      headingScaleH6: data.tokens.headingScaleH6,
       fontScale: data.tokens.fontScale,
       lineHeightScale: data.tokens.lineHeightScale,
       glowIntensity: data.tokens.glowIntensity,
