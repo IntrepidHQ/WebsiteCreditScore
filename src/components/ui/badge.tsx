@@ -11,6 +11,8 @@ const badgeVariants = cva(
         neutral: "border-border bg-panel/70 text-muted",
         accent:
           "border-accent/35 bg-[color-mix(in_srgb,var(--theme-accent)_14%,var(--theme-panel))] text-foreground",
+        /** High-contrast pill: ink field + light label (reads well in light mode on pale hero). */
+        inverse: "border-foreground/18 bg-foreground text-background shadow-sm",
         success: "border-success/25 bg-success/10 text-success",
         warning: "border-warning/25 bg-warning/10 text-warning",
         danger: "border-danger/25 bg-danger/10 text-danger",

@@ -237,6 +237,22 @@ body {
   text-rendering: optimizeLegibility;
 }
 
+/* Light mode: keep the top wash airy so hero type and chrome stay comfortably readable. */
+html[data-theme-mode="light"] body {
+  background:
+    radial-gradient(
+      ellipse 100% 70% at 0% -6%,
+      color-mix(in srgb, var(--theme-glow) calc(10% * var(--theme-glow-intensity)), transparent),
+      transparent 56%
+    ),
+    linear-gradient(
+      180deg,
+      var(--theme-background) 0%,
+      color-mix(in srgb, var(--theme-background) 58%, var(--theme-background-alt) 42%) 44%,
+      var(--theme-background-alt) 100%
+    );
+}
+
 @media (prefers-reduced-motion: reduce) {
   html {
     scroll-behavior: auto;

@@ -4,11 +4,11 @@ import { ArrowRight, Clock3, FileText, ScanSearch } from "lucide-react";
 import { PreviewImage } from "@/components/common/preview-image";
 import { ScoreBreakdownBars } from "@/components/common/score-breakdown-bars";
 import { ScoreDial } from "@/components/common/score-dial";
-import { Aurora } from "@/components/ui/aurora";
 import { BlurText } from "@/components/ui/blur-text";
-import { ShinyText } from "@/components/ui/shiny-text";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { LandingHeroBackdrop } from "@/features/landing/components/landing-hero-backdrop";
+import { LandingHeroEyebrowBadge } from "@/features/landing/components/landing-hero-eyebrow-badge";
 import { LandingForm } from "@/features/landing/components/landing-form";
 import type { AuditCategoryScore, SampleAuditCard } from "@/lib/types/audit";
 
@@ -31,36 +31,22 @@ export function LandingHeroSection({
   return (
     <section className="presentation-section pb-8 pt-10 sm:pt-14" id="generate">
       {/* Aurora extends above the section boundary into the header zone, eliminating the gradient seam */}
-      <div className="pointer-events-none absolute inset-x-0 -top-24 -z-10 h-[calc(min(44rem,120vh)+6rem)]">
-        <Aurora
-          colorStops={["#f7b21b", "#071018", "#1a3a6e"]}
-          amplitude={0.35}
-          blend={0.4}
-          speed={0.25}
-          className="opacity-70"
-        />
-        <div
-          aria-hidden
-          className="signal-grid absolute inset-0 opacity-[0.14] [mask-image:linear-gradient(180deg,black_0%,black_48%,transparent_92%)] [-webkit-mask-image:linear-gradient(180deg,black_0%,black_48%,transparent_92%)]"
-        />
-      </div>
+      <LandingHeroBackdrop />
       <div className="mx-auto w-full max-w-[min(100%,96rem)] px-4 sm:px-6 lg:px-8">
         <div className="grid gap-8 xl:grid-cols-[minmax(0,1fr)_minmax(22rem,0.9fr)]">
           <div className="space-y-6">
-            <Badge className="tracking-[0.16em]" variant="accent">
-              <ShinyText text="Website Audits, Reviews, and Redesigns" speed={4} />
-            </Badge>
+            <LandingHeroEyebrowBadge />
             <div className="space-y-4">
               <p className="text-[11px] font-semibold uppercase tracking-[0.3em] text-muted">
                 For business owners who want a site that earns more trust
               </p>
-              <h1 className="max-w-[min(100%,92rem)] font-display text-[clamp(4.3rem,3.4rem+2.2vw,7rem)] leading-[0.9] tracking-[-0.06em] text-foreground">
+              <h1 className="max-w-[min(100%,48rem)] font-display text-[clamp(2.65rem,2.05rem+1.35vw,5.15rem)] leading-[0.92] tracking-[-0.055em] text-foreground">
                 <BlurText
                   text="Turn your website into a stronger case for more business."
                   delay={60}
                   animateBy="words"
                   direction="top"
-                  className="font-display text-[clamp(4.3rem,3.4rem+2.2vw,7rem)] leading-[0.9] tracking-[-0.06em]"
+                  className="font-display text-[clamp(2.65rem,2.05rem+1.35vw,5.15rem)] leading-[0.92] tracking-[-0.055em]"
                 />
               </h1>
               <p className="max-w-3xl text-[1.08rem] leading-8 text-muted sm:text-[1.2rem] sm:leading-9">

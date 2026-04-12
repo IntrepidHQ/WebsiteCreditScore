@@ -834,6 +834,15 @@ export function createThemeTokens(options?: ThemeTokensInput) {
   return ensureAccessibleAccent(tokens);
 }
 
+const RANDOM_SURFACE_FINISHES: ThemeSurfaceFinish[] = ["solid", "glassmorphic"];
+
+const pickRandomHarmony = (): ThemeColorHarmony => {
+  const options = THEME_COLOR_HARMONY_OPTIONS.map((item) => item.id);
+  return options[Math.floor(Math.random() * options.length)]!;
+};
+
+const pickRandomHeadingScale = () => clamp(0.78 + Math.random() * 0.42, 0.72, 1.45);
+
 export function createRandomTheme(mode: ThemeMode) {
   const curatedAccents = [
     "#f7b21b",
@@ -853,8 +862,17 @@ export function createRandomTheme(mode: ThemeMode) {
   return createThemeTokens({
     mode,
     accentColor,
+    colorHarmony: pickRandomHarmony(),
+    surfaceFinish: RANDOM_SURFACE_FINISHES[Math.floor(Math.random() * RANDOM_SURFACE_FINISHES.length)]!,
+    accentHueShift: Math.round(Math.random() * 48 - 24),
     fontDisplay,
     fontBody,
+    headingScaleH1: pickRandomHeadingScale(),
+    headingScaleH2: pickRandomHeadingScale(),
+    headingScaleH3: pickRandomHeadingScale(),
+    headingScaleH4: pickRandomHeadingScale(),
+    headingScaleH5: pickRandomHeadingScale(),
+    headingScaleH6: pickRandomHeadingScale(),
     fontScale: clamp(0.94 + Math.random() * 0.16, 0.92, 1.12),
     lineHeightScale: clamp(0.94 + Math.random() * 0.18, 0.92, 1.12),
     glowIntensity: clamp(0.75 + Math.random() * 0.55, 0.65, 1.35),
