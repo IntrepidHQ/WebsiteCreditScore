@@ -864,6 +864,13 @@ export function createThemeTokens(options?: ThemeTokensInput) {
     ),
     spacingDensity: clamp(options?.spacingDensity ?? 1, 0.82, 1.18),
     heroGridPattern: isHeroGridPattern(options?.heroGridPattern) ? options.heroGridPattern : "web",
+    glassFillOpacity: clamp(
+      typeof options?.glassFillOpacity === "number" && Number.isFinite(options.glassFillOpacity)
+        ? options.glassFillOpacity
+        : 0.58,
+      0.22,
+      0.92,
+    ),
     surfaces: buildSurfacePalette(shiftedAccent, mode, colorHarmony),
   };
 
@@ -917,6 +924,7 @@ export function createRandomTheme(mode: ThemeMode) {
     shadowSpread: Math.round(Math.random() * 14),
     spacingDensity: clamp(0.88 + Math.random() * 0.22, 0.84, 1.12),
     heroGridPattern: HERO_GRID_PATTERN_IDS[Math.floor(Math.random() * HERO_GRID_PATTERN_IDS.length)]!,
+    glassFillOpacity: clamp(0.42 + Math.random() * 0.38, 0.28, 0.88),
   });
 }
 
@@ -981,6 +989,7 @@ export function getThemeCssVariables(tokens: ThemeTokens) {
         : `0 24px 64px ${spreadA}px rgba(16, 23, 35, ${0.14 * tokens.shadowIntensity}), 0 8px 24px ${spreadB}px rgba(16, 23, 35, ${0.08 * tokens.shadowIntensity})`;
     })(),
     "--theme-shadow-spread": `${tokens.shadowSpread}px`,
+    "--theme-glass-fill-opacity": `${tokens.glassFillOpacity}`,
     "--theme-spacing-density": `${tokens.spacingDensity}`,
     "--theme-heading-scale-h1": `${tokens.headingScaleH1}`,
     "--theme-heading-scale-h2": `${tokens.headingScaleH2}`,
@@ -1089,6 +1098,10 @@ export function parseThemeImportPayload(raw: string): {
       heroGridPattern: isHeroGridPattern(data.tokens.heroGridPattern)
         ? data.tokens.heroGridPattern
         : undefined,
+      glassFillOpacity:
+        typeof data.tokens.glassFillOpacity === "number" && Number.isFinite(data.tokens.glassFillOpacity)
+          ? clamp(data.tokens.glassFillOpacity, 0.22, 0.92)
+          : undefined,
     });
 
     return { tokens, branding };

@@ -20,6 +20,7 @@ import { resolveLoginShowcaseFromRecentScans } from "@/features/auth/lib/resolve
 
 import { BrandWordmarkLinkThemed } from "@/components/common/brand-wordmark-link-themed";
 
+import { LoginLatticeBackdrop } from "./login-lattice-backdrop";
 import { LoginSupabaseEnvBanner } from "./login-supabase-env-banner";
 
 export default async function AppLoginPage({
@@ -111,9 +112,14 @@ export default async function AppLoginPage({
   })();
 
   return (
-    <div className="relative isolate flex min-h-screen flex-col gap-6 bg-background px-5 py-6 sm:px-6 md:h-[100dvh] md:min-h-0 md:grid md:grid-cols-[minmax(15rem,24vw)_minmax(0,1fr)_minmax(16.5rem,23rem)] md:grid-rows-[auto_minmax(0,1fr)] md:gap-0 md:overflow-hidden md:px-0 md:py-0">
+    <div
+      className="relative isolate min-h-screen overflow-hidden bg-background max-md:flex max-md:flex-col max-md:gap-6 max-md:px-5 max-md:py-6 sm:max-md:px-6 md:grid md:h-[100dvh] md:min-h-0 md:grid-rows-[auto_minmax(0,1fr)] md:gap-0 md:overflow-hidden md:px-0 md:py-0 md:max-lg:grid-cols-[minmax(13.5rem,42%)_minmax(0,1fr)] md:max-lg:px-7 md:max-lg:py-8 lg:grid-cols-[minmax(15rem,22vw)_minmax(0,1fr)_minmax(15.5rem,21vw)] lg:px-0 lg:py-0"
+      id="app-login-root"
+    >
+      <LoginLatticeBackdrop />
+
       {/* ── Top bar: wordmark + optional env notice (full width) ── */}
-      <div className="order-1 flex shrink-0 items-start justify-between gap-4 border-b border-border/50 pb-5 sm:pb-6 md:order-none md:col-span-3 md:row-start-1 md:items-center md:border-border/55 md:px-8 md:pb-5 md:pt-6 lg:px-10">
+      <div className="order-1 flex shrink-0 items-start justify-between gap-4 border-b border-border/50 pb-5 sm:pb-6 md:col-span-2 md:row-start-1 md:items-center md:border-border/55 md:px-8 md:pb-5 md:pt-6 lg:col-span-3 lg:px-10">
         <BrandWordmarkLinkThemed className="shrink-0" />
         <div className="min-w-0 max-w-xl shrink md:text-right">
           <LoginSupabaseEnvBanner />
@@ -121,32 +127,33 @@ export default async function AppLoginPage({
       </div>
 
       {/* ── Marketing + recent scan meta: single column, one vertical rule ── */}
-      <aside className="order-2 min-w-0 md:order-none md:col-start-1 md:row-start-2 md:flex md:min-h-0 md:flex-col md:justify-between md:border-r md:border-border/55 md:px-7 md:py-10 lg:px-9 xl:px-11">
+      <aside className="order-2 min-w-0 md:col-start-1 md:row-start-2 md:flex md:min-h-0 md:flex-col md:justify-between md:border-r md:border-border/55 md:px-6 md:py-9 lg:px-9 lg:py-10 xl:px-11">
         <div className="md:flex md:min-h-0 md:flex-1 md:flex-col md:justify-center">
           <LoginMarketingColumn features={features} />
         </div>
         <LoginScanMetaFooter className="mt-8 md:mt-10" showcase={loginShowcase} />
       </aside>
 
-      {/* ── Graphics (radar + editorial + horizontal roulette) ── */}
-      <section
-        aria-label="Live audit preview"
-        className="relative order-3 min-h-0 overflow-x-clip md:order-none md:col-start-2 md:row-start-2 md:flex md:min-h-0 md:flex-col md:justify-center md:overflow-y-auto md:border-r md:border-border/55 md:px-8 md:py-10 lg:px-10 xl:px-12"
-      >
-        <div
-          aria-hidden="true"
-          className="login-showcase-ambient-glow pointer-events-none absolute left-1/2 top-1/2 hidden h-[min(34rem,58vh)] w-[min(34rem,58vh)] -translate-x-1/2 -translate-y-1/2 rounded-full opacity-90 md:block"
-          style={{
-            background:
-              "radial-gradient(circle, color-mix(in srgb, var(--theme-accent) 26%, transparent) 0%, transparent 68%)",
-            filter: "blur(28px)",
-          }}
-        />
-        <LoginGraphicsColumn className="relative" showcase={loginShowcase} />
-      </section>
+      <div className="order-3 flex min-h-0 flex-col gap-8 max-md:gap-6 md:col-start-2 md:row-start-2 md:min-h-0 md:gap-6 md:overflow-y-auto md:px-6 md:py-9 lg:contents lg:gap-0 lg:overflow-visible lg:px-0 lg:py-0">
+        {/* ── Graphics (radar + editorial + horizontal roulette) ── */}
+        <section
+          aria-label="Live audit preview"
+          className="relative min-h-0 flex-1 overflow-x-clip md:max-lg:flex-1 md:max-lg:border-b md:max-lg:border-border/55 lg:order-none lg:col-start-2 lg:row-start-2 lg:flex lg:min-h-0 lg:flex-1 lg:flex-col lg:justify-center lg:border-b-0 lg:border-r lg:border-border/55 lg:px-8 lg:py-10 xl:px-12"
+        >
+          <div
+            aria-hidden="true"
+            className="login-showcase-ambient-glow pointer-events-none absolute left-1/2 top-1/2 hidden h-[min(34rem,58vh)] w-[min(34rem,58vh)] -translate-x-1/2 -translate-y-1/2 rounded-full opacity-90 md:block"
+            style={{
+              background:
+                "radial-gradient(circle, color-mix(in srgb, var(--theme-accent) 26%, transparent) 0%, transparent 68%)",
+              filter: "blur(28px)",
+            }}
+          />
+          <LoginGraphicsColumn className="relative" showcase={loginShowcase} />
+        </section>
 
-      {/* ── Form: column 3 row 2 on desktop ── */}
-      <div className="order-4 min-h-0 md:order-none md:col-start-3 md:row-start-2 md:flex md:min-h-0 md:flex-col md:items-center md:justify-center md:overflow-y-auto md:px-6 md:py-10 lg:px-8">
+        {/* ── Form: third column on large screens; stacks under preview on tablet ── */}
+        <div className="min-h-0 shrink-0 md:max-lg:pt-2 lg:order-none lg:col-start-3 lg:row-start-2 lg:flex lg:min-h-0 lg:flex-col lg:items-center lg:justify-center lg:overflow-y-auto lg:px-6 lg:py-10 xl:px-8">
         <div className="mx-auto w-full min-w-0 max-w-md md:max-w-[17.5rem]">
         {sentConfirm ? (
           <div className="space-y-4">
@@ -405,6 +412,7 @@ export default async function AppLoginPage({
             ) : null}
           </div>
         )}
+        </div>
         </div>
       </div>
     </div>

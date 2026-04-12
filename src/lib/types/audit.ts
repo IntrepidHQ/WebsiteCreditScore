@@ -272,6 +272,8 @@ export interface ThemeTokens {
   spacingDensity: number;
   /** Landing hero / marketing lattice style. */
   heroGridPattern: HeroGridPattern;
+  /** Opacity of glass panel fills (0–1); only affects glassmorphic studio surfaces. */
+  glassFillOpacity: number;
   surfaces: ThemeSurfaces;
 }
 

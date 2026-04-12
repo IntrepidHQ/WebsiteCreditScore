@@ -125,8 +125,8 @@ export function SettingsPanel() {
   const shadowSpreadLabelId = useId();
   const heroGridLabelId = useId();
   const heroGridSelectId = useId();
-  const heroGridPreviewReactId = useId();
-  const heroGridPreviewUid = heroGridPreviewReactId.replace(/:/g, "");
+  const livePreviewLatticeReactId = useId();
+  const livePreviewLatticeUid = livePreviewLatticeReactId.replace(/:/g, "");
   const spacingLabelId = useId();
   const lineHeightLabelId = useId();
   const glowIntensityLabelId = useId();
@@ -134,6 +134,7 @@ export function SettingsPanel() {
   const accentHueLabelId = useId();
   const colorHarmonyLabelId = useId();
   const surfaceFinishLabelId = useId();
+  const glassFillOpacityLabelId = useId();
   const headerFontLabelId = useId();
   const bodyFontLabelId = useId();
   const headingScalesLabelId = useId();
@@ -166,6 +167,7 @@ export function SettingsPanel() {
   const setAccentHueShift = useThemeStore((state) => state.setAccentHueShift);
   const setColorHarmony = useThemeStore((state) => state.setColorHarmony);
   const setSurfaceFinish = useThemeStore((state) => state.setSurfaceFinish);
+  const setGlassFillOpacity = useThemeStore((state) => state.setGlassFillOpacity);
   const undoTheme = useThemeStore((state) => state.undoTheme);
   const redoTheme = useThemeStore((state) => state.redoTheme);
   const canUndo = useThemeStore((state) => state.undoStack.length > 0);
@@ -647,9 +649,32 @@ export function SettingsPanel() {
                             </TooltipContent>
                           </Tooltip>
                         </div>
+
+                        {tokens.surfaceFinish === "glassmorphic" ? (
+                          <div className="rounded-[calc(var(--theme-radius)-4px)] border border-border/60 bg-panel/50 p-3">
+                            <p className="text-xs font-semibold text-foreground" id={glassFillOpacityLabelId}>
+                              Glass fill opacity
+                            </p>
+                            <p className="mt-1 text-[11px] leading-snug text-muted">
+                              Softens the glass panel wash for studio tiles and previews — sits with the Glass finish
+                              control.
+                            </p>
+                            <Slider
+                              aria-labelledby={glassFillOpacityLabelId}
+                              className="mt-3"
+                              max={0.92}
+                              min={0.22}
+                              onValueChange={(value) => setGlassFillOpacity(value[0] ?? 0.58)}
+                              step={0.01}
+                              value={[tokens.glassFillOpacity]}
+                            />
+                            <p className="mt-2 text-sm text-muted">
+                              Current value: {(tokens.glassFillOpacity * 100).toFixed(0)}%
+                            </p>
+                          </div>
+                        ) : null}
                       </div>
                     </div>
-                  </div>
 
                   <div className="rounded-[calc(var(--theme-radius))] border border-border/70 bg-panel/40 p-4">
                     <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
@@ -773,6 +798,7 @@ export function SettingsPanel() {
                       ))}
                     </div>
                   </SettingRow>
+                  </div>
                 </TabsContent>
 
                 <TabsContent className="space-y-4" value="typography">
@@ -1218,8 +1244,17 @@ export function SettingsPanel() {
         </div>
 
         <aside className="lg:sticky lg:top-28 lg:h-fit">
-          <Card className="overflow-hidden">
-            <CardHeader>
+          <Card className="relative overflow-hidden">
+            <div className="pointer-events-none absolute inset-x-0 top-0 h-[min(11.5rem,46%)] min-h-[9.5rem]">
+              <HeroGridSurface
+                className="text-border opacity-95"
+                pattern={tokens.heroGridPattern}
+                reduceMotion
+                uid={`live-${livePreviewLatticeUid}`}
+              />
+              <div className="absolute inset-0 bg-gradient-to-b from-background/15 via-background/78 to-background" />
+            </div>
+            <CardHeader className="relative z-[1]">
               <div className="flex items-center gap-2 text-accent">
                 <Sparkles className="size-4" />
                 Live preview
@@ -1231,7 +1266,7 @@ export function SettingsPanel() {
                 apply instantly site-wide.
               </p>
             </CardHeader>
-            <CardContent className="space-y-4">
+            <CardContent className="relative z-[1] space-y-4">
               <div className="rounded-[calc(var(--theme-radius-lg))] border border-border/70 bg-panel/70 p-5 shadow-[var(--theme-shadow)]">
                 <div className="rounded-[calc(var(--theme-radius))] border border-accent/20 bg-accent/8 p-4">
                   <div className="space-y-3">
@@ -1291,70 +1326,56 @@ export function SettingsPanel() {
                   </div>
                 </div>
 
-                <div className="mt-4 overflow-hidden rounded-[calc(var(--theme-radius))] border border-border/70">
-                  <div className="relative h-32 bg-background-alt/60">
-                    <HeroGridSurface
-                      className="text-border"
-                      pattern={tokens.heroGridPattern}
-                      reduceMotion
-                      uid={`preview-${heroGridPreviewUid}`}
-                    />
-                  </div>
-                  <div className="border-t border-border/60 px-4 py-3">
-                    <p className="text-[10px] font-semibold uppercase tracking-[0.18em] text-muted">
-                      Hero lattice preview
-                    </p>
-                    <p className="mt-1 text-xs text-muted">
-                      Same SVG stack as the landing hero (pointer-driven motion is disabled here).
-                    </p>
-                    <div className="mt-4 space-y-2.5">
-                      <div className="space-y-1">
-                        <div className="flex items-center justify-between text-[10px] font-semibold uppercase tracking-[0.12em] text-muted">
-                          <span>On-page clarity</span>
-                          <span className="tabular-nums text-foreground">8.6</span>
-                        </div>
-                        <div className="h-2 overflow-hidden rounded-full bg-background/55">
-                          <div
-                            className="h-full rounded-full"
-                            style={{
-                              width: "86%",
-                              background:
-                                "linear-gradient(90deg, rgba(34,197,94,0.95), rgba(34,197,94,0.35))",
-                            }}
-                          />
-                        </div>
+                <div className="mt-4 rounded-[calc(var(--theme-radius))] border border-border/70 bg-panel/55 p-4">
+                  <p className="text-[10px] font-semibold uppercase tracking-[0.18em] text-muted">Semantic score bars</p>
+                  <p className="mt-1 text-xs text-muted">Preview-only; matches traffic-light scoring in reports.</p>
+                  <div className="mt-4 space-y-2.5">
+                    <div className="space-y-1">
+                      <div className="flex items-center justify-between text-[10px] font-semibold uppercase tracking-[0.12em] text-muted">
+                        <span>On-page clarity</span>
+                        <span className="tabular-nums text-foreground">8.6</span>
                       </div>
-                      <div className="space-y-1">
-                        <div className="flex items-center justify-between text-[10px] font-semibold uppercase tracking-[0.12em] text-muted">
-                          <span>Trust signals</span>
-                          <span className="tabular-nums text-foreground">6.2</span>
-                        </div>
-                        <div className="h-2 overflow-hidden rounded-full bg-background/55">
-                          <div
-                            className="h-full rounded-full"
-                            style={{
-                              width: "62%",
-                              background:
-                                "linear-gradient(90deg, rgba(234,179,8,0.95), rgba(234,179,8,0.35))",
-                            }}
-                          />
-                        </div>
+                      <div className="h-2 overflow-hidden rounded-full bg-background/55">
+                        <div
+                          className="h-full rounded-full"
+                          style={{
+                            width: "86%",
+                            background:
+                              "linear-gradient(90deg, rgba(34,197,94,0.95), rgba(34,197,94,0.35))",
+                          }}
+                        />
                       </div>
-                      <div className="space-y-1">
-                        <div className="flex items-center justify-between text-[10px] font-semibold uppercase tracking-[0.12em] text-muted">
-                          <span>Conversion friction</span>
-                          <span className="tabular-nums text-foreground">4.1</span>
-                        </div>
-                        <div className="h-2 overflow-hidden rounded-full bg-background/55">
-                          <div
-                            className="h-full rounded-full"
-                            style={{
-                              width: "41%",
-                              background:
-                                "linear-gradient(90deg, rgba(239,68,68,0.95), rgba(239,68,68,0.32))",
-                            }}
-                          />
-                        </div>
+                    </div>
+                    <div className="space-y-1">
+                      <div className="flex items-center justify-between text-[10px] font-semibold uppercase tracking-[0.12em] text-muted">
+                        <span>Trust signals</span>
+                        <span className="tabular-nums text-foreground">6.2</span>
+                      </div>
+                      <div className="h-2 overflow-hidden rounded-full bg-background/55">
+                        <div
+                          className="h-full rounded-full"
+                          style={{
+                            width: "62%",
+                            background:
+                              "linear-gradient(90deg, rgba(234,179,8,0.95), rgba(234,179,8,0.35))",
+                          }}
+                        />
+                      </div>
+                    </div>
+                    <div className="space-y-1">
+                      <div className="flex items-center justify-between text-[10px] font-semibold uppercase tracking-[0.12em] text-muted">
+                        <span>Conversion friction</span>
+                        <span className="tabular-nums text-foreground">4.1</span>
+                      </div>
+                      <div className="h-2 overflow-hidden rounded-full bg-background/55">
+                        <div
+                          className="h-full rounded-full"
+                          style={{
+                            width: "41%",
+                            background:
+                              "linear-gradient(90deg, rgba(239,68,68,0.95), rgba(239,68,68,0.32))",
+                          }}
+                        />
                       </div>
                     </div>
                   </div>

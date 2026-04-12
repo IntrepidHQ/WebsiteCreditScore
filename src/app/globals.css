@@ -23,6 +23,8 @@
   --theme-radius: 12px;
   --theme-radius-lg: 14px;
   --theme-shadow: 0 24px 80px rgba(0, 0, 0, 0.24), 0 8px 28px rgba(0, 0, 0, 0.12);
+  --theme-shadow-spread: 0px;
+  --theme-glass-fill-opacity: 0.58;
   --theme-spacing-density: 1;
   --theme-font-display-stack: var(--font-instrument-serif), "Instrument Serif", Georgia,
     "Times New Roman", serif;
@@ -725,10 +727,18 @@ a {
   border-right-color: color-mix(in srgb, var(--theme-border) 72%, #000000 40%);
   border-bottom-color: color-mix(in srgb, var(--theme-border) 62%, #000000 52%);
   border-left-color: color-mix(in srgb, var(--theme-border) 72%, #000000 40%);
-  background-color: var(--theme-panel);
+  background-color: color-mix(
+    in srgb,
+    var(--theme-panel) calc(var(--theme-glass-fill-opacity, 0.58) * 100%),
+    transparent
+  );
   background-image:
     linear-gradient(180deg, rgba(255, 255, 255, 0.1) 0%, transparent 42%),
-    linear-gradient(180deg, color-mix(in srgb, var(--theme-panel) 92%, #ffffff), var(--theme-panel));
+    linear-gradient(
+      180deg,
+      color-mix(in srgb, var(--theme-panel) calc(var(--theme-glass-fill-opacity, 0.58) * 92%), #ffffff),
+      color-mix(in srgb, var(--theme-panel) calc(var(--theme-glass-fill-opacity, 0.58) * 100%), transparent)
+    );
   box-shadow:
     inset 0 1px 0 rgba(255, 255, 255, 0.22),
     12px 22px 34px rgba(0, 0, 0, 0.32),
@@ -745,14 +755,18 @@ html[data-surface-finish="glassmorphic"] .theme-glass-surface {
   border-right-color: color-mix(in srgb, var(--theme-border) 35%, #000000 21%);
   border-bottom-color: color-mix(in srgb, var(--theme-border) 29%, #000000 29%);
   border-left-color: color-mix(in srgb, var(--theme-border) 35%, #000000 21%);
-  background-color: color-mix(in srgb, var(--theme-panel) 50%, transparent);
+  background-color: color-mix(
+    in srgb,
+    var(--theme-panel) calc(var(--theme-glass-fill-opacity, 0.58) * 100%),
+    transparent
+  );
   background-image:
     linear-gradient(180deg, rgba(255, 255, 255, 0.06) 0%, transparent 38%),
     linear-gradient(180deg, rgba(255, 255, 255, 0.02) 0%, transparent 55%),
     linear-gradient(
       180deg,
-      color-mix(in srgb, var(--theme-panel) 46%, #ffffff 1.8%),
-      color-mix(in srgb, var(--theme-panel) 50%, transparent)
+      color-mix(in srgb, var(--theme-panel) calc(var(--theme-glass-fill-opacity, 0.58) * 46%), #ffffff 1.8%),
+      color-mix(in srgb, var(--theme-panel) calc(var(--theme-glass-fill-opacity, 0.58) * 100%), transparent)
     );
   box-shadow:
     inset 0 1px 0 rgba(255, 255, 255, 0.13),

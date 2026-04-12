@@ -54,6 +54,7 @@ interface ThemeState {
   setAccentHueShift: (accentHueShift: number) => void;
   setColorHarmony: (colorHarmony: ThemeColorHarmony) => void;
   setSurfaceFinish: (surfaceFinish: ThemeSurfaceFinish) => void;
+  setGlassFillOpacity: (glassFillOpacity: number) => void;
   applyLayoutDensity: (density: "compact" | "comfortable" | "spacious") => void;
   setMotionPreference: (preference: MotionPreference) => void;
   setLogoColor: (logoColor: string) => void;
@@ -220,6 +221,16 @@ export const useThemeStore = create<ThemeState>()(
           tokens: createThemeTokens({
             ...state.tokens,
             surfaceFinish,
+          }),
+          undoStack: [...state.undoStack, cloneSnapshot(state)].slice(-50),
+          redoStack: [],
+        })),
+      setGlassFillOpacity: (glassFillOpacity) =>
+        set((state) => ({
+          presetId: null,
+          tokens: createThemeTokens({
+            ...state.tokens,
+            glassFillOpacity,
           }),
           undoStack: [...state.undoStack, cloneSnapshot(state)].slice(-50),
           redoStack: [],

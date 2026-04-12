@@ -13,6 +13,7 @@ import {
 } from "lucide-react";
 import { useMemo } from "react";
 
+import { scoreCategoryPalette } from "@/components/common/score-category-meta";
 import {
   buildLoginShowcaseRadarItems,
   LOGIN_SHOWCASE_RADAR_KEYS,
@@ -39,27 +40,6 @@ const CATEGORY_ICON: Record<AuditCategoryKey, LucideIcon> = {
   "security-posture": Lock,
 };
 
-const semanticRailClassName: Record<ReturnType<typeof getScoreBand>["variant"], string> = {
-  success: "border-l-[#22c55e]",
-  accent: "border-l-[#eab308]",
-  warning: "border-l-[#eab308]",
-  danger: "border-l-[#ef4444]",
-};
-
-const semanticPillClassName: Record<ReturnType<typeof getScoreBand>["variant"], string> = {
-  success: "border-[#22c55e]/45 bg-[#22c55e]/14 text-foreground",
-  accent: "border-[#eab308]/45 bg-[#eab308]/14 text-foreground",
-  warning: "border-[#eab308]/45 bg-[#eab308]/14 text-foreground",
-  danger: "border-[#ef4444]/45 bg-[#ef4444]/12 text-foreground",
-};
-
-const semanticFieldClassName: Record<ReturnType<typeof getScoreBand>["variant"], string> = {
-  success: "border-[#22c55e]/22 bg-[#22c55e]/08",
-  accent: "border-[#eab308]/22 bg-[#eab308]/08",
-  warning: "border-[#eab308]/22 bg-[#eab308]/08",
-  danger: "border-[#ef4444]/22 bg-[#ef4444]/08",
-};
-
 const LoginBreakdownCard = ({
   item,
   className,
@@ -69,20 +49,38 @@ const LoginBreakdownCard = ({
 }) => {
   const Icon = CATEGORY_ICON[item.key as AuditCategoryKey] ?? Palette;
   const band = getScoreBand(item.score);
+  const categoryKey = item.key as AuditCategoryKey;
+  const categoryColor = scoreCategoryPalette[categoryKey] ?? "#94a3b8";
+  const edgeStroke = `linear-gradient(90deg, color-mix(in srgb, ${categoryColor} 70%, transparent), color-mix(in srgb, ${categoryColor} 30%, transparent) 50%, color-mix(in srgb, ${categoryColor} 70%, transparent))`;
 
   return (
     <article
       className={cn(
-        "flex min-h-[6.75rem] w-[min(100%,240px)] shrink-0 flex-col justify-between rounded-2xl border border-border/55 bg-background/35 p-3 sm:min-h-[7.25rem] sm:w-[260px] sm:p-3.5",
-        "border-l-4",
-        semanticRailClassName[band.variant],
-        semanticFieldClassName[band.variant],
+        "relative flex min-h-[6.75rem] w-[min(100%,240px)] shrink-0 flex-col justify-between overflow-hidden rounded-2xl border-y border-r border-border/40 bg-background/30 p-3 sm:min-h-[7.25rem] sm:w-[260px] sm:p-3.5",
         className,
       )}
+      style={{
+        borderLeftColor: categoryColor,
+        borderLeftWidth: 4,
+        backgroundImage: `linear-gradient(180deg, color-mix(in srgb, ${categoryColor} 14%, transparent), color-mix(in srgb, ${categoryColor} 6%, transparent))`,
+      }}
     >
+      <div
+        aria-hidden
+        className="pointer-events-none absolute inset-x-6 top-0 h-px"
+        style={{ backgroundImage: edgeStroke, opacity: 0.95 }}
+      />
+      <div
+        aria-hidden
+        className="pointer-events-none absolute inset-x-6 bottom-0 h-px"
+        style={{ backgroundImage: edgeStroke, opacity: 0.95 }}
+      />
       <div className="flex items-start justify-between gap-2">
         <div className="flex min-w-0 items-center gap-2">
-          <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full border border-border/55 bg-background/35 text-foreground">
+          <span
+            className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full border bg-background/35 text-foreground"
+            style={{ borderColor: `color-mix(in srgb, ${categoryColor} 55%, transparent)` }}
+          >
             <Icon aria-hidden className="size-3.5" strokeWidth={2} />
           </span>
           <h3 className="min-w-0 text-[0.8125rem] font-semibold leading-snug tracking-tight text-foreground sm:text-sm">
@@ -97,10 +95,11 @@ const LoginBreakdownCard = ({
         </p>
         <div className="flex flex-col items-end gap-1.5">
           <span
-            className={cn(
-              "rounded-full border px-2 py-0.5 text-[10px] font-semibold leading-none tracking-wide sm:text-[11px]",
-              semanticPillClassName[band.variant],
-            )}
+            className="rounded-full border px-2 py-0.5 text-[10px] font-semibold leading-none tracking-wide sm:text-[11px]"
+            style={{
+              borderColor: `color-mix(in srgb, ${categoryColor} 55%, transparent)`,
+              backgroundColor: `color-mix(in srgb, ${categoryColor} 18%, transparent)`,
+            }}
           >
             {band.label}
           </span>
