@@ -123,8 +123,8 @@ export default async function AppLoginPage({
         <div className="relative flex min-h-0 w-full max-w-[min(100%,52rem)] flex-col gap-8 lg:max-w-[min(100%,58rem)] xl:max-w-[min(100%,64rem)]">
           <BrandWordmarkLink className="block shrink-0" variant="on-dark" />
 
-          <div className="flex min-h-0 flex-row items-start gap-8 lg:gap-10 xl:gap-12">
-            <div className="min-w-0 flex-1">
+          <div className="flex min-h-0 min-w-0 flex-col gap-8 lg:gap-10">
+            <div className="min-w-0">
               <h1 className="font-display text-[2.35rem] leading-[1.06] text-foreground lg:text-[2.75rem] xl:text-[2.95rem]">
                 Your website&apos;s<br />
                 <span className="gradient-type">credit score,</span>
@@ -132,7 +132,7 @@ export default async function AppLoginPage({
                 starts here.
               </h1>
 
-              <p className="mt-3 max-w-sm text-sm leading-6 text-muted lg:mt-4 lg:text-[0.95rem] lg:leading-7">
+              <p className="mt-3 max-w-xl text-sm leading-6 text-muted lg:mt-4 lg:text-[0.95rem] lg:leading-7">
                 Audit any site in seconds. See exactly what&apos;s holding back the score — and what to fix
                 first.
               </p>
@@ -140,8 +140,8 @@ export default async function AppLoginPage({
               <ul className="mt-4 space-y-1.5 lg:mt-5 lg:space-y-2">
                 {features.map((f) => (
                   <li className="flex items-center gap-2.5" key={f}>
-                    <span className="flex h-4 w-4 shrink-0 items-center justify-center rounded-full bg-accent/15">
-                      <Check className="size-2.5 text-accent" strokeWidth={2.5} />
+                    <span className="flex h-4 w-4 shrink-0 items-center justify-center rounded-full border border-border/45 bg-[color-mix(in_srgb,var(--theme-accent)_16%,var(--theme-panel))]">
+                      <Check className="size-2.5 text-foreground" strokeWidth={2.5} />
                     </span>
                     <span className="text-xs leading-snug text-muted lg:text-[0.8125rem] lg:leading-relaxed">
                       {f}
@@ -151,12 +151,9 @@ export default async function AppLoginPage({
               </ul>
             </div>
 
-            <aside
-              aria-label="Recent public scan preview"
-              className="w-[min(100%,clamp(22rem,36vw,40rem))] shrink-0 border-l border-border/35 pl-6 lg:pl-8 xl:pl-10"
-            >
+            <section aria-label="Recent public scan preview" className="min-w-0">
               <LoginRecentScanShowcase showcase={loginShowcase} />
-            </aside>
+            </section>
           </div>
         </div>
       </div>
@@ -183,13 +180,16 @@ export default async function AppLoginPage({
               <ul className="mt-4 space-y-1.5">
                 {features.map((f) => (
                   <li className="flex items-center gap-2.5" key={f}>
-                    <span className="flex h-4 w-4 shrink-0 items-center justify-center rounded-full bg-accent/15">
-                      <Check className="size-2.5 text-accent" strokeWidth={2.5} />
+                    <span className="flex h-4 w-4 shrink-0 items-center justify-center rounded-full border border-border/45 bg-[color-mix(in_srgb,var(--theme-accent)_16%,var(--theme-panel))]">
+                      <Check className="size-2.5 text-foreground" strokeWidth={2.5} />
                     </span>
                     <span className="text-xs leading-snug text-muted">{f}</span>
                   </li>
                 ))}
               </ul>
+              <div className="mt-6">
+                <LoginRecentScanShowcase showcase={loginShowcase} />
+              </div>
             </div>
           </div>
 

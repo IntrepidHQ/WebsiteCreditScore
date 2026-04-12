@@ -115,6 +115,28 @@ html {
   }
 }
 
+@keyframes login-breakdown-roulette-marquee {
+  from {
+    transform: translate3d(0, 0, 0);
+  }
+
+  to {
+    transform: translate3d(0, -50%, 0);
+  }
+}
+
+.login-breakdown-roulette__track {
+  animation: login-breakdown-roulette-marquee 92s linear infinite;
+  will-change: transform;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .login-breakdown-roulette__track {
+    animation: none !important;
+    will-change: auto;
+  }
+}
+
 .font-display,
 .font-headline {
   font-family: var(--theme-font-display-stack) !important;
@@ -299,12 +321,10 @@ a {
 }
 
 .gradient-type {
-  background: linear-gradient(
-    120deg,
-    var(--theme-foreground) 0%,
-    color-mix(in srgb, var(--theme-accent) 78%, white) 62%,
-    color-mix(in srgb, var(--theme-foreground) 70%, var(--theme-accent) 30%) 100%
-  );
+  /* Keep the accent readable even when `--theme-accent` is very saturated (e.g. neon lime). */
+  --gradient-type-mid: color-mix(in srgb, var(--theme-foreground) 58%, var(--theme-accent) 42%);
+  --gradient-type-end: color-mix(in srgb, var(--theme-foreground) 72%, var(--theme-accent) 28%);
+  background: linear-gradient(120deg, var(--theme-foreground) 0%, var(--gradient-type-mid) 52%, var(--gradient-type-end) 100%);
   background-clip: text;
   color: transparent;
 }
@@ -370,7 +390,9 @@ a {
 
 @media (min-width: 1024px) {
   .full-bleed-rail .horizontal-rail {
-    padding-inline: 0;
+    /* Match section gutters on large screens so the last card never clips flush to the chrome edge. */
+    padding-inline: max(1.5rem, env(safe-area-inset-left)) max(1.5rem, env(safe-area-inset-right));
+    scroll-padding-inline: max(1.5rem, env(safe-area-inset-left)) max(1.5rem, env(safe-area-inset-right));
   }
 }
 

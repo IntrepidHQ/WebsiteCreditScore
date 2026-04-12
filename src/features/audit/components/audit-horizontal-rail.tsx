@@ -22,7 +22,7 @@ export const AuditHorizontalRail = ({
     <div className={cn("full-bleed-rail", className)}>
       <div
         aria-label={ariaLabel}
-        className={cn("horizontal-rail gap-5", railClassName)}
+        className={cn("horizontal-rail gap-8", railClassName)}
         tabIndex={tabIndex}
       >
         {children}

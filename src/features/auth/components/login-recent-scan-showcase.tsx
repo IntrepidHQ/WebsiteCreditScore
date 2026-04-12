@@ -1,69 +1,180 @@
 "use client";
 
-import dynamic from "next/dynamic";
+import type { LucideIcon } from "lucide-react";
+import {
+  Eye,
+  Lock,
+  MousePointer2,
+  Palette,
+  Search,
+  Shield,
+  Smartphone,
+} from "lucide-react";
 import { useMemo } from "react";
 
 import { ScoreDial } from "@/components/common/score-dial";
-import { ScoreBreakdownBars } from "@/components/common/score-breakdown-bars";
 import {
-  buildLoginShowcaseRadarItems,
-  LOGIN_SHOWCASE_PRIMARY_KEYS,
+  LOGIN_SHOWCASE_RADAR_KEYS,
+  type LoginShowcaseBreakdownItem,
   type LoginShowcasePayload,
 } from "@/features/auth/lib/login-showcase-model";
 import { useMotionSettings } from "@/hooks/use-motion-settings";
+import type { AuditCategoryKey } from "@/lib/types/audit";
 import { cn } from "@/lib/utils/cn";
-import { getScoreTone } from "@/lib/utils/scores";
+import { getScoreBand } from "@/lib/utils/scores";
 
-const ScoreRadar = dynamic(
-  () => import("@/components/common/score-radar").then((m) => m.ScoreRadar),
-  { ssr: false },
-);
+const CATEGORY_ICON: Record<AuditCategoryKey, LucideIcon> = {
+  "visual-design": Palette,
+  "ux-conversion": MousePointer2,
+  "mobile-experience": Smartphone,
+  "seo-readiness": Search,
+  accessibility: Eye,
+  "trust-credibility": Shield,
+  "security-posture": Lock,
+};
 
-const toneFills = {
-  success: "linear-gradient(180deg, rgba(61,213,152,0.95), rgba(61,213,152,0.45))",
-  accent: "linear-gradient(180deg, rgba(247,178,27,0.95), rgba(247,178,27,0.45))",
-  warning: "linear-gradient(180deg, rgba(255,207,102,0.95), rgba(255,207,102,0.42))",
-  danger: "linear-gradient(180deg, rgba(255,139,139,0.95), rgba(255,139,139,0.45))",
-} as const;
+const bandPillClassName: Record<
+  ReturnType<typeof getScoreBand>["variant"],
+  string
+> = {
+  success: "border-success/35 bg-success/14 text-foreground",
+  accent:
+    "border-accent/35 bg-[color-mix(in_srgb,var(--theme-accent)_16%,var(--theme-panel))] text-foreground",
+  warning: "border-warning/35 bg-warning/14 text-foreground",
+  danger: "border-danger/35 bg-danger/12 text-foreground",
+};
 
-const LoginShowcaseSecondaryRail = ({
-  items,
-}: {
-  items: LoginShowcasePayload["secondaryBreakdown"];
-}) => {
+const LoginBreakdownCard = ({ item }: { item: LoginShowcaseBreakdownItem }) => {
+  const Icon = CATEGORY_ICON[item.key as AuditCategoryKey] ?? Palette;
+  const band = getScoreBand(item.score);
+
   return (
-    <ul className="flex h-full min-h-0 flex-col justify-center gap-2.5">
-      {items.map((item) => {
-        const tone = getScoreTone(item.score);
-        const pct = Math.min(100, Math.max(0, item.score * 10));
+    <article
+      className={cn(
+        "flex min-h-[7.5rem] flex-col justify-between rounded-2xl border border-t-[color-mix(in_srgb,var(--theme-border)_38%,#ffffff_42%)] border-r-[color-mix(in_srgb,var(--theme-border)_72%,#000000_38%)] border-b-[color-mix(in_srgb,var(--theme-border)_62%,#000000_48%)] border-l-[color-mix(in_srgb,var(--theme-border)_72%,#000000_38%)] bg-[linear-gradient(180deg,color-mix(in_srgb,var(--theme-panel)_92%,#ffffff_4%)_0%,color-mix(in_srgb,var(--theme-panel)_88%,var(--theme-background-alt)_12%)_100%)] p-3 shadow-[inset_0_1px_0_rgba(255,255,255,0.12),0_14px_34px_rgba(0,0,0,0.22)] sm:min-h-[7.75rem] sm:p-3.5",
+      )}
+    >
+      <div className="flex items-start justify-between gap-2">
+        <div className="flex min-w-0 items-center gap-2">
+          <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full border border-border/55 bg-background/35 text-foreground">
+            <Icon aria-hidden className="size-3.5" strokeWidth={2} />
+          </span>
+          <h3 className="min-w-0 text-[0.8125rem] font-semibold leading-snug tracking-tight text-foreground sm:text-sm">
+            {item.label}
+          </h3>
+        </div>
+      </div>
 
-        return (
-          <li key={item.key}>
-            <div className="rounded-xl border border-border/55 bg-[linear-gradient(180deg,color-mix(in_srgb,var(--theme-panel)_88%,transparent),color-mix(in_srgb,var(--theme-background-alt)_92%,transparent))] px-3 py-2.5 shadow-sm shadow-background/15">
-              <div className="flex items-start justify-between gap-2">
-                <p className="text-[11px] font-semibold leading-snug text-foreground">{item.label}</p>
-                <p className="shrink-0 tabular-nums text-xs font-semibold text-foreground">
-                  {item.score.toFixed(1)}
-                  <span className="ml-0.5 text-[9px] font-semibold uppercase tracking-[0.12em] text-muted">
-                    /10
-                  </span>
-                </p>
-              </div>
-              <div className="mt-2 h-1 w-full overflow-hidden rounded-full bg-background/60" role="presentation">
-                <div
-                  aria-hidden
-                  className="h-full rounded-full shadow-[inset_0_1px_0_rgba(255,255,255,0.12)]"
-                  style={{
-                    width: `${pct}%`,
-                    backgroundImage: toneFills[tone],
-                  }}
-                />
-              </div>
-            </div>
-          </li>
-        );
-      })}
-    </ul>
+      <div className="mt-2 flex items-end justify-between gap-2">
+        <p className="tabular-nums text-2xl font-semibold leading-none tracking-tight text-foreground sm:text-[1.65rem]">
+          {item.score.toFixed(1)}
+        </p>
+        <div className="flex flex-col items-end gap-1.5">
+          <span
+            className={cn(
+              "rounded-full border px-2 py-0.5 text-[10px] font-semibold leading-none tracking-wide sm:text-[11px]",
+              bandPillClassName[band.variant],
+            )}
+          >
+            {band.label}
+          </span>
+          <p className="text-[10px] font-medium tabular-nums text-muted sm:text-[11px]">
+            {item.score.toFixed(1)}
+            <span className="ml-0.5 text-[9px] font-semibold uppercase tracking-[0.1em] text-muted">/10</span>
+          </p>
+        </div>
+      </div>
+    </article>
+  );
+};
+
+const buildOrderedBreakdown = (showcase: LoginShowcasePayload): LoginShowcaseBreakdownItem[] => {
+  const map = new Map<string, LoginShowcaseBreakdownItem>();
+  showcase.breakdown.forEach((row) => map.set(row.key, row));
+  showcase.secondaryBreakdown.forEach((row) => map.set(row.key, row));
+
+  return LOGIN_SHOWCASE_RADAR_KEYS.map((key) => {
+    const hit = map.get(key);
+
+    if (hit) {
+      return hit;
+    }
+
+    return {
+      key,
+      label: key
+        .split("-")
+        .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
+        .join(" "),
+      score: showcase.overallScore,
+      weight: 1,
+    };
+  });
+};
+
+const chunkPairs = <T,>(items: T[]): Array<[T, T | undefined]> => {
+  const out: Array<[T, T | undefined]> = [];
+
+  for (let i = 0; i < items.length; i += 2) {
+    out.push([items[i], items[i + 1]]);
+  }
+
+  return out;
+};
+
+const LoginBreakdownRoulette = ({ showcase }: { showcase: LoginShowcasePayload }) => {
+  const { reduceMotion } = useMotionSettings();
+  const ordered = useMemo(() => buildOrderedBreakdown(showcase), [showcase]);
+  const pairs = useMemo(() => chunkPairs(ordered), [ordered]);
+
+  const track = (
+    <div className="flex w-full flex-col gap-3 sm:gap-3.5">
+      {pairs.map(([left, right], idx) => (
+        <div className="grid grid-cols-2 gap-3 sm:gap-4" key={`row-${idx}`}>
+          <LoginBreakdownCard item={left} />
+          {right ? <LoginBreakdownCard item={right} /> : <div aria-hidden className="min-h-[7.5rem]" />}
+        </div>
+      ))}
+    </div>
+  );
+
+  return (
+    <div
+      aria-label="Category score preview"
+      className={cn(
+        "relative w-full overflow-hidden rounded-2xl",
+        reduceMotion && "max-h-[min(360px,44vh)] overflow-y-auto overscroll-y-contain pr-1",
+        !reduceMotion && "h-[min(320px,40vh)] sm:h-[min(360px,42vh)]",
+      )}
+    >
+      {!reduceMotion ? (
+        <>
+          <div
+            aria-hidden
+            className="pointer-events-none absolute inset-x-0 top-0 z-[1] h-12 bg-gradient-to-b from-background via-background/80 to-transparent"
+          />
+          <div
+            aria-hidden
+            className="pointer-events-none absolute inset-x-0 bottom-0 z-[1] h-14 bg-gradient-to-t from-background via-background/85 to-transparent"
+          />
+        </>
+      ) : null}
+
+      <div
+        className={cn(
+          reduceMotion ? "relative" : "login-breakdown-roulette__track absolute left-0 right-0 top-0",
+        )}
+      >
+        {reduceMotion ? (
+          track
+        ) : (
+          <>
+            {track}
+            <div aria-hidden>{track}</div>
+          </>
+        )}
+      </div>
+    </div>
   );
 };
 
@@ -74,63 +185,26 @@ export const LoginRecentScanShowcase = ({
   showcase: LoginShowcasePayload;
   className?: string;
 }) => {
-  const { reduceMotion } = useMotionSettings();
-  const radarItems = useMemo(() => buildLoginShowcaseRadarItems(showcase), [showcase]);
-  const primaryItems = useMemo(() => {
-    return LOGIN_SHOWCASE_PRIMARY_KEYS.map((key) => showcase.breakdown.find((row) => row.key === key)).filter(
-      Boolean,
-    ) as LoginShowcasePayload["breakdown"];
-  }, [showcase.breakdown]);
-
   return (
-    <div className={cn("login-showcase-ambient flex w-full flex-col gap-4", className)}>
-      <section
-        aria-label="Recent scan score visuals"
-        className="login-showcase-bento-grid relative isolate w-full overflow-hidden rounded-2xl bg-transparent"
-      >
-        <div className="login-showcase-bento__radar relative flex min-h-[220px] items-center justify-center border-b border-border/50 bg-[linear-gradient(180deg,color-mix(in_srgb,var(--theme-panel)_90%,transparent),color-mix(in_srgb,var(--theme-background-alt)_96%,transparent))] px-3 py-5 sm:min-h-[248px] sm:px-5 sm:py-6 lg:border-r lg:border-border/50">
-          {!reduceMotion ? (
-            <>
-              <span aria-hidden className="login-bento-edge-scan login-bento-edge-scan--h" />
-              <span aria-hidden className="login-bento-edge-scan login-bento-edge-scan--h-top lg:hidden" />
-            </>
-          ) : null}
-          <div className="relative z-[1] w-full max-w-[min(100%,460px)]">
-            <ScoreRadar
-              centerLabel="Balance"
-              className="rounded-[22px] border-0 bg-transparent p-1 shadow-none sm:p-2"
-              items={radarItems}
-            />
-          </div>
+    <div className={cn("flex w-full min-w-0 flex-col gap-5", className)}>
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between sm:gap-6">
+        <div className="min-w-0">
+          <p className="text-[10px] font-semibold uppercase tracking-[0.14em] text-muted">Recent public scan</p>
+          <p className="mt-0.5 truncate text-sm font-semibold text-foreground" title={showcase.title}>
+            {showcase.title}
+          </p>
+          <p className="truncate text-xs text-muted">{showcase.hostDisplay}</p>
         </div>
 
-        <div className="login-showcase-bento__dial relative flex items-center justify-center border-b border-r border-border/50 bg-panel/25 px-3 py-4 sm:px-4 sm:py-5 lg:border-b-0">
-          {!reduceMotion ? <span aria-hidden className="login-bento-edge-scan login-bento-edge-scan--v" /> : null}
-          <ScoreDial
-            className="w-full max-w-[min(100%,248px)] p-3 shadow-[0_16px_44px_rgba(0,0,0,0.22)] sm:p-4"
-            label="Public scan"
-            score={showcase.overallScore}
-            showFooter={false}
-          />
-        </div>
-
-        <div className="login-showcase-bento__bars relative border-b border-border/50 bg-panel/25 p-3 sm:p-4 lg:border-b-0">
-          <ScoreBreakdownBars animateOnView={false} dense items={primaryItems} />
-        </div>
-
-        <div className="login-showcase-bento__rail relative border-t border-border/50 bg-panel/20 px-3 py-4 sm:px-4 sm:py-5 lg:border-l lg:border-t-0 lg:border-border/50">
-          {!reduceMotion ? <span aria-hidden className="login-bento-edge-scan login-bento-edge-scan--rail" /> : null}
-          <LoginShowcaseSecondaryRail items={showcase.secondaryBreakdown} />
-        </div>
-      </section>
-
-      <div className="min-w-0">
-        <p className="text-[10px] font-semibold uppercase tracking-[0.14em] text-muted">Public recent scan</p>
-        <p className="mt-0.5 truncate text-xs font-semibold text-foreground" title={showcase.title}>
-          {showcase.title}
-        </p>
-        <p className="truncate text-[11px] text-muted">{showcase.hostDisplay}</p>
+        <ScoreDial
+          className="w-full max-w-[220px] shrink-0 self-start rounded-2xl border border-border/50 bg-panel/25 p-3 shadow-[0_16px_44px_rgba(0,0,0,0.22)] sm:max-w-[240px] sm:self-center sm:p-3.5"
+          label="Overall"
+          score={showcase.overallScore}
+          showFooter={false}
+        />
       </div>
+
+      <LoginBreakdownRoulette showcase={showcase} />
     </div>
   );
 };

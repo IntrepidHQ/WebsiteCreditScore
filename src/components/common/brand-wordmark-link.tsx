@@ -19,7 +19,7 @@ export const BrandWordmarkLink = ({
   return (
     <Link
       className={cn(
-        "inline-block rounded-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2",
+        "inline-block rounded-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-foreground/35 focus-visible:ring-offset-2",
         variant === "on-light" && "focus-visible:ring-offset-background",
         variant === "on-dark" && "focus-visible:ring-offset-background",
         className,
@@ -32,6 +32,8 @@ export const BrandWordmarkLink = ({
           "h-8 w-auto sm:h-9",
           "max-w-[min(100%,17.5rem)] object-left object-contain",
           variant === "on-light" && "brightness-0 opacity-[0.92]",
+          variant === "on-dark" &&
+            "drop-shadow-[0_1px_0_rgba(0,0,0,0.85)] drop-shadow-[0_0_18px_rgba(0,0,0,0.35)]",
         )}
         height={94}
         src={WORDMARK_SRC}
