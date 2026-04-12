@@ -42,14 +42,14 @@ export function LoginScoreShowcase({
     return (
       <div
         className={cn(
-          "flex w-full max-w-[16rem] flex-row items-center justify-center gap-4 sm:max-w-none sm:justify-start",
+          "flex w-full max-w-[18rem] flex-row items-center justify-center gap-4 sm:max-w-none sm:justify-start",
           className,
         )}
       >
-        <div className="shrink-0 scale-[0.52] origin-center sm:scale-[0.58] sm:origin-left">
+        <div className="login-showcase-ambient shrink-0 origin-center scale-[0.68] sm:origin-left sm:scale-[0.76]">
           <ScoreDial
             bandLabel="Strong"
-            className="w-[196px] p-3 shadow-[0_12px_36px_rgba(0,0,0,0.2)]"
+            className="w-[min(100%,220px)] p-3 shadow-[0_12px_36px_rgba(0,0,0,0.2)]"
             label="Example"
             score={DEMO_SCORE}
             showFooter={false}
@@ -66,11 +66,11 @@ export function LoginScoreShowcase({
 
   if (variant === "rail") {
     return (
-      <div className={cn("flex w-full flex-col items-stretch gap-2", className)}>
-        <div className="w-full scale-[0.56] origin-top">
+      <div className={cn("login-showcase-ambient flex w-full flex-col items-stretch gap-3 lg:gap-3.5", className)}>
+        <div className="w-full origin-top scale-[0.88] lg:scale-95 xl:scale-100">
           <ScoreDial
             bandLabel="Strong"
-            className="w-[196px] p-3 shadow-[0_14px_40px_rgba(0,0,0,0.2)]"
+            className="w-full max-w-[min(100%,260px)] p-3 shadow-[0_14px_40px_rgba(0,0,0,0.2)] lg:p-4"
             label="Example audit"
             score={DEMO_SCORE}
             showFooter={false}

@@ -106,21 +106,21 @@ export default async function AppLoginPage({
   return (
     <div className="flex min-h-screen flex-col md:h-[100dvh] md:flex-row md:overflow-hidden">
       {/* ── Left: Brand + copy + compact score rail (desktop) ── */}
-      <div className="relative hidden min-h-0 md:flex md:min-w-0 md:flex-1 md:flex-col md:justify-center md:overflow-y-auto md:bg-background md:px-8 md:py-6 lg:px-10 lg:py-8 xl:px-12">
+      <div className="relative hidden min-h-0 md:flex md:min-w-0 md:flex-1 md:flex-col md:justify-center md:overflow-y-auto md:bg-background md:px-8 md:py-8 lg:px-12 lg:py-10 xl:px-16 xl:py-12">
         <div
           aria-hidden="true"
-          className="pointer-events-none absolute -left-32 top-0 h-[28rem] w-[28rem] rounded-full opacity-90 md:top-1/2 md:-translate-y-1/2"
+          className="login-showcase-ambient-glow pointer-events-none absolute -left-40 top-0 h-[min(36rem,55vh)] w-[min(36rem,55vh)] rounded-full opacity-90 md:top-1/2 md:-translate-y-1/2"
           style={{
             background:
-              "radial-gradient(circle, color-mix(in srgb, var(--theme-accent) 22%, transparent) 0%, transparent 65%)",
-            filter: "blur(22px)",
+              "radial-gradient(circle, color-mix(in srgb, var(--theme-accent) 26%, transparent) 0%, transparent 68%)",
+            filter: "blur(28px)",
           }}
         />
 
-        <div className="relative flex min-h-0 w-full max-w-3xl flex-col gap-6 lg:max-w-4xl">
+        <div className="relative flex min-h-0 w-full max-w-[min(100%,52rem)] flex-col gap-8 lg:max-w-[min(100%,58rem)] xl:max-w-[min(100%,64rem)]">
           <BrandWordmarkLink className="block shrink-0" variant="on-dark" />
 
-          <div className="flex min-h-0 flex-row items-start gap-6 lg:gap-8">
+          <div className="flex min-h-0 flex-row items-start gap-8 lg:gap-10 xl:gap-12">
             <div className="min-w-0 flex-1">
               <h1 className="font-display text-[2.35rem] leading-[1.06] text-foreground lg:text-[2.75rem] xl:text-[2.95rem]">
                 Your website&apos;s<br />
@@ -150,7 +150,7 @@ export default async function AppLoginPage({
 
             <aside
               aria-label="Example score preview"
-              className="w-[11.25rem] shrink-0 border-l border-border/35 pl-4 lg:w-[12.25rem] lg:pl-5"
+              className="w-[min(100%,clamp(17.5rem,28vw,26rem))] shrink-0 border-l border-border/35 pl-6 lg:w-[min(100%,clamp(19rem,30vw,28rem))] lg:pl-8 xl:pl-10"
             >
               <LoginScoreShowcase variant="rail" />
               <p className="mt-2 text-[10px] uppercase tracking-[0.14em] text-muted">Example audit</p>
