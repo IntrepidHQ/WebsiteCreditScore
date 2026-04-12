@@ -11,16 +11,38 @@ export type LoginShowcasePayload = {
   title: string;
   hostDisplay: string;
   overallScore: number;
+  /** Primary rail categories shown beside the dial + bars. */
   breakdown: LoginShowcaseBreakdownItem[];
+  /** Remaining scored categories for the compact rail. */
+  secondaryBreakdown: LoginShowcaseBreakdownItem[];
   /** True when category rows came from a cached full report (not synthesized). */
   hasFullBreakdown: boolean;
 };
 
-const RAIL_CATEGORY_ORDER: AuditCategoryKey[] = [
+/** Keys surfaced in the dial + breakdown bars row. */
+export const LOGIN_SHOWCASE_PRIMARY_KEYS: AuditCategoryKey[] = [
   "visual-design",
   "ux-conversion",
   "mobile-experience",
   "trust-credibility",
+];
+
+/** Keys listed in the right-hand column (order matches typical audit depth). */
+export const LOGIN_SHOWCASE_SECONDARY_KEYS: AuditCategoryKey[] = [
+  "seo-readiness",
+  "accessibility",
+  "security-posture",
+];
+
+/** Angular order for the radar (seven axes). */
+export const LOGIN_SHOWCASE_RADAR_KEYS: AuditCategoryKey[] = [
+  "visual-design",
+  "ux-conversion",
+  "mobile-experience",
+  "seo-readiness",
+  "accessibility",
+  "trust-credibility",
+  "security-posture",
 ];
 
 const hashSeed = (input: string) => {
@@ -59,6 +81,32 @@ const approxBreakdownFromOverall = (
   });
 };
 
+const approxSecondaryFromOverall = (
+  overall: number,
+  seed: string,
+): LoginShowcaseBreakdownItem[] => {
+  const spec: Array<Pick<LoginShowcaseBreakdownItem, "key" | "label" | "weight">> = [
+    { key: "seo-readiness", label: "SEO readiness", weight: 1.0 },
+    { key: "accessibility", label: "Accessibility", weight: 1.0 },
+    { key: "security-posture", label: "Security posture", weight: 0.95 },
+  ];
+
+  let h = hashSeed(`${seed}:secondary`);
+
+  return spec.map((entry) => {
+    const jitter = (h & 15) / 10 - 0.8;
+    h = Math.imul(h, 48271) >>> 0;
+    const score = clampVisualScore(overall + jitter * 0.5);
+
+    return {
+      key: entry.key,
+      label: entry.label,
+      weight: entry.weight,
+      score,
+    };
+  });
+};
+
 const hostFromNormalizedUrl = (normalizedUrl: string) => {
   const trimmed = normalizedUrl.trim();
   const withProtocol = /^https?:\/\//i.test(trimmed) ? trimmed : `https://${trimmed}`;
@@ -77,7 +125,7 @@ const pickBreakdownFromReport = (
 ): LoginShowcaseBreakdownItem[] => {
   const approx = approxBreakdownFromOverall(overallScore, seed);
 
-  return RAIL_CATEGORY_ORDER.map((key, index) => {
+  return LOGIN_SHOWCASE_PRIMARY_KEYS.map((key, index) => {
     const row = categoryScores.find((entry) => entry.key === key);
     const fallback = approx[index]!;
 
@@ -94,11 +142,58 @@ const pickBreakdownFromReport = (
   });
 };
 
+const pickSecondaryFromReport = (
+  categoryScores: AuditCategoryScore[],
+  overallScore: number,
+  seed: string,
+): LoginShowcaseBreakdownItem[] => {
+  const approx = approxSecondaryFromOverall(overallScore, seed);
+
+  return LOGIN_SHOWCASE_SECONDARY_KEYS.map((key, index) => {
+    const row = categoryScores.find((entry) => entry.key === key);
+    const fallback = approx[index]!;
+
+    if (!row) {
+      return fallback;
+    }
+
+    return {
+      key: row.key,
+      label: row.label,
+      score: row.score,
+      weight: row.weight,
+    };
+  });
+};
+
+export const buildLoginShowcaseRadarItems = (
+  payload: LoginShowcasePayload,
+): Array<Pick<AuditCategoryScore, "key" | "label" | "score">> => {
+  const map = new Map<string, LoginShowcaseBreakdownItem>();
+  payload.breakdown.forEach((row) => map.set(row.key, row));
+  payload.secondaryBreakdown.forEach((row) => map.set(row.key, row));
+
+  return LOGIN_SHOWCASE_RADAR_KEYS.map((key) => {
+    const hit = map.get(key);
+
+    if (hit) {
+      return { key: hit.key, label: hit.label, score: hit.score };
+    }
+
+    return {
+      key,
+      label: key,
+      score: payload.overallScore,
+    };
+  });
+};
+
 const FALLBACK_SHOWCASE: LoginShowcasePayload = {
   title: "Live audit preview",
   hostDisplay: "websitecreditscore.com",
   overallScore: 6.4,
   breakdown: approxBreakdownFromOverall(6.4, "fallback"),
+  secondaryBreakdown: approxSecondaryFromOverall(6.4, "fallback"),
   hasFullBreakdown: false,
 };
 
@@ -139,7 +234,12 @@ export const resolveLoginShowcaseFromRecentScans = async (): Promise<LoginShowca
       report.overallScore,
       report.normalizedUrl,
     );
-    const missingAnyCategory = RAIL_CATEGORY_ORDER.some(
+    const secondaryBreakdown = pickSecondaryFromReport(
+      report.categoryScores,
+      report.overallScore,
+      report.normalizedUrl,
+    );
+    const missingAnyCategory = LOGIN_SHOWCASE_PRIMARY_KEYS.some(
       (key) => !report.categoryScores.some((entry) => entry.key === key),
     );
 
@@ -148,6 +248,7 @@ export const resolveLoginShowcaseFromRecentScans = async (): Promise<LoginShowca
       hostDisplay: hostFromNormalizedUrl(report.normalizedUrl),
       overallScore: report.overallScore,
       breakdown,
+      secondaryBreakdown,
       hasFullBreakdown: !missingAnyCategory,
     };
   }
@@ -159,6 +260,7 @@ export const resolveLoginShowcaseFromRecentScans = async (): Promise<LoginShowca
     hostDisplay: hostFromNormalizedUrl(scan.normalizedUrl),
     overallScore: scan.score,
     breakdown: approxBreakdownFromOverall(scan.score, scan.normalizedUrl),
+    secondaryBreakdown: approxSecondaryFromOverall(scan.score, scan.normalizedUrl),
     hasFullBreakdown: false,
   };
 };

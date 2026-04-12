@@ -1,5 +1,6 @@
 import { Suspense } from "react";
 import type { Metadata } from "next";
+import { Analytics } from "@vercel/analytics/next";
 import {
   DM_Sans,
   Instrument_Serif,
@@ -120,6 +121,7 @@ export default async function RootLayout({
             <ContactModal />
           </div>
         </ThemeStyleProvider>
+        <Analytics />
       </body>
     </html>
   );

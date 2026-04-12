@@ -79,8 +79,10 @@ function SettingRow({
   return (
     <div
       className={cn(
-        "grid gap-4 rounded-[calc(var(--theme-radius))] border border-border/70 bg-panel/60 p-4 lg:grid-cols-[minmax(0,0.8fr)_minmax(0,1.2fr)]",
-        surfaceFinish === "glassmorphic" && "theme-glass-surface border-border/35 bg-panel/15",
+        "grid gap-4 rounded-[calc(var(--theme-radius))] p-4 lg:grid-cols-[minmax(0,0.8fr)_minmax(0,1.2fr)]",
+        surfaceFinish === "glassmorphic"
+          ? "theme-glass-surface"
+          : "border border-border/70 bg-panel/60",
       )}
     >
       <div>
@@ -405,6 +407,106 @@ export function SettingsPanel() {
                 </TabsList>
 
                 <TabsContent className="space-y-4" value="appearance">
+                  <SettingRow
+                    titleId={accentLabelId}
+                    label="Accent color"
+                    description="Pick a swatch or enter a hex. Contrast readouts update live for body text and CTA labels."
+                  >
+                    <div className="space-y-4">
+                      <div className="flex flex-wrap gap-2" role="group" aria-label="Accent swatches">
+                        {ACCENT_SWATCHES.map((hex) => (
+                          <button
+                            aria-label={`Use accent ${hex}`}
+                            aria-pressed={tokens.accentColor.toLowerCase() === hex.toLowerCase()}
+                            className={cn(
+                              "size-9 rounded-full border-2 transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:ring-offset-background",
+                              tokens.accentColor.toLowerCase() === hex.toLowerCase()
+                                ? "border-foreground scale-105"
+                                : "border-transparent hover:scale-105",
+                            )}
+                            key={hex}
+                            onClick={() => setAccentColor(hex)}
+                            style={{ backgroundColor: hex }}
+                            type="button"
+                          />
+                        ))}
+                      </div>
+                      <div className="flex flex-wrap items-end gap-3">
+                        <label className="grid gap-1 text-xs font-medium text-muted">
+                          Hex
+                          <Input
+                            key={tokens.accentColor}
+                            aria-labelledby={accentLabelId}
+                            autoComplete="off"
+                            className="max-w-[8.5rem] font-mono text-sm"
+                            defaultValue={tokens.accentColor}
+                            onBlur={(e) => {
+                              const next = normalizeHex(e.target.value);
+                              if (isValidHex(next)) {
+                                setAccentColor(next);
+                              }
+                            }}
+                            onKeyDown={(e) => {
+                              if (e.key === "Enter") {
+                                e.currentTarget.blur();
+                              }
+                            }}
+                            spellCheck={false}
+                          />
+                        </label>
+                        <div className="flex items-center gap-2 pb-0.5">
+                          <Input
+                            aria-label="Accent color picker"
+                            className="h-10 w-14 cursor-pointer p-1"
+                            onChange={(event) => setAccentColor(event.target.value)}
+                            type="color"
+                            value={tokens.accentColor}
+                          />
+                          <span className="text-sm text-muted">{tokens.accentColor}</span>
+                        </div>
+                      </div>
+                      <div className="rounded-lg border border-border/60 bg-background-alt/50 px-3 py-2 text-xs text-muted">
+                        <span className="font-medium text-foreground">Contrast: </span>
+                        Body {contrast.foregroundOnBackground.toFixed(2)}:1 · Accent button{" "}
+                        {contrast.accentOnAccentForeground.toFixed(2)}:1
+                        {contrast.accentOnAccentForeground < 4.5 ? (
+                          <span className="text-warning"> — consider a deeper accent for small text on buttons.</span>
+                        ) : null}
+                      </div>
+                    </div>
+                  </SettingRow>
+
+                  <SettingRow
+                    titleId={accentHueLabelId}
+                    label="Accent hue shift"
+                    description="Nudge generated surfaces (background wash, panels, glow) without changing your saved brand hex. Picking a new swatch or hex resets this to 0°."
+                  >
+                    <div className="flex flex-wrap items-center gap-4">
+                      <Slider
+                        aria-labelledby={accentHueLabelId}
+                        className="max-w-md flex-1"
+                        max={24}
+                        min={-24}
+                        onValueChange={(value) => setAccentHueShift(value[0] ?? 0)}
+                        step={1}
+                        value={[tokens.accentHueShift]}
+                      />
+                      <div className="flex items-center gap-2 text-sm text-muted">
+                        <span
+                          aria-hidden="true"
+                          className="size-8 rounded-full border border-border/60"
+                          style={{
+                            backgroundColor: rotateHexHue(tokens.accentColor, tokens.accentHueShift),
+                          }}
+                        />
+                        <span className="font-mono text-xs text-foreground">
+                          {tokens.accentHueShift > 0 ? "+" : ""}
+                          {tokens.accentHueShift}°
+                        </span>
+                      </div>
+                    </div>
+                  </SettingRow>
+
                   <div className="space-y-6">
                     <div className="rounded-[calc(var(--theme-radius))] border border-border/70 bg-panel/40 p-4">
                       <div className="space-y-4">
@@ -659,106 +761,6 @@ export function SettingsPanel() {
                           {m === "dark" ? "Dark" : "Light"}
                         </button>
                       ))}
-                    </div>
-                  </SettingRow>
-
-                  <SettingRow
-                    titleId={accentLabelId}
-                    label="Accent color"
-                    description="Swatches for quick picks; hex field for exact brand colors. Contrast targets: text on background and CTA label on accent."
-                  >
-                    <div className="space-y-4">
-                      <div className="flex flex-wrap gap-2" role="group" aria-label="Accent swatches">
-                        {ACCENT_SWATCHES.map((hex) => (
-                          <button
-                            aria-label={`Use accent ${hex}`}
-                            aria-pressed={tokens.accentColor.toLowerCase() === hex.toLowerCase()}
-                            className={cn(
-                              "size-9 rounded-full border-2 transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:ring-offset-background",
-                              tokens.accentColor.toLowerCase() === hex.toLowerCase()
-                                ? "border-foreground scale-105"
-                                : "border-transparent hover:scale-105",
-                            )}
-                            key={hex}
-                            onClick={() => setAccentColor(hex)}
-                            style={{ backgroundColor: hex }}
-                            type="button"
-                          />
-                        ))}
-                      </div>
-                      <div className="flex flex-wrap items-end gap-3">
-                        <label className="grid gap-1 text-xs font-medium text-muted">
-                          Hex
-                          <Input
-                            key={tokens.accentColor}
-                            aria-labelledby={accentLabelId}
-                            autoComplete="off"
-                            className="max-w-[8.5rem] font-mono text-sm"
-                            defaultValue={tokens.accentColor}
-                            onBlur={(e) => {
-                              const next = normalizeHex(e.target.value);
-                              if (isValidHex(next)) {
-                                setAccentColor(next);
-                              }
-                            }}
-                            onKeyDown={(e) => {
-                              if (e.key === "Enter") {
-                                e.currentTarget.blur();
-                              }
-                            }}
-                            spellCheck={false}
-                          />
-                        </label>
-                        <div className="flex items-center gap-2 pb-0.5">
-                          <Input
-                            aria-label="Accent color picker"
-                            className="h-10 w-14 cursor-pointer p-1"
-                            onChange={(event) => setAccentColor(event.target.value)}
-                            type="color"
-                            value={tokens.accentColor}
-                          />
-                          <span className="text-sm text-muted">{tokens.accentColor}</span>
-                        </div>
-                      </div>
-                      <div className="rounded-lg border border-border/60 bg-background-alt/50 px-3 py-2 text-xs text-muted">
-                        <span className="font-medium text-foreground">Contrast: </span>
-                        Body {contrast.foregroundOnBackground.toFixed(2)}:1 · Accent button{" "}
-                        {contrast.accentOnAccentForeground.toFixed(2)}:1
-                        {contrast.accentOnAccentForeground < 4.5 ? (
-                          <span className="text-warning"> — consider a deeper accent for small text on buttons.</span>
-                        ) : null}
-                      </div>
-                    </div>
-                  </SettingRow>
-
-                  <SettingRow
-                    titleId={accentHueLabelId}
-                    label="Accent hue shift"
-                    description="Nudge the generated surfaces (background wash, panels, glow) without changing your saved brand hex. Picking a new swatch or hex resets this to 0°."
-                  >
-                    <div className="flex flex-wrap items-center gap-4">
-                      <Slider
-                        aria-labelledby={accentHueLabelId}
-                        className="max-w-md flex-1"
-                        max={24}
-                        min={-24}
-                        onValueChange={(value) => setAccentHueShift(value[0] ?? 0)}
-                        step={1}
-                        value={[tokens.accentHueShift]}
-                      />
-                      <div className="flex items-center gap-2 text-sm text-muted">
-                        <span
-                          aria-hidden="true"
-                          className="size-8 rounded-full border border-border/60"
-                          style={{
-                            backgroundColor: rotateHexHue(tokens.accentColor, tokens.accentHueShift),
-                          }}
-                        />
-                        <span className="font-mono text-xs text-foreground">
-                          {tokens.accentHueShift > 0 ? "+" : ""}
-                          {tokens.accentHueShift}°
-                        </span>
-                      </div>
                     </div>
                   </SettingRow>
                 </TabsContent>
