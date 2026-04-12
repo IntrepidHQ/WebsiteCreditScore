@@ -17,10 +17,13 @@ export function ScoreRadar({
   items,
   centerLabel,
   className,
+  showCategoryGrid = true,
 }: {
   items: RadarItem[];
   centerLabel: string;
   className?: string;
+  /** When false, only the chart + header row render (e.g. login hero). */
+  showCategoryGrid?: boolean;
 }) {
   const { reduceMotion } = useMotionSettings();
   const [progress, setProgress] = useState(0);
@@ -104,7 +107,7 @@ export function ScoreRadar({
         <Badge variant="neutral">Average {animatedAverage.toFixed(1)}</Badge>
       </div>
 
-      <div className="space-y-5">
+      <div className={cn(showCategoryGrid ? "space-y-5" : "space-y-0")}>
         <div className="relative">
           {activeItem && activeTooltip ? (
             <div
@@ -260,42 +263,44 @@ export function ScoreRadar({
           </svg>
         </div>
 
-        <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
-          {items.map((item) => {
-            const Icon = scoreCategoryIcons[item.key];
-            const color = scoreCategoryPalette[item.key];
+        {showCategoryGrid ? (
+          <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
+            {items.map((item) => {
+              const Icon = scoreCategoryIcons[item.key];
+              const color = scoreCategoryPalette[item.key];
 
-            return (
-              <div
-                className="rounded-[16px] border border-border/60 bg-background/35 px-4 py-3"
-                key={item.key}
-              >
-                <div className="flex items-start justify-between gap-3">
-                  <div className="min-w-0">
-                    <div className="flex items-center gap-3">
-                      <span
-                        className="inline-flex size-9 shrink-0 items-center justify-center rounded-full border"
-                        style={{
-                          backgroundColor: `${color}1f`,
-                          borderColor: `${color}55`,
-                          color,
-                        }}
-                      >
-                        <Icon className="size-4" />
-                      </span>
+              return (
+                <div
+                  className="rounded-[16px] border border-border/60 bg-background/35 px-4 py-3"
+                  key={item.key}
+                >
+                  <div className="flex items-start justify-between gap-3">
+                    <div className="min-w-0">
+                      <div className="flex items-center gap-3">
+                        <span
+                          className="inline-flex size-9 shrink-0 items-center justify-center rounded-full border"
+                          style={{
+                            backgroundColor: `${color}1f`,
+                            borderColor: `${color}55`,
+                            color,
+                          }}
+                        >
+                          <Icon className="size-4" />
+                        </span>
+                      </div>
+                      <h3 className="mt-3 text-[1rem] font-semibold leading-6 text-foreground">
+                        {item.label}
+                      </h3>
                     </div>
-                    <h3 className="mt-3 text-[1rem] font-semibold leading-6 text-foreground">
-                      {item.label}
-                    </h3>
+                    <p className="shrink-0 text-sm font-semibold" style={{ color }}>
+                      {item.score.toFixed(1)}
+                    </p>
                   </div>
-                  <p className="shrink-0 text-sm font-semibold" style={{ color }}>
-                    {item.score.toFixed(1)}
-                  </p>
                 </div>
-              </div>
-            );
-          })}
-        </div>
+              );
+            })}
+          </div>
+        ) : null}
       </div>
     </div>
   );

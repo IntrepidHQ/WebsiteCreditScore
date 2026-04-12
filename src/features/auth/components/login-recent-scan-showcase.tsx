@@ -1,5 +1,6 @@
 "use client";
 
+import dynamic from "next/dynamic";
 import type { LucideIcon } from "lucide-react";
 import {
   Eye,
@@ -12,8 +13,8 @@ import {
 } from "lucide-react";
 import { useMemo } from "react";
 
-import { ScoreDial } from "@/components/common/score-dial";
 import {
+  buildLoginShowcaseRadarItems,
   LOGIN_SHOWCASE_RADAR_KEYS,
   type LoginShowcaseBreakdownItem,
   type LoginShowcasePayload,
@@ -22,6 +23,11 @@ import { useMotionSettings } from "@/hooks/use-motion-settings";
 import type { AuditCategoryKey } from "@/lib/types/audit";
 import { cn } from "@/lib/utils/cn";
 import { getScoreBand } from "@/lib/utils/scores";
+
+const ScoreRadar = dynamic(
+  () => import("@/components/common/score-radar").then((m) => m.ScoreRadar),
+  { ssr: false },
+);
 
 const CATEGORY_ICON: Record<AuditCategoryKey, LucideIcon> = {
   "visual-design": Palette,
@@ -112,6 +118,27 @@ const buildOrderedBreakdown = (showcase: LoginShowcasePayload): LoginShowcaseBre
   });
 };
 
+export const LoginShowcaseRadarHero = ({
+  showcase,
+  className,
+}: {
+  showcase: LoginShowcasePayload;
+  className?: string;
+}) => {
+  const radarItems = useMemo(() => buildLoginShowcaseRadarItems(showcase), [showcase]);
+
+  return (
+    <div className={cn("w-full min-w-0", className)}>
+      <ScoreRadar
+        centerLabel="Current score"
+        className="border border-border/55 bg-[linear-gradient(180deg,color-mix(in_srgb,var(--theme-panel)_92%,#ffffff_3%)_0%,color-mix(in_srgb,var(--theme-panel)_86%,var(--theme-background-alt)_14%)_100%)] shadow-[inset_0_1px_0_rgba(255,255,255,0.1),0_18px_48px_rgba(0,0,0,0.2)]"
+        items={radarItems}
+        showCategoryGrid={false}
+      />
+    </div>
+  );
+};
+
 const chunkPairs = <T,>(items: T[]): Array<[T, T | undefined]> => {
   const out: Array<[T, T | undefined]> = [];
 
@@ -187,21 +214,12 @@ export const LoginRecentScanShowcase = ({
 }) => {
   return (
     <div className={cn("flex w-full min-w-0 flex-col gap-5", className)}>
-      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between sm:gap-6">
-        <div className="min-w-0">
-          <p className="text-[10px] font-semibold uppercase tracking-[0.14em] text-muted">Recent public scan</p>
-          <p className="mt-0.5 truncate text-sm font-semibold text-foreground" title={showcase.title}>
-            {showcase.title}
-          </p>
-          <p className="truncate text-xs text-muted">{showcase.hostDisplay}</p>
-        </div>
-
-        <ScoreDial
-          className="w-full max-w-[220px] shrink-0 self-start rounded-2xl border border-border/50 bg-panel/25 p-3 shadow-[0_16px_44px_rgba(0,0,0,0.22)] sm:max-w-[240px] sm:self-center sm:p-3.5"
-          label="Overall"
-          score={showcase.overallScore}
-          showFooter={false}
-        />
+      <div className="min-w-0">
+        <p className="text-[10px] font-semibold uppercase tracking-[0.14em] text-muted">Recent public scan</p>
+        <p className="mt-0.5 truncate text-sm font-semibold text-foreground" title={showcase.title}>
+          {showcase.title}
+        </p>
+        <p className="truncate text-xs text-muted">{showcase.hostDisplay}</p>
       </div>
 
       <LoginBreakdownRoulette showcase={showcase} />

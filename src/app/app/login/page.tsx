@@ -11,10 +11,13 @@ import { isDemoWorkspaceAllowed } from "@/lib/auth/demo-flag";
 import { getOptionalWorkspaceSession, sanitizeInternalNextPath } from "@/lib/auth/session";
 import { hasSupabaseEnv } from "@/lib/supabase/config";
 
-import { LoginRecentScanShowcase } from "@/features/auth/components/login-recent-scan-showcase";
+import {
+  LoginRecentScanShowcase,
+  LoginShowcaseRadarHero,
+} from "@/features/auth/components/login-recent-scan-showcase";
 import { resolveLoginShowcaseFromRecentScans } from "@/features/auth/lib/resolve-login-showcase";
 
-import { BrandWordmarkLink } from "@/components/common/brand-wordmark-link";
+import { BrandWordmarkLinkThemed } from "@/components/common/brand-wordmark-link-themed";
 
 import { LoginSupabaseEnvBanner } from "./login-supabase-env-banner";
 
@@ -121,7 +124,9 @@ export default async function AppLoginPage({
         />
 
         <div className="relative flex min-h-0 w-full max-w-[min(100%,52rem)] flex-col gap-8 lg:max-w-[min(100%,58rem)] xl:max-w-[min(100%,64rem)]">
-          <BrandWordmarkLink className="block shrink-0" variant="on-dark" />
+          <BrandWordmarkLinkThemed className="block shrink-0" />
+
+          <LoginShowcaseRadarHero showcase={loginShowcase} />
 
           <div className="flex min-h-0 min-w-0 flex-col gap-8 lg:gap-10">
             <div className="min-w-0">
@@ -161,11 +166,12 @@ export default async function AppLoginPage({
       {/* ── Right: Form panel (fixed width on md+ — avoid flex-1 or the column eats half the viewport) ── */}
       <div className="flex min-h-0 w-full flex-1 flex-col justify-center px-5 py-8 sm:px-6 md:h-full md:max-h-[100dvh] md:w-[19rem] md:flex-none md:shrink-0 md:overflow-y-auto md:border-l md:border-border/60 md:px-5 lg:w-[20rem] lg:px-6">
         <LoginSupabaseEnvBanner />
-        <BrandWordmarkLink className="mb-6 hidden md:block" variant="on-dark" />
+        <BrandWordmarkLinkThemed className="mb-6 hidden md:block" />
 
         <div className="mx-auto w-full max-w-md md:mx-0 md:max-w-none">
           <div className="mb-8 space-y-4 md:hidden">
-            <BrandWordmarkLink className="block" variant="on-dark" />
+            <BrandWordmarkLinkThemed className="block" />
+            <LoginShowcaseRadarHero showcase={loginShowcase} />
             <div>
               <h1 className="font-display text-[2.1rem] leading-[1.08] text-foreground">
                 Your website&apos;s<br />
