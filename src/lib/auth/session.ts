@@ -7,6 +7,7 @@ import type { WorkspaceSession } from "@/lib/types/product";
 import { isDemoWorkspaceAllowed } from "@/lib/auth/demo-flag";
 import { hasSupabaseEnv } from "@/lib/supabase/config";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
+import { createSupabaseServerClientForRoute } from "@/lib/supabase/server-route";
 
 export const DEMO_SESSION_COOKIE = "craydl-demo-session";
 
@@ -102,6 +103,61 @@ export const sanitizeInternalNextPath = (next: string | null | undefined, fallba
   }
 
   return trimmed;
+};
+
+/**
+ * Resolve the signed-in workspace session from an incoming **Route Handler** `Request`.
+ * Prefer this over `getOptionalWorkspaceSession()` in `POST`/`GET` handlers so the raw
+ * `Cookie` header wins over a sometimes-incomplete `cookies()` store (fixes client `fetch`
+ * appearing “logged out” while RSC pages show the shell).
+ */
+export const getOptionalWorkspaceSessionFromRequest = async (
+  request: Request,
+): Promise<WorkspaceSession | null> => {
+  if (hasSupabaseEnv()) {
+    try {
+      const supabase = await createSupabaseServerClientForRoute(request);
+      const user = await resolveSupabaseSessionUser(supabase);
+
+      if (user?.id) {
+        return workspaceSessionFromSupabaseUser(user);
+      }
+
+      const cookieStore = await cookies();
+      const hasDemoSession = cookieStore.get(DEMO_SESSION_COOKIE)?.value === "owner";
+
+      if (hasDemoSession && isDemoWorkspaceAllowed()) {
+        return {
+          mode: "demo",
+          userId: "demo-owner",
+          email: "",
+          name: "Demo workspace",
+        };
+      }
+
+      return null;
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : String(err);
+      if (!msg.includes("Dynamic server usage")) {
+        console.error("[auth] Supabase session error (route):", err);
+      }
+      return null;
+    }
+  }
+
+  const cookieStore = await cookies();
+  const hasDemoSession = cookieStore.get(DEMO_SESSION_COOKIE)?.value === "owner";
+
+  if (!hasDemoSession) {
+    return null;
+  }
+
+  return {
+    mode: "demo",
+    userId: "demo-owner",
+    email: "",
+    name: "Demo workspace",
+  };
 };
 
 export const getOptionalWorkspaceSession = async (): Promise<WorkspaceSession | null> => {

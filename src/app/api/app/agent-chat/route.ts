@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 
 import { getAnthropicClient } from "@/lib/ai/client";
 import { selectModel } from "@/lib/ai/select-model";
-import { getOptionalWorkspaceSession } from "@/lib/auth/session";
+import { getOptionalWorkspaceSessionFromRequest } from "@/lib/auth/session";
 import { workspaceHasMaxAccess } from "@/lib/billing/max-access";
 import { getProductRepository } from "@/lib/product/repository";
 
@@ -60,7 +60,7 @@ const buildReportContextBlock = (ctx: ReportContextPayload) => {
 };
 
 export async function POST(request: Request) {
-  const session = await getOptionalWorkspaceSession();
+  const session = await getOptionalWorkspaceSessionFromRequest(request);
   if (!session) {
     return NextResponse.json({ error: "Sign in required." }, { status: 401 });
   }

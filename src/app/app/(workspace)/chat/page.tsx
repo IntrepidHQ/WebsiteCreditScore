@@ -43,7 +43,7 @@ export default async function WorkspaceChatPage() {
           saved report when available.
         </p>
       </div>
-      <AgentChatPanel reportContext={reportContext} />
+      <AgentChatPanel layout="standalone" reportContext={reportContext} />
     </div>
   );
 }

@@ -40,6 +40,7 @@ export function ScanLoadingOverlay({
   mode = "landing",
 }: ScanLoadingOverlayProps) {
   const { reduceMotion } = useMotionSettings();
+  const barRefs = useRef<Array<HTMLDivElement | null>>([]);
   const radius = 64;
   const size = 168;
   const strokeWidth = 11;
@@ -144,6 +145,37 @@ export function ScanLoadingOverlay({
     return () => gsap.killTweensOf(counter);
   }, [active, mode, reduceMotion, scanDataReady]);
 
+  useEffect(() => {
+    if (!active || reduceMotion) {
+      return;
+    }
+
+    const nodes = barRefs.current.filter(Boolean) as HTMLDivElement[];
+    if (!nodes.length) {
+      return;
+    }
+
+    gsap.killTweensOf(nodes);
+    gsap.set(nodes, { width: "7%" });
+
+    const tl = gsap.timeline({ repeat: -1, defaults: { ease: "sine.inOut" } });
+    tl.to(nodes, {
+      width: "52%",
+      duration: 1.35,
+      stagger: 0.1,
+    }).to(nodes, {
+      width: "28%",
+      duration: 1.55,
+      stagger: 0.12,
+    });
+
+    return () => {
+      tl.kill();
+      gsap.killTweensOf(nodes);
+      gsap.set(nodes, { clearProps: "width" });
+    };
+  }, [active, reduceMotion]);
+
   if (!active) {
     return null;
   }
@@ -205,7 +237,7 @@ export function ScanLoadingOverlay({
         </div>
 
         <div className="mt-8 space-y-3">
-          {skeletonCategories.map((row) => (
+          {skeletonCategories.map((row, index) => (
             <div className="space-y-1.5" key={row.key}>
               <div className="flex items-center justify-between text-[11px] font-medium uppercase tracking-[0.12em] text-muted">
                 <span>{row.label}</span>
@@ -213,11 +245,19 @@ export function ScanLoadingOverlay({
               </div>
               <div className="h-2.5 overflow-hidden rounded-full bg-background/40">
                 <div
-                  className={cn(
-                    "h-full rounded-full bg-[linear-gradient(90deg,rgba(247,178,27,0.95),rgba(247,178,27,0.35))]",
-                    reduceMotion ? "w-[55%]" : "w-[45%] animate-pulse",
-                  )}
-                />
+                  className={cn("h-full min-w-0 overflow-hidden rounded-full", !reduceMotion && "will-change-[width]")}
+                  ref={(node) => {
+                    barRefs.current[index] = node;
+                  }}
+                  style={{ width: reduceMotion ? "52%" : "7%" }}
+                >
+                  <div
+                    className={cn(
+                      "h-full w-full rounded-full bg-[linear-gradient(90deg,rgba(247,178,27,0.95),rgba(247,178,27,0.42),rgba(247,178,27,0.18))]",
+                      !reduceMotion && "scan-bar-fill-animated",
+                    )}
+                  />
+                </div>
               </div>
             </div>
           ))}

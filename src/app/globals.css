@@ -64,6 +64,20 @@ html {
   scroll-behavior: smooth;
 }
 
+@keyframes scan-bar-shimmer {
+  0% {
+    background-position: 0% 50%;
+  }
+  100% {
+    background-position: 200% 50%;
+  }
+}
+
+.scan-bar-fill-animated {
+  background-size: 220% 100%;
+  animation: scan-bar-shimmer 2.6s linear infinite;
+}
+
 .font-display,
 .font-headline {
   font-family: var(--theme-font-display-stack) !important;
