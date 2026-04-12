@@ -12,9 +12,10 @@ import { getOptionalWorkspaceSession, sanitizeInternalNextPath } from "@/lib/aut
 import { hasSupabaseEnv } from "@/lib/supabase/config";
 
 import {
-  LoginRecentScanShowcase,
-  LoginShowcaseRadarHero,
+  LoginGraphicsColumn,
+  LoginScanMetaFooter,
 } from "@/features/auth/components/login-recent-scan-showcase";
+import { LoginMarketingColumn } from "@/features/auth/components/login-marketing-column";
 import { resolveLoginShowcaseFromRecentScans } from "@/features/auth/lib/resolve-login-showcase";
 
 import { BrandWordmarkLinkThemed } from "@/components/common/brand-wordmark-link-themed";
@@ -110,95 +111,43 @@ export default async function AppLoginPage({
   })();
 
   return (
-    <div className="flex min-h-screen flex-col md:h-[100dvh] md:flex-row md:overflow-hidden">
-      {/* ── Left: Brand + copy + compact score rail (desktop) ── */}
-      <div className="relative hidden min-h-0 md:flex md:min-w-0 md:flex-1 md:flex-col md:justify-center md:overflow-y-auto md:bg-background md:px-8 md:py-8 lg:px-12 lg:py-10 xl:px-16 xl:py-12">
+    <div className="relative isolate flex min-h-screen flex-col gap-6 bg-background px-5 py-6 sm:px-6 md:h-[100dvh] md:min-h-0 md:grid md:grid-cols-[minmax(15rem,24vw)_minmax(0,1fr)_minmax(16.5rem,23rem)] md:grid-rows-[auto_minmax(0,1fr)] md:gap-0 md:overflow-hidden md:px-0 md:py-0">
+      {/* ── Auth header (wordmark + env): column 3 row 1 on desktop; first on mobile ── */}
+      <header className="order-1 shrink-0 border-b border-border/50 pb-5 sm:pb-6 md:order-none md:col-start-3 md:row-start-1 md:border-b md:border-border/55 md:px-6 md:pb-6 md:pt-8 lg:px-8">
+        <LoginSupabaseEnvBanner />
+        <BrandWordmarkLinkThemed className="mt-4 block shrink-0 md:mt-5" />
+      </header>
+
+      {/* ── Marketing copy: column 1 row 1 on desktop ── */}
+      <aside className="order-2 min-w-0 md:order-none md:col-start-1 md:row-start-1 md:flex md:min-h-0 md:flex-col md:justify-center md:border-r md:border-border/55 md:px-7 md:py-10 lg:px-9 xl:px-11">
+        <LoginMarketingColumn features={features} />
+      </aside>
+
+      {/* ── Graphics (radar + editorial + horizontal roulette): column 2, spans both rows ── */}
+      <section
+        aria-label="Live audit preview"
+        className="relative order-3 min-h-0 overflow-x-clip md:order-none md:col-start-2 md:row-span-2 md:row-start-1 md:min-h-0 md:overflow-y-auto md:border-r md:border-border/55 md:px-8 md:py-10 lg:px-10 xl:px-12"
+      >
         <div
           aria-hidden="true"
-          className="login-showcase-ambient-glow pointer-events-none absolute -left-40 top-0 h-[min(36rem,55vh)] w-[min(36rem,55vh)] rounded-full opacity-90 md:top-1/2 md:-translate-y-1/2"
+          className="login-showcase-ambient-glow pointer-events-none absolute left-1/2 top-1/2 hidden h-[min(34rem,58vh)] w-[min(34rem,58vh)] -translate-x-1/2 -translate-y-1/2 rounded-full opacity-90 md:block"
           style={{
             background:
               "radial-gradient(circle, color-mix(in srgb, var(--theme-accent) 26%, transparent) 0%, transparent 68%)",
             filter: "blur(28px)",
           }}
         />
+        <LoginGraphicsColumn className="relative" showcase={loginShowcase} />
+      </section>
 
-        <div className="relative flex min-h-0 w-full max-w-[min(100%,52rem)] flex-col gap-8 lg:max-w-[min(100%,58rem)] xl:max-w-[min(100%,64rem)]">
-          <BrandWordmarkLinkThemed className="block shrink-0" />
-
-          <LoginShowcaseRadarHero showcase={loginShowcase} />
-
-          <div className="flex min-h-0 min-w-0 flex-col gap-8 lg:gap-10">
-            <div className="min-w-0">
-              <h1 className="font-display text-[2.35rem] leading-[1.06] text-foreground lg:text-[2.75rem] xl:text-[2.95rem]">
-                Your website&apos;s<br />
-                <span className="gradient-type">credit score,</span>
-                <br />
-                starts here.
-              </h1>
-
-              <p className="mt-3 max-w-xl text-sm leading-6 text-muted lg:mt-4 lg:text-[0.95rem] lg:leading-7">
-                Audit any site in seconds. See exactly what&apos;s holding back the score — and what to fix
-                first.
-              </p>
-
-              <ul className="mt-4 space-y-1.5 lg:mt-5 lg:space-y-2">
-                {features.map((f) => (
-                  <li className="flex items-center gap-2.5" key={f}>
-                    <span className="flex h-4 w-4 shrink-0 items-center justify-center rounded-full border border-border/45 bg-[color-mix(in_srgb,var(--theme-accent)_16%,var(--theme-panel))]">
-                      <Check className="size-2.5 text-foreground" strokeWidth={2.5} />
-                    </span>
-                    <span className="text-xs leading-snug text-muted lg:text-[0.8125rem] lg:leading-relaxed">
-                      {f}
-                    </span>
-                  </li>
-                ))}
-              </ul>
-            </div>
-
-            <section aria-label="Recent public scan preview" className="min-w-0">
-              <LoginRecentScanShowcase showcase={loginShowcase} />
-            </section>
-          </div>
-        </div>
+      {/* ── Scan meta: column 1 row 2 (desktop), after graphics on mobile ── */}
+      <div className="order-4 md:order-none md:col-start-1 md:row-start-2 md:self-end md:border-r md:border-border/55 md:px-7 md:pb-10 md:pt-2 lg:px-9 xl:px-11">
+        <LoginScanMetaFooter showcase={loginShowcase} />
       </div>
 
-      {/* ── Right: Form panel (fixed width on md+ — avoid flex-1 or the column eats half the viewport) ── */}
-      <div className="flex min-h-0 w-full flex-1 flex-col justify-center px-5 py-8 sm:px-6 md:h-full md:max-h-[100dvh] md:w-[19rem] md:flex-none md:shrink-0 md:overflow-y-auto md:border-l md:border-border/60 md:px-5 lg:w-[20rem] lg:px-6">
-        <LoginSupabaseEnvBanner />
-        <BrandWordmarkLinkThemed className="mb-6 hidden md:block" />
-
-        <div className="mx-auto w-full max-w-md md:mx-0 md:max-w-none">
-          <div className="mb-8 space-y-4 md:hidden">
-            <BrandWordmarkLinkThemed className="block" />
-            <LoginShowcaseRadarHero showcase={loginShowcase} />
-            <div>
-              <h1 className="font-display text-[2.1rem] leading-[1.08] text-foreground">
-                Your website&apos;s<br />
-                <span className="gradient-type">credit score,</span>
-                <br />
-                starts here.
-              </h1>
-              <p className="mt-3 text-sm leading-6 text-muted">
-                Audit any site in seconds. See exactly what&apos;s holding back the score — and what to fix
-                first.
-              </p>
-              <ul className="mt-4 space-y-1.5">
-                {features.map((f) => (
-                  <li className="flex items-center gap-2.5" key={f}>
-                    <span className="flex h-4 w-4 shrink-0 items-center justify-center rounded-full border border-border/45 bg-[color-mix(in_srgb,var(--theme-accent)_16%,var(--theme-panel))]">
-                      <Check className="size-2.5 text-foreground" strokeWidth={2.5} />
-                    </span>
-                    <span className="text-xs leading-snug text-muted">{f}</span>
-                  </li>
-                ))}
-              </ul>
-              <div className="mt-6">
-                <LoginRecentScanShowcase showcase={loginShowcase} />
-              </div>
-            </div>
-          </div>
-
+      {/* ── Form: column 3 row 2 on desktop ── */}
+      <div className="order-5 min-h-0 md:order-none md:col-start-3 md:row-start-2 md:flex md:min-h-0 md:flex-col md:overflow-y-auto md:px-6 md:pb-10 md:pt-2 lg:px-8">
+        <div className="mx-auto w-full max-w-md min-h-0 flex-1 md:mx-0 md:max-w-none">
           <div className="w-full min-w-0 md:max-w-[16.75rem] md:self-start">
         {sentConfirm ? (
           <div className="space-y-4">

@@ -50,14 +50,21 @@ const bandPillClassName: Record<
   danger: "border-danger/35 bg-danger/12 text-foreground",
 };
 
-const LoginBreakdownCard = ({ item }: { item: LoginShowcaseBreakdownItem }) => {
+const LoginBreakdownCard = ({
+  item,
+  className,
+}: {
+  item: LoginShowcaseBreakdownItem;
+  className?: string;
+}) => {
   const Icon = CATEGORY_ICON[item.key as AuditCategoryKey] ?? Palette;
   const band = getScoreBand(item.score);
 
   return (
     <article
       className={cn(
-        "flex min-h-[7.5rem] flex-col justify-between rounded-2xl border border-t-[color-mix(in_srgb,var(--theme-border)_38%,#ffffff_42%)] border-r-[color-mix(in_srgb,var(--theme-border)_72%,#000000_38%)] border-b-[color-mix(in_srgb,var(--theme-border)_62%,#000000_48%)] border-l-[color-mix(in_srgb,var(--theme-border)_72%,#000000_38%)] bg-[linear-gradient(180deg,color-mix(in_srgb,var(--theme-panel)_92%,#ffffff_4%)_0%,color-mix(in_srgb,var(--theme-panel)_88%,var(--theme-background-alt)_12%)_100%)] p-3 shadow-[inset_0_1px_0_rgba(255,255,255,0.12),0_14px_34px_rgba(0,0,0,0.22)] sm:min-h-[7.75rem] sm:p-3.5",
+        "flex min-h-[6.75rem] w-[min(100%,240px)] shrink-0 flex-col justify-between rounded-2xl border border-t-[color-mix(in_srgb,var(--theme-border)_38%,#ffffff_42%)] border-r-[color-mix(in_srgb,var(--theme-border)_72%,#000000_38%)] border-b-[color-mix(in_srgb,var(--theme-border)_62%,#000000_48%)] border-l-[color-mix(in_srgb,var(--theme-border)_72%,#000000_38%)] bg-[linear-gradient(180deg,color-mix(in_srgb,var(--theme-panel)_92%,#ffffff_4%)_0%,color-mix(in_srgb,var(--theme-panel)_88%,var(--theme-background-alt)_12%)_100%)] p-3 shadow-[inset_0_1px_0_rgba(255,255,255,0.12),0_14px_34px_rgba(0,0,0,0.22)] sm:min-h-[7.25rem] sm:w-[260px] sm:p-3.5",
+        className,
       )}
     >
       <div className="flex items-start justify-between gap-2">
@@ -139,28 +146,14 @@ export const LoginShowcaseRadarHero = ({
   );
 };
 
-const chunkPairs = <T,>(items: T[]): Array<[T, T | undefined]> => {
-  const out: Array<[T, T | undefined]> = [];
-
-  for (let i = 0; i < items.length; i += 2) {
-    out.push([items[i], items[i + 1]]);
-  }
-
-  return out;
-};
-
-const LoginBreakdownRoulette = ({ showcase }: { showcase: LoginShowcasePayload }) => {
+const LoginBreakdownRouletteHorizontal = ({ showcase }: { showcase: LoginShowcasePayload }) => {
   const { reduceMotion } = useMotionSettings();
   const ordered = useMemo(() => buildOrderedBreakdown(showcase), [showcase]);
-  const pairs = useMemo(() => chunkPairs(ordered), [ordered]);
 
-  const track = (
-    <div className="flex w-full flex-col gap-3 sm:gap-3.5">
-      {pairs.map(([left, right], idx) => (
-        <div className="grid grid-cols-2 gap-3 sm:gap-4" key={`row-${idx}`}>
-          <LoginBreakdownCard item={left} />
-          {right ? <LoginBreakdownCard item={right} /> : <div aria-hidden className="min-h-[7.5rem]" />}
-        </div>
+  const strip = (
+    <div className="flex w-max flex-row items-stretch gap-4 pr-4 sm:gap-5">
+      {ordered.map((item) => (
+        <LoginBreakdownCard item={item} key={item.key} />
       ))}
     </div>
   );
@@ -170,34 +163,38 @@ const LoginBreakdownRoulette = ({ showcase }: { showcase: LoginShowcasePayload }
       aria-label="Category score preview"
       className={cn(
         "relative w-full overflow-hidden rounded-2xl",
-        reduceMotion && "max-h-[min(360px,44vh)] overflow-y-auto overscroll-y-contain pr-1",
-        !reduceMotion && "h-[min(320px,40vh)] sm:h-[min(360px,42vh)]",
+        reduceMotion && "overflow-x-auto overscroll-x-contain pb-1",
+        !reduceMotion && "h-[min(8.75rem,22vh)] sm:h-[9.5rem]",
       )}
     >
       {!reduceMotion ? (
         <>
           <div
             aria-hidden
-            className="pointer-events-none absolute inset-x-0 top-0 z-[1] h-12 bg-gradient-to-b from-background via-background/80 to-transparent"
+            className="pointer-events-none absolute inset-y-0 left-0 z-[1] w-10 bg-gradient-to-r from-background via-background/85 to-transparent"
           />
           <div
             aria-hidden
-            className="pointer-events-none absolute inset-x-0 bottom-0 z-[1] h-14 bg-gradient-to-t from-background via-background/85 to-transparent"
+            className="pointer-events-none absolute inset-y-0 right-0 z-[1] w-12 bg-gradient-to-l from-background via-background/88 to-transparent"
           />
         </>
       ) : null}
 
       <div
         className={cn(
-          reduceMotion ? "relative" : "login-breakdown-roulette__track absolute left-0 right-0 top-0",
+          reduceMotion ? "relative flex w-full min-h-full" : "login-breakdown-roulette-x__track flex w-max flex-row",
         )}
       >
         {reduceMotion ? (
-          track
+          strip
         ) : (
           <>
-            {track}
-            <div aria-hidden>{track}</div>
+            {strip}
+            <div aria-hidden className="flex w-max flex-row items-stretch gap-4 pr-4 sm:gap-5">
+              {ordered.map((item) => (
+                <LoginBreakdownCard item={item} key={`dup-${item.key}`} />
+              ))}
+            </div>
           </>
         )}
       </div>
@@ -205,7 +202,7 @@ const LoginBreakdownRoulette = ({ showcase }: { showcase: LoginShowcasePayload }
   );
 };
 
-export const LoginRecentScanShowcase = ({
+export const LoginScanMetaFooter = ({
   showcase,
   className,
 }: {
@@ -213,16 +210,33 @@ export const LoginRecentScanShowcase = ({
   className?: string;
 }) => {
   return (
-    <div className={cn("flex w-full min-w-0 flex-col gap-5", className)}>
-      <div className="min-w-0">
-        <p className="text-[10px] font-semibold uppercase tracking-[0.14em] text-muted">Recent public scan</p>
-        <p className="mt-0.5 truncate text-sm font-semibold text-foreground" title={showcase.title}>
-          {showcase.title}
-        </p>
-        <p className="truncate text-xs text-muted">{showcase.hostDisplay}</p>
-      </div>
+    <footer className={cn("min-w-0", className)}>
+      <p className="text-[10px] font-semibold uppercase tracking-[0.14em] text-muted">Recent public scan</p>
+      <p className="mt-0.5 truncate text-sm font-semibold text-foreground" title={showcase.title}>
+        {showcase.title}
+      </p>
+      <p className="truncate text-xs text-muted">{showcase.hostDisplay}</p>
+    </footer>
+  );
+};
 
-      <LoginBreakdownRoulette showcase={showcase} />
+export const LoginGraphicsColumn = ({
+  showcase,
+  className,
+}: {
+  showcase: LoginShowcasePayload;
+  className?: string;
+}) => {
+  return (
+    <div className={cn("flex w-full min-w-0 flex-col gap-6 md:gap-8", className)}>
+      <LoginShowcaseRadarHero showcase={showcase} />
+
+      <p className="text-balance text-center font-display text-lg leading-snug tracking-tight text-foreground sm:text-xl md:text-left md:text-[1.35rem] md:leading-[1.35] lg:text-[1.45rem]">
+        Benchmark testing, reviews, and <em className="text-foreground/95 italic">website redesigns</em> from a
+        single scan
+      </p>
+
+      <LoginBreakdownRouletteHorizontal showcase={showcase} />
     </div>
   );
 };

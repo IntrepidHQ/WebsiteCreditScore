@@ -137,6 +137,28 @@ html {
   }
 }
 
+@keyframes login-breakdown-roulette-marquee-x {
+  from {
+    transform: translate3d(0, 0, 0);
+  }
+
+  to {
+    transform: translate3d(-50%, 0, 0);
+  }
+}
+
+.login-breakdown-roulette-x__track {
+  animation: login-breakdown-roulette-marquee-x 118s linear infinite;
+  will-change: transform;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .login-breakdown-roulette-x__track {
+    animation: none !important;
+    will-change: auto;
+  }
+}
+
 .font-display,
 .font-headline {
   font-family: var(--theme-font-display-stack) !important;
