@@ -1,4 +1,5 @@
 import type { BenchmarkReference, ReportProfileType } from "@/lib/types/audit";
+import { REPORT_COMPETITOR_REFERENCE_LIMIT } from "@/lib/benchmarks/report-limits";
 import { measureBenchmarkReferences, rankMeasuredBenchmarkReferences } from "@/lib/benchmarks/scans";
 import { getBenchmarkReferenceScore } from "@/lib/mock/report-enhancements";
 
@@ -10,7 +11,7 @@ export const selectBenchmarkReferencesForReport = (
   const ranked = rankMeasuredBenchmarkReferences(currentUrl, currentOverallScore, references);
   const highScoring = ranked.filter((reference) => getBenchmarkReferenceScore(reference) >= 9);
 
-  return (highScoring.length ? highScoring : ranked).slice(0, 3);
+  return (highScoring.length ? highScoring : ranked).slice(0, REPORT_COMPETITOR_REFERENCE_LIMIT);
 };
 
 export const enrichBenchmarkReferences = async (
@@ -28,7 +29,7 @@ export const listRankedBenchmarkCandidates = (
   currentUrl: string,
   currentOverallScore: number,
   references: BenchmarkReference[],
-  limit = 16,
+  limit = 24,
 ) => {
   const ranked = rankMeasuredBenchmarkReferences(currentUrl, currentOverallScore, references);
   return ranked.slice(0, limit);

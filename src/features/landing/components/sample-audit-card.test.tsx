@@ -23,6 +23,7 @@ describe("SampleAuditCard", () => {
     const image = screen.getByAltText(/mark deford m\.d\. preview/i) as HTMLImageElement;
 
     expect(image.getAttribute("src")).toContain("/api/preview?");
-    expect(screen.getByText("4.9 / 10")).toBeInTheDocument();
+    expect(screen.getByText("4.9")).toBeInTheDocument();
+    expect(screen.getByText("/10")).toBeInTheDocument();
   });
 });

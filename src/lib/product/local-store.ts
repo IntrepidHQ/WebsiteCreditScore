@@ -4,7 +4,10 @@ import { randomUUID } from "node:crypto";
 
 import type { AgencyBranding, ThemeTokens } from "@/lib/types/audit";
 import type { BillingAddOnId, BillingPlanId, TokenActionId } from "@/lib/billing/catalog";
-import { assertWorkspaceAllowsMaxPrompt } from "@/lib/billing/max-access";
+import {
+  assertWorkspaceAllowsMaxPrompt,
+  workspaceWithComplimentaryMaxEntitlement,
+} from "@/lib/billing/max-access";
 import { getTokenActionCost } from "@/lib/billing/catalog";
 import { buildAuditReportById, buildAuditReportFromUrl, buildLiveAuditReportFromUrl } from "@/lib/mock/report-builder";
 import { sampleAudits } from "@/lib/mock/sample-audits";
@@ -641,18 +644,22 @@ function getWorkspaceOrThrow(store: LocalProductStore, workspaceId: string) {
 }
 
 export async function ensureLocalWorkspace(session: WorkspaceSession) {
-  const store = await readStore(session.userId);
-  const existing = store.workspaces.find((workspace) => workspace.ownerUserId === session.userId);
+  return updateStore(session.userId, async (store) => {
+    const idx = store.workspaces.findIndex((workspace) => workspace.ownerUserId === session.userId);
 
-  if (existing) {
-    return existing;
-  }
+    if (idx >= 0) {
+      const merged = workspaceWithComplimentaryMaxEntitlement(store.workspaces[idx], session.email);
+      store.workspaces[idx] = merged;
+      return merged;
+    }
 
-  const workspace = getWorkspaceDefaults(session.userId);
-  store.workspaces.push(workspace);
-  await writeStore(store);
-
-  return workspace;
+    const workspace = workspaceWithComplimentaryMaxEntitlement(
+      getWorkspaceDefaults(session.userId),
+      session.email,
+    );
+    store.workspaces.push(workspace);
+    return workspace;
+  });
 }
 
 export async function getLocalDashboard(workspaceId: string, ownerUserId: string): Promise<DashboardSnapshot> {

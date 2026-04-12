@@ -198,7 +198,7 @@ export function PacketDocument({
   const benchmarkTargets = report.benchmarkReferences.map((i) => getBenchmarkReferenceScore(i));
   const referenceFloor = benchmarkTargets.length ? Math.min(...benchmarkTargets) : 8.2;
   const referenceCeiling = benchmarkTargets.length ? Math.max(...benchmarkTargets) : 9.1;
-  const referenceNames = report.benchmarkReferences.slice(0, 3).map((i) => i.name);
+  const referenceNames = report.benchmarkReferences.slice(0, 4).map((i) => i.name);
   const priorityCategories = [...report.categoryScores]
     .sort((a, b) => a.score - b.score)
     .slice(0, 2);

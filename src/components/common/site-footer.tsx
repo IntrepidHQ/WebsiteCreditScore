@@ -23,6 +23,7 @@ export function SiteFooter({ isAuthenticated }: { isAuthenticated: boolean }) {
   const toolLinks = [
     { href: "/brief/mark-deford-md", label: "Discovery Brief" },
     { href: "/settings", label: "Theme" },
+    { href: "/app/chat", label: "Workspace chat (MAX)" },
     isAuthenticated
       ? { href: "/app", label: "Workspace" }
       : { href: "/app/login", label: "Sign in" },

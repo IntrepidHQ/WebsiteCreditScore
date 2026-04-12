@@ -1,4 +1,11 @@
-import type { AuditReport, ClientProfile, ReportProvenance, SiteObservation } from "@/lib/types/audit";
+import type {
+  AuditReport,
+  ClientProfile,
+  ReportProfileType,
+  ReportProvenance,
+  SiteNiche,
+  SiteObservation,
+} from "@/lib/types/audit";
 import { getNicheCompetitors, nicheCompetitorsToReferences } from "@/lib/benchmarks/niche-competitors";
 import { getBenchmarkVerticalForProfile } from "@/lib/benchmarks/library";
 import {
@@ -29,6 +36,7 @@ import {
   slugFromUrl,
 } from "@/lib/utils/url";
 
+import { REPORT_COMPETITOR_REFERENCE_LIMIT } from "@/lib/benchmarks/report-limits";
 import { listRankedBenchmarkCandidates, selectBenchmarkReferencesForReport } from "./benchmark-selection";
 import { profileClientProfiles } from "./constants";
 import {
@@ -41,6 +49,27 @@ import {
   createCatalog,
   getPreviewSet,
 } from "./report-sections";
+
+const slugifyIndustryLabel = (input: string) => {
+  const slug = input
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-+|-+$/g, "")
+    .slice(0, 48);
+
+  return slug ? (`ai:${slug}` as const) : null;
+};
+
+const buildHeuristicIndustryTags = (
+  profile: ReportProfileType,
+  niche: SiteNiche | undefined,
+): string[] => {
+  const tags = new Set<string>([`profile:${profile}`]);
+  if (niche) {
+    tags.add(`niche:${niche}`);
+  }
+  return [...tags];
+};
 
 function deriveReportTitle(
   normalizedUrl: string,
@@ -60,6 +89,11 @@ function deriveReportTitle(
  * values remain as-is if AI analysis failed or returned nothing.
  */
 function applyAIAnalysis(report: AuditReport, ai: AISiteAnalysis): AuditReport {
+  const aiIndustryTag = slugifyIndustryLabel(ai.industryLabel);
+  const mergedIndustryTags = aiIndustryTag
+    ? Array.from(new Set([...(report.clientProfile.industryTags ?? []), aiIndustryTag]))
+    : report.clientProfile.industryTags;
+
   return {
     ...report,
     executiveSummary: ai.executiveSummary,
@@ -73,6 +107,7 @@ function applyAIAnalysis(report: AuditReport, ai: AISiteAnalysis): AuditReport {
       industryLabel: ai.industryLabel,
       audience: ai.audienceProfile,
       primaryGoal: ai.primaryGoal,
+      industryTags: mergedIndustryTags,
       // observedPositioning holds the most visible business description in the UI
       observedPositioning: ai.businessDescription,
       observedAudienceInference: ai.audienceProfile,
@@ -206,7 +241,7 @@ function buildAuditReport(
   );
   const niche = sample ? undefined : inferSiteNiche(normalizedUrl, observation);
   const nicheRefs = niche
-    ? getNicheCompetitors(niche, normalizedUrl, 3)
+    ? getNicheCompetitors(niche, normalizedUrl, REPORT_COMPETITOR_REFERENCE_LIMIT)
     : null;
   const nicheReferences = nicheRefs
     ? nicheCompetitorsToReferences(nicheRefs, getBenchmarkVerticalForProfile(profile))
@@ -255,6 +290,7 @@ function buildAuditReport(
   const clientProfile: ClientProfile = {
     ...profileBase,
     niche,
+    industryTags: buildHeuristicIndustryTags(profile, niche),
     observedPositioning,
     observedAudienceInference,
     competitors: competitorSnapshots
@@ -322,7 +358,7 @@ export async function enrichReportBenchmarks(report: AuditReport): Promise<Audit
     report.normalizedUrl,
     report.overallScore,
     allMeasured,
-    18,
+    28,
   );
 
   const currentSnapshot = report.competitorSnapshots.find(
@@ -330,7 +366,7 @@ export async function enrichReportBenchmarks(report: AuditReport): Promise<Audit
   );
   const niche = report.clientProfile.niche;
   const nicheRefs = niche
-    ? getNicheCompetitors(niche, report.normalizedUrl, 3)
+    ? getNicheCompetitors(niche, report.normalizedUrl, REPORT_COMPETITOR_REFERENCE_LIMIT)
     : null;
   const nicheReferences = nicheRefs
     ? nicheCompetitorsToReferences(nicheRefs, getBenchmarkVerticalForProfile(report.clientProfile.type))
@@ -345,9 +381,11 @@ export async function enrichReportBenchmarks(report: AuditReport): Promise<Audit
       siteObservation: report.siteObservation,
       clientProfileType: report.clientProfile.type,
       normalizedUrl: report.normalizedUrl,
+      industryTags: report.clientProfile.industryTags,
+      niche: report.clientProfile.niche,
       candidates: candidatePool,
     });
-    if (aiOrdered && aiOrdered.length === 3) {
+    if (aiOrdered && aiOrdered.length === REPORT_COMPETITOR_REFERENCE_LIMIT) {
       competitorReferences = aiOrdered;
       benchmarkSelectionSource = "claude-rerank";
     }

@@ -3,6 +3,8 @@ import { NextResponse } from "next/server";
 import { getAnthropicClient } from "@/lib/ai/client";
 import { selectModel } from "@/lib/ai/select-model";
 import { getOptionalWorkspaceSession } from "@/lib/auth/session";
+import { workspaceHasMaxAccess } from "@/lib/billing/max-access";
+import { getProductRepository } from "@/lib/product/repository";
 
 export const dynamic = "force-dynamic";
 
@@ -12,6 +14,11 @@ Capabilities you should lean into:
 - Explain category scores as *signals from automated heuristics* (HTML/PageSpeed/structure), not a moral judgment about brand quality — call out when a premium site may score lower because the rubric targets SMB conversion patterns.
 - Help craft **coding-agent prompts**: structured briefs with IA, components, acceptance criteria, and explicit ties to score pillars when the user asks.
 - Support proposal/pricing conversations using the audit context when provided.
+
+Industry-aware lens (add this on top of the rubric — do not replace the rubric):
+- Different industries imply different “success” on a website: a cosmetic brand may optimize for retail discovery + education; Amazon-like retail optimizes for search, comparison, and checkout trust; some services businesses primarily want a phone call; others want a booked meeting; some want social follows or newsletter growth.
+- When you recommend changes, tie recommendations to the likely primary conversion (call, book, buy, signup, follow) inferred from the audit context and page signals.
+- If the industry is ambiguous, state the assumption briefly and offer alternatives.
 
 If asked about data you cannot see, say so and suggest what to check in the product.`;
 
@@ -56,6 +63,18 @@ export async function POST(request: Request) {
   const session = await getOptionalWorkspaceSession();
   if (!session) {
     return NextResponse.json({ error: "Sign in required." }, { status: 401 });
+  }
+
+  const repository = getProductRepository(session);
+  const workspace = await repository.ensureWorkspace(session);
+  if (!workspaceHasMaxAccess(workspace)) {
+    return NextResponse.json(
+      {
+        error: "MAX add-on required to use workspace chat.",
+        code: "MAX_ENTITLEMENT_REQUIRED",
+      },
+      { status: 403 },
+    );
   }
 
   let body: { messages?: ChatMessage[]; reportContext?: ReportContextPayload };

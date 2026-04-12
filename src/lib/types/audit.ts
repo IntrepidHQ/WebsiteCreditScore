@@ -270,6 +270,11 @@ export interface AgencyBranding {
 export interface ClientProfile {
   type: ReportProfileType;
   niche?: SiteNiche;
+  /**
+   * Stable tags for indexing / matching (e.g. `profile:saas`, `niche:saas-software`, `ai:b2b-saas`).
+   * Populated from profile + niche heuristics and optionally enriched after AI analysis.
+   */
+  industryTags?: string[];
   industryLabel: string;
   audience: string;
   /** What the live site signals about the business (headlines, meta, copy). */
@@ -569,7 +574,7 @@ export interface AuditReport {
     note: string;
     /** Executive summary and outreach copy from Claude when set. */
     narrativeSource?: "claude" | "heuristic";
-    /** How the three benchmark / competitor reference sites were chosen. */
+    /** How the benchmark / competitor reference sites were chosen. */
     benchmarkSelectionSource?: "heuristic" | "claude-rerank" | "niche";
   };
 }

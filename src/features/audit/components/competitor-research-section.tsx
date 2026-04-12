@@ -6,6 +6,7 @@ import { scoreCategoryIcons, scoreCategoryPalette } from "@/components/common/sc
 import { SectionHeading } from "@/components/common/section-heading";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { REPORT_COMPETITOR_REFERENCE_LIMIT } from "@/lib/benchmarks/report-limits";
 import { getBenchmarkReferenceScore, getTenOutOfTenNotes } from "@/lib/mock/report-enhancements";
 import type { AuditCategoryKey, AuditReport, BenchmarkReference } from "@/lib/types/audit";
 
@@ -177,7 +178,7 @@ export function CompetitorResearchSection({ report }: { report: AuditReport }) {
   const currentSnapshot = report.competitorSnapshots.find(
     (snapshot) => snapshot.relationship === "your-site",
   );
-  const researchSet = report.benchmarkReferences.slice(0, 3);
+  const researchSet = report.benchmarkReferences.slice(0, REPORT_COMPETITOR_REFERENCE_LIMIT);
   const averageReferenceScore =
     researchSet.reduce((total, reference) => {
       const snapshot = report.competitorSnapshots.find((item) => item.id === reference.id);
@@ -190,14 +191,14 @@ export function CompetitorResearchSection({ report }: { report: AuditReport }) {
 
   return (
     <section className="presentation-section" id="research">
-      <div className="mx-auto w-full max-w-7xl space-y-8 px-4 sm:px-6 lg:px-8">
+      <div className="mx-auto w-full max-w-[min(100%,96rem)] space-y-8 px-4 sm:px-6 lg:px-8">
         <SectionHeading
           eyebrow="Competitor research"
-          title="Three stronger sites worth studying"
-          description="These scored references show what a stronger buying experience looks like when the same model is applied consistently."
+          title="Four stronger sites worth studying"
+          description="These scored references show what a stronger buying experience looks like when the same model is applied consistently in a comparable industry."
         />
 
-        <div className="grid gap-5 lg:grid-cols-[minmax(19rem,22rem)_minmax(0,1fr)] xl:grid-cols-[minmax(20rem,23rem)_minmax(0,1fr)]">
+        <div className="grid gap-5 lg:grid-cols-[minmax(19rem,24rem)_minmax(0,1fr)] xl:grid-cols-[minmax(20rem,26rem)_minmax(0,1fr)]">
           <Card className="h-fit">
             <CardHeader className="space-y-3">
               <div className="flex items-center gap-2 text-accent">
@@ -284,7 +285,7 @@ export function CompetitorResearchSection({ report }: { report: AuditReport }) {
           <div className="min-w-0">
             <div
               aria-label="Competitor research examples"
-              className="horizontal-rail [grid-auto-columns:minmax(23rem,25rem)] gap-5 lg:[grid-auto-columns:minmax(24.5rem,28rem)]"
+              className="horizontal-rail [grid-auto-columns:minmax(22.5rem,26rem)] gap-5 lg:[grid-auto-columns:minmax(24rem,30rem)]"
               tabIndex={0}
             >
               {researchSet.map((reference) => (

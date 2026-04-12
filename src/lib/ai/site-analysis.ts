@@ -10,8 +10,13 @@
  * absent or when the API call fails, allowing the heuristic fallbacks to run.
  */
 
-import type { SiteObservation } from "@/lib/types/audit";
+import {
+  buildAiCacheKey,
+  readAiCache,
+  writeAiCache,
+} from "@/lib/ai/ai-response-cache";
 import { getAnthropicClient } from "@/lib/ai/client";
+import type { SiteObservation } from "@/lib/types/audit";
 
 export interface AISiteAnalysis {
   /** Short industry label, e.g. "B2B SaaS", "Dental Practice", "Coffee Franchise" */
@@ -119,6 +124,21 @@ export async function analyzeSiteWithAI(
   // If the site fetch failed entirely, there's not enough data for AI to work with.
   if (!observation.fetchSucceeded) return null;
 
+  const cacheMaterial = [
+    "v1",
+    url,
+    overallScore.toFixed(1),
+    observation.pageTitle,
+    observation.metaDescription,
+    observation.heroHeading?.slice(0, 280) ?? "",
+  ].join("::");
+  const cacheKey = buildAiCacheKey("site-analysis", cacheMaterial);
+
+  const cached = await readAiCache<AISiteAnalysis>(cacheKey);
+  if (cached) {
+    return cached;
+  }
+
   try {
     const prompt = buildPrompt(url, observation, overallScore);
 
@@ -157,7 +177,9 @@ export async function analyzeSiteWithAI(
       }
     }
 
-    return parsed as AISiteAnalysis;
+    const analysis = parsed as AISiteAnalysis;
+    await writeAiCache(cacheKey, "site-analysis", analysis);
+    return analysis;
   } catch (err) {
     console.warn("[ai/site-analysis] Analysis failed, falling back to heuristics:", err);
     return null;

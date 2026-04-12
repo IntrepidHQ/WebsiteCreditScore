@@ -1,5 +1,16 @@
 import { getAnthropicClient } from "@/lib/ai/client";
-import type { BenchmarkReference, ReportProfileType, SiteObservation } from "@/lib/types/audit";
+import {
+  buildAiCacheKey,
+  readAiCache,
+  writeAiCache,
+} from "@/lib/ai/ai-response-cache";
+import { REPORT_COMPETITOR_REFERENCE_LIMIT } from "@/lib/benchmarks/report-limits";
+import type {
+  BenchmarkReference,
+  ReportProfileType,
+  SiteNiche,
+  SiteObservation,
+} from "@/lib/types/audit";
 
 function buildObservationSnippet(observation: SiteObservation): string {
   const lines: string[] = [];
@@ -11,14 +22,20 @@ function buildObservationSnippet(observation: SiteObservation): string {
   return lines.join("\n") || "(limited page text)";
 }
 
+type BenchmarkRerankCachePayload = {
+  orderedIds: string[];
+};
+
 /**
- * Ask Claude to pick the three best benchmark sites for this audit from a fixed candidate list.
- * Returns null if the API is unavailable, the response is invalid, or any id is not in the list.
+ * Ask Claude to pick benchmark sites for this audit from a fixed candidate list.
+ * Results are cached in Supabase (service role) to reduce repeat API spend.
  */
 export async function rerankBenchmarkReferencesWithClaude(input: {
   siteObservation: SiteObservation;
   clientProfileType: ReportProfileType;
   normalizedUrl: string;
+  industryTags?: string[];
+  niche?: SiteNiche;
   candidates: BenchmarkReference[];
 }): Promise<BenchmarkReference[] | null> {
   const client = getAnthropicClient();
@@ -26,8 +43,31 @@ export async function rerankBenchmarkReferencesWithClaude(input: {
     return null;
   }
 
-  if (input.candidates.length < 3) {
+  if (input.candidates.length < REPORT_COMPETITOR_REFERENCE_LIMIT) {
     return null;
+  }
+
+  const cacheMaterial = [
+    "v2-industry-alignment",
+    input.normalizedUrl,
+    input.clientProfileType,
+    input.niche ?? "",
+    (input.industryTags ?? []).join("|"),
+    input.candidates.map((c) => c.id).join(","),
+  ].join("::");
+  const cacheKey = buildAiCacheKey("benchmark-rerank", cacheMaterial);
+
+  const cached = await readAiCache<BenchmarkRerankCachePayload>(cacheKey);
+  if (cached?.orderedIds?.length === REPORT_COMPETITOR_REFERENCE_LIMIT) {
+    const allowedIds = new Set(input.candidates.map((c) => c.id));
+    const byId = new Map(input.candidates.map((c) => [c.id, c]));
+    const resolved = cached.orderedIds
+      .filter((id) => allowedIds.has(id))
+      .map((id) => byId.get(id)!)
+      .filter(Boolean);
+    if (resolved.length === REPORT_COMPETITOR_REFERENCE_LIMIT) {
+      return resolved;
+    }
   }
 
   const allowedIds = new Set(input.candidates.map((c) => c.id));
@@ -38,30 +78,41 @@ export async function rerankBenchmarkReferencesWithClaude(input: {
     measuredScore: c.measuredScore ?? c.targetScore,
   }));
 
-  const prompt = `You are helping pick three real benchmark websites to compare against a scored prospect site.
+  const industryContext = [
+    input.niche ? `Detected niche classifier: ${input.niche}` : null,
+    input.industryTags?.length ? `Industry tags (for indexing / matching): ${input.industryTags.join(", ")}` : null,
+  ]
+    .filter(Boolean)
+    .join("\n");
+
+  const prompt = `You are helping pick ${REPORT_COMPETITOR_REFERENCE_LIMIT} real benchmark websites to compare against a scored prospect site.
 Prospect URL: ${input.normalizedUrl}
 Report profile type: ${input.clientProfileType}
+
+Industry / indexing context (may be incomplete — still obey the hard rule below):
+${industryContext || "(none)"}
 
 Page signals (from the prospect site only — do not invent facts):
 ${buildObservationSnippet(input.siteObservation)}
 
-Candidate benchmarks (you MUST only choose from these ids — exactly three distinct ids):
+Candidate benchmarks (you MUST only choose from these ids — exactly ${REPORT_COMPETITOR_REFERENCE_LIMIT} distinct ids):
 ${JSON.stringify(catalog, null, 2)}
 
-Pick the three candidates that would best help this business owner learn from sites that are:
-- plausibly relevant to the same kind of buyer journey or service model suggested by the page signals,
-- strong on trust, clarity, and conversion patterns,
-- diverse from each other (not three near-duplicates).
+Hard requirements:
+- Each chosen benchmark must be plausibly in the SAME industry / buyer journey as the prospect (do not pick unrelated verticals).
+- Prefer sites selling to similar customers (e.g. B2B SaaS vs consumer retail vs local services).
+- Strong on trust, clarity, and conversion patterns.
+- Diverse from each other (not ${REPORT_COMPETITOR_REFERENCE_LIMIT} near-duplicates).
 
 Return ONLY valid JSON with this exact shape (no markdown):
-{"orderedIds":["id1","id2","id3"]}
+{"orderedIds":["id1","id2","id3","id4"]}
 
 Each id must appear exactly once and must be one of the candidate ids listed above.`;
 
   try {
     const message = await client.messages.create({
       model: "claude-haiku-4-5-20251001",
-      max_tokens: 400,
+      max_tokens: 520,
       messages: [{ role: "user", content: prompt }],
     });
 
@@ -73,7 +124,7 @@ Each id must appear exactly once and must be one of the candidate ids listed abo
 
     const cleaned = text.replace(/^```json\s*/i, "").replace(/```\s*$/, "").trim();
     const parsed = JSON.parse(cleaned) as { orderedIds?: unknown };
-    if (!Array.isArray(parsed.orderedIds) || parsed.orderedIds.length < 3) {
+    if (!Array.isArray(parsed.orderedIds) || parsed.orderedIds.length < REPORT_COMPETITOR_REFERENCE_LIMIT) {
       return null;
     }
 
@@ -88,12 +139,15 @@ Each id must appear exactly once and must be one of the candidate ids listed abo
       return true;
     });
 
-    if (unique.length < 3) {
+    if (unique.length < REPORT_COMPETITOR_REFERENCE_LIMIT) {
       return null;
     }
 
     const byId = new Map(input.candidates.map((c) => [c.id, c]));
-    const chosen = unique.slice(0, 3).map((id) => byId.get(id)!);
+    const chosen = unique.slice(0, REPORT_COMPETITOR_REFERENCE_LIMIT).map((id) => byId.get(id)!);
+
+    await writeAiCache(cacheKey, "benchmark-rerank", { orderedIds: chosen.map((c) => c.id) });
+
     return chosen;
   } catch (err) {
     console.warn("[ai/benchmark-rerank] Failed, using heuristic benchmarks:", err);

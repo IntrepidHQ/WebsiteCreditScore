@@ -174,6 +174,13 @@ export function inferProfileType(input: string): ReportProfileType {
   return "saas";
 }
 
+/**
+ * Physical construction / trades — avoid overly broad tokens like `building` that match
+ * figurative product copy (“building the future”, “ship what you’re building”).
+ */
+const constructionNichePattern =
+  /\b(construction|contractors?|contracting|general\s+contractor|gc\b|roofing|remodel(ing|er)?|renovat|concrete|masonry|excavat|steel\s+erect|subcontract)\b/i;
+
 const nicheKeywords: Array<[SiteNiche, RegExp]> = [
   ["restaurant-qsr", /(starbucks|dunkin|timhorton|coffee|restaurant|grill|kitchen|fried|chicken|burger|pizza|taco|bbq|diner|cafe|bistro|biscuit|wings|wingstop|bojangle|popeye|chick.fil|raising.cane|culver|zaxby|whataburger|sonic.drive|steak.n|hardees|dairy.queen|arbys|wendys|mcdonalds|subway|chipotle|qdoba|panera|applebee|buffalo.wild|cracker.barrel)/],
   ["dental", /(dental|dentist|orthodont|dds|dmds|teeth|smile|braces|ortho)/],
@@ -182,10 +189,24 @@ const nicheKeywords: Array<[SiteNiche, RegExp]> = [
   ["real-estate", /(realty|realtor|homes|properties|property|housing|realestate|estate|mls|listings)/],
   ["fitness", /(gym|fitness|crossfit|yoga|training|athletic|workout|pilates|bootcamp)/],
   ["beauty-salon", /(salon|spa|beauty|nail|hair|barber|lash|brow|aesthetics|waxing)/],
-  ["construction", /(construction|builder|building|contractor|remodel|renovate|roofing|concrete|masonry)/],
+  ["construction", constructionNichePattern],
   ["home-services", /(plumb|hvac|electric|landscap|irrigation|pest|cleaning|garage|gutter|handyman|repair|roof)/],
   ["retail-ecommerce", /(shop|store|boutique|retail|goods|market|supply|merch|apparel|ecommerce)/],
+  /** Checked after construction/home-services to reduce false positives from generic words. */
   ["saas-software", /(software|platform|saas|crm|cloud|analytics|dashboard|workspace|devtools)/],
+];
+
+const saasProductSignals =
+  /\b(linear|jira|asana|monday\.com|clickup|height\.app|notion|slack|figma|github|gitlab|product\s+hunt|issue\s+track|roadmap|sprint|backlog|pull\s+request|devops|changelog|api\s+docs|b2b\s+software|product\s+management|engineering\s+teams|developer\s+platform|product\s+development\s+system)\b/i;
+
+const hostnameNicheOverrides: Array<[SiteNiche, RegExp]> = [
+  ["saas-software", /(^|\.)linear\.app$/i],
+  ["saas-software", /(^|\.)asana\.com$/i],
+  ["saas-software", /(^|\.)monday\.com$/i],
+  ["saas-software", /(^|\.)clickup\.com$/i],
+  ["saas-software", /(^|\.)atlassian\.(com|net)$/i],
+  ["saas-software", /(^|\.)notion\.so$/i],
+  ["saas-software", /(^|\.)slack\.com$/i],
 ];
 
 export function inferSiteNiche(
@@ -200,6 +221,12 @@ export function inferSiteNiche(
     }
   })();
 
+  for (const [niche, regex] of hostnameNicheOverrides) {
+    if (regex.test(hostname)) {
+      return niche;
+    }
+  }
+
   // Pass 1: domain keyword match
   for (const [niche, regex] of nicheKeywords) {
     if (regex.test(hostname)) {
@@ -212,6 +239,11 @@ export function inferSiteNiche(
     const text = `${observation.pageTitle ?? ""} ${observation.metaDescription ?? ""}`.toLowerCase();
 
     if (text) {
+      // Strong product-software signals should win before physical-industry keywords.
+      if (saasProductSignals.test(text)) {
+        return "saas-software";
+      }
+
       for (const [niche, regex] of nicheKeywords) {
         if (regex.test(text)) {
           return niche;

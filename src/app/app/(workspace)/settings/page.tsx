@@ -1,6 +1,5 @@
 import Link from "next/link";
 
-import { AgentChatPanel } from "@/features/app/components/agent-chat-panel";
 import { WorkspaceProposalSettings } from "@/features/app/components/workspace-proposal-settings";
 import { SettingsPanel } from "@/features/theme/components/settings-panel";
 import { getWorkspaceAppContext } from "@/lib/product/context";
@@ -20,7 +19,13 @@ export default async function AppSettingsPage() {
       </p>
       <div className="grid gap-10 xl:grid-cols-2 xl:items-start">
         <WorkspaceProposalSettings />
-        <AgentChatPanel />
+        <p className="rounded-xl border border-border/60 bg-panel/50 px-4 py-3 text-sm leading-6 text-muted">
+          Workspace chat (MAX) now lives on its own page:{" "}
+          <Link className="font-medium text-accent underline underline-offset-2" href="/app/chat">
+            Open workspace chat
+          </Link>
+          .
+        </p>
       </div>
       <SettingsPanel />
     </div>

@@ -19,10 +19,6 @@ import { PreviewWithLiveToggle } from "@/components/common/preview-with-live-tog
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { LeadStageBadge } from "@/features/app/components/lead-stage-badge";
-import {
-  AgentChatPanel,
-  type AgentChatReportContext,
-} from "@/features/app/components/agent-chat-panel";
 import { CreateLeadScanForm } from "@/features/app/components/create-lead-scan-form";
 import { ScanHistorySection } from "@/features/app/components/scan-history-section";
 import { WorkspaceTokenLinkButton } from "@/features/app/components/workspace-token-link-button";
@@ -40,28 +36,6 @@ function formatTimestamp(input: string) {
 
 function buildMailtoHref(subject: string, body: string) {
   return `mailto:?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
-}
-
-function buildAgentChatContext(saved?: SavedReport | null): AgentChatReportContext | null {
-  if (!saved?.reportSnapshot) {
-    return null;
-  }
-  const report = saved.reportSnapshot;
-  return {
-    title: saved.title,
-    normalizedUrl: saved.normalizedUrl,
-    overallScore: report.overallScore,
-    executiveSummary: report.executiveSummary,
-    categoryScores: report.categoryScores.map((c) => ({
-      key: c.key,
-      label: c.label,
-      score: c.score,
-    })),
-    findings: report.findings.slice(0, 14).map((f) => ({
-      title: f.title,
-      severity: f.severity,
-    })),
-  };
 }
 
 function SearchRow({
@@ -528,10 +502,6 @@ export default async function AppDashboardPage({
             </CardContent>
           </Card>
         </div>
-      </section>
-
-      <section className="scroll-mt-[8.75rem] space-y-4" id="workspace-agent">
-        <AgentChatPanel reportContext={buildAgentChatContext(latestSavedReport)} />
       </section>
 
       <ScanHistorySection leads={visibleLeads} savedReports={visibleSavedReports} />

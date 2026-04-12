@@ -43,6 +43,7 @@ function getPrimaryNavigation() {
     { href: "/benchmarks", label: "Benchmarks" },
     { href: "/pricing", label: "Pricing" },
     { href: "/docs", label: "Docs" },
+    { href: "/app/chat", label: "Workspace chat" },
   ] satisfies NavItem[];
 }
 

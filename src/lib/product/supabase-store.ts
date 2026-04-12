@@ -2,7 +2,10 @@ import { randomUUID } from "node:crypto";
 
 import type { AgencyBranding, ThemeTokens } from "@/lib/types/audit";
 import type { BillingAddOnId, BillingPlanId, TokenActionId } from "@/lib/billing/catalog";
-import { assertWorkspaceAllowsMaxPrompt } from "@/lib/billing/max-access";
+import {
+  assertWorkspaceAllowsMaxPrompt,
+  workspaceWithComplimentaryMaxEntitlement,
+} from "@/lib/billing/max-access";
 import { getTokenActionCost } from "@/lib/billing/catalog";
 import { buildAuditReportById, buildAuditReportFromUrl, buildLiveAuditReportFromUrl } from "@/lib/mock/report-builder";
 import { sampleAudits } from "@/lib/mock/sample-audits";
@@ -522,7 +525,8 @@ export async function ensureSupabaseWorkspace(session: WorkspaceSession) {
 
   if (data?.payload) {
     const currentWorkspace = data.payload as WorkspaceRecord;
-    const workspace = normalizeWorkspaceRecord(currentWorkspace);
+    let workspace: WorkspaceRecord = normalizeWorkspaceRecord(currentWorkspace);
+    workspace = workspaceWithComplimentaryMaxEntitlement(workspace, session.email);
     if (JSON.stringify(workspace) !== JSON.stringify(currentWorkspace)) {
       await upsertPayloadRecord("workspaces", {
         id: workspace.id,
@@ -535,7 +539,10 @@ export async function ensureSupabaseWorkspace(session: WorkspaceSession) {
     return workspace;
   }
 
-  const workspace = buildWorkspace(session.userId, session);
+  let workspace: WorkspaceRecord = workspaceWithComplimentaryMaxEntitlement(
+    buildWorkspace(session.userId, session),
+    session.email,
+  );
   const referralCode: ReferralCodeRecord = {
     id: createId("referral"),
     workspaceId: workspace.id,

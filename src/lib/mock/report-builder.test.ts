@@ -31,10 +31,11 @@ describe("report builder benchmark selection", () => {
       references,
     );
 
-    expect(selected).toHaveLength(3);
+    expect(selected).toHaveLength(4);
     expect(selected.some((reference) => reference.name === "Linear")).toBe(false);
-    expect(selected.map((reference) => reference.name)).toEqual(["Apple", "Vercel", "Stripe"]);
-    expect(selected.map((reference) => getBenchmarkReferenceScore(reference))).toEqual([8.7, 8.2, 7.6]);
+    expect(selected.slice(0, 3).map((reference) => reference.name)).toEqual(["Apple", "Vercel", "Stripe"]);
+    expect(selected.slice(0, 3).map((reference) => getBenchmarkReferenceScore(reference))).toEqual([8.7, 8.2, 7.6]);
+    expect(getBenchmarkReferenceScore(selected[3]!)).toBe(7.2);
   });
 
   it("returns the public scan cards newest-first and omits provider pages", () => {
