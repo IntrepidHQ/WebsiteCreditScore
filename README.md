@@ -30,11 +30,12 @@ A Next.js App Router product that turns a single URL into a cinematic redesign a
   - pricing configurator with ROI scenario calculator
   - close / proposal actions
 - Settings page with:
-  - live CSS-variable theme controls
+  - live CSS-variable theme controls (including **surface color harmony**: monochromatic, complementary, analogous)
   - motion toggle
   - branding mode
   - random theme generator
   - export theme JSON
+- Theming reference: see [`docs/THEMING.md`](docs/THEMING.md) for harmony models, contrast rules, and preset notes.
 - Mock API at `POST /api/audit`
 - Deterministic report generation for any URL across seeded industry presets
 - Supabase-ready payload schema in `supabase/schema.sql`

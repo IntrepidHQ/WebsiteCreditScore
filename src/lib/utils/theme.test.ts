@@ -76,10 +76,10 @@ describe("theme generation", () => {
     const dark = presets.filter((preset) => preset.mode === "dark");
     const light = presets.filter((preset) => preset.mode === "light");
 
-    expect(presets).toHaveLength(10);
-    expect(dark).toHaveLength(5);
-    expect(light).toHaveLength(5);
-    expect(new Set(presets.map((preset) => preset.id)).size).toBe(10);
+    expect(presets).toHaveLength(13);
+    expect(dark).toHaveLength(7);
+    expect(light).toHaveLength(6);
+    expect(new Set(presets.map((preset) => preset.id)).size).toBe(13);
     expect(
       presets.every(
         (preset) =>
@@ -87,5 +87,24 @@ describe("theme generation", () => {
           getContrastChecks(preset.tokens).accentOnAccentForeground > 4.5,
       ),
     ).toBe(true);
+  });
+
+  it("shifts surface hues for complementary harmony while keeping contrast", () => {
+    const mono = createThemeTokens({
+      mode: "dark",
+      accentColor: "#2dd4bf",
+      colorHarmony: "monochromatic",
+    });
+    const comp = createThemeTokens({
+      mode: "dark",
+      accentColor: "#2dd4bf",
+      colorHarmony: "complementary",
+    });
+
+    expect(mono.colorHarmony).toBe("monochromatic");
+    expect(comp.colorHarmony).toBe("complementary");
+    expect(comp.surfaces.background).not.toBe(mono.surfaces.background);
+    expect(getContrastChecks(comp).foregroundOnBackground).toBeGreaterThan(4.5);
+    expect(getContrastChecks(comp).accentOnAccentForeground).toBeGreaterThan(4.5);
   });
 });

@@ -9,6 +9,7 @@ import { DevicePreview } from "@/components/common/device-preview";
 import { SectionHeading } from "@/components/common/section-heading";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { AuditHorizontalRail } from "@/features/audit/components/audit-horizontal-rail";
 import { useMotionSettings } from "@/hooks/use-motion-settings";
 import type { AuditReport } from "@/lib/types/audit";
 
@@ -121,17 +122,17 @@ export function BeforeAfterSection({ report }: { report: AuditReport }) {
               </div>
             ))}
           </div>
-          <div
+          <AuditHorizontalRail
             aria-label="Upgrade opportunity cards"
-            className="horizontal-rail [grid-auto-columns:minmax(20rem,22rem)] gap-4 md:hidden"
-            tabIndex={0}
+            className="md:hidden"
+            railClassName="[grid-auto-columns:minmax(20rem,22rem)]"
           >
             {report.opportunities.map((opportunity) => (
               <div data-opportunity-card key={opportunity.id}>
                 <OpportunityCard opportunity={opportunity} />
               </div>
             ))}
-          </div>
+          </AuditHorizontalRail>
         </div>
       </div>
     </section>

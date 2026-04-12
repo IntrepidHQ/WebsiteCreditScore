@@ -52,6 +52,9 @@ export type BenchmarkType =
   | "recommendation";
 
 export type ThemeMode = "light" | "dark";
+
+/** How background/panel hues relate to the accent for more varied palettes. */
+export type ThemeColorHarmony = "monochromatic" | "complementary" | "analogous";
 export type PreviewDevice = "desktop" | "mobile";
 export type ReportProvenance = "live-observed" | "fallback-estimated" | "sample-based";
 export type BenchmarkVertical =
@@ -222,6 +225,8 @@ export type ThemeFontStackId =
 export interface ThemeTokens {
   mode: ThemeMode;
   accentColor: string;
+  /** Surface tint strategy relative to the accent hue. */
+  colorHarmony: ThemeColorHarmony;
   /** Degrees to rotate the accent hue before surfaces are rebuilt (−24…24). */
   accentHueShift: number;
   /** Headlines / `.font-display` — Instrument Serif, Space Grotesk, etc. */

@@ -14,6 +14,8 @@ import {
 } from "@/components/ui/accordion";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { AuditHorizontalRail } from "@/features/audit/components/audit-horizontal-rail";
 import { useMotionSettings } from "@/hooks/use-motion-settings";
 import type { Finding, FindingSection as FindingSectionKey } from "@/lib/types/audit";
 
@@ -121,7 +123,7 @@ export function FindingsSection({
           <p className="text-sm text-muted lg:hidden">
             Swipe or scroll sideways to move through these findings.
           </p>
-          <div aria-label={`${meta.title} cards`} className="horizontal-rail" tabIndex={0}>
+          <AuditHorizontalRail aria-label={`${meta.title} cards`}>
             {findings.length === 0 ? (
               <Card className="h-full min-w-[20rem] max-w-[25rem] border-dashed border-border/80 bg-background-alt/40">
                 <CardContent className="p-6 sm:p-7">
@@ -148,69 +150,149 @@ export function FindingsSection({
                     {finding.title}
                   </CardTitle>
                 </CardHeader>
-                <CardContent className="space-y-5 pt-4 sm:pt-4">
-                  <p className="text-[1.08rem] leading-[1.95rem] text-muted">{finding.summary}</p>
-                  <div className="rounded-[calc(var(--theme-radius)-2px)] border border-border/70 bg-background-alt/70 p-4">
-                    <p className="text-xs font-semibold uppercase tracking-[0.12em] text-muted">
-                      Business impact
-                    </p>
-                    <p className="mt-2 text-[1.04rem] leading-[1.9rem] text-foreground">
-                      {finding.businessImpact}
-                    </p>
-                  </div>
-                  <div className="rounded-[calc(var(--theme-radius)-2px)] border border-accent/20 bg-accent/8 p-4">
-                    <p className="text-xs font-semibold uppercase tracking-[0.12em] text-accent">
-                      Recommendation
-                    </p>
-                    <p className="mt-2 text-[1.04rem] leading-[1.9rem] text-foreground">
-                      {finding.recommendation}
-                    </p>
-                  </div>
-                  <Accordion collapsible type="single">
-                    <AccordionItem className="bg-background-alt/60 px-4" value="evidence">
-                      <AccordionTrigger>Evidence and scoring support</AccordionTrigger>
-                      <AccordionContent>
-                        <div className="space-y-4">
-                          <div className="space-y-2">
-                            {finding.evidence.map((evidence) => (
-                              <div
-                                className="rounded-[calc(var(--theme-radius)-6px)] border border-border/70 bg-panel/55 px-4 py-3 text-base leading-7 text-muted"
-                                key={evidence.id}
-                              >
-                                <span className="font-semibold text-foreground">
-                                  {evidence.label}:{" "}
-                                </span>
-                                {evidence.detail}
-                              </div>
-                            ))}
-                          </div>
-                          <div className="space-y-2">
-                            {finding.benchmark.map((item) => (
-                              <div
-                                className="rounded-[calc(var(--theme-radius)-6px)] border border-border/70 bg-panel/55 px-4 py-3"
-                                key={item.id}
-                              >
-                                <div className="flex flex-wrap items-center gap-2">
-                                  <Badge variant="accent">{item.impactLabel}</Badge>
-                                  <span className="text-xs uppercase tracking-[0.18em] text-muted">
-                                    {item.sourceLabel}
+                <CardContent className="pt-4 sm:pt-4">
+                  <div className="hidden space-y-5 md:block">
+                    <p className="text-[1.08rem] leading-[1.95rem] text-muted">{finding.summary}</p>
+                    <div className="rounded-[calc(var(--theme-radius)-2px)] border border-border/70 bg-background-alt/70 p-4">
+                      <p className="text-xs font-semibold uppercase tracking-[0.12em] text-muted">
+                        Business impact
+                      </p>
+                      <p className="mt-2 text-[1.04rem] leading-[1.9rem] text-foreground">
+                        {finding.businessImpact}
+                      </p>
+                    </div>
+                    <div className="rounded-[calc(var(--theme-radius)-2px)] border border-accent/20 bg-accent/8 p-4">
+                      <p className="text-xs font-semibold uppercase tracking-[0.12em] text-accent">
+                        Recommendation
+                      </p>
+                      <p className="mt-2 text-[1.04rem] leading-[1.9rem] text-foreground">
+                        {finding.recommendation}
+                      </p>
+                    </div>
+                    <Accordion collapsible type="single">
+                      <AccordionItem className="bg-background-alt/60 px-4" value="evidence">
+                        <AccordionTrigger>Evidence and scoring support</AccordionTrigger>
+                        <AccordionContent>
+                          <div className="space-y-4">
+                            <div className="space-y-2">
+                              {finding.evidence.map((evidence) => (
+                                <div
+                                  className="rounded-[calc(var(--theme-radius)-6px)] border border-border/70 bg-panel/55 px-4 py-3 text-base leading-7 text-muted"
+                                  key={evidence.id}
+                                >
+                                  <span className="font-semibold text-foreground">
+                                    {evidence.label}:{" "}
                                   </span>
+                                  {evidence.detail}
                                 </div>
-                                <p className="mt-3 text-[1.04rem] leading-[1.9rem] text-foreground">
-                                  {item.claim}
-                                </p>
-                                <p className="mt-2 text-[1rem] leading-[1.85rem] text-muted">{item.notes}</p>
-                              </div>
-                            ))}
+                              ))}
+                            </div>
+                            <div className="space-y-2">
+                              {finding.benchmark.map((item) => (
+                                <div
+                                  className="rounded-[calc(var(--theme-radius)-6px)] border border-border/70 bg-panel/55 px-4 py-3"
+                                  key={item.id}
+                                >
+                                  <div className="flex flex-wrap items-center gap-2">
+                                    <Badge variant="accent">{item.impactLabel}</Badge>
+                                    <span className="text-xs uppercase tracking-[0.18em] text-muted">
+                                      {item.sourceLabel}
+                                    </span>
+                                  </div>
+                                  <p className="mt-3 text-[1.04rem] leading-[1.9rem] text-foreground">
+                                    {item.claim}
+                                  </p>
+                                  <p className="mt-2 text-[1rem] leading-[1.85rem] text-muted">{item.notes}</p>
+                                </div>
+                              ))}
+                            </div>
                           </div>
+                        </AccordionContent>
+                      </AccordionItem>
+                    </Accordion>
+                  </div>
+
+                  <div className="md:hidden">
+                    <Tabs defaultValue="overview">
+                      <TabsList className="grid w-full grid-cols-3 gap-1 p-1">
+                        <TabsTrigger className="px-2 text-[11px] font-semibold sm:text-xs" value="overview">
+                          Overview
+                        </TabsTrigger>
+                        <TabsTrigger className="px-2 text-[11px] font-semibold sm:text-xs" value="actions">
+                          Actions
+                        </TabsTrigger>
+                        <TabsTrigger className="px-2 text-[11px] font-semibold sm:text-xs" value="evidence">
+                          Evidence
+                        </TabsTrigger>
+                      </TabsList>
+                      <TabsContent className="mt-3" value="overview">
+                        <p className="text-[1.02rem] leading-[1.9rem] text-muted">{finding.summary}</p>
+                      </TabsContent>
+                      <TabsContent className="mt-3 space-y-3" value="actions">
+                        <div className="rounded-[calc(var(--theme-radius)-2px)] border border-border/70 bg-background-alt/70 p-4">
+                          <p className="text-xs font-semibold uppercase tracking-[0.12em] text-muted">
+                            Business impact
+                          </p>
+                          <p className="mt-2 text-[1.02rem] leading-[1.85rem] text-foreground">
+                            {finding.businessImpact}
+                          </p>
                         </div>
-                      </AccordionContent>
-                    </AccordionItem>
-                  </Accordion>
+                        <div className="rounded-[calc(var(--theme-radius)-2px)] border border-accent/20 bg-accent/8 p-4">
+                          <p className="text-xs font-semibold uppercase tracking-[0.12em] text-accent">
+                            Recommendation
+                          </p>
+                          <p className="mt-2 text-[1.02rem] leading-[1.85rem] text-foreground">
+                            {finding.recommendation}
+                          </p>
+                        </div>
+                      </TabsContent>
+                      <TabsContent className="mt-3" value="evidence">
+                        <Accordion collapsible type="single">
+                          <AccordionItem className="bg-background-alt/60 px-3" value="evidence">
+                            <AccordionTrigger className="text-sm">Evidence and scoring support</AccordionTrigger>
+                            <AccordionContent>
+                              <div className="space-y-4">
+                                <div className="space-y-2">
+                                  {finding.evidence.map((evidence) => (
+                                    <div
+                                      className="rounded-[calc(var(--theme-radius)-6px)] border border-border/70 bg-panel/55 px-3 py-3 text-sm leading-7 text-muted"
+                                      key={evidence.id}
+                                    >
+                                      <span className="font-semibold text-foreground">
+                                        {evidence.label}:{" "}
+                                      </span>
+                                      {evidence.detail}
+                                    </div>
+                                  ))}
+                                </div>
+                                <div className="space-y-2">
+                                  {finding.benchmark.map((item) => (
+                                    <div
+                                      className="rounded-[calc(var(--theme-radius)-6px)] border border-border/70 bg-panel/55 px-3 py-3"
+                                      key={item.id}
+                                    >
+                                      <div className="flex flex-wrap items-center gap-2">
+                                        <Badge variant="accent">{item.impactLabel}</Badge>
+                                        <span className="text-[10px] uppercase tracking-[0.16em] text-muted">
+                                          {item.sourceLabel}
+                                        </span>
+                                      </div>
+                                      <p className="mt-2 text-sm leading-7 text-foreground">{item.claim}</p>
+                                      <p className="mt-2 text-xs leading-6 text-muted">{item.notes}</p>
+                                    </div>
+                                  ))}
+                                </div>
+                              </div>
+                            </AccordionContent>
+                          </AccordionItem>
+                        </Accordion>
+                      </TabsContent>
+                    </Tabs>
+                  </div>
                 </CardContent>
               </Card>
             ))}
-          </div>
+          </AuditHorizontalRail>
         </div>
       </div>
     </section>

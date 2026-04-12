@@ -8,6 +8,7 @@ import { ScrollTrigger } from "gsap/ScrollTrigger";
 import { SectionHeading } from "@/components/common/section-heading";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { AuditHorizontalRail } from "@/features/audit/components/audit-horizontal-rail";
 import { useMotionSettings } from "@/hooks/use-motion-settings";
 import type { AuditReport } from "@/lib/types/audit";
 
@@ -50,7 +51,7 @@ export function RebuildStrategySection({ report }: { report: AuditReport }) {
         <p className="text-sm text-muted lg:hidden">
           Swipe or scroll sideways to review the phased plan.
         </p>
-        <div aria-label="Rebuild strategy phases" className="horizontal-rail" tabIndex={0}>
+        <AuditHorizontalRail aria-label="Rebuild strategy phases">
           {report.rebuildPhases.map((phase) => (
             <Card
               data-phase-card
@@ -86,7 +87,7 @@ export function RebuildStrategySection({ report }: { report: AuditReport }) {
               </CardContent>
             </Card>
           ))}
-        </div>
+        </AuditHorizontalRail>
       </div>
     </section>
   );

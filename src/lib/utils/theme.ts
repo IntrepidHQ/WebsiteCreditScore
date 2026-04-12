@@ -1,5 +1,6 @@
 import type {
   AgencyBranding,
+  ThemeColorHarmony,
   ThemeFontProfile,
   ThemeFontStackId,
   ThemeMode,
@@ -286,7 +287,7 @@ export function getThemeFontStack(stack: ThemeFontStackId): string {
   }
 }
 
-function buildSurfacePalette(accentHex: string, mode: ThemeMode) {
+function buildMonochromaticSurfaces(accentHex: string, mode: ThemeMode) {
   const accentRgb = hexToRgb(accentHex);
   const { h } = rgbToHsl(accentRgb.red, accentRgb.green, accentRgb.blue);
   const isDark = mode === "dark";
@@ -330,6 +331,109 @@ function buildSurfacePalette(accentHex: string, mode: ThemeMode) {
   };
 }
 
+function buildComplementarySurfaces(accentHex: string, mode: ThemeMode) {
+  const accentRgb = hexToRgb(accentHex);
+  const { h } = rgbToHsl(accentRgb.red, accentRgb.green, accentRgb.blue);
+  const comp = (h + 180) % 360;
+  const isDark = mode === "dark";
+
+  const background = isDark ? hslToHex(comp, 24, 7) : hslToHex(comp, 20, 97);
+  const backgroundAlt = isDark
+    ? hslToHex((comp + 12) % 360, 22, 10)
+    : hslToHex(h, 18, 95);
+  const panel = isDark ? hslToHex((comp + 6) % 360, 20, 12) : hslToHex(h, 24, 100);
+  const elevated = isDark
+    ? hslToHex((comp + 2) % 360, 16, 16)
+    : hslToHex(h, 14, 92);
+  const border = isDark ? hslToHex(comp, 16, 24) : hslToHex(h, 22, 82);
+  const foreground = isDark ? "#f4f7fb" : "#101723";
+  const muted = isDark ? "#a7b4c8" : "#5f6878";
+  const accent = accentHex;
+  const accentSoft = isDark
+    ? hslToHex(h, 68, 18)
+    : hslToHex(h, 88, 95);
+  const accentForeground = pickReadableTextColor(accentHex);
+  const glow = isDark ? hslToHex(h, 74, 58) : hslToHex(h, 82, 62);
+  const success = isDark ? "#3dd598" : "#138a5f";
+  const warning = isDark ? "#ffcf66" : "#b66b00";
+  const danger = isDark ? "#ff8b8b" : "#b83232";
+
+  return {
+    background,
+    backgroundAlt,
+    panel,
+    elevated,
+    border,
+    foreground,
+    muted,
+    accent,
+    accentSoft,
+    accentForeground,
+    glow,
+    success,
+    warning,
+    danger,
+  };
+}
+
+function buildAnalogousSurfaces(accentHex: string, mode: ThemeMode) {
+  const accentRgb = hexToRgb(accentHex);
+  const { h } = rgbToHsl(accentRgb.red, accentRgb.green, accentRgb.blue);
+  const left = (h - 32 + 360) % 360;
+  const right = (h + 32) % 360;
+  const isDark = mode === "dark";
+
+  const background = isDark ? hslToHex(left, 24, 7) : hslToHex(left, 22, 98);
+  const backgroundAlt = isDark
+    ? hslToHex(h, 22, 10)
+    : hslToHex(h, 20, 96);
+  const panel = isDark ? hslToHex(right, 22, 12) : hslToHex(right, 18, 100);
+  const elevated = isDark
+    ? hslToHex(h, 18, 16)
+    : hslToHex((h + 12) % 360, 12, 92);
+  const border = isDark ? hslToHex(h, 16, 24) : hslToHex(h, 22, 82);
+  const foreground = isDark ? "#f4f7fb" : "#101723";
+  const muted = isDark ? "#9aa8bd" : "#5f6878";
+  const accent = accentHex;
+  const accentSoft = isDark
+    ? hslToHex(h, 68, 18)
+    : hslToHex(h, 88, 95);
+  const accentForeground = pickReadableTextColor(accentHex);
+  const glow = isDark ? hslToHex(h, 74, 58) : hslToHex(h, 82, 62);
+  const success = isDark ? "#3dd598" : "#138a5f";
+  const warning = isDark ? "#ffcf66" : "#b66b00";
+  const danger = isDark ? "#ff8b8b" : "#b83232";
+
+  return {
+    background,
+    backgroundAlt,
+    panel,
+    elevated,
+    border,
+    foreground,
+    muted,
+    accent,
+    accentSoft,
+    accentForeground,
+    glow,
+    success,
+    warning,
+    danger,
+  };
+}
+
+function buildSurfacePalette(accentHex: string, mode: ThemeMode, harmony: ThemeColorHarmony) {
+  if (harmony === "complementary") {
+    return buildComplementarySurfaces(accentHex, mode);
+  }
+
+  if (harmony === "analogous") {
+    return buildAnalogousSurfaces(accentHex, mode);
+  }
+
+  return buildMonochromaticSurfaces(accentHex, mode);
+}
+
 function ensureAccessibleAccent(tokens: ThemeTokens) {
   const contrast = contrastRatio(
     tokens.surfaces.accentForeground,
@@ -371,12 +475,40 @@ export const defaultBranding: AgencyBranding = {
   accentOverride: "",
 };
 
+const isThemeColorHarmony = (value: unknown): value is ThemeColorHarmony =>
+  value === "monochromatic" || value === "complementary" || value === "analogous";
+
+export const THEME_COLOR_HARMONY_OPTIONS: Array<{
+  id: ThemeColorHarmony;
+  label: string;
+  description: string;
+}> = [
+  {
+    id: "monochromatic",
+    label: "Monochromatic",
+    description: "Surfaces stay in the same hue family as the accent for a cohesive studio look.",
+  },
+  {
+    id: "complementary",
+    label: "Complementary",
+    description: "Backgrounds lean into the opposite hue wheel color for higher drama while the accent stays brand-true.",
+  },
+  {
+    id: "analogous",
+    label: "Analogous",
+    description: "Panels drift ±~30° from the accent for layered color without losing readability.",
+  },
+];
+
 export function createThemeTokens(options?: ThemeTokensInput) {
   const mode = options?.mode ?? "dark";
   /** Canonical accent from the picker / presets (hue shift is applied on top for surfaces). */
   const userAccent = options?.accentColor ?? "#f7b21b";
   const hueShift = clamp(options?.accentHueShift ?? 0, -24, 24);
   const shiftedAccent = rotateHexHue(userAccent, hueShift);
+  const colorHarmony: ThemeColorHarmony = isThemeColorHarmony(options?.colorHarmony)
+    ? options.colorHarmony
+    : "monochromatic";
   const { fontDisplay, fontBody } = resolveThemeFontStacks(options);
 
   const headingClamp = (value: number | undefined) => clamp(value ?? 1, 0.72, 1.45);
@@ -384,6 +516,7 @@ export function createThemeTokens(options?: ThemeTokensInput) {
   const tokens: ThemeTokens = {
     mode,
     accentColor: userAccent,
+    colorHarmony,
     accentHueShift: hueShift,
     fontDisplay,
     fontBody,
@@ -399,7 +532,7 @@ export function createThemeTokens(options?: ThemeTokensInput) {
     radius: clamp(options?.radius ?? 12, 8, 20),
     shadowIntensity: clamp(options?.shadowIntensity ?? 0.82, 0.3, 1.2),
     spacingDensity: clamp(options?.spacingDensity ?? 1, 0.82, 1.18),
-    surfaces: buildSurfacePalette(shiftedAccent, mode),
+    surfaces: buildSurfacePalette(shiftedAccent, mode, colorHarmony),
   };
 
   return ensureAccessibleAccent(tokens);
@@ -446,6 +579,7 @@ export function getThemePresets(): ThemePreset[] {
     tokens: createThemeTokens({
       mode: preset.mode,
       accentColor: preset.options.accentColor,
+      colorHarmony: preset.options.colorHarmony,
       fontDisplay: preset.options.fontDisplay,
       fontBody: preset.options.fontBody,
       fontScale: preset.options.fontScale,
@@ -557,6 +691,10 @@ export function parseThemeImportPayload(raw: string): {
         ? clamp(data.tokens.accentHueShift, -24, 24)
         : 0;
 
+    const colorHarmony = isThemeColorHarmony(data.tokens.colorHarmony)
+      ? data.tokens.colorHarmony
+      : undefined;
+
     const fontDisplay = isThemeFontStackId(data.tokens.fontDisplay)
       ? data.tokens.fontDisplay
       : undefined;
@@ -565,6 +703,7 @@ export function parseThemeImportPayload(raw: string): {
     const tokens = createThemeTokens({
       mode: data.tokens.mode ?? "dark",
       accentColor,
+      colorHarmony,
       accentHueShift,
       fontDisplay,
       fontBody,

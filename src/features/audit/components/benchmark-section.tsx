@@ -6,6 +6,7 @@ import { PreviewImage } from "@/components/common/preview-image";
 import { SectionHeading } from "@/components/common/section-heading";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { AuditHorizontalRail } from "@/features/audit/components/audit-horizontal-rail";
 import type { AuditReport } from "@/lib/types/audit";
 import { getBenchmarkReferenceScore, getTenOutOfTenNotes } from "@/lib/mock/report-enhancements";
 
@@ -66,7 +67,7 @@ export function BenchmarkSection({ report }: { report: AuditReport }) {
             </CardContent>
           </Card>
 
-          <div aria-label="Benchmark references" className="horizontal-rail gap-4" tabIndex={0}>
+          <AuditHorizontalRail aria-label="Benchmark references">
             {report.benchmarkReferences.map((reference) => (
               <Card className="min-w-[21rem] overflow-hidden" key={reference.id}>
                 <BenchmarkPreview
@@ -99,7 +100,7 @@ export function BenchmarkSection({ report }: { report: AuditReport }) {
                 </CardContent>
               </Card>
             ))}
-          </div>
+          </AuditHorizontalRail>
         </div>
       </div>
     </section>

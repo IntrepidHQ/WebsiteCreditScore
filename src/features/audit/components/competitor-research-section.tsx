@@ -6,6 +6,8 @@ import { scoreCategoryIcons, scoreCategoryPalette } from "@/components/common/sc
 import { SectionHeading } from "@/components/common/section-heading";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { AuditHorizontalRail } from "@/features/audit/components/audit-horizontal-rail";
 import { REPORT_COMPETITOR_REFERENCE_LIMIT } from "@/lib/benchmarks/report-limits";
 import { getBenchmarkReferenceScore, getTenOutOfTenNotes } from "@/lib/mock/report-enhancements";
 import type { AuditCategoryKey, AuditReport, BenchmarkReference } from "@/lib/types/audit";
@@ -148,25 +150,64 @@ function CompetitorCard({
         <p className="text-[0.98rem] leading-[1.8] text-muted">{reference.note}</p>
       </CardHeader>
       <CardContent className="space-y-3 px-5 pb-5 pt-0 sm:px-5 sm:pb-5">
-        <div className="grid grid-cols-3 gap-2.5">
-          <ScoreRing label="Overall" score={referenceScore} />
-          {scoreHighlights.map((item) => (
-            <ScoreRing key={item.label} label={item.label} score={item.score} />
-          ))}
+        <div className="hidden space-y-3 md:block">
+          <div className="grid grid-cols-3 gap-2.5">
+            <ScoreRing label="Overall" score={referenceScore} />
+            {scoreHighlights.map((item) => (
+              <ScoreRing key={item.label} label={item.label} score={item.score} />
+            ))}
+          </div>
+          <div className="rounded-[calc(var(--theme-radius)-4px)] border border-border/60 bg-background-alt/60 px-3.5 py-3">
+            <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-muted">Best for</p>
+            <p className="mt-2.5 text-[0.98rem] leading-7 text-foreground">{reference.bestFor}</p>
+          </div>
+          <div className="space-y-2">
+            {conciseWhatWorks.map((item) => (
+              <div
+                className="rounded-[calc(var(--theme-radius)-6px)] border border-border/60 bg-panel/45 px-3.5 py-2.5 text-sm leading-6 text-foreground"
+                key={item}
+              >
+                {item}
+              </div>
+            ))}
+          </div>
         </div>
-        <div className="rounded-[calc(var(--theme-radius)-4px)] border border-border/60 bg-background-alt/60 px-3.5 py-3">
-          <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-muted">Best for</p>
-          <p className="mt-2.5 text-[0.98rem] leading-7 text-foreground">{reference.bestFor}</p>
-        </div>
-        <div className="space-y-2">
-          {conciseWhatWorks.map((item) => (
-            <div
-              className="rounded-[calc(var(--theme-radius)-6px)] border border-border/60 bg-panel/45 px-3.5 py-2.5 text-sm leading-6 text-foreground"
-              key={item}
-            >
-              {item}
-            </div>
-          ))}
+
+        <div className="md:hidden">
+          <Tabs defaultValue="scores">
+            <TabsList className="grid w-full grid-cols-2 gap-1 p-1">
+              <TabsTrigger className="text-xs font-semibold" value="scores">
+                Scores
+              </TabsTrigger>
+              <TabsTrigger className="text-xs font-semibold" value="takeaways">
+                Takeaways
+              </TabsTrigger>
+            </TabsList>
+            <TabsContent className="mt-3" value="scores">
+              <div className="grid grid-cols-3 gap-2.5">
+                <ScoreRing label="Overall" score={referenceScore} />
+                {scoreHighlights.map((item) => (
+                  <ScoreRing key={item.label} label={item.label} score={item.score} />
+                ))}
+              </div>
+            </TabsContent>
+            <TabsContent className="mt-3 space-y-3" value="takeaways">
+              <div className="rounded-[calc(var(--theme-radius)-4px)] border border-border/60 bg-background-alt/60 px-3.5 py-3">
+                <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-muted">Best for</p>
+                <p className="mt-2.5 text-[0.95rem] leading-7 text-foreground">{reference.bestFor}</p>
+              </div>
+              <div className="space-y-2">
+                {conciseWhatWorks.map((item) => (
+                  <div
+                    className="rounded-[calc(var(--theme-radius)-6px)] border border-border/60 bg-panel/45 px-3.5 py-2.5 text-sm leading-6 text-foreground"
+                    key={item}
+                  >
+                    {item}
+                  </div>
+                ))}
+              </div>
+            </TabsContent>
+          </Tabs>
         </div>
       </CardContent>
     </Card>
@@ -283,10 +324,9 @@ export function CompetitorResearchSection({ report }: { report: AuditReport }) {
           </Card>
 
           <div className="min-w-0">
-            <div
+            <AuditHorizontalRail
               aria-label="Competitor research examples"
-              className="horizontal-rail [grid-auto-columns:minmax(22.5rem,26rem)] gap-5 lg:[grid-auto-columns:minmax(24rem,30rem)]"
-              tabIndex={0}
+              railClassName="[grid-auto-columns:minmax(22.5rem,26rem)] lg:[grid-auto-columns:minmax(24rem,30rem)]"
             >
               {researchSet.map((reference) => (
                 <CompetitorCard
@@ -296,7 +336,7 @@ export function CompetitorResearchSection({ report }: { report: AuditReport }) {
                   referenceSnapshot={report.competitorSnapshots.find((item) => item.id === reference.id)}
                 />
               ))}
-            </div>
+            </AuditHorizontalRail>
           </div>
         </div>
       </div>

@@ -6,6 +6,7 @@ import { PreviewImage } from "@/components/common/preview-image";
 import { SectionHeading } from "@/components/common/section-heading";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { AuditHorizontalRail } from "@/features/audit/components/audit-horizontal-rail";
 import type { AuditReport } from "@/lib/types/audit";
 import { getScoreTone } from "@/lib/utils/scores";
 
@@ -50,7 +51,7 @@ export function ComparisonSection({ report }: { report: AuditReport }) {
         <p className="text-sm text-muted lg:hidden">
           Swipe or scroll sideways to compare screenshots and headline metrics.
         </p>
-        <div aria-label="Comparison cards" className="horizontal-rail gap-6" tabIndex={0}>
+        <AuditHorizontalRail aria-label="Comparison cards">
           {report.competitorSnapshots.map((snapshot) => (
             <Card key={snapshot.id} className="min-w-[20rem] overflow-hidden">
               <ComparisonPreview
@@ -87,7 +88,7 @@ export function ComparisonSection({ report }: { report: AuditReport }) {
               </CardContent>
             </Card>
           ))}
-        </div>
+        </AuditHorizontalRail>
       </div>
     </section>
   );

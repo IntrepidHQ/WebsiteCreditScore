@@ -166,33 +166,34 @@ export default async function AppLoginPage({
         <LoginSupabaseEnvBanner />
         <BrandWordmarkLink className="mb-6 hidden md:block" variant="on-dark" />
 
-        <div className="mb-8 space-y-4 md:hidden">
-          <BrandWordmarkLink className="block" variant="on-dark" />
-          <div>
-            <h1 className="font-display text-[2.1rem] leading-[1.08] text-foreground">
-              Your website&apos;s<br />
-              <span className="gradient-type">credit score,</span>
-              <br />
-              starts here.
-            </h1>
-            <p className="mt-3 max-w-md text-sm leading-6 text-muted">
-              Audit any site in seconds. See exactly what&apos;s holding back the score — and what to fix
-              first.
-            </p>
-            <ul className="mt-4 space-y-1.5">
-              {features.map((f) => (
-                <li className="flex items-center gap-2.5" key={f}>
-                  <span className="flex h-4 w-4 shrink-0 items-center justify-center rounded-full bg-accent/15">
-                    <Check className="size-2.5 text-accent" strokeWidth={2.5} />
-                  </span>
-                  <span className="text-xs leading-snug text-muted">{f}</span>
-                </li>
-              ))}
-            </ul>
+        <div className="mx-auto w-full max-w-md md:mx-0 md:max-w-none">
+          <div className="mb-8 space-y-4 md:hidden">
+            <BrandWordmarkLink className="block" variant="on-dark" />
+            <div>
+              <h1 className="font-display text-[2.1rem] leading-[1.08] text-foreground">
+                Your website&apos;s<br />
+                <span className="gradient-type">credit score,</span>
+                <br />
+                starts here.
+              </h1>
+              <p className="mt-3 text-sm leading-6 text-muted">
+                Audit any site in seconds. See exactly what&apos;s holding back the score — and what to fix
+                first.
+              </p>
+              <ul className="mt-4 space-y-1.5">
+                {features.map((f) => (
+                  <li className="flex items-center gap-2.5" key={f}>
+                    <span className="flex h-4 w-4 shrink-0 items-center justify-center rounded-full bg-accent/15">
+                      <Check className="size-2.5 text-accent" strokeWidth={2.5} />
+                    </span>
+                    <span className="text-xs leading-snug text-muted">{f}</span>
+                  </li>
+                ))}
+              </ul>
+            </div>
           </div>
-        </div>
 
-        <div className="w-full min-w-0 max-w-xs self-center sm:max-w-sm md:max-w-[16.75rem] md:self-start">
+          <div className="w-full min-w-0 md:max-w-[16.75rem] md:self-start">
         {sentConfirm ? (
           <div className="space-y-4">
             <div className="flex h-12 w-12 items-center justify-center rounded-full bg-success/15">
@@ -450,6 +451,7 @@ export default async function AppLoginPage({
             ) : null}
           </div>
         )}
+          </div>
         </div>
       </div>
     </div>

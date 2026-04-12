@@ -3,7 +3,13 @@
 import { create } from "zustand";
 import { createJSONStorage, persist } from "zustand/middleware";
 
-import type { AgencyBranding, ThemeFontStackId, ThemeMode, ThemeTokens } from "@/lib/types/audit";
+import type {
+  AgencyBranding,
+  ThemeColorHarmony,
+  ThemeFontStackId,
+  ThemeMode,
+  ThemeTokens,
+} from "@/lib/types/audit";
 import type { ThemeHeadingLevel } from "@/lib/utils/theme";
 import { themeScopedStorage } from "@/lib/theme/theme-scoped-storage";
 import {
@@ -34,6 +40,7 @@ interface ThemeState {
   setFontBody: (fontBody: ThemeFontStackId) => void;
   setHeadingScale: (level: ThemeHeadingLevel, scale: number) => void;
   setAccentHueShift: (accentHueShift: number) => void;
+  setColorHarmony: (colorHarmony: ThemeColorHarmony) => void;
   applyLayoutDensity: (density: "compact" | "comfortable" | "spacious") => void;
   setMotionPreference: (preference: MotionPreference) => void;
   setLogoColor: (logoColor: string) => void;
@@ -123,6 +130,14 @@ export const useThemeStore = create<ThemeState>()(
           tokens: createThemeTokens({
             ...state.tokens,
             accentHueShift,
+          }),
+        })),
+      setColorHarmony: (colorHarmony) =>
+        set((state) => ({
+          presetId: null,
+          tokens: createThemeTokens({
+            ...state.tokens,
+            colorHarmony,
           }),
         })),
       applyLayoutDensity: (density) =>

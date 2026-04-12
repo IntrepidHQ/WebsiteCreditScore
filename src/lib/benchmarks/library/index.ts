@@ -5,6 +5,7 @@ import type {
   BenchmarkTier,
   BenchmarkVertical,
   ReportProfileType,
+  ThemeColorHarmony,
   ThemeFontStackId,
 } from "@/lib/types/audit";
 
@@ -118,6 +119,8 @@ type ThemePresetSeedOptions = {
   radius: number;
   shadowIntensity: number;
   spacingDensity: number;
+  /** Defaults to monochromatic when omitted (older presets). */
+  colorHarmony?: ThemeColorHarmony;
   fontDisplay?: ThemeFontStackId;
   fontBody?: ThemeFontStackId;
 };
@@ -300,6 +303,60 @@ export function getAllThemePresetSeeds(): Array<{
         spacingDensity: 1.04,
         fontDisplay: "instrument-serif",
         fontBody: "system-serif",
+      },
+    },
+    {
+      id: "lagoon-complementary",
+      name: "Lagoon Complementary",
+      mode: "dark",
+      accentFamily: "Teal signal",
+      mood: "Cool complementary depth with a crisp teal accent.",
+      recommendedUseCase: "High-contrast audits when you want the canvas to feel cooler than the accent.",
+      options: {
+        accentColor: "#2dd4bf",
+        colorHarmony: "complementary",
+        fontScale: 1.01,
+        radius: 10,
+        shadowIntensity: 0.86,
+        spacingDensity: 1,
+        fontDisplay: "space-grotesk",
+        fontBody: "manrope",
+      },
+    },
+    {
+      id: "orchard-analogous",
+      name: "Orchard Analogous",
+      mode: "dark",
+      accentFamily: "Amber grove",
+      mood: "Layered warm/cool analogous fields with a honey accent.",
+      recommendedUseCase: "Story-first audits and competitor rails that benefit from richer background separation.",
+      options: {
+        accentColor: "#fbbf24",
+        colorHarmony: "analogous",
+        fontScale: 1.02,
+        radius: 11,
+        shadowIntensity: 0.84,
+        spacingDensity: 1.01,
+        fontDisplay: "instrument-serif",
+        fontBody: "manrope",
+      },
+    },
+    {
+      id: "meadow-analogous",
+      name: "Meadow Analogous",
+      mode: "light",
+      accentFamily: "Leaf green",
+      mood: "Soft analogous daylight with a confident green accent.",
+      recommendedUseCase: "Client-facing packets where you want airy light surfaces with subtle hue motion.",
+      options: {
+        accentColor: "#16a34a",
+        colorHarmony: "analogous",
+        fontScale: 1.01,
+        radius: 10,
+        shadowIntensity: 0.7,
+        spacingDensity: 1,
+        fontDisplay: "instrument-serif",
+        fontBody: "manrope",
       },
     },
   ];

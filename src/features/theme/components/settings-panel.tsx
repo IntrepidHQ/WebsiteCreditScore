@@ -21,6 +21,7 @@ import {
   getThemePresets,
   isThemeFontStackId,
   rotateHexHue,
+  THEME_COLOR_HARMONY_OPTIONS,
   THEME_FONT_STACK_OPTIONS,
   THEME_HEADING_LEVELS,
 } from "@/lib/utils/theme";
@@ -103,6 +104,7 @@ export function SettingsPanel() {
   const glowIntensityLabelId = useId();
   const motionLabelId = useId();
   const accentHueLabelId = useId();
+  const colorHarmonyLabelId = useId();
   const headerFontLabelId = useId();
   const bodyFontLabelId = useId();
   const headingScalesLabelId = useId();
@@ -131,6 +133,7 @@ export function SettingsPanel() {
   const setFontBody = useThemeStore((state) => state.setFontBody);
   const setHeadingScale = useThemeStore((state) => state.setHeadingScale);
   const setAccentHueShift = useThemeStore((state) => state.setAccentHueShift);
+  const setColorHarmony = useThemeStore((state) => state.setColorHarmony);
   const applyLayoutDensity = useThemeStore((state) => state.applyLayoutDensity);
   const setMotionPreference = useThemeStore((state) => state.setMotionPreference);
   const applyPreset = useThemeStore((state) => state.applyPreset);
@@ -542,6 +545,41 @@ export function SettingsPanel() {
                           {tokens.accentHueShift}°
                         </span>
                       </div>
+                    </div>
+                  </SettingRow>
+
+                  <SettingRow
+                    titleId={colorHarmonyLabelId}
+                    label="Surface color harmony"
+                    description="Controls how far background and panel hues drift from your accent. Buttons and body text still run through the same contrast safeguards."
+                  >
+                    <div className="space-y-3">
+                      <label className="grid gap-2 text-xs font-medium text-muted" htmlFor="theme-color-harmony">
+                        Harmony model
+                        <select
+                          className={FONT_SELECT_CLASSES}
+                          id="theme-color-harmony"
+                          onChange={(event) => {
+                            const value = event.target.value;
+                            if (value === "monochromatic" || value === "complementary" || value === "analogous") {
+                              setColorHarmony(value);
+                            }
+                          }}
+                          value={tokens.colorHarmony}
+                        >
+                          {THEME_COLOR_HARMONY_OPTIONS.map((option) => (
+                            <option key={option.id} value={option.id}>
+                              {option.label}
+                            </option>
+                          ))}
+                        </select>
+                      </label>
+                      <p className="text-xs leading-relaxed text-muted">
+                        {
+                          THEME_COLOR_HARMONY_OPTIONS.find((option) => option.id === tokens.colorHarmony)
+                            ?.description
+                        }
+                      </p>
                     </div>
                   </SettingRow>
                 </TabsContent>
