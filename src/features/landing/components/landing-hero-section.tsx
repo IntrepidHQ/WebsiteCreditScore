@@ -35,7 +35,7 @@ export function LandingHeroSection({
           className="signal-grid absolute inset-0 opacity-[0.14] [mask-image:linear-gradient(180deg,black_0%,black_48%,transparent_92%)] [-webkit-mask-image:linear-gradient(180deg,black_0%,black_48%,transparent_92%)]"
         />
       </div>
-      <div className="mx-auto w-full max-w-7xl px-4 sm:px-6 lg:px-8">
+      <div className="mx-auto w-full max-w-[min(100%,96rem)] px-4 sm:px-6 lg:px-8">
         <div className="grid gap-8 xl:grid-cols-[minmax(0,1fr)_minmax(22rem,0.9fr)]">
           <div className="space-y-6">
             <Badge className="tracking-[0.16em]" variant="accent">
@@ -45,7 +45,7 @@ export function LandingHeroSection({
               <p className="text-[11px] font-semibold uppercase tracking-[0.3em] text-muted">
                 For business owners who want a site that earns more trust
               </p>
-              <h1 className="max-w-5xl font-display text-[clamp(4.3rem,3.4rem+2.2vw,7rem)] leading-[0.9] tracking-[-0.06em] text-foreground">
+              <h1 className="max-w-[min(100%,92rem)] font-display text-[clamp(4.3rem,3.4rem+2.2vw,7rem)] leading-[0.9] tracking-[-0.06em] text-foreground">
                 Turn your website into a stronger case for more business.
               </h1>
               <p className="max-w-3xl text-[1.08rem] leading-8 text-muted sm:text-[1.2rem] sm:leading-9">

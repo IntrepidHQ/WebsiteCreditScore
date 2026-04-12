@@ -24,7 +24,7 @@ export function LandingRecentReportsSection({
 
   return (
     <section className="presentation-section py-8" id="reports">
-      <div className="mx-auto w-full max-w-7xl space-y-8 px-4 sm:px-6 lg:px-8">
+      <div className="mx-auto w-full max-w-[min(100%,96rem)] space-y-8 px-4 sm:px-6 lg:px-8">
         <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_auto] lg:items-end">
           <SectionHeading
             description={description}

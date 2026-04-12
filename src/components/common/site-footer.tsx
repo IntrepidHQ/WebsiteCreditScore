@@ -34,7 +34,7 @@ export function SiteFooter({ isAuthenticated }: { isAuthenticated: boolean }) {
 
   return (
     <footer className="border-t border-border/60 bg-background/78 print:hidden">
-      <div className="mx-auto grid w-full max-w-7xl gap-10 px-4 py-10 sm:px-6 lg:grid-cols-[minmax(0,1.2fr)_minmax(0,0.8fr)] lg:px-8">
+      <div className="mx-auto grid w-full max-w-[min(100%,96rem)] gap-10 px-4 py-10 sm:px-6 lg:grid-cols-[minmax(0,1.2fr)_minmax(0,0.8fr)] lg:px-8">
         <div className="space-y-5">
           <Link href="/" className="inline-flex">
             <WebsiteCreditScoreLogo compact />

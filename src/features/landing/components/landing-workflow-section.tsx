@@ -39,7 +39,7 @@ export function LandingWorkflowSection({
 }) {
   return (
     <section className="presentation-section py-8" id="workflow">
-      <div className="mx-auto w-full max-w-7xl space-y-8 px-4 sm:px-6 lg:px-8">
+      <div className="mx-auto w-full max-w-[min(100%,96rem)] space-y-8 px-4 sm:px-6 lg:px-8">
         <SectionHeading
           description="Use the review to see where your site is losing trust, where good leads are stalling, and what to fix first if you want the next version to perform better."
           eyebrow="How it works"

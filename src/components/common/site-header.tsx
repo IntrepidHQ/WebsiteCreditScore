@@ -267,7 +267,7 @@ export function SiteHeader({
   return (
     <header className="sticky top-5 z-50 print:hidden">
       <div className="px-4 sm:px-6 lg:px-8">
-        <div className="mx-auto w-full max-w-7xl">
+        <div className="mx-auto w-full max-w-[min(100%,96rem)]">
         <div
           className={cn(
             "rounded-[24px] px-4 transition-[background-color,border-color,box-shadow,backdrop-filter] duration-200 sm:px-5",
