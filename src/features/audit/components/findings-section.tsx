@@ -14,7 +14,6 @@ import {
 } from "@/components/ui/accordion";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { AuditHorizontalRail } from "@/features/audit/components/audit-horizontal-rail";
 import { useMotionSettings } from "@/hooks/use-motion-settings";
 import type { Finding, FindingSection as FindingSectionKey } from "@/lib/types/audit";
@@ -213,81 +212,72 @@ export function FindingsSection({
                   </div>
 
                   <div className="md:hidden">
-                    <Tabs defaultValue="overview">
-                      <TabsList className="grid w-full grid-cols-3 gap-1 p-1">
-                        <TabsTrigger className="px-2 text-[11px] font-semibold sm:text-xs" value="overview">
-                          Overview
-                        </TabsTrigger>
-                        <TabsTrigger className="px-2 text-[11px] font-semibold sm:text-xs" value="actions">
-                          Actions
-                        </TabsTrigger>
-                        <TabsTrigger className="px-2 text-[11px] font-semibold sm:text-xs" value="evidence">
-                          Evidence
-                        </TabsTrigger>
-                      </TabsList>
-                      <TabsContent className="mt-3" value="overview">
-                        <p className="text-[1.02rem] leading-[1.9rem] text-muted">{finding.summary}</p>
-                      </TabsContent>
-                      <TabsContent className="mt-3 space-y-3" value="actions">
-                        <div className="rounded-[calc(var(--theme-radius)-2px)] border border-border/70 bg-background-alt/70 p-4">
-                          <p className="text-xs font-semibold uppercase tracking-[0.12em] text-muted">
-                            Business impact
-                          </p>
-                          <p className="mt-2 text-[1.02rem] leading-[1.85rem] text-foreground">
-                            {finding.businessImpact}
-                          </p>
-                        </div>
-                        <div className="rounded-[calc(var(--theme-radius)-2px)] border border-accent/20 bg-accent/8 p-4">
-                          <p className="text-xs font-semibold uppercase tracking-[0.12em] text-accent">
-                            Recommendation
-                          </p>
-                          <p className="mt-2 text-[1.02rem] leading-[1.85rem] text-foreground">
-                            {finding.recommendation}
-                          </p>
-                        </div>
-                      </TabsContent>
-                      <TabsContent className="mt-3" value="evidence">
-                        <Accordion collapsible type="single">
-                          <AccordionItem className="bg-background-alt/60 px-3" value="evidence">
-                            <AccordionTrigger className="text-sm">Evidence and scoring support</AccordionTrigger>
-                            <AccordionContent>
-                              <div className="space-y-4">
-                                <div className="space-y-2">
-                                  {finding.evidence.map((evidence) => (
-                                    <div
-                                      className="rounded-[calc(var(--theme-radius)-6px)] border border-border/70 bg-panel/55 px-3 py-3 text-sm leading-7 text-muted"
-                                      key={evidence.id}
-                                    >
-                                      <span className="font-semibold text-foreground">
-                                        {evidence.label}:{" "}
-                                      </span>
-                                      {evidence.detail}
-                                    </div>
-                                  ))}
+                    <Accordion collapsible defaultValue="overview" type="single">
+                      <AccordionItem className="border-border/60" value="overview">
+                        <AccordionTrigger className="text-sm font-semibold">Overview</AccordionTrigger>
+                        <AccordionContent>
+                          <p className="text-[1.02rem] leading-[1.9rem] text-muted">{finding.summary}</p>
+                        </AccordionContent>
+                      </AccordionItem>
+                      <AccordionItem className="border-border/60" value="actions">
+                        <AccordionTrigger className="text-sm font-semibold">Actions</AccordionTrigger>
+                        <AccordionContent className="space-y-3">
+                          <div className="rounded-[calc(var(--theme-radius)-2px)] border border-border/70 bg-background-alt/70 p-4">
+                            <p className="text-xs font-semibold uppercase tracking-[0.12em] text-muted">
+                              Business impact
+                            </p>
+                            <p className="mt-2 text-[1.02rem] leading-[1.85rem] text-foreground">
+                              {finding.businessImpact}
+                            </p>
+                          </div>
+                          <div className="rounded-[calc(var(--theme-radius)-2px)] border border-accent/20 bg-accent/8 p-4">
+                            <p className="text-xs font-semibold uppercase tracking-[0.12em] text-accent">
+                              Recommendation
+                            </p>
+                            <p className="mt-2 text-[1.02rem] leading-[1.85rem] text-foreground">
+                              {finding.recommendation}
+                            </p>
+                          </div>
+                        </AccordionContent>
+                      </AccordionItem>
+                      <AccordionItem className="border-border/60" value="evidence">
+                        <AccordionTrigger className="text-sm font-semibold">Evidence</AccordionTrigger>
+                        <AccordionContent>
+                          <div className="space-y-4">
+                            <div className="space-y-2">
+                              {finding.evidence.map((evidence) => (
+                                <div
+                                  className="rounded-[calc(var(--theme-radius)-6px)] border border-border/70 bg-panel/55 px-3 py-3 text-sm leading-7 text-muted"
+                                  key={evidence.id}
+                                >
+                                  <span className="font-semibold text-foreground">
+                                    {evidence.label}:{" "}
+                                  </span>
+                                  {evidence.detail}
                                 </div>
-                                <div className="space-y-2">
-                                  {finding.benchmark.map((item) => (
-                                    <div
-                                      className="rounded-[calc(var(--theme-radius)-6px)] border border-border/70 bg-panel/55 px-3 py-3"
-                                      key={item.id}
-                                    >
-                                      <div className="flex flex-wrap items-center gap-2">
-                                        <Badge variant="accent">{item.impactLabel}</Badge>
-                                        <span className="text-[10px] uppercase tracking-[0.16em] text-muted">
-                                          {item.sourceLabel}
-                                        </span>
-                                      </div>
-                                      <p className="mt-2 text-sm leading-7 text-foreground">{item.claim}</p>
-                                      <p className="mt-2 text-xs leading-6 text-muted">{item.notes}</p>
-                                    </div>
-                                  ))}
+                              ))}
+                            </div>
+                            <div className="space-y-2">
+                              {finding.benchmark.map((item) => (
+                                <div
+                                  className="rounded-[calc(var(--theme-radius)-6px)] border border-border/70 bg-panel/55 px-3 py-3"
+                                  key={item.id}
+                                >
+                                  <div className="flex flex-wrap items-center gap-2">
+                                    <Badge variant="accent">{item.impactLabel}</Badge>
+                                    <span className="text-[10px] uppercase tracking-[0.16em] text-muted">
+                                      {item.sourceLabel}
+                                    </span>
+                                  </div>
+                                  <p className="mt-2 text-sm leading-7 text-foreground">{item.claim}</p>
+                                  <p className="mt-2 text-xs leading-6 text-muted">{item.notes}</p>
                                 </div>
-                              </div>
-                            </AccordionContent>
-                          </AccordionItem>
-                        </Accordion>
-                      </TabsContent>
-                    </Tabs>
+                              ))}
+                            </div>
+                          </div>
+                        </AccordionContent>
+                      </AccordionItem>
+                    </Accordion>
                   </div>
                 </CardContent>
               </Card>

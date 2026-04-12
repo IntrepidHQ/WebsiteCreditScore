@@ -54,7 +54,17 @@ export type BenchmarkType =
 export type ThemeMode = "light" | "dark";
 
 /** How background/panel hues relate to the accent for more varied palettes. */
-export type ThemeColorHarmony = "monochromatic" | "complementary" | "analogous";
+export type ThemeColorHarmony =
+  | "monochromatic"
+  | "complementary"
+  | "analogous"
+  | "split-complementary"
+  | "triadic"
+  | "tetradic"
+  | "square";
+
+/** Optional glass treatment for dense settings / preview surfaces (see `data-surface-finish`). */
+export type ThemeSurfaceFinish = "solid" | "glassmorphic";
 export type PreviewDevice = "desktop" | "mobile";
 export type ReportProvenance = "live-observed" | "fallback-estimated" | "sample-based";
 export type BenchmarkVertical =
@@ -227,6 +237,8 @@ export interface ThemeTokens {
   accentColor: string;
   /** Surface tint strategy relative to the accent hue. */
   colorHarmony: ThemeColorHarmony;
+  /** Glass highlight on supported panels (Settings / previews). */
+  surfaceFinish: ThemeSurfaceFinish;
   /** Degrees to rotate the accent hue before surfaces are rebuilt (−24…24). */
   accentHueShift: number;
   /** Headlines / `.font-display` — Instrument Serif, Space Grotesk, etc. */

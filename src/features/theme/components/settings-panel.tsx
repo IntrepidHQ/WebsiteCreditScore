@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useId, useRef, useState } from "react";
+import { IconArrowBackUp, IconArrowForwardUp, IconLayout2, IconSparkles } from "@tabler/icons-react";
 import { Download, RefreshCcw, Shuffle, Sparkles, Upload, Check, AlertCircle, Cloud } from "lucide-react";
 
 import { saveWorkspaceThemeAction } from "@/app/app/actions";
@@ -14,10 +15,12 @@ import { Input } from "@/components/ui/input";
 import { Slider } from "@/components/ui/slider";
 import { Switch } from "@/components/ui/switch";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { WebsiteCreditScoreLogo } from "@/components/common/website-credit-score-logo";
 import { cn } from "@/lib/utils/cn";
 import {
   getContrastChecks,
+  getHarmonyPreviewSwatches,
   getThemePresets,
   isThemeFontStackId,
   rotateHexHue,
@@ -39,6 +42,14 @@ const ACCENT_SWATCHES = [
   "#ff7fb8",
   "#38bdf8",
   "#f472b6",
+  "#22d3ee",
+  "#a3e635",
+  "#fb7185",
+  "#eab308",
+  "#818cf8",
+  "#f97316",
+  "#34d399",
+  "#e879f9",
 ];
 
 const normalizeHex = (value: string) => {
@@ -63,8 +74,15 @@ function SettingRow({
   description: string;
   children: React.ReactNode;
 }) {
+  const surfaceFinish = useThemeStore((state) => state.tokens.surfaceFinish);
+
   return (
-    <div className="grid gap-4 rounded-[calc(var(--theme-radius))] border border-border/70 bg-panel/60 p-4 lg:grid-cols-[minmax(0,0.8fr)_minmax(0,1.2fr)]">
+    <div
+      className={cn(
+        "grid gap-4 rounded-[calc(var(--theme-radius))] border border-border/70 bg-panel/60 p-4 lg:grid-cols-[minmax(0,0.8fr)_minmax(0,1.2fr)]",
+        surfaceFinish === "glassmorphic" && "theme-glass-surface border-border/35 bg-panel/15",
+      )}
+    >
       <div>
         <p className="font-semibold text-foreground" id={titleId}>
           {label}
@@ -105,6 +123,7 @@ export function SettingsPanel() {
   const motionLabelId = useId();
   const accentHueLabelId = useId();
   const colorHarmonyLabelId = useId();
+  const surfaceFinishLabelId = useId();
   const headerFontLabelId = useId();
   const bodyFontLabelId = useId();
   const headingScalesLabelId = useId();
@@ -134,6 +153,11 @@ export function SettingsPanel() {
   const setHeadingScale = useThemeStore((state) => state.setHeadingScale);
   const setAccentHueShift = useThemeStore((state) => state.setAccentHueShift);
   const setColorHarmony = useThemeStore((state) => state.setColorHarmony);
+  const setSurfaceFinish = useThemeStore((state) => state.setSurfaceFinish);
+  const undoTheme = useThemeStore((state) => state.undoTheme);
+  const redoTheme = useThemeStore((state) => state.redoTheme);
+  const canUndo = useThemeStore((state) => state.undoStack.length > 0);
+  const canRedo = useThemeStore((state) => state.redoStack.length > 0);
   const applyLayoutDensity = useThemeStore((state) => state.applyLayoutDensity);
   const setMotionPreference = useThemeStore((state) => state.setMotionPreference);
   const applyPreset = useThemeStore((state) => state.applyPreset);
@@ -150,6 +174,41 @@ export function SettingsPanel() {
   const [syncMessage, setSyncMessage] = useState<string | null>(null);
   const [syncTone, setSyncTone] = useState<"neutral" | "success" | "warning" | "danger">("neutral");
   const [importError, setImportError] = useState<string | null>(null);
+
+  useEffect(() => {
+    const handleGlobalKeyDown = (event: KeyboardEvent) => {
+      if (!(event.metaKey || event.ctrlKey)) {
+        return;
+      }
+
+      const target = event.target;
+      if (
+        target instanceof HTMLInputElement ||
+        target instanceof HTMLTextAreaElement ||
+        (target instanceof HTMLElement && target.isContentEditable)
+      ) {
+        return;
+      }
+
+      if (event.key === "z" || event.key === "Z") {
+        event.preventDefault();
+        if (event.shiftKey) {
+          redoTheme();
+        } else {
+          undoTheme();
+        }
+        return;
+      }
+
+      if (event.key === "y" || event.key === "Y") {
+        event.preventDefault();
+        redoTheme();
+      }
+    };
+
+    window.addEventListener("keydown", handleGlobalKeyDown);
+    return () => window.removeEventListener("keydown", handleGlobalKeyDown);
+  }, [redoTheme, undoTheme]);
 
   const saveTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const syncDismissRef = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -234,6 +293,7 @@ export function SettingsPanel() {
   }, [exportThemeJson]);
 
   return (
+    <TooltipProvider>
     <section className="space-y-8" id="settings-panel">
       <div className="grid gap-8 xl:grid-cols-[minmax(0,1fr)_minmax(18rem,24rem)] 2xl:grid-cols-[minmax(0,1fr)_26rem]">
         <div className="space-y-8">
@@ -241,7 +301,7 @@ export function SettingsPanel() {
             contentMaxWidthClassName="w-full max-w-[min(100%,88rem)]"
             eyebrow="Studio settings"
             title="Theme & proposal identity"
-            description="Presets, typography, layout density, and agency fields stay in sync with your workspace when signed in — or locally on this device on the public theme page."
+            description="Presets, typography, layout density, and agency fields. Sync from Workspace when signed in; otherwise they stay in this browser."
           />
 
           <Card>
@@ -282,6 +342,26 @@ export function SettingsPanel() {
                   <Button onClick={randomizeTheme} size="sm" type="button" variant="secondary">
                     <Shuffle className="size-4" />
                     Random
+                  </Button>
+                  <Button
+                    aria-label="Undo last theme change"
+                    disabled={!canUndo}
+                    onClick={() => undoTheme()}
+                    size="sm"
+                    type="button"
+                    variant="secondary"
+                  >
+                    <IconArrowBackUp aria-hidden className="size-4" />
+                  </Button>
+                  <Button
+                    aria-label="Redo theme change"
+                    disabled={!canRedo}
+                    onClick={() => redoTheme()}
+                    size="sm"
+                    type="button"
+                    variant="secondary"
+                  >
+                    <IconArrowForwardUp aria-hidden className="size-4" />
                   </Button>
                   <Button onClick={restoreDefaults} size="sm" type="button" variant="secondary">
                     <RefreshCcw className="size-4" />
@@ -325,6 +405,140 @@ export function SettingsPanel() {
                 </TabsList>
 
                 <TabsContent className="space-y-4" value="appearance">
+                  <div className="space-y-6">
+                    <div className="rounded-[calc(var(--theme-radius))] border border-border/70 bg-panel/40 p-4">
+                      <div className="space-y-4">
+                        <div>
+                          <p className="text-sm font-semibold text-foreground" id={colorHarmonyLabelId}>
+                            Surface harmony
+                          </p>
+                          <p className="mt-1 text-xs text-muted">
+                            Short labels; full definitions on focus or hover.
+                          </p>
+                        </div>
+                        <div
+                          aria-labelledby={colorHarmonyLabelId}
+                          className="grid grid-cols-2 gap-3 sm:grid-cols-4 lg:grid-cols-7"
+                          role="group"
+                        >
+                          {THEME_COLOR_HARMONY_OPTIONS.map((option) => {
+                            const selected = tokens.colorHarmony === option.id;
+                            const swatches = getHarmonyPreviewSwatches(tokens.accentColor, option.id);
+
+                            return (
+                              <Tooltip key={option.id}>
+                                <TooltipTrigger asChild>
+                                  <button
+                                    aria-label={`${option.srLabel}. ${option.tooltip}`}
+                                    aria-pressed={selected}
+                                    className={cn(
+                                      "aspect-square w-full rounded-[calc(var(--theme-radius)-2px)] border p-2 text-left transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/45 focus-visible:ring-offset-2 focus-visible:ring-offset-background",
+                                      selected
+                                        ? "border-accent/60 bg-accent/10 shadow-sm"
+                                        : "border-border/70 bg-panel/50 hover:border-accent/25",
+                                    )}
+                                    onClick={() => setColorHarmony(option.id)}
+                                    type="button"
+                                  >
+                                    <span aria-hidden className="flex h-full flex-col gap-2">
+                                      <span className="grid min-h-0 flex-1 grid-cols-3 gap-1">
+                                        {swatches.map((swatch, index) => (
+                                          <span
+                                            aria-hidden
+                                            className="rounded-[6px] border border-border/40"
+                                            key={`${option.id}-${index}`}
+                                            style={{ backgroundColor: swatch }}
+                                          />
+                                        ))}
+                                      </span>
+                                      <span className="text-[11px] font-semibold uppercase tracking-[0.08em] text-foreground">
+                                        {option.label}
+                                      </span>
+                                    </span>
+                                  </button>
+                                </TooltipTrigger>
+                                <TooltipContent className="max-w-sm leading-snug">{option.tooltip}</TooltipContent>
+                              </Tooltip>
+                            );
+                          })}
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="rounded-[calc(var(--theme-radius))] border border-border/70 bg-panel/40 p-4">
+                      <div className="space-y-4">
+                        <div>
+                          <p className="text-sm font-semibold text-foreground" id={surfaceFinishLabelId}>
+                            Panel finish
+                          </p>
+                          <p className="mt-1 text-xs text-muted">Solid fills or glass highlights on studio tiles.</p>
+                        </div>
+                        <div
+                          aria-labelledby={surfaceFinishLabelId}
+                          className="grid max-w-md grid-cols-2 gap-3"
+                          role="group"
+                        >
+                          <Tooltip>
+                            <TooltipTrigger asChild>
+                              <button
+                                aria-label="Solid panel finish. Flat fills with standard borders."
+                                aria-pressed={tokens.surfaceFinish === "solid"}
+                                className={cn(
+                                  "aspect-square w-full rounded-[calc(var(--theme-radius)-2px)] border p-3 text-left transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/45 focus-visible:ring-offset-2 focus-visible:ring-offset-background",
+                                  tokens.surfaceFinish === "solid"
+                                    ? "border-accent/60 bg-accent/10 shadow-sm"
+                                    : "border-border/70 bg-panel/50 hover:border-accent/25",
+                                )}
+                                onClick={() => setSurfaceFinish("solid")}
+                                type="button"
+                              >
+                                <span aria-hidden className="flex h-full flex-col gap-2">
+                                  <span className="flex min-h-0 flex-1 items-center justify-center rounded-md border border-border/70 bg-panel/70">
+                                    <IconLayout2 aria-hidden className="size-5 text-muted" />
+                                  </span>
+                                  <span className="text-[11px] font-semibold uppercase tracking-[0.08em] text-foreground">
+                                    Solid
+                                  </span>
+                                </span>
+                              </button>
+                            </TooltipTrigger>
+                            <TooltipContent className="max-w-xs">
+                              Flat fills and normal borders — lowest visual noise, fastest to parse.
+                            </TooltipContent>
+                          </Tooltip>
+                          <Tooltip>
+                            <TooltipTrigger asChild>
+                              <button
+                                aria-label="Glassmorphic panel finish. Corner glints, pooled shadows, screened accent wash."
+                                aria-pressed={tokens.surfaceFinish === "glassmorphic"}
+                                className={cn(
+                                  "aspect-square w-full rounded-[calc(var(--theme-radius)-2px)] border p-3 text-left transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/45 focus-visible:ring-offset-2 focus-visible:ring-offset-background",
+                                  tokens.surfaceFinish === "glassmorphic"
+                                    ? "border-accent/60 bg-accent/10 shadow-sm"
+                                    : "border-border/70 bg-panel/50 hover:border-accent/25",
+                                )}
+                                onClick={() => setSurfaceFinish("glassmorphic")}
+                                type="button"
+                              >
+                                <span aria-hidden className="flex h-full flex-col gap-2">
+                                  <span className="theme-glass-swatch-preview flex min-h-0 flex-1 items-center justify-center rounded-md">
+                                    <IconSparkles aria-hidden className="size-5 text-muted" />
+                                  </span>
+                                  <span className="text-[11px] font-semibold uppercase tracking-[0.08em] text-foreground">
+                                    Glass
+                                  </span>
+                                </span>
+                              </button>
+                            </TooltipTrigger>
+                            <TooltipContent className="max-w-xs">
+                              Corner highlights, deeper shadow pools, and a screened accent + white wash in the field.
+                            </TooltipContent>
+                          </Tooltip>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
                   <div className="rounded-[calc(var(--theme-radius))] border border-border/70 bg-panel/40 p-4">
                     <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
                       <div className="min-w-0 flex-1">
@@ -545,41 +759,6 @@ export function SettingsPanel() {
                           {tokens.accentHueShift}°
                         </span>
                       </div>
-                    </div>
-                  </SettingRow>
-
-                  <SettingRow
-                    titleId={colorHarmonyLabelId}
-                    label="Surface color harmony"
-                    description="Controls how far background and panel hues drift from your accent. Buttons and body text still run through the same contrast safeguards."
-                  >
-                    <div className="space-y-3">
-                      <label className="grid gap-2 text-xs font-medium text-muted" htmlFor="theme-color-harmony">
-                        Harmony model
-                        <select
-                          className={FONT_SELECT_CLASSES}
-                          id="theme-color-harmony"
-                          onChange={(event) => {
-                            const value = event.target.value;
-                            if (value === "monochromatic" || value === "complementary" || value === "analogous") {
-                              setColorHarmony(value);
-                            }
-                          }}
-                          value={tokens.colorHarmony}
-                        >
-                          {THEME_COLOR_HARMONY_OPTIONS.map((option) => (
-                            <option key={option.id} value={option.id}>
-                              {option.label}
-                            </option>
-                          ))}
-                        </select>
-                      </label>
-                      <p className="text-xs leading-relaxed text-muted">
-                        {
-                          THEME_COLOR_HARMONY_OPTIONS.find((option) => option.id === tokens.colorHarmony)
-                            ?.description
-                        }
-                      </p>
                     </div>
                   </SettingRow>
                 </TabsContent>
@@ -1062,5 +1241,6 @@ export function SettingsPanel() {
         </aside>
       </div>
     </section>
+    </TooltipProvider>
   );
 }

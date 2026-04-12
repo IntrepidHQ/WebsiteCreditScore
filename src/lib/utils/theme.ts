@@ -5,6 +5,7 @@ import type {
   ThemeFontStackId,
   ThemeMode,
   ThemePreset,
+  ThemeSurfaceFinish,
   ThemeTokens,
 } from "@/lib/types/audit";
 import { getAllThemePresetSeeds } from "@/lib/benchmarks/library";
@@ -422,6 +423,199 @@ function buildAnalogousSurfaces(accentHex: string, mode: ThemeMode) {
   };
 }
 
+function hueStep(h: number, delta: number) {
+  return ((h + delta) % 360 + 360) % 360;
+}
+
+function buildSplitComplementarySurfaces(accentHex: string, mode: ThemeMode) {
+  const accentRgb = hexToRgb(accentHex);
+  const { h } = rgbToHsl(accentRgb.red, accentRgb.green, accentRgb.blue);
+  const comp = hueStep(h, 180);
+  const splitA = hueStep(comp, -30);
+  const splitB = hueStep(comp, 30);
+  const isDark = mode === "dark";
+
+  const background = isDark ? hslToHex(splitA, 24, 7) : hslToHex(splitA, 20, 97);
+  const backgroundAlt = isDark
+    ? hslToHex(splitB, 22, 10)
+    : hslToHex(splitB, 18, 95);
+  const panel = isDark ? hslToHex(h, 22, 12) : hslToHex(h, 24, 100);
+  const elevated = isDark
+    ? hslToHex(splitB, 18, 16)
+    : hslToHex(h, 14, 92);
+  const border = isDark ? hslToHex(splitA, 16, 24) : hslToHex(h, 22, 82);
+  const foreground = isDark ? "#f4f7fb" : "#101723";
+  const muted = isDark ? "#a0aec2" : "#5f6878";
+  const accent = accentHex;
+  const accentSoft = isDark
+    ? hslToHex(h, 68, 18)
+    : hslToHex(h, 88, 95);
+  const accentForeground = pickReadableTextColor(accentHex);
+  const glow = isDark ? hslToHex(h, 74, 58) : hslToHex(h, 82, 62);
+  const success = isDark ? "#3dd598" : "#138a5f";
+  const warning = isDark ? "#ffcf66" : "#b66b00";
+  const danger = isDark ? "#ff8b8b" : "#b83232";
+
+  return {
+    background,
+    backgroundAlt,
+    panel,
+    elevated,
+    border,
+    foreground,
+    muted,
+    accent,
+    accentSoft,
+    accentForeground,
+    glow,
+    success,
+    warning,
+    danger,
+  };
+}
+
+function buildTriadicSurfaces(accentHex: string, mode: ThemeMode) {
+  const accentRgb = hexToRgb(accentHex);
+  const { h } = rgbToHsl(accentRgb.red, accentRgb.green, accentRgb.blue);
+  const t1 = hueStep(h, 120);
+  const t2 = hueStep(h, 240);
+  const isDark = mode === "dark";
+
+  const background = isDark ? hslToHex(t1, 24, 7) : hslToHex(t1, 22, 97);
+  const backgroundAlt = isDark
+    ? hslToHex(t2, 22, 10)
+    : hslToHex(t2, 20, 95);
+  const panel = isDark ? hslToHex(h, 22, 12) : hslToHex(h, 24, 100);
+  const elevated = isDark
+    ? hslToHex(t2, 18, 16)
+    : hslToHex(t1, 12, 92);
+  const border = isDark ? hslToHex(t1, 16, 24) : hslToHex(h, 22, 82);
+  const foreground = isDark ? "#f4f7fb" : "#101723";
+  const muted = isDark ? "#a7b4c8" : "#5f6878";
+  const accent = accentHex;
+  const accentSoft = isDark
+    ? hslToHex(h, 68, 18)
+    : hslToHex(h, 88, 95);
+  const accentForeground = pickReadableTextColor(accentHex);
+  const glow = isDark ? hslToHex(h, 74, 58) : hslToHex(h, 82, 62);
+  const success = isDark ? "#3dd598" : "#138a5f";
+  const warning = isDark ? "#ffcf66" : "#b66b00";
+  const danger = isDark ? "#ff8b8b" : "#b83232";
+
+  return {
+    background,
+    backgroundAlt,
+    panel,
+    elevated,
+    border,
+    foreground,
+    muted,
+    accent,
+    accentSoft,
+    accentForeground,
+    glow,
+    success,
+    warning,
+    danger,
+  };
+}
+
+function buildTetradicSurfaces(accentHex: string, mode: ThemeMode) {
+  const accentRgb = hexToRgb(accentHex);
+  const { h } = rgbToHsl(accentRgb.red, accentRgb.green, accentRgb.blue);
+  const a = h;
+  const b = hueStep(h, 180);
+  const c = hueStep(h, 90);
+  const d = hueStep(h, 270);
+  const isDark = mode === "dark";
+
+  const background = isDark ? hslToHex(c, 24, 7) : hslToHex(c, 20, 97);
+  const backgroundAlt = isDark
+    ? hslToHex(d, 22, 10)
+    : hslToHex(d, 18, 95);
+  const panel = isDark ? hslToHex(a, 22, 12) : hslToHex(a, 24, 100);
+  const elevated = isDark
+    ? hslToHex(b, 18, 16)
+    : hslToHex(b, 14, 92);
+  const border = isDark ? hslToHex(c, 16, 24) : hslToHex(a, 22, 82);
+  const foreground = isDark ? "#f4f7fb" : "#101723";
+  const muted = isDark ? "#a7b4c8" : "#5f6878";
+  const accent = accentHex;
+  const accentSoft = isDark
+    ? hslToHex(h, 68, 18)
+    : hslToHex(h, 88, 95);
+  const accentForeground = pickReadableTextColor(accentHex);
+  const glow = isDark ? hslToHex(h, 74, 58) : hslToHex(h, 82, 62);
+  const success = isDark ? "#3dd598" : "#138a5f";
+  const warning = isDark ? "#ffcf66" : "#b66b00";
+  const danger = isDark ? "#ff8b8b" : "#b83232";
+
+  return {
+    background,
+    backgroundAlt,
+    panel,
+    elevated,
+    border,
+    foreground,
+    muted,
+    accent,
+    accentSoft,
+    accentForeground,
+    glow,
+    success,
+    warning,
+    danger,
+  };
+}
+
+function buildSquareSurfaces(accentHex: string, mode: ThemeMode) {
+  const accentRgb = hexToRgb(accentHex);
+  const { h } = rgbToHsl(accentRgb.red, accentRgb.green, accentRgb.blue);
+  const s0 = h;
+  const s1 = hueStep(h, 90);
+  const s2 = hueStep(h, 180);
+  const s3 = hueStep(h, 270);
+  const isDark = mode === "dark";
+
+  const background = isDark ? hslToHex(s1, 24, 7) : hslToHex(s1, 20, 97);
+  const backgroundAlt = isDark
+    ? hslToHex(s2, 22, 10)
+    : hslToHex(s2, 18, 95);
+  const panel = isDark ? hslToHex(s3, 22, 12) : hslToHex(s3, 18, 100);
+  const elevated = isDark
+    ? hslToHex(s0, 18, 16)
+    : hslToHex(s0, 12, 92);
+  const border = isDark ? hslToHex(s1, 16, 24) : hslToHex(s0, 22, 82);
+  const foreground = isDark ? "#f4f7fb" : "#101723";
+  const muted = isDark ? "#a7b4c8" : "#5f6878";
+  const accent = accentHex;
+  const accentSoft = isDark
+    ? hslToHex(h, 68, 18)
+    : hslToHex(h, 88, 95);
+  const accentForeground = pickReadableTextColor(accentHex);
+  const glow = isDark ? hslToHex(h, 74, 58) : hslToHex(h, 82, 62);
+  const success = isDark ? "#3dd598" : "#138a5f";
+  const warning = isDark ? "#ffcf66" : "#b66b00";
+  const danger = isDark ? "#ff8b8b" : "#b83232";
+
+  return {
+    background,
+    backgroundAlt,
+    panel,
+    elevated,
+    border,
+    foreground,
+    muted,
+    accent,
+    accentSoft,
+    accentForeground,
+    glow,
+    success,
+    warning,
+    danger,
+  };
+}
+
 function buildSurfacePalette(accentHex: string, mode: ThemeMode, harmony: ThemeColorHarmony) {
   if (harmony === "complementary") {
     return buildComplementarySurfaces(accentHex, mode);
@@ -429,6 +623,22 @@ function buildSurfacePalette(accentHex: string, mode: ThemeMode, harmony: ThemeC
 
   if (harmony === "analogous") {
     return buildAnalogousSurfaces(accentHex, mode);
+  }
+
+  if (harmony === "split-complementary") {
+    return buildSplitComplementarySurfaces(accentHex, mode);
+  }
+
+  if (harmony === "triadic") {
+    return buildTriadicSurfaces(accentHex, mode);
+  }
+
+  if (harmony === "tetradic") {
+    return buildTetradicSurfaces(accentHex, mode);
+  }
+
+  if (harmony === "square") {
+    return buildSquareSurfaces(accentHex, mode);
   }
 
   return buildMonochromaticSurfaces(accentHex, mode);
@@ -475,30 +685,112 @@ export const defaultBranding: AgencyBranding = {
   accentOverride: "",
 };
 
-const isThemeColorHarmony = (value: unknown): value is ThemeColorHarmony =>
-  value === "monochromatic" || value === "complementary" || value === "analogous";
+export const isThemeColorHarmony = (value: unknown): value is ThemeColorHarmony =>
+  value === "monochromatic" ||
+  value === "complementary" ||
+  value === "analogous" ||
+  value === "split-complementary" ||
+  value === "triadic" ||
+  value === "tetradic" ||
+  value === "square";
 
+const isThemeSurfaceFinish = (value: unknown): value is ThemeSurfaceFinish =>
+  value === "solid" || value === "glassmorphic";
+
+/** Tooltip copy stays technical; keep visible labels short. */
 export const THEME_COLOR_HARMONY_OPTIONS: Array<{
   id: ThemeColorHarmony;
   label: string;
-  description: string;
+  srLabel: string;
+  tooltip: string;
 }> = [
   {
     id: "monochromatic",
-    label: "Monochromatic",
-    description: "Surfaces stay in the same hue family as the accent for a cohesive studio look.",
+    label: "Mono",
+    srLabel: "Monochromatic harmony",
+    tooltip: "One hue family: backgrounds track the accent with small lightness shifts.",
   },
   {
     id: "complementary",
-    label: "Complementary",
-    description: "Backgrounds lean into the opposite hue wheel color for higher drama while the accent stays brand-true.",
+    label: "Comp",
+    srLabel: "Complementary harmony",
+    tooltip: "Accent plus its opposite on the wheel for maximum hue contrast.",
   },
   {
     id: "analogous",
-    label: "Analogous",
-    description: "Panels drift ±~30° from the accent for layered color without losing readability.",
+    label: "Analog",
+    srLabel: "Analogous harmony",
+    tooltip: "Neighboring hues (about ±32°) for smooth fields with less tension than complements.",
+  },
+  {
+    id: "split-complementary",
+    label: "Split",
+    srLabel: "Split complementary harmony",
+    tooltip:
+      "Split-complementary: a variation on complementary color that uses the base color plus the two colors adjacent to its complement. High contrast with less tension than a strict complementary pair.",
+  },
+  {
+    id: "triadic",
+    label: "Triad",
+    srLabel: "Triadic harmony",
+    tooltip:
+      "Triadic: three colors equally spaced around the wheel (a triangle), for example red, yellow, and blue. Vibrant, balanced, and harmonious.",
+  },
+  {
+    id: "tetradic",
+    label: "Tetra",
+    srLabel: "Tetradic rectangular harmony",
+    tooltip:
+      "Tetradic (rectangular): four colors arranged as two complementary pairs, for example blue/orange and yellow/purple. Very dynamic; keep one color dominant.",
+  },
+  {
+    id: "square",
+    label: "Square",
+    srLabel: "Square harmony",
+    tooltip:
+      "Square: four colors evenly spaced around the wheel (a square). Similar energy to tetradic; pick a lead hue for large fields.",
   },
 ];
+
+export function getHarmonyPreviewSwatches(accentHex: string, harmony: ThemeColorHarmony): string[] {
+  const { red, green, blue } = hexToRgb(accentHex);
+  const { h } = rgbToHsl(red, green, blue);
+  const comp = hueStep(h, 180);
+
+  if (harmony === "monochromatic") {
+    return [hslToHex(hueStep(h, 18), 26, 12), hslToHex(hueStep(h, 28), 22, 18), accentHex];
+  }
+
+  if (harmony === "complementary") {
+    return [hslToHex(comp, 24, 10), hslToHex(hueStep(comp, 12), 20, 16), accentHex];
+  }
+
+  if (harmony === "analogous") {
+    return [hslToHex(hueStep(h, -32), 24, 10), hslToHex(hueStep(h, 32), 22, 16), accentHex];
+  }
+
+  if (harmony === "split-complementary") {
+    return [
+      hslToHex(hueStep(comp, -30), 24, 10),
+      hslToHex(hueStep(comp, 30), 22, 16),
+      accentHex,
+    ];
+  }
+
+  if (harmony === "triadic") {
+    return [hslToHex(hueStep(h, 120), 24, 10), hslToHex(hueStep(h, 240), 22, 16), accentHex];
+  }
+
+  if (harmony === "tetradic") {
+    return [hslToHex(hueStep(h, 90), 24, 10), hslToHex(hueStep(h, 270), 22, 16), accentHex];
+  }
+
+  if (harmony === "square") {
+    return [hslToHex(hueStep(h, 90), 24, 10), hslToHex(hueStep(h, 180), 22, 16), accentHex];
+  }
+
+  return [hslToHex(hueStep(h, 18), 26, 12), hslToHex(hueStep(h, 28), 22, 18), accentHex];
+}
 
 export function createThemeTokens(options?: ThemeTokensInput) {
   const mode = options?.mode ?? "dark";
@@ -509,6 +801,9 @@ export function createThemeTokens(options?: ThemeTokensInput) {
   const colorHarmony: ThemeColorHarmony = isThemeColorHarmony(options?.colorHarmony)
     ? options.colorHarmony
     : "monochromatic";
+  const surfaceFinish: ThemeSurfaceFinish = isThemeSurfaceFinish(options?.surfaceFinish)
+    ? options.surfaceFinish
+    : "solid";
   const { fontDisplay, fontBody } = resolveThemeFontStacks(options);
 
   const headingClamp = (value: number | undefined) => clamp(value ?? 1, 0.72, 1.45);
@@ -517,6 +812,7 @@ export function createThemeTokens(options?: ThemeTokensInput) {
     mode,
     accentColor: userAccent,
     colorHarmony,
+    surfaceFinish,
     accentHueShift: hueShift,
     fontDisplay,
     fontBody,
@@ -580,6 +876,7 @@ export function getThemePresets(): ThemePreset[] {
       mode: preset.mode,
       accentColor: preset.options.accentColor,
       colorHarmony: preset.options.colorHarmony,
+      surfaceFinish: preset.options.surfaceFinish,
       fontDisplay: preset.options.fontDisplay,
       fontBody: preset.options.fontBody,
       fontScale: preset.options.fontScale,
@@ -695,6 +992,10 @@ export function parseThemeImportPayload(raw: string): {
       ? data.tokens.colorHarmony
       : undefined;
 
+    const surfaceFinish = isThemeSurfaceFinish(data.tokens.surfaceFinish)
+      ? data.tokens.surfaceFinish
+      : undefined;
+
     const fontDisplay = isThemeFontStackId(data.tokens.fontDisplay)
       ? data.tokens.fontDisplay
       : undefined;
@@ -704,6 +1005,7 @@ export function parseThemeImportPayload(raw: string): {
       mode: data.tokens.mode ?? "dark",
       accentColor,
       colorHarmony,
+      surfaceFinish,
       accentHueShift,
       fontDisplay,
       fontBody,

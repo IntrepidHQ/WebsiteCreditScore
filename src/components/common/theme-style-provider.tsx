@@ -21,6 +21,7 @@ export function ThemeStyleProvider({
     });
 
     document.documentElement.dataset.themeMode = normalizedTokens.mode;
+    document.documentElement.dataset.surfaceFinish = normalizedTokens.surfaceFinish;
     document.documentElement.style.colorScheme = normalizedTokens.mode;
   }, [tokens]);
 

@@ -1,12 +1,17 @@
 "use client";
 import { Medal, TrendingUp } from "lucide-react";
 
+import {
+  Accordion,
+  AccordionContent,
+  AccordionItem,
+  AccordionTrigger,
+} from "@/components/ui/accordion";
 import { PreviewImage } from "@/components/common/preview-image";
 import { scoreCategoryIcons, scoreCategoryPalette } from "@/components/common/score-category-meta";
 import { SectionHeading } from "@/components/common/section-heading";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { AuditHorizontalRail } from "@/features/audit/components/audit-horizontal-rail";
 import { REPORT_COMPETITOR_REFERENCE_LIMIT } from "@/lib/benchmarks/report-limits";
 import { getBenchmarkReferenceScore, getTenOutOfTenNotes } from "@/lib/mock/report-enhancements";
@@ -174,40 +179,38 @@ function CompetitorCard({
         </div>
 
         <div className="md:hidden">
-          <Tabs defaultValue="scores">
-            <TabsList className="grid w-full grid-cols-2 gap-1 p-1">
-              <TabsTrigger className="text-xs font-semibold" value="scores">
-                Scores
-              </TabsTrigger>
-              <TabsTrigger className="text-xs font-semibold" value="takeaways">
-                Takeaways
-              </TabsTrigger>
-            </TabsList>
-            <TabsContent className="mt-3" value="scores">
-              <div className="grid grid-cols-3 gap-2.5">
-                <ScoreRing label="Overall" score={referenceScore} />
-                {scoreHighlights.map((item) => (
-                  <ScoreRing key={item.label} label={item.label} score={item.score} />
-                ))}
-              </div>
-            </TabsContent>
-            <TabsContent className="mt-3 space-y-3" value="takeaways">
-              <div className="rounded-[calc(var(--theme-radius)-4px)] border border-border/60 bg-background-alt/60 px-3.5 py-3">
-                <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-muted">Best for</p>
-                <p className="mt-2.5 text-[0.95rem] leading-7 text-foreground">{reference.bestFor}</p>
-              </div>
-              <div className="space-y-2">
-                {conciseWhatWorks.map((item) => (
-                  <div
-                    className="rounded-[calc(var(--theme-radius)-6px)] border border-border/60 bg-panel/45 px-3.5 py-2.5 text-sm leading-6 text-foreground"
-                    key={item}
-                  >
-                    {item}
-                  </div>
-                ))}
-              </div>
-            </TabsContent>
-          </Tabs>
+          <Accordion collapsible defaultValue="scores" type="single">
+            <AccordionItem className="border-border/60" value="scores">
+              <AccordionTrigger className="text-xs font-semibold">Scores</AccordionTrigger>
+              <AccordionContent>
+                <div className="grid grid-cols-3 gap-2.5">
+                  <ScoreRing label="Overall" score={referenceScore} />
+                  {scoreHighlights.map((item) => (
+                    <ScoreRing key={item.label} label={item.label} score={item.score} />
+                  ))}
+                </div>
+              </AccordionContent>
+            </AccordionItem>
+            <AccordionItem className="border-border/60" value="takeaways">
+              <AccordionTrigger className="text-xs font-semibold">Takeaways</AccordionTrigger>
+              <AccordionContent className="space-y-3">
+                <div className="rounded-[calc(var(--theme-radius)-4px)] border border-border/60 bg-background-alt/60 px-3.5 py-3">
+                  <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-muted">Best for</p>
+                  <p className="mt-2.5 text-[0.95rem] leading-7 text-foreground">{reference.bestFor}</p>
+                </div>
+                <div className="space-y-2">
+                  {conciseWhatWorks.map((item) => (
+                    <div
+                      className="rounded-[calc(var(--theme-radius)-6px)] border border-border/60 bg-panel/45 px-3.5 py-2.5 text-sm leading-6 text-foreground"
+                      key={item}
+                    >
+                      {item}
+                    </div>
+                  ))}
+                </div>
+              </AccordionContent>
+            </AccordionItem>
+          </Accordion>
         </div>
       </CardContent>
     </Card>

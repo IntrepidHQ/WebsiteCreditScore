@@ -8,6 +8,7 @@ import type {
   ThemeColorHarmony,
   ThemeFontStackId,
   ThemeMode,
+  ThemeSurfaceFinish,
   ThemeTokens,
 } from "@/lib/types/audit";
 import type { ThemeHeadingLevel } from "@/lib/utils/theme";
@@ -23,11 +24,19 @@ import {
 
 type MotionPreference = "system" | "reduced";
 
+type ThemeSnapshot = {
+  tokens: ThemeTokens;
+  branding: AgencyBranding;
+  presetId: string | null;
+};
+
 interface ThemeState {
   tokens: ThemeTokens;
   branding: AgencyBranding;
   motionPreference: MotionPreference;
   presetId: string | null;
+  undoStack: ThemeSnapshot[];
+  redoStack: ThemeSnapshot[];
   setMode: (mode: ThemeMode) => void;
   setAccentColor: (accentColor: string) => void;
   setFontScale: (fontScale: number) => void;
@@ -41,6 +50,7 @@ interface ThemeState {
   setHeadingScale: (level: ThemeHeadingLevel, scale: number) => void;
   setAccentHueShift: (accentHueShift: number) => void;
   setColorHarmony: (colorHarmony: ThemeColorHarmony) => void;
+  setSurfaceFinish: (surfaceFinish: ThemeSurfaceFinish) => void;
   applyLayoutDensity: (density: "compact" | "comfortable" | "spacious") => void;
   setMotionPreference: (preference: MotionPreference) => void;
   setLogoColor: (logoColor: string) => void;
@@ -52,11 +62,23 @@ interface ThemeState {
   updateBranding: (patch: Partial<AgencyBranding>) => void;
   exportThemeJson: () => string;
   importThemeJson: (raw: string) => boolean;
+  undoTheme: () => void;
+  redoTheme: () => void;
 }
 
 function clamp(value: number, min: number, max: number) {
   return Math.min(max, Math.max(min, value));
 }
+
+const cloneSnapshot = (state: {
+  tokens: ThemeTokens;
+  branding: AgencyBranding;
+  presetId: string | null;
+}): ThemeSnapshot => ({
+  tokens: JSON.parse(JSON.stringify(state.tokens)) as ThemeTokens,
+  branding: JSON.parse(JSON.stringify(state.branding)) as AgencyBranding,
+  presetId: state.presetId,
+});
 
 const defaultTokens = createThemeTokens();
 const themePresets = getThemePresets();
@@ -68,6 +90,42 @@ export const useThemeStore = create<ThemeState>()(
       branding: defaultBranding,
       motionPreference: "system",
       presetId: themePresets[0]?.id ?? null,
+      undoStack: [],
+      redoStack: [],
+      undoTheme: () =>
+        set((state) => {
+          if (!state.undoStack.length) {
+            return state;
+          }
+
+          const previous = state.undoStack[state.undoStack.length - 1]!;
+          const current = cloneSnapshot(state);
+
+          return {
+            tokens: createThemeTokens(previous.tokens),
+            branding: previous.branding,
+            presetId: previous.presetId,
+            undoStack: state.undoStack.slice(0, -1),
+            redoStack: [current, ...state.redoStack].slice(0, 50),
+          };
+        }),
+      redoTheme: () =>
+        set((state) => {
+          if (!state.redoStack.length) {
+            return state;
+          }
+
+          const [next, ...rest] = state.redoStack;
+          const current = cloneSnapshot(state);
+
+          return {
+            tokens: createThemeTokens(next.tokens),
+            branding: next.branding,
+            presetId: next.presetId,
+            redoStack: rest,
+            undoStack: [...state.undoStack, current].slice(-50),
+          };
+        }),
       setMode: (mode) =>
         set((state) => ({
           presetId: null,
@@ -76,6 +134,8 @@ export const useThemeStore = create<ThemeState>()(
             mode,
             accentColor: state.branding.accentOverride || state.tokens.accentColor,
           }),
+          undoStack: [...state.undoStack, cloneSnapshot(state)].slice(-50),
+          redoStack: [],
         })),
       setAccentColor: (accentColor) =>
         set((state) => ({
@@ -85,6 +145,8 @@ export const useThemeStore = create<ThemeState>()(
             accentColor,
             accentHueShift: 0,
           }),
+          undoStack: [...state.undoStack, cloneSnapshot(state)].slice(-50),
+          redoStack: [],
         })),
       setFontDisplay: (fontDisplay) =>
         set((state) => ({
@@ -93,6 +155,8 @@ export const useThemeStore = create<ThemeState>()(
             ...state.tokens,
             fontDisplay,
           }),
+          undoStack: [...state.undoStack, cloneSnapshot(state)].slice(-50),
+          redoStack: [],
         })),
       setFontBody: (fontBody) =>
         set((state) => ({
@@ -101,6 +165,8 @@ export const useThemeStore = create<ThemeState>()(
             ...state.tokens,
             fontBody,
           }),
+          undoStack: [...state.undoStack, cloneSnapshot(state)].slice(-50),
+          redoStack: [],
         })),
       setHeadingScale: (level, scale) =>
         set((state) => {
@@ -122,6 +188,8 @@ export const useThemeStore = create<ThemeState>()(
           return {
             presetId: null,
             tokens: createThemeTokens(base),
+            undoStack: [...state.undoStack, cloneSnapshot(state)].slice(-50),
+            redoStack: [],
           };
         }),
       setAccentHueShift: (accentHueShift) =>
@@ -131,6 +199,8 @@ export const useThemeStore = create<ThemeState>()(
             ...state.tokens,
             accentHueShift,
           }),
+          undoStack: [...state.undoStack, cloneSnapshot(state)].slice(-50),
+          redoStack: [],
         })),
       setColorHarmony: (colorHarmony) =>
         set((state) => ({
@@ -139,6 +209,17 @@ export const useThemeStore = create<ThemeState>()(
             ...state.tokens,
             colorHarmony,
           }),
+          undoStack: [...state.undoStack, cloneSnapshot(state)].slice(-50),
+          redoStack: [],
+        })),
+      setSurfaceFinish: (surfaceFinish) =>
+        set((state) => ({
+          tokens: createThemeTokens({
+            ...state.tokens,
+            surfaceFinish,
+          }),
+          undoStack: [...state.undoStack, cloneSnapshot(state)].slice(-50),
+          redoStack: [],
         })),
       applyLayoutDensity: (density) =>
         set((state) => {
@@ -157,6 +238,8 @@ export const useThemeStore = create<ThemeState>()(
                 radius: 9,
                 shadowIntensity: 0.72,
               }),
+              undoStack: [...state.undoStack, cloneSnapshot(state)].slice(-50),
+              redoStack: [],
             };
           }
           if (density === "spacious") {
@@ -170,6 +253,8 @@ export const useThemeStore = create<ThemeState>()(
                 radius: 14,
                 shadowIntensity: 0.92,
               }),
+              undoStack: [...state.undoStack, cloneSnapshot(state)].slice(-50),
+              redoStack: [],
             };
           }
           return {
@@ -182,6 +267,8 @@ export const useThemeStore = create<ThemeState>()(
               radius: 12,
               shadowIntensity: 0.82,
             }),
+            undoStack: [...state.undoStack, cloneSnapshot(state)].slice(-50),
+            redoStack: [],
           };
         }),
       setFontScale: (fontScale) =>
@@ -191,6 +278,8 @@ export const useThemeStore = create<ThemeState>()(
             ...state.tokens,
             fontScale,
           }),
+          undoStack: [...state.undoStack, cloneSnapshot(state)].slice(-50),
+          redoStack: [],
         })),
       setLineHeightScale: (lineHeightScale) =>
         set((state) => ({
@@ -199,6 +288,8 @@ export const useThemeStore = create<ThemeState>()(
             ...state.tokens,
             lineHeightScale,
           }),
+          undoStack: [...state.undoStack, cloneSnapshot(state)].slice(-50),
+          redoStack: [],
         })),
       setGlowIntensity: (glowIntensity) =>
         set((state) => ({
@@ -207,6 +298,8 @@ export const useThemeStore = create<ThemeState>()(
             ...state.tokens,
             glowIntensity,
           }),
+          undoStack: [...state.undoStack, cloneSnapshot(state)].slice(-50),
+          redoStack: [],
         })),
       setRadius: (radius) =>
         set((state) => ({
@@ -215,6 +308,8 @@ export const useThemeStore = create<ThemeState>()(
             ...state.tokens,
             radius,
           }),
+          undoStack: [...state.undoStack, cloneSnapshot(state)].slice(-50),
+          redoStack: [],
         })),
       setShadowIntensity: (shadowIntensity) =>
         set((state) => ({
@@ -223,6 +318,8 @@ export const useThemeStore = create<ThemeState>()(
             ...state.tokens,
             shadowIntensity,
           }),
+          undoStack: [...state.undoStack, cloneSnapshot(state)].slice(-50),
+          redoStack: [],
         })),
       setSpacingDensity: (spacingDensity) =>
         set((state) => ({
@@ -231,11 +328,15 @@ export const useThemeStore = create<ThemeState>()(
             ...state.tokens,
             spacingDensity,
           }),
+          undoStack: [...state.undoStack, cloneSnapshot(state)].slice(-50),
+          redoStack: [],
         })),
       setMotionPreference: (motionPreference) => set({ motionPreference }),
       setLogoColor: (logoColor) =>
         set((state) => ({
           branding: { ...state.branding, logoColor },
+          undoStack: [...state.undoStack, cloneSnapshot(state)].slice(-50),
+          redoStack: [],
         })),
       setLogoScale: (logoScale) =>
         set((state) => ({
@@ -243,6 +344,8 @@ export const useThemeStore = create<ThemeState>()(
             ...state.branding,
             logoScale: clamp(logoScale, 0.75, 1.5),
           },
+          undoStack: [...state.undoStack, cloneSnapshot(state)].slice(-50),
+          redoStack: [],
         })),
       applyPreset: (presetId) =>
         set((state) => {
@@ -260,6 +363,8 @@ export const useThemeStore = create<ThemeState>()(
                 state.branding.accentOverride || preset.tokens.accentColor,
               accentHueShift: 0,
             }),
+            undoStack: [...state.undoStack, cloneSnapshot(state)].slice(-50),
+            redoStack: [],
           };
         }),
       clearPresetSelection: () => set({ presetId: null }),
@@ -267,14 +372,18 @@ export const useThemeStore = create<ThemeState>()(
         set((state) => ({
           presetId: null,
           tokens: createRandomTheme(state.tokens.mode),
+          undoStack: [...state.undoStack, cloneSnapshot(state)].slice(-50),
+          redoStack: [],
         })),
       restoreDefaults: () =>
-        set({
+        set((state) => ({
           tokens: defaultTokens,
           branding: defaultBranding,
           motionPreference: "system",
           presetId: themePresets[0]?.id ?? null,
-        }),
+          undoStack: [...state.undoStack, cloneSnapshot(state)].slice(-50),
+          redoStack: [],
+        })),
       updateBranding: (patch) =>
         set((state) => {
           const branding = { ...state.branding, ...patch };
@@ -286,6 +395,8 @@ export const useThemeStore = create<ThemeState>()(
               ...state.tokens,
               accentColor,
             }),
+            undoStack: [...state.undoStack, cloneSnapshot(state)].slice(-50),
+            redoStack: [],
           };
         }),
       exportThemeJson: () => exportThemePayload(get().tokens, get().branding),
@@ -294,17 +405,25 @@ export const useThemeStore = create<ThemeState>()(
         if (!parsed) {
           return false;
         }
-        set({
+        set((state) => ({
           presetId: null,
           tokens: parsed.tokens,
           branding: parsed.branding,
-        });
+          undoStack: [...state.undoStack, cloneSnapshot(state)].slice(-50),
+          redoStack: [],
+        }));
         return true;
       },
     }),
     {
       name: "premium-audit-theme-store",
       storage: createJSONStorage(() => themeScopedStorage),
+      partialize: (state) => ({
+        tokens: state.tokens,
+        branding: state.branding,
+        motionPreference: state.motionPreference,
+        presetId: state.presetId,
+      }),
       merge: (persistedState, currentState) => {
         const persisted = persistedState as Partial<ThemeState>;
         const persistedBranding = persisted.branding
@@ -324,6 +443,8 @@ export const useThemeStore = create<ThemeState>()(
             ? createThemeTokens(persisted.tokens)
             : currentState.tokens,
           presetId: persisted.presetId ?? currentState.presetId,
+          undoStack: [],
+          redoStack: [],
         };
       },
     },

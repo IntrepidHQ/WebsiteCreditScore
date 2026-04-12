@@ -7,6 +7,7 @@ import type {
   ReportProfileType,
   ThemeColorHarmony,
   ThemeFontStackId,
+  ThemeSurfaceFinish,
 } from "@/lib/types/audit";
 
 import { benchmarkRubrics } from "./benchmark-rubrics";
@@ -121,6 +122,7 @@ type ThemePresetSeedOptions = {
   spacingDensity: number;
   /** Defaults to monochromatic when omitted (older presets). */
   colorHarmony?: ThemeColorHarmony;
+  surfaceFinish?: ThemeSurfaceFinish;
   fontDisplay?: ThemeFontStackId;
   fontBody?: ThemeFontStackId;
 };
