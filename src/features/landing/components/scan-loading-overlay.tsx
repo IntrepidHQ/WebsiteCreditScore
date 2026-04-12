@@ -146,7 +146,7 @@ export function ScanLoadingOverlay({
   }, [active, mode, reduceMotion, scanDataReady]);
 
   useEffect(() => {
-    if (!active || reduceMotion) {
+    if (!active) {
       return;
     }
 
@@ -155,26 +155,27 @@ export function ScanLoadingOverlay({
       return;
     }
 
-    gsap.killTweensOf(nodes);
-    gsap.set(nodes, { width: "7%" });
-
-    const tl = gsap.timeline({ repeat: -1, defaults: { ease: "sine.inOut" } });
-    tl.to(nodes, {
-      width: "52%",
-      duration: 1.35,
-      stagger: 0.1,
-    }).to(nodes, {
-      width: "28%",
-      duration: 1.55,
-      stagger: 0.12,
+    const basePct = Math.min(100, Math.max(0, (displayScore / 10) * 100));
+    const widths = nodes.map((_, index) => {
+      const skew = 1 - index * 0.04;
+      return `${Math.min(100, Math.max(6, basePct * skew))}%`;
     });
 
-    return () => {
-      tl.kill();
-      gsap.killTweensOf(nodes);
-      gsap.set(nodes, { clearProps: "width" });
-    };
-  }, [active, reduceMotion]);
+    if (reduceMotion) {
+      nodes.forEach((node, index) => {
+        node.style.width = widths[index] ?? `${basePct}%`;
+      });
+      return;
+    }
+
+    gsap.killTweensOf(nodes);
+    gsap.to(nodes, {
+      width: (index) => widths[index] ?? `${basePct}%`,
+      duration: 0.45,
+      ease: "power2.out",
+      stagger: 0.05,
+    });
+  }, [active, displayScore, reduceMotion]);
 
   if (!active) {
     return null;
@@ -193,10 +194,10 @@ export function ScanLoadingOverlay({
           "w-full max-w-lg rounded-[28px] border border-border/60 bg-[linear-gradient(180deg,color-mix(in_srgb,var(--theme-panel)_88%,transparent),color-mix(in_srgb,var(--theme-background-alt)_96%,transparent))] p-6 shadow-[0_28px_80px_rgba(0,0,0,0.35)]",
         )}
       >
-        <p className="text-center text-[10px] font-semibold uppercase tracking-[0.2em] text-muted">
+        <p className="text-center text-[11px] font-semibold uppercase tracking-[0.22em] text-muted">
           Live scan in progress
         </p>
-        <div className="mt-5 flex flex-col items-center">
+        <div className="mt-6 flex flex-col items-center">
           <div className="relative flex items-center justify-center">
             <svg
               aria-hidden
@@ -236,10 +237,10 @@ export function ScanLoadingOverlay({
           </div>
         </div>
 
-        <div className="mt-8 space-y-3">
+        <div className="mt-9 space-y-3.5">
           {skeletonCategories.map((row, index) => (
-            <div className="space-y-1.5" key={row.key}>
-              <div className="flex items-center justify-between text-[11px] font-medium uppercase tracking-[0.12em] text-muted">
+            <div className="space-y-2" key={row.key}>
+              <div className="flex items-center justify-between text-[11px] font-semibold uppercase tracking-[0.14em] text-muted">
                 <span>{row.label}</span>
                 <span className="text-foreground/70">…</span>
               </div>
@@ -249,21 +250,18 @@ export function ScanLoadingOverlay({
                   ref={(node) => {
                     barRefs.current[index] = node;
                   }}
-                  style={{ width: reduceMotion ? "52%" : "7%" }}
+                  style={{
+                    width: `${Math.min(100, Math.max(6, (displayScore / 10) * 100))}%`,
+                  }}
                 >
-                  <div
-                    className={cn(
-                      "h-full w-full rounded-full bg-[linear-gradient(90deg,rgba(247,178,27,0.95),rgba(247,178,27,0.42),rgba(247,178,27,0.18))]",
-                      !reduceMotion && "scan-bar-fill-animated",
-                    )}
-                  />
+                  <div className="h-full w-full rounded-full bg-[linear-gradient(90deg,rgba(247,178,27,0.95),rgba(247,178,27,0.42),rgba(247,178,27,0.18))]" />
                 </div>
               </div>
             </div>
           ))}
         </div>
 
-        <p className="mt-6 text-center text-sm leading-6 text-muted">
+        <p className="mt-7 text-center text-[0.95rem] leading-7 text-muted">
           Scoring the live site, benchmarks, and trust signals — this usually takes a moment.
         </p>
       </div>

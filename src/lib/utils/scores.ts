@@ -4,6 +4,18 @@ export function clampScore(value: number) {
   return Math.max(1, Math.min(10, Number(value.toFixed(1))));
 }
 
+/** Bar fill width (0–100) for scores stored as 0–10 or 0–1 decimals. */
+export function scoreBarFillPercent(score: number) {
+  const n = Number(score);
+  if (!Number.isFinite(n) || n < 0) {
+    return 0;
+  }
+  if (n <= 1) {
+    return Math.min(100, Math.max(0, n * 100));
+  }
+  return Math.min(100, Math.max(0, n * 10));
+}
+
 export type ScoreBandVariant = "danger" | "warning" | "accent" | "success";
 
 export interface ScoreBand {

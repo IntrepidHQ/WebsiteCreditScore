@@ -17,11 +17,14 @@ import { Switch } from "@/components/ui/switch";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { WebsiteCreditScoreLogo } from "@/components/common/website-credit-score-logo";
+import { HeroGridSurface } from "@/features/landing/components/hero-grid-surface";
 import { cn } from "@/lib/utils/cn";
 import {
   getContrastChecks,
   getHarmonyPreviewSwatches,
   getThemePresets,
+  HERO_GRID_PATTERN_OPTIONS,
+  isHeroGridPattern,
   isThemeFontStackId,
   rotateHexHue,
   THEME_COLOR_HARMONY_OPTIONS,
@@ -119,6 +122,11 @@ export function SettingsPanel() {
   const fontScaleLabelId = useId();
   const radiusLabelId = useId();
   const shadowLabelId = useId();
+  const shadowSpreadLabelId = useId();
+  const heroGridLabelId = useId();
+  const heroGridSelectId = useId();
+  const heroGridPreviewReactId = useId();
+  const heroGridPreviewUid = heroGridPreviewReactId.replace(/:/g, "");
   const spacingLabelId = useId();
   const lineHeightLabelId = useId();
   const glowIntensityLabelId = useId();
@@ -147,7 +155,9 @@ export function SettingsPanel() {
   const setFontScale = useThemeStore((state) => state.setFontScale);
   const setRadius = useThemeStore((state) => state.setRadius);
   const setShadowIntensity = useThemeStore((state) => state.setShadowIntensity);
+  const setShadowSpread = useThemeStore((state) => state.setShadowSpread);
   const setSpacingDensity = useThemeStore((state) => state.setSpacingDensity);
+  const setHeroGridPattern = useThemeStore((state) => state.setHeroGridPattern);
   const setLineHeightScale = useThemeStore((state) => state.setLineHeightScale);
   const setGlowIntensity = useThemeStore((state) => state.setGlowIntensity);
   const setFontDisplay = useThemeStore((state) => state.setFontDisplay);
@@ -1013,6 +1023,49 @@ export function SettingsPanel() {
                   </SettingRow>
 
                   <SettingRow
+                    titleId={shadowSpreadLabelId}
+                    label="Shadow spread"
+                    description="Extra box-shadow spread (px) layered with intensity — pushes halos outward without changing blur as much."
+                  >
+                    <Slider
+                      aria-labelledby={shadowSpreadLabelId}
+                      max={20}
+                      min={0}
+                      onValueChange={(value) => setShadowSpread(value[0] ?? 0)}
+                      step={1}
+                      value={[tokens.shadowSpread]}
+                    />
+                    <p className="mt-2 text-sm text-muted">Current value: {tokens.shadowSpread}px</p>
+                  </SettingRow>
+
+                  <SettingRow
+                    titleId={heroGridLabelId}
+                    label="Marketing hero lattice"
+                    description="Background mesh for the landing hero — matches the layered SVG system used on the homepage."
+                  >
+                    <label className="grid gap-2" htmlFor={heroGridSelectId}>
+                      <span className="sr-only">Choose hero lattice pattern</span>
+                      <select
+                        className={FONT_SELECT_CLASSES}
+                        id={heroGridSelectId}
+                        onChange={(event) => {
+                          const value = event.target.value;
+                          if (isHeroGridPattern(value)) {
+                            setHeroGridPattern(value);
+                          }
+                        }}
+                        value={tokens.heroGridPattern}
+                      >
+                        {HERO_GRID_PATTERN_OPTIONS.map((item) => (
+                          <option key={item.id} value={item.id}>
+                            {item.label} — {item.description}
+                          </option>
+                        ))}
+                      </select>
+                    </label>
+                  </SettingRow>
+
+                  <SettingRow
                     titleId={spacingLabelId}
                     label="Spacing density"
                     description="Tighten or loosen vertical rhythm between sections."
@@ -1173,7 +1226,7 @@ export function SettingsPanel() {
               </div>
               <CardTitle className="text-3xl">Packet styling</CardTitle>
               <p className="text-sm text-muted">
-                Reflects accent, radius, shadows, spacing, and{" "}
+                Reflects accent, radius, shadows, lattice, spacing, and{" "}
                 <span className="text-foreground">Typography</span> (header + body fonts) from the tabs — updates
                 apply instantly site-wide.
               </p>
@@ -1234,6 +1287,75 @@ export function SettingsPanel() {
                     </div>
                     <div className="rounded-[calc(var(--theme-radius)-4px)] border border-accent/25 bg-accent/8 px-3 py-3 text-sm text-foreground">
                       Primary CTA
+                    </div>
+                  </div>
+                </div>
+
+                <div className="mt-4 overflow-hidden rounded-[calc(var(--theme-radius))] border border-border/70">
+                  <div className="relative h-32 bg-background-alt/60">
+                    <HeroGridSurface
+                      className="text-border"
+                      pattern={tokens.heroGridPattern}
+                      reduceMotion
+                      uid={`preview-${heroGridPreviewUid}`}
+                    />
+                  </div>
+                  <div className="border-t border-border/60 px-4 py-3">
+                    <p className="text-[10px] font-semibold uppercase tracking-[0.18em] text-muted">
+                      Hero lattice preview
+                    </p>
+                    <p className="mt-1 text-xs text-muted">
+                      Same SVG stack as the landing hero (pointer-driven motion is disabled here).
+                    </p>
+                    <div className="mt-4 space-y-2.5">
+                      <div className="space-y-1">
+                        <div className="flex items-center justify-between text-[10px] font-semibold uppercase tracking-[0.12em] text-muted">
+                          <span>On-page clarity</span>
+                          <span className="tabular-nums text-foreground">8.6</span>
+                        </div>
+                        <div className="h-2 overflow-hidden rounded-full bg-background/55">
+                          <div
+                            className="h-full rounded-full"
+                            style={{
+                              width: "86%",
+                              background:
+                                "linear-gradient(90deg, rgba(34,197,94,0.95), rgba(34,197,94,0.35))",
+                            }}
+                          />
+                        </div>
+                      </div>
+                      <div className="space-y-1">
+                        <div className="flex items-center justify-between text-[10px] font-semibold uppercase tracking-[0.12em] text-muted">
+                          <span>Trust signals</span>
+                          <span className="tabular-nums text-foreground">6.2</span>
+                        </div>
+                        <div className="h-2 overflow-hidden rounded-full bg-background/55">
+                          <div
+                            className="h-full rounded-full"
+                            style={{
+                              width: "62%",
+                              background:
+                                "linear-gradient(90deg, rgba(234,179,8,0.95), rgba(234,179,8,0.35))",
+                            }}
+                          />
+                        </div>
+                      </div>
+                      <div className="space-y-1">
+                        <div className="flex items-center justify-between text-[10px] font-semibold uppercase tracking-[0.12em] text-muted">
+                          <span>Conversion friction</span>
+                          <span className="tabular-nums text-foreground">4.1</span>
+                        </div>
+                        <div className="h-2 overflow-hidden rounded-full bg-background/55">
+                          <div
+                            className="h-full rounded-full"
+                            style={{
+                              width: "41%",
+                              background:
+                                "linear-gradient(90deg, rgba(239,68,68,0.95), rgba(239,68,68,0.32))",
+                            }}
+                          />
+                        </div>
+                      </div>
                     </div>
                   </div>
                 </div>

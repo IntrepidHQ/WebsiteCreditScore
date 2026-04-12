@@ -18,12 +18,18 @@ export function ScoreRadar({
   centerLabel,
   className,
   showCategoryGrid = true,
+  variant = "card",
+  centerScore,
 }: {
   items: RadarItem[];
   centerLabel: string;
   className?: string;
   /** When false, only the chart + header row render (e.g. login hero). */
   showCategoryGrid?: boolean;
+  /** Strip outer panel chrome for open layouts (e.g. login column). */
+  variant?: "card" | "bare";
+  /** Fixed hub score (overall); polygon still animates from category scores. */
+  centerScore?: number;
 }) {
   const { reduceMotion } = useMotionSettings();
   const [progress, setProgress] = useState(0);
@@ -48,6 +54,10 @@ export function ScoreRadar({
       ),
     [animatedScores],
   );
+  const hubScore =
+    typeof centerScore === "number" && Number.isFinite(centerScore)
+      ? Number(centerScore.toFixed(1))
+      : animatedAverage;
   const activeItem = useMemo(() => items.find((item) => item.key === activeKey) ?? null, [activeKey, items]);
   const activeTooltip = useMemo(() => {
     if (!activeItem) {
@@ -92,14 +102,26 @@ export function ScoreRadar({
 
   if (!items.length) {
     return (
-      <div className={cn("rounded-[24px] border border-border/60 bg-panel/45 p-5", className)}>
+      <div
+        className={cn(
+          variant === "card" && "rounded-[24px] border border-border/60 bg-panel/45 p-5",
+          variant === "bare" && "rounded-none border-0 bg-transparent p-0",
+          className,
+        )}
+      >
         <p className="text-sm leading-6 text-muted">Radar data appears when a scored example is available.</p>
       </div>
     );
   }
 
   return (
-    <div className={cn("rounded-[24px] border border-border/60 bg-panel/45 p-5", className)}>
+    <div
+      className={cn(
+        variant === "card" && "rounded-[24px] border border-border/60 bg-panel/45 p-5",
+        variant === "bare" && "rounded-none border-0 bg-transparent p-0 shadow-none ring-0",
+        className,
+      )}
+    >
       <div className="mb-4 flex items-center justify-between gap-3">
         <p className="text-[11px] font-semibold uppercase tracking-[0.22em] text-muted">
           {centerLabel}
@@ -252,13 +274,8 @@ export function ScoreRadar({
               stroke="rgba(255,255,255,0.08)"
               strokeWidth="1"
             />
-            <text
-              className="fill-foreground"
-              textAnchor="middle"
-              x={centerX}
-              y={centerY + 4}
-            >
-              {animatedAverage.toFixed(1)}
+            <text className="fill-foreground" textAnchor="middle" x={centerX} y={centerY + 4}>
+              {hubScore.toFixed(1)}
             </text>
           </svg>
         </div>

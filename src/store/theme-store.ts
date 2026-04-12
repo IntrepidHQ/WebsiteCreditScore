@@ -5,6 +5,7 @@ import { createJSONStorage, persist } from "zustand/middleware";
 
 import type {
   AgencyBranding,
+  HeroGridPattern,
   ThemeColorHarmony,
   ThemeFontStackId,
   ThemeMode,
@@ -44,7 +45,9 @@ interface ThemeState {
   setGlowIntensity: (glowIntensity: number) => void;
   setRadius: (radius: number) => void;
   setShadowIntensity: (shadowIntensity: number) => void;
+  setShadowSpread: (shadowSpread: number) => void;
   setSpacingDensity: (spacingDensity: number) => void;
+  setHeroGridPattern: (heroGridPattern: HeroGridPattern) => void;
   setFontDisplay: (fontDisplay: ThemeFontStackId) => void;
   setFontBody: (fontBody: ThemeFontStackId) => void;
   setHeadingScale: (level: ThemeHeadingLevel, scale: number) => void;
@@ -321,12 +324,32 @@ export const useThemeStore = create<ThemeState>()(
           undoStack: [...state.undoStack, cloneSnapshot(state)].slice(-50),
           redoStack: [],
         })),
+      setShadowSpread: (shadowSpread) =>
+        set((state) => ({
+          presetId: null,
+          tokens: createThemeTokens({
+            ...state.tokens,
+            shadowSpread,
+          }),
+          undoStack: [...state.undoStack, cloneSnapshot(state)].slice(-50),
+          redoStack: [],
+        })),
       setSpacingDensity: (spacingDensity) =>
         set((state) => ({
           presetId: null,
           tokens: createThemeTokens({
             ...state.tokens,
             spacingDensity,
+          }),
+          undoStack: [...state.undoStack, cloneSnapshot(state)].slice(-50),
+          redoStack: [],
+        })),
+      setHeroGridPattern: (heroGridPattern) =>
+        set((state) => ({
+          presetId: null,
+          tokens: createThemeTokens({
+            ...state.tokens,
+            heroGridPattern,
           }),
           undoStack: [...state.undoStack, cloneSnapshot(state)].slice(-50),
           redoStack: [],

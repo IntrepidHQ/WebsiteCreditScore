@@ -7,7 +7,7 @@ import gsap from "gsap";
 import { Badge } from "@/components/ui/badge";
 import { useMotionSettings } from "@/hooks/use-motion-settings";
 import { cn } from "@/lib/utils/cn";
-import { getScoreTone } from "@/lib/utils/scores";
+import { getScoreTone, scoreBarFillPercent } from "@/lib/utils/scores";
 import type { AuditCategoryScore } from "@/lib/types/audit";
 
 const toneFills = {
@@ -83,7 +83,7 @@ export function ScoreBreakdownBars({
         const score = items[index]?.score ?? 0;
 
         if (node) {
-          node.style.width = `${score * 10}%`;
+          node.style.width = `${scoreBarFillPercent(score)}%`;
         }
       });
 
@@ -104,7 +104,7 @@ export function ScoreBreakdownBars({
       barRefs.current.filter(Boolean),
       { width: 0 },
       {
-        width: (index) => `${(items[index]?.score ?? 0) * 10}%`,
+        width: (index) => `${scoreBarFillPercent(items[index]?.score ?? 0)}%`,
         duration: 0.85,
         stagger: 0.06,
         ease: "power3.out",
@@ -129,7 +129,7 @@ export function ScoreBreakdownBars({
       {items.map((item, index) => {
         const tone = getScoreTone(item.score);
         const target = targetMap.get(item.key);
-        const pct = Math.min(100, Math.max(0, item.score * 10));
+        const pct = scoreBarFillPercent(item.score);
 
         return (
           <div
@@ -198,7 +198,7 @@ export function ScoreBreakdownBars({
                   <div
                     aria-hidden="true"
                     className="pointer-events-none absolute inset-y-0 z-[1] border-r border-dashed border-accent/70"
-                    style={{ left: `calc(${Math.min(100, target.score * 10)}% - 1px)` }}
+                    style={{ left: `calc(${scoreBarFillPercent(target.score)}% - 1px)` }}
                   />
                 ) : null}
                 <div

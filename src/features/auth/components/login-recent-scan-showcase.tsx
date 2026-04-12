@@ -39,15 +39,25 @@ const CATEGORY_ICON: Record<AuditCategoryKey, LucideIcon> = {
   "security-posture": Lock,
 };
 
-const bandPillClassName: Record<
-  ReturnType<typeof getScoreBand>["variant"],
-  string
-> = {
-  success: "border-success/35 bg-success/14 text-foreground",
-  accent:
-    "border-accent/35 bg-[color-mix(in_srgb,var(--theme-accent)_16%,var(--theme-panel))] text-foreground",
-  warning: "border-warning/35 bg-warning/14 text-foreground",
-  danger: "border-danger/35 bg-danger/12 text-foreground",
+const semanticRailClassName: Record<ReturnType<typeof getScoreBand>["variant"], string> = {
+  success: "border-l-[#22c55e]",
+  accent: "border-l-[#eab308]",
+  warning: "border-l-[#eab308]",
+  danger: "border-l-[#ef4444]",
+};
+
+const semanticPillClassName: Record<ReturnType<typeof getScoreBand>["variant"], string> = {
+  success: "border-[#22c55e]/45 bg-[#22c55e]/14 text-foreground",
+  accent: "border-[#eab308]/45 bg-[#eab308]/14 text-foreground",
+  warning: "border-[#eab308]/45 bg-[#eab308]/14 text-foreground",
+  danger: "border-[#ef4444]/45 bg-[#ef4444]/12 text-foreground",
+};
+
+const semanticFieldClassName: Record<ReturnType<typeof getScoreBand>["variant"], string> = {
+  success: "border-[#22c55e]/22 bg-[#22c55e]/08",
+  accent: "border-[#eab308]/22 bg-[#eab308]/08",
+  warning: "border-[#eab308]/22 bg-[#eab308]/08",
+  danger: "border-[#ef4444]/22 bg-[#ef4444]/08",
 };
 
 const LoginBreakdownCard = ({
@@ -63,7 +73,10 @@ const LoginBreakdownCard = ({
   return (
     <article
       className={cn(
-        "flex min-h-[6.75rem] w-[min(100%,240px)] shrink-0 flex-col justify-between rounded-2xl border border-t-[color-mix(in_srgb,var(--theme-border)_38%,#ffffff_42%)] border-r-[color-mix(in_srgb,var(--theme-border)_72%,#000000_38%)] border-b-[color-mix(in_srgb,var(--theme-border)_62%,#000000_48%)] border-l-[color-mix(in_srgb,var(--theme-border)_72%,#000000_38%)] bg-[linear-gradient(180deg,color-mix(in_srgb,var(--theme-panel)_92%,#ffffff_4%)_0%,color-mix(in_srgb,var(--theme-panel)_88%,var(--theme-background-alt)_12%)_100%)] p-3 shadow-[inset_0_1px_0_rgba(255,255,255,0.12),0_14px_34px_rgba(0,0,0,0.22)] sm:min-h-[7.25rem] sm:w-[260px] sm:p-3.5",
+        "flex min-h-[6.75rem] w-[min(100%,240px)] shrink-0 flex-col justify-between rounded-2xl border border-border/55 bg-background/35 p-3 sm:min-h-[7.25rem] sm:w-[260px] sm:p-3.5",
+        "border-l-4",
+        semanticRailClassName[band.variant],
+        semanticFieldClassName[band.variant],
         className,
       )}
     >
@@ -86,7 +99,7 @@ const LoginBreakdownCard = ({
           <span
             className={cn(
               "rounded-full border px-2 py-0.5 text-[10px] font-semibold leading-none tracking-wide sm:text-[11px]",
-              bandPillClassName[band.variant],
+              semanticPillClassName[band.variant],
             )}
           >
             {band.label}
@@ -138,9 +151,10 @@ export const LoginShowcaseRadarHero = ({
     <div className={cn("w-full min-w-0", className)}>
       <ScoreRadar
         centerLabel="Current score"
-        className="border border-border/55 bg-[linear-gradient(180deg,color-mix(in_srgb,var(--theme-panel)_92%,#ffffff_3%)_0%,color-mix(in_srgb,var(--theme-panel)_86%,var(--theme-background-alt)_14%)_100%)] shadow-[inset_0_1px_0_rgba(255,255,255,0.1),0_18px_48px_rgba(0,0,0,0.2)]"
+        centerScore={showcase.overallScore}
         items={radarItems}
         showCategoryGrid={false}
+        variant="bare"
       />
     </div>
   );

@@ -65,6 +65,16 @@ export type ThemeColorHarmony =
 
 /** Optional glass treatment for dense settings / preview surfaces (see `data-surface-finish`). */
 export type ThemeSurfaceFinish = "solid" | "glassmorphic";
+
+/** Marketing / hero lattice background (Settings + landing backdrop). */
+export type HeroGridPattern =
+  | "signal"
+  | "squares"
+  | "triangles"
+  | "hex"
+  | "web"
+  | "quantum";
+
 export type PreviewDevice = "desktop" | "mobile";
 export type ReportProvenance = "live-observed" | "fallback-estimated" | "sample-based";
 export type BenchmarkVertical =
@@ -257,7 +267,11 @@ export interface ThemeTokens {
   glowIntensity: number;
   radius: number;
   shadowIntensity: number;
+  /** Extra box-shadow spread (px) layered with shadow intensity. */
+  shadowSpread: number;
   spacingDensity: number;
+  /** Landing hero / marketing lattice style. */
+  heroGridPattern: HeroGridPattern;
   surfaces: ThemeSurfaces;
 }
 

@@ -1,5 +1,6 @@
 import type {
   AgencyBranding,
+  HeroGridPattern,
   ThemeColorHarmony,
   ThemeFontProfile,
   ThemeFontStackId,
@@ -697,6 +698,33 @@ export const isThemeColorHarmony = (value: unknown): value is ThemeColorHarmony 
 const isThemeSurfaceFinish = (value: unknown): value is ThemeSurfaceFinish =>
   value === "solid" || value === "glassmorphic";
 
+const HERO_GRID_PATTERN_IDS: HeroGridPattern[] = [
+  "signal",
+  "squares",
+  "triangles",
+  "hex",
+  "web",
+  "quantum",
+];
+
+export function isHeroGridPattern(value: unknown): value is HeroGridPattern {
+  return typeof value === "string" && (HERO_GRID_PATTERN_IDS as string[]).includes(value);
+}
+
+/** Settings + landing hero lattice presets (robot-components–style layering). */
+export const HERO_GRID_PATTERN_OPTIONS: Array<{
+  id: HeroGridPattern;
+  label: string;
+  description: string;
+}> = [
+  { id: "signal", label: "Signal", description: "Accent crosshairs that track pointer position." },
+  { id: "squares", label: "Squares", description: "Classic square lattice with soft vignette." },
+  { id: "triangles", label: "Triangles", description: "Triangular mesh that parallax-shifts subtly." },
+  { id: "hex", label: "Hex", description: "Honeycomb wireframe for technical depth." },
+  { id: "web", label: "Web stack", description: "Squares + triangles + hex combined at low opacity." },
+  { id: "quantum", label: "Quantum drift", description: "Diagonal hatch with slow animated shear." },
+];
+
 /** Tooltip copy stays technical; keep visible labels short. */
 export const THEME_COLOR_HARMONY_OPTIONS: Array<{
   id: ThemeColorHarmony;
@@ -827,7 +855,15 @@ export function createThemeTokens(options?: ThemeTokensInput) {
     glowIntensity: clamp(options?.glowIntensity ?? 1, 0.55, 1.45),
     radius: clamp(options?.radius ?? 12, 8, 20),
     shadowIntensity: clamp(options?.shadowIntensity ?? 0.82, 0.3, 1.2),
+    shadowSpread: clamp(
+      typeof options?.shadowSpread === "number" && Number.isFinite(options.shadowSpread)
+        ? options.shadowSpread
+        : 0,
+      0,
+      20,
+    ),
     spacingDensity: clamp(options?.spacingDensity ?? 1, 0.82, 1.18),
+    heroGridPattern: isHeroGridPattern(options?.heroGridPattern) ? options.heroGridPattern : "web",
     surfaces: buildSurfacePalette(shiftedAccent, mode, colorHarmony),
   };
 
@@ -878,7 +914,9 @@ export function createRandomTheme(mode: ThemeMode) {
     glowIntensity: clamp(0.75 + Math.random() * 0.55, 0.65, 1.35),
     radius: Math.round(clamp(8 + Math.random() * 10, 8, 18)),
     shadowIntensity: clamp(0.55 + Math.random() * 0.45, 0.45, 1),
+    shadowSpread: Math.round(Math.random() * 14),
     spacingDensity: clamp(0.88 + Math.random() * 0.22, 0.84, 1.12),
+    heroGridPattern: HERO_GRID_PATTERN_IDS[Math.floor(Math.random() * HERO_GRID_PATTERN_IDS.length)]!,
   });
 }
 
@@ -935,10 +973,14 @@ export function getThemeCssVariables(tokens: ThemeTokens) {
     "--theme-glow-intensity": `${tokens.glowIntensity}`,
     "--theme-radius": `${tokens.radius}px`,
     "--theme-radius-lg": `${Math.round(tokens.radius * 1.2)}px`,
-    "--theme-shadow":
-      tokens.mode === "dark"
-        ? `0 22px 80px rgba(0, 0, 0, ${0.22 * tokens.shadowIntensity}), 0 10px 28px rgba(0, 0, 0, ${0.16 * tokens.shadowIntensity})`
-        : `0 24px 64px rgba(16, 23, 35, ${0.14 * tokens.shadowIntensity}), 0 8px 24px rgba(16, 23, 35, ${0.08 * tokens.shadowIntensity})`,
+    "--theme-shadow": (() => {
+      const spreadA = Math.round(tokens.shadowSpread);
+      const spreadB = Math.round(tokens.shadowSpread * 0.55);
+      return tokens.mode === "dark"
+        ? `0 22px 80px ${spreadA}px rgba(0, 0, 0, ${0.22 * tokens.shadowIntensity}), 0 10px 28px ${spreadB}px rgba(0, 0, 0, ${0.16 * tokens.shadowIntensity})`
+        : `0 24px 64px ${spreadA}px rgba(16, 23, 35, ${0.14 * tokens.shadowIntensity}), 0 8px 24px ${spreadB}px rgba(16, 23, 35, ${0.08 * tokens.shadowIntensity})`;
+    })(),
+    "--theme-shadow-spread": `${tokens.shadowSpread}px`,
     "--theme-spacing-density": `${tokens.spacingDensity}`,
     "--theme-heading-scale-h1": `${tokens.headingScaleH1}`,
     "--theme-heading-scale-h2": `${tokens.headingScaleH2}`,
@@ -1039,7 +1081,14 @@ export function parseThemeImportPayload(raw: string): {
       glowIntensity: data.tokens.glowIntensity,
       radius: data.tokens.radius,
       shadowIntensity: data.tokens.shadowIntensity,
+      shadowSpread:
+        typeof data.tokens.shadowSpread === "number" && Number.isFinite(data.tokens.shadowSpread)
+          ? clamp(data.tokens.shadowSpread, 0, 20)
+          : undefined,
       spacingDensity: data.tokens.spacingDensity,
+      heroGridPattern: isHeroGridPattern(data.tokens.heroGridPattern)
+        ? data.tokens.heroGridPattern
+        : undefined,
     });
 
     return { tokens, branding };

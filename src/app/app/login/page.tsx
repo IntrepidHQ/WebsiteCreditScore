@@ -112,21 +112,26 @@ export default async function AppLoginPage({
 
   return (
     <div className="relative isolate flex min-h-screen flex-col gap-6 bg-background px-5 py-6 sm:px-6 md:h-[100dvh] md:min-h-0 md:grid md:grid-cols-[minmax(15rem,24vw)_minmax(0,1fr)_minmax(16.5rem,23rem)] md:grid-rows-[auto_minmax(0,1fr)] md:gap-0 md:overflow-hidden md:px-0 md:py-0">
-      {/* ── Auth header (wordmark + env): column 3 row 1 on desktop; first on mobile ── */}
-      <header className="order-1 shrink-0 border-b border-border/50 pb-5 sm:pb-6 md:order-none md:col-start-3 md:row-start-1 md:border-b md:border-border/55 md:px-6 md:pb-6 md:pt-8 lg:px-8">
-        <LoginSupabaseEnvBanner />
-        <BrandWordmarkLinkThemed className="mt-4 block shrink-0 md:mt-5" />
-      </header>
+      {/* ── Top bar: wordmark + optional env notice (full width) ── */}
+      <div className="order-1 flex shrink-0 items-start justify-between gap-4 border-b border-border/50 pb-5 sm:pb-6 md:order-none md:col-span-3 md:row-start-1 md:items-center md:border-border/55 md:px-8 md:pb-5 md:pt-6 lg:px-10">
+        <BrandWordmarkLinkThemed className="shrink-0" />
+        <div className="min-w-0 max-w-xl shrink md:text-right">
+          <LoginSupabaseEnvBanner />
+        </div>
+      </div>
 
-      {/* ── Marketing copy: column 1 row 1 on desktop ── */}
-      <aside className="order-2 min-w-0 md:order-none md:col-start-1 md:row-start-1 md:flex md:min-h-0 md:flex-col md:justify-center md:border-r md:border-border/55 md:px-7 md:py-10 lg:px-9 xl:px-11">
-        <LoginMarketingColumn features={features} />
+      {/* ── Marketing + recent scan meta: single column, one vertical rule ── */}
+      <aside className="order-2 min-w-0 md:order-none md:col-start-1 md:row-start-2 md:flex md:min-h-0 md:flex-col md:justify-between md:border-r md:border-border/55 md:px-7 md:py-10 lg:px-9 xl:px-11">
+        <div className="md:flex md:min-h-0 md:flex-1 md:flex-col md:justify-center">
+          <LoginMarketingColumn features={features} />
+        </div>
+        <LoginScanMetaFooter className="mt-8 md:mt-10" showcase={loginShowcase} />
       </aside>
 
-      {/* ── Graphics (radar + editorial + horizontal roulette): column 2, spans both rows ── */}
+      {/* ── Graphics (radar + editorial + horizontal roulette) ── */}
       <section
         aria-label="Live audit preview"
-        className="relative order-3 min-h-0 overflow-x-clip md:order-none md:col-start-2 md:row-span-2 md:row-start-1 md:min-h-0 md:overflow-y-auto md:border-r md:border-border/55 md:px-8 md:py-10 lg:px-10 xl:px-12"
+        className="relative order-3 min-h-0 overflow-x-clip md:order-none md:col-start-2 md:row-start-2 md:flex md:min-h-0 md:flex-col md:justify-center md:overflow-y-auto md:border-r md:border-border/55 md:px-8 md:py-10 lg:px-10 xl:px-12"
       >
         <div
           aria-hidden="true"
@@ -140,15 +145,9 @@ export default async function AppLoginPage({
         <LoginGraphicsColumn className="relative" showcase={loginShowcase} />
       </section>
 
-      {/* ── Scan meta: column 1 row 2 (desktop), after graphics on mobile ── */}
-      <div className="order-4 md:order-none md:col-start-1 md:row-start-2 md:self-end md:border-r md:border-border/55 md:px-7 md:pb-10 md:pt-2 lg:px-9 xl:px-11">
-        <LoginScanMetaFooter showcase={loginShowcase} />
-      </div>
-
       {/* ── Form: column 3 row 2 on desktop ── */}
-      <div className="order-5 min-h-0 md:order-none md:col-start-3 md:row-start-2 md:flex md:min-h-0 md:flex-col md:overflow-y-auto md:px-6 md:pb-10 md:pt-2 lg:px-8">
-        <div className="mx-auto w-full max-w-md min-h-0 flex-1 md:mx-0 md:max-w-none">
-          <div className="w-full min-w-0 md:max-w-[16.75rem] md:self-start">
+      <div className="order-4 min-h-0 md:order-none md:col-start-3 md:row-start-2 md:flex md:min-h-0 md:flex-col md:items-center md:justify-center md:overflow-y-auto md:px-6 md:py-10 lg:px-8">
+        <div className="mx-auto w-full min-w-0 max-w-md md:max-w-[17.5rem]">
         {sentConfirm ? (
           <div className="space-y-4">
             <div className="flex h-12 w-12 items-center justify-center rounded-full bg-success/15">
@@ -406,7 +405,6 @@ export default async function AppLoginPage({
             ) : null}
           </div>
         )}
-          </div>
         </div>
       </div>
     </div>
