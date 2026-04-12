@@ -40,26 +40,30 @@ const comparisonRows = [
   },
 ] as const;
 
-const faqItems = [
+const scoreCategoryPanels = [
   {
-    question: "What makes this different from a generic website score?",
+    id: "visual-design",
+    title: "Visual design",
     answer:
-      "The score is weighted toward the parts that actually change whether a redesign gets approved: hierarchy, trust, pacing, proof, and the distance to action. Weaknesses count against the total faster than surface polish helps it.",
+      "Hierarchy, spacing, and craft still matter, but they are not the heaviest drivers of the total. A polished layout cannot paper over weak sequencing or missing proof.",
   },
   {
-    question: "Why include benchmarks on the site?",
+    id: "ux-conversion",
+    title: "UX / conversion",
     answer:
-      "Because the critique lands faster when the standard is visible. Benchmarks make the score easier to trust and easier to explain.",
+      "Navigation, pacing, and the path to action carry more weight. When the next step is unclear or late, the score drops faster than styling can recover it.",
   },
   {
-    question: "Does a 9 mean the site is perfect?",
+    id: "mobile-experience",
+    title: "Mobile experience",
     answer:
-      "No. It means the site performs like a strong benchmark example for its category. A 10 is intentionally rare.",
+      "Small-screen clarity is treated as a first-class signal. Friction that only shows up on phones still counts at full weight, not as a footnote.",
   },
   {
-    question: "How should a business owner use this page?",
+    id: "trust-credibility",
+    title: "Trust / credibility",
     answer:
-      "Use it to understand what the score is measuring, then open a live example or sample audit to see how those standards translate into practical site improvements.",
+      "Proof, legitimacy, and reassurance sit alongside UX in the heaviest band. A single broken trust pattern costs more than incremental visual upgrades help.",
   },
 ] as const;
 
@@ -121,28 +125,25 @@ export function PublicBenchmarksPage({
               </Button>
             </div>
             <div className="grid gap-3 md:grid-cols-3">
-              <div className="rounded-[20px] border border-border/60 bg-panel/45 p-4">
-                <p className="text-[11px] font-semibold uppercase tracking-[0.22em] text-muted">
-                  Weighted model
-                </p>
-                <p className="mt-2 text-sm leading-6 text-foreground">
-                  UX / Conversion and Trust / Credibility carry more weight than decorative polish.
-                </p>
-              </div>
-              <div className="rounded-[20px] border border-border/60 bg-panel/45 p-4">
-                <p className="text-[11px] font-semibold uppercase tracking-[0.22em] text-muted">
-                  Weakness penalty
-                </p>
-                <p className="mt-2 text-sm leading-6 text-foreground">
-                  One broken trust or CTA sequence pulls the score down faster than style can hide it.
+              <div className="glass-panel rounded-[20px] p-4 sm:p-5">
+                <p className="text-sm font-semibold tracking-[-0.01em] text-foreground">Visual design</p>
+                <p className="mt-2 text-xs leading-5 text-muted sm:text-sm sm:leading-6">
+                  Finish and composition are scored, but they are weighted lighter than conversion mechanics. Layout
+                  should clarify the story, not replace it.
                 </p>
               </div>
-              <div className="rounded-[20px] border border-border/60 bg-panel/45 p-4">
-                <p className="text-[11px] font-semibold uppercase tracking-[0.22em] text-muted">
-                  Benchmark threshold
+              <div className="glass-panel rounded-[20px] p-4 sm:p-5">
+                <p className="text-sm font-semibold tracking-[-0.01em] text-foreground">UX / conversion</p>
+                <p className="mt-2 text-xs leading-5 text-muted sm:text-sm sm:leading-6">
+                  Sequencing, CTAs, and momentum carry more weight. A hesitant path costs more than incremental styling
+                  can earn back.
                 </p>
-                <p className="mt-2 text-sm leading-6 text-foreground">
-                  8.8 and above is where the page starts to read like a benchmark example.
+              </div>
+              <div className="glass-panel rounded-[20px] p-4 sm:p-5">
+                <p className="text-sm font-semibold tracking-[-0.01em] text-foreground">Mobile experience</p>
+                <p className="mt-2 text-xs leading-5 text-muted sm:text-sm sm:leading-6">
+                  Tight small-screen clarity is mandatory, not decorative. Benchmark-ready pages usually land around{" "}
+                  <span className="font-semibold text-foreground">8.8+</span> overall once the full model is firing.
                 </p>
               </div>
             </div>
@@ -369,15 +370,23 @@ export function PublicBenchmarksPage({
             <CardHeader className="space-y-3">
               <Badge variant="accent">FAQ</Badge>
               <CardTitle className="text-[clamp(2.8rem,2.3rem+0.7vw,3.7rem)]">
-                Questions the benchmark page should answer quickly
+                How the four scored pillars read on this page
               </CardTitle>
             </CardHeader>
             <CardContent className="pt-0">
-              <Accordion className="space-y-3" collapsible type="single">
-                {faqItems.map((item) => (
-                  <AccordionItem key={item.question} value={item.question}>
-                    <AccordionTrigger>{item.question}</AccordionTrigger>
-                    <AccordionContent>{item.answer}</AccordionContent>
+              <Accordion className="space-y-2.5" collapsible type="single">
+                {scoreCategoryPanels.map((item) => (
+                  <AccordionItem
+                    key={item.id}
+                    className="glass-panel border-border/55 bg-panel/30 px-0 shadow-none backdrop-blur-xl data-[state=open]:border-accent/35"
+                    value={item.id}
+                  >
+                    <AccordionTrigger className="px-4 py-3.5 text-left text-[0.92rem] font-semibold leading-snug text-foreground hover:text-accent sm:px-5 sm:text-[0.98rem] sm:leading-snug [&>svg]:text-muted">
+                      {item.title}
+                    </AccordionTrigger>
+                    <AccordionContent className="px-4 pb-4 pt-0 text-xs leading-5 text-muted sm:px-5 sm:text-sm sm:leading-6">
+                      {item.answer}
+                    </AccordionContent>
                   </AccordionItem>
                 ))}
               </Accordion>

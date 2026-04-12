@@ -9,7 +9,7 @@ import {
   buildLoginShowcaseRadarItems,
   LOGIN_SHOWCASE_PRIMARY_KEYS,
   type LoginShowcasePayload,
-} from "@/features/auth/lib/resolve-login-showcase";
+} from "@/features/auth/lib/login-showcase-model";
 import { useMotionSettings } from "@/hooks/use-motion-settings";
 import { cn } from "@/lib/utils/cn";
 import { getScoreTone } from "@/lib/utils/scores";

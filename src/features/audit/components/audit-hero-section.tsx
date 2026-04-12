@@ -183,20 +183,20 @@ export function AuditHeroSection({ report }: { report: AuditReport }) {
                   value="overall-methodology"
                   className="border-0 bg-transparent px-0"
                 >
-                <AccordionTrigger className="py-0 pr-8 text-[2.15rem] font-semibold leading-tight [&>svg]:right-0 [&>svg]:top-1/2 [&>svg]:-translate-y-1/2 sm:text-[2.4rem]">
+                <AccordionTrigger className="py-1 pr-8 text-left text-base font-semibold leading-snug sm:text-lg [&>svg]:right-0 [&>svg]:top-1/2 [&>svg]:-translate-y-1/2">
                   How this score was calculated
                 </AccordionTrigger>
-                  <AccordionContent className="pt-4">
-                    <div className="space-y-3">
+                  <AccordionContent className="pt-3">
+                    <div className="space-y-2.5">
                       {methodologyNotes.map((note) => (
                         <div
-                          className="rounded-[calc(var(--theme-radius)-4px)] bg-panel/40 px-4 py-3 text-[1.1rem] leading-[2rem] text-muted sm:text-[1.2rem]"
+                          className="rounded-[calc(var(--theme-radius)-4px)] bg-panel/40 px-4 py-2.5 text-xs leading-5 text-muted sm:text-sm sm:leading-6"
                           key={note}
                         >
                           {note}
                         </div>
                       ))}
-                      <div className="flex items-start gap-3 rounded-[calc(var(--theme-radius)-4px)] bg-accent/8 px-4 py-3 text-[1.1rem] leading-[2rem] text-foreground sm:text-[1.2rem]">
+                      <div className="flex items-start gap-3 rounded-[calc(var(--theme-radius)-4px)] bg-accent/8 px-4 py-2.5 text-xs leading-5 text-foreground sm:text-sm sm:leading-6">
                         <Info className="mt-0.5 size-4 shrink-0 text-accent" />
                         <p>
                           Heuristic score, not a lab measurement. Another evaluator may
