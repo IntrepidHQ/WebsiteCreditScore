@@ -35,7 +35,7 @@ export default async function Home() {
       seenRecentKeys.add(key);
       return true;
     })
-    .slice(0, MAX_RECENT_SCANS)
+    .slice(0, 9)
     .map((scan) => ({
       id: scan.reportId,
       title: scan.title,
@@ -48,7 +48,12 @@ export default async function Home() {
       score: scan.score,
       scannedAt: scan.scannedAt,
     }));
-  const allSamples = [...recentCards, ...catalogSamples];
+  // Fill up to 9 cards: real recent scans first, then catalog samples as fallback
+  const seenInRecent = new Set(recentCards.map((c) => normalizeUrl(c.url ?? "", { stripWww: true })));
+  const catalogFill = catalogSamples
+    .filter((s) => !seenInRecent.has(normalizeUrl(s.url ?? "", { stripWww: true })))
+    .slice(0, Math.max(0, 9 - recentCards.length));
+  const displaySamples = [...recentCards, ...catalogFill].slice(0, 9);
 
   if (!featuredAudit || !featuredReport) {
     return null;
@@ -59,7 +64,7 @@ export default async function Home() {
       featuredAudit={featuredAudit}
       featuredBreakdown={featuredReport.categoryScores}
       notes={getDesignPatternNotesForProfile("local-service").slice(0, 3)}
-      samples={allSamples}
+      samples={displaySamples}
       targetBreakdown={buildBenchmarkTargetCategoryScores(featuredReport.categoryScores)}
     />
   );

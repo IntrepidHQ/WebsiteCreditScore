@@ -6,15 +6,14 @@ import {
   ArrowRight,
   CheckCircle2,
   ClipboardCopy,
-  Code2,
-  Sparkles,
-  WandSparkles,
 } from "lucide-react";
 
+import { AnthropicLogo, OpenAILogo, LovableLogo } from "@/components/brand-logos/provider-logos";
 import { SectionHeading } from "@/components/common/section-heading";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+
 type ProviderId = "claude" | "codex" | "lovable";
 
 const providers: Array<{
@@ -22,28 +21,32 @@ const providers: Array<{
   name: string;
   description: string;
   note: string;
-  icon: typeof Sparkles;
+  LogoComponent: React.ComponentType<{ className?: string }>;
+  creditRange: string;
 }> = [
   {
     id: "claude",
     name: "Claude",
     description: "Best for fast iteration on copy, structure, and clear design direction.",
-    note: "Paste the MAX handoff and iterate section-by-section.",
-    icon: Sparkles,
+    note: "Paste the MAX handoff and iterate section-by-section. New accounts start with $5 free credits — enough for several design passes.",
+    LogoComponent: AnthropicLogo,
+    creditRange: "$5 free",
   },
   {
     id: "codex",
     name: "Codex",
     description: "Best for implementation detail, component structure, and product flow.",
-    note: "Use it when you want the redesign turned into actual code and UI systems.",
-    icon: Code2,
+    note: "Use it when you want the redesign turned into actual code and UI systems. OpenAI API credits apply.",
+    LogoComponent: OpenAILogo,
+    creditRange: "API credits",
   },
   {
     id: "lovable",
     name: "Lovable",
-    description: "Best for quick V1 delivery when you want the site assembled and deployable.",
-    note: "New users should route through the referral invite so the credits are available.",
-    icon: WandSparkles,
+    description: "Best for quick V1 delivery when you want the site assembled and deployable within the $20–$25 sign-up window.",
+    note: "New users get $20–$25 in credits on sign-up — enough to deploy a full site from the MAX handoff. Use the referral invite to ensure credits are available before pasting.",
+    LogoComponent: LovableLogo,
+    creditRange: "$20–$25 free",
   },
 ];
 
@@ -192,13 +195,14 @@ export function MaxWorkflowPage({
                     <button
                       className={
                         provider.id === selectedProvider
-                          ? "inline-flex items-center rounded-full border border-accent/30 bg-accent/10 px-3 py-1 text-xs font-bold uppercase tracking-[0.1em] text-accent"
-                          : "inline-flex items-center rounded-full border border-border/70 bg-panel/70 px-3 py-1 text-xs font-bold uppercase tracking-[0.1em] text-muted"
+                          ? "inline-flex items-center gap-1.5 rounded-full border border-accent/30 bg-accent/10 px-3 py-1.5 text-xs font-bold uppercase tracking-[0.1em] text-accent"
+                          : "inline-flex items-center gap-1.5 rounded-full border border-border/70 bg-panel/70 px-3 py-1.5 text-xs font-bold uppercase tracking-[0.1em] text-muted"
                       }
                       key={provider.id}
                       onClick={() => setSelectedProvider(provider.id)}
                       type="button"
                     >
+                      <provider.LogoComponent className="size-3.5" />
                       {provider.name}
                     </button>
                   ))}
@@ -290,9 +294,12 @@ export function MaxWorkflowPage({
         <div className="space-y-5">
           <Card>
             <CardHeader className="space-y-3">
-              <div className="flex items-center gap-2 text-accent">
-                <selected.icon className="size-4" />
-                <span className="text-xs uppercase tracking-[0.16em]">Choose a builder</span>
+              <div className="flex items-center justify-between gap-3">
+                <div className="flex items-center gap-2 text-accent">
+                  <selected.LogoComponent className="size-4" />
+                  <span className="text-xs uppercase tracking-[0.16em]">Choose a builder</span>
+                </div>
+                <Badge variant="neutral">{selected.creditRange}</Badge>
               </div>
               <CardTitle className="font-display text-[2.1rem]">{selected.name}</CardTitle>
               <p className="text-sm leading-6 text-muted">{selected.description}</p>
@@ -316,6 +323,10 @@ export function MaxWorkflowPage({
                   </div>
                 </div>
               ) : null}
+              <p className="border-t border-border/40 pt-3 text-xs italic leading-6 text-muted">
+                WebsiteCreditScore.com is not affiliated with, sponsored by, or endorsed by
+                Anthropic, OpenAI, or Lovable. These are independent third-party tools.
+              </p>
             </CardContent>
           </Card>
 

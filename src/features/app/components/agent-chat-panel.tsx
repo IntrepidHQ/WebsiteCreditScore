@@ -21,7 +21,13 @@ export type AgentChatReportContext = {
   findings: Array<{ title: string; severity: string }>;
 };
 
-export function AgentChatPanel({ reportContext }: { reportContext?: AgentChatReportContext | null }) {
+export function AgentChatPanel({
+  reportContext,
+  endpoint = "/api/app/agent-chat",
+}: {
+  reportContext?: AgentChatReportContext | null;
+  endpoint?: string;
+}) {
   const titleId = useId();
   const listRef = useRef<HTMLDivElement>(null);
   const [messages, setMessages] = useState<ChatTurn[]>([]);
@@ -42,7 +48,7 @@ export function AgentChatPanel({ reportContext }: { reportContext?: AgentChatRep
     setPending(true);
 
     try {
-      const res = await fetch("/api/app/agent-chat", {
+      const res = await fetch(endpoint, {
         method: "POST",
         credentials: "same-origin",
         headers: { "Content-Type": "application/json" },

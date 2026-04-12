@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 
 import { getAnthropicClient } from "@/lib/ai/client";
+import { selectModel } from "@/lib/ai/select-model";
 import { getOptionalWorkspaceSession } from "@/lib/auth/session";
 
 export const dynamic = "force-dynamic";
@@ -80,7 +81,10 @@ export async function POST(request: Request) {
   const reportContext =
     body.reportContext && typeof body.reportContext === "object" ? body.reportContext : null;
   const system = reportContext ? `${SYSTEM_BASE}${buildReportContextBlock(reportContext)}` : SYSTEM_BASE;
-  const maxTokens = reportContext ? 2200 : 1200;
+
+  const model = selectModel(messages, Boolean(reportContext));
+  // Sonnet gets more tokens for richer responses; Haiku is fine with fewer
+  const maxTokens = reportContext ? 2200 : model.includes("sonnet") ? 1400 : 900;
 
   const client = getAnthropicClient();
   if (!client) {
@@ -92,7 +96,7 @@ export async function POST(request: Request) {
 
   try {
     const response = await client.messages.create({
-      model: "claude-haiku-4-5-20251001",
+      model,
       max_tokens: maxTokens,
       system,
       messages,

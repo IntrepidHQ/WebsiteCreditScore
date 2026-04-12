@@ -1,3 +1,4 @@
+import { LandingChatSection } from "@/features/landing/components/landing-chat-section";
 import { LandingHeroSection } from "@/features/landing/components/landing-hero-section";
 import { LandingRecentReportsSection } from "@/features/landing/components/landing-recent-reports-section";
 import { LandingWorkflowSection } from "@/features/landing/components/landing-workflow-section";
@@ -28,6 +29,7 @@ export function LandingPageContent({
         targetBreakdown={targetBreakdown}
       />
       <LandingRecentReportsSection samples={samples} />
+      <LandingChatSection />
     </main>
   );
 }
