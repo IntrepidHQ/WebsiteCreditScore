@@ -29,6 +29,54 @@ Object.defineProperty(globalThis, "ResizeObserver", {
   value: ResizeObserverMock,
 });
 
+class IntersectionObserverMock implements IntersectionObserver {
+  readonly root: Element | Document | null = null;
+
+  readonly rootMargin = "";
+
+  readonly thresholds: ReadonlyArray<number> = [0];
+
+  private readonly callback: IntersectionObserverCallback;
+
+  constructor(callback: IntersectionObserverCallback, options?: IntersectionObserverInit) {
+    this.callback = callback;
+    void options;
+  }
+
+  observe(element: Element) {
+    queueMicrotask(() => {
+      this.callback(
+        [
+          {
+            isIntersecting: true,
+            target: element,
+            intersectionRatio: 1,
+            boundingClientRect: {} as DOMRectReadOnly,
+            intersectionRect: {} as DOMRectReadOnly,
+            rootBounds: null,
+            time: Date.now(),
+          } as IntersectionObserverEntry,
+        ],
+        this,
+      );
+    });
+  }
+
+  unobserve() {}
+
+  disconnect() {}
+
+  takeRecords() {
+    return [] as IntersectionObserverEntry[];
+  }
+}
+
+Object.defineProperty(globalThis, "IntersectionObserver", {
+  writable: true,
+  configurable: true,
+  value: IntersectionObserverMock,
+});
+
 Object.defineProperty(URL, "createObjectURL", {
   writable: true,
   value: vi.fn(() => "blob:theme-preview"),

@@ -11,7 +11,8 @@ import { isDemoWorkspaceAllowed } from "@/lib/auth/demo-flag";
 import { getOptionalWorkspaceSession, sanitizeInternalNextPath } from "@/lib/auth/session";
 import { hasSupabaseEnv } from "@/lib/supabase/config";
 
-import { LoginScoreShowcase } from "@/features/auth/components/login-score-showcase";
+import { LoginRecentScanShowcase } from "@/features/auth/components/login-recent-scan-showcase";
+import { resolveLoginShowcaseFromRecentScans } from "@/features/auth/lib/resolve-login-showcase";
 
 import { BrandWordmarkLink } from "@/components/common/brand-wordmark-link";
 
@@ -86,6 +87,8 @@ export default async function AppLoginPage({
     "Benchmark against real competitors",
   ];
 
+  const loginShowcase = await resolveLoginShowcaseFromRecentScans();
+
   const loginIntentHint = (() => {
     const lower = next.toLowerCase();
     if (lower.includes("save=1")) {
@@ -149,12 +152,10 @@ export default async function AppLoginPage({
             </div>
 
             <aside
-              aria-label="Example score preview"
-              className="w-[min(100%,clamp(17.5rem,28vw,26rem))] shrink-0 border-l border-border/35 pl-6 lg:w-[min(100%,clamp(19rem,30vw,28rem))] lg:pl-8 xl:pl-10"
+              aria-label="Recent public scan preview"
+              className="w-[min(100%,clamp(22rem,36vw,40rem))] shrink-0 border-l border-border/35 pl-6 lg:pl-8 xl:pl-10"
             >
-              <LoginScoreShowcase variant="rail" />
-              <p className="mt-2 text-[10px] uppercase tracking-[0.14em] text-muted">Example audit</p>
-              <p className="mt-0.5 truncate text-xs font-semibold text-foreground">acme-example.com</p>
+              <LoginRecentScanShowcase showcase={loginShowcase} />
             </aside>
           </div>
         </div>
@@ -164,20 +165,32 @@ export default async function AppLoginPage({
       <div className="flex min-h-0 w-full flex-1 flex-col justify-center px-5 py-8 sm:px-6 md:h-full md:max-h-[100dvh] md:w-[19rem] md:flex-none md:shrink-0 md:overflow-y-auto md:border-l md:border-border/60 md:px-5 lg:w-[20rem] lg:px-6">
         <LoginSupabaseEnvBanner />
         <BrandWordmarkLink className="mb-6 hidden md:block" variant="on-dark" />
-        {/* Mobile: minimal score strip above the form */}
-        <div className="mb-6 md:hidden">
-          <div
-            aria-hidden
-            className="pointer-events-none mb-4 h-20 w-full max-w-md rounded-2xl"
-            style={{
-              background:
-                "radial-gradient(ellipse at 50% 25%, color-mix(in srgb, var(--theme-accent) 20%, transparent) 0%, transparent 70%)",
-              filter: "blur(0.5px)",
-            }}
-          />
-          <LoginScoreShowcase variant="mobile" />
+
+        <div className="mb-8 space-y-4 md:hidden">
+          <BrandWordmarkLink className="block" variant="on-dark" />
+          <div>
+            <h1 className="font-display text-[2.1rem] leading-[1.08] text-foreground">
+              Your website&apos;s<br />
+              <span className="gradient-type">credit score,</span>
+              <br />
+              starts here.
+            </h1>
+            <p className="mt-3 max-w-md text-sm leading-6 text-muted">
+              Audit any site in seconds. See exactly what&apos;s holding back the score — and what to fix
+              first.
+            </p>
+            <ul className="mt-4 space-y-1.5">
+              {features.map((f) => (
+                <li className="flex items-center gap-2.5" key={f}>
+                  <span className="flex h-4 w-4 shrink-0 items-center justify-center rounded-full bg-accent/15">
+                    <Check className="size-2.5 text-accent" strokeWidth={2.5} />
+                  </span>
+                  <span className="text-xs leading-snug text-muted">{f}</span>
+                </li>
+              ))}
+            </ul>
+          </div>
         </div>
-        <BrandWordmarkLink className="mb-8 md:hidden" variant="on-dark" />
 
         <div className="w-full min-w-0 max-w-xs self-center sm:max-w-sm md:max-w-[16.75rem] md:self-start">
         {sentConfirm ? (

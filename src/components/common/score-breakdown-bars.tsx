@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 
 import gsap from "gsap";
 
@@ -25,6 +25,7 @@ export function ScoreBreakdownBars({
   showWeights,
   className,
   dense = false,
+  animateOnView = true,
 }: {
   items: BreakdownItem[];
   targetItems?: BreakdownItem[];
@@ -32,11 +33,45 @@ export function ScoreBreakdownBars({
   className?: string;
   /** Tighter rows for compact layouts (e.g. auth preview rail). */
   dense?: boolean;
+  /** When true, bars animate from 0 once the module scrolls into view. */
+  animateOnView?: boolean;
 }) {
   const { reduceMotion } = useMotionSettings();
+  const containerRef = useRef<HTMLDivElement>(null);
   const barRefs = useRef<Array<HTMLDivElement | null>>([]);
   const targetMap = new Map(targetItems?.map((item) => [item.key, item]) ?? []);
   const maxWeight = Math.max(...items.map((item) => item.weight), 1);
+  const [hasIntersected, setHasIntersected] = useState(false);
+  const isAnimationUnlocked = !animateOnView || reduceMotion || hasIntersected;
+
+  useEffect(() => {
+    if (!animateOnView || reduceMotion) {
+      return;
+    }
+
+    const node = containerRef.current;
+
+    if (!node) {
+      return;
+    }
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        const hit = entries.some((entry) => entry.isIntersecting);
+
+        if (hit) {
+          setHasIntersected(true);
+        }
+      },
+      { root: null, rootMargin: "0px 0px -8% 0px", threshold: [0, 0.12, 0.25] },
+    );
+
+    observer.observe(node);
+
+    return () => {
+      observer.disconnect();
+    };
+  }, [animateOnView, reduceMotion]);
 
   useEffect(() => {
     if (!items.length) {
@@ -49,6 +84,16 @@ export function ScoreBreakdownBars({
 
         if (node) {
           node.style.width = `${score * 10}%`;
+        }
+      });
+
+      return;
+    }
+
+    if (!isAnimationUnlocked) {
+      barRefs.current.forEach((node) => {
+        if (node) {
+          node.style.width = "0%";
         }
       });
 
@@ -69,7 +114,7 @@ export function ScoreBreakdownBars({
     return () => {
       animation.kill();
     };
-  }, [items, reduceMotion]);
+  }, [items, isAnimationUnlocked, reduceMotion]);
 
   if (!items.length) {
     return (
@@ -80,7 +125,7 @@ export function ScoreBreakdownBars({
   }
 
   return (
-    <div className={cn(dense ? "space-y-1" : "space-y-2", className)}>
+    <div className={cn(dense ? "space-y-1" : "space-y-2", className)} ref={containerRef}>
       {items.map((item, index) => {
         const tone = getScoreTone(item.score);
         const target = targetMap.get(item.key);
