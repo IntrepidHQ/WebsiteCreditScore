@@ -871,6 +871,19 @@ export function createThemeTokens(options?: ThemeTokensInput) {
       0.22,
       0.92,
     ),
+    glassStrokeOpacity: clamp(
+      typeof options?.glassStrokeOpacity === "number" && Number.isFinite(options.glassStrokeOpacity)
+        ? options.glassStrokeOpacity
+        : 0.55,
+      0.12,
+      1,
+    ),
+    dropShadowEnabled:
+      typeof options?.dropShadowEnabled === "boolean"
+        ? options.dropShadowEnabled
+        : options?.surfaceFinish === "glassmorphic"
+          ? false
+          : true,
     surfaces: buildSurfacePalette(shiftedAccent, mode, colorHarmony),
   };
 
@@ -901,12 +914,14 @@ export function createRandomTheme(mode: ThemeMode) {
     THEME_FONT_STACK_IDS[Math.floor(Math.random() * THEME_FONT_STACK_IDS.length)]!;
   const fontBody =
     THEME_FONT_STACK_IDS[Math.floor(Math.random() * THEME_FONT_STACK_IDS.length)]!;
+  const surfaceFinish =
+    RANDOM_SURFACE_FINISHES[Math.floor(Math.random() * RANDOM_SURFACE_FINISHES.length)]!;
 
   return createThemeTokens({
     mode,
     accentColor,
     colorHarmony: pickRandomHarmony(),
-    surfaceFinish: RANDOM_SURFACE_FINISHES[Math.floor(Math.random() * RANDOM_SURFACE_FINISHES.length)]!,
+    surfaceFinish,
     accentHueShift: Math.round(Math.random() * 48 - 24),
     fontDisplay,
     fontBody,
@@ -925,6 +940,8 @@ export function createRandomTheme(mode: ThemeMode) {
     spacingDensity: clamp(0.88 + Math.random() * 0.22, 0.84, 1.12),
     heroGridPattern: HERO_GRID_PATTERN_IDS[Math.floor(Math.random() * HERO_GRID_PATTERN_IDS.length)]!,
     glassFillOpacity: clamp(0.42 + Math.random() * 0.38, 0.28, 0.88),
+    glassStrokeOpacity: clamp(0.35 + Math.random() * 0.45, 0.2, 0.95),
+    dropShadowEnabled: surfaceFinish === "glassmorphic" ? false : true,
   });
 }
 
@@ -982,6 +999,9 @@ export function getThemeCssVariables(tokens: ThemeTokens) {
     "--theme-radius": `${tokens.radius}px`,
     "--theme-radius-lg": `${Math.round(tokens.radius * 1.2)}px`,
     "--theme-shadow": (() => {
+      if (!tokens.dropShadowEnabled) {
+        return "none";
+      }
       const spreadA = Math.round(tokens.shadowSpread);
       const spreadB = Math.round(tokens.shadowSpread * 0.55);
       return tokens.mode === "dark"
@@ -990,6 +1010,7 @@ export function getThemeCssVariables(tokens: ThemeTokens) {
     })(),
     "--theme-shadow-spread": `${tokens.shadowSpread}px`,
     "--theme-glass-fill-opacity": `${tokens.glassFillOpacity}`,
+    "--theme-glass-stroke-opacity": `${tokens.glassStrokeOpacity}`,
     "--theme-spacing-density": `${tokens.spacingDensity}`,
     "--theme-heading-scale-h1": `${tokens.headingScaleH1}`,
     "--theme-heading-scale-h2": `${tokens.headingScaleH2}`,
@@ -1102,6 +1123,12 @@ export function parseThemeImportPayload(raw: string): {
         typeof data.tokens.glassFillOpacity === "number" && Number.isFinite(data.tokens.glassFillOpacity)
           ? clamp(data.tokens.glassFillOpacity, 0.22, 0.92)
           : undefined,
+      glassStrokeOpacity:
+        typeof data.tokens.glassStrokeOpacity === "number" && Number.isFinite(data.tokens.glassStrokeOpacity)
+          ? clamp(data.tokens.glassStrokeOpacity, 0.12, 1)
+          : undefined,
+      dropShadowEnabled:
+        typeof data.tokens.dropShadowEnabled === "boolean" ? data.tokens.dropShadowEnabled : undefined,
     });
 
     return { tokens, branding };

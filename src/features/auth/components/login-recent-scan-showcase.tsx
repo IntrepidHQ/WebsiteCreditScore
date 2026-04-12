@@ -51,30 +51,20 @@ const LoginBreakdownCard = ({
   const band = getScoreBand(item.score);
   const categoryKey = item.key as AuditCategoryKey;
   const categoryColor = scoreCategoryPalette[categoryKey] ?? "#94a3b8";
-  const edgeStroke = `linear-gradient(90deg, color-mix(in srgb, ${categoryColor} 70%, transparent), color-mix(in srgb, ${categoryColor} 30%, transparent) 50%, color-mix(in srgb, ${categoryColor} 70%, transparent))`;
+  const hairline = "color-mix(in srgb, #ffffff 16%, transparent)";
+  const topRim = "color-mix(in srgb, #ffffff 10%, transparent)";
 
   return (
     <article
       className={cn(
-        "relative flex min-h-[6.75rem] w-[min(100%,240px)] shrink-0 flex-col justify-between overflow-hidden rounded-2xl border-y border-r border-border/40 bg-background/30 p-3 sm:min-h-[7.25rem] sm:w-[260px] sm:p-3.5",
+        "relative flex min-h-[6.75rem] w-[min(100%,240px)] shrink-0 flex-col justify-between overflow-hidden rounded-2xl bg-background/30 p-3 sm:min-h-[7.25rem] sm:w-[260px] sm:p-3.5",
         className,
       )}
       style={{
-        borderLeftColor: categoryColor,
-        borderLeftWidth: 4,
         backgroundImage: `linear-gradient(180deg, color-mix(in srgb, ${categoryColor} 14%, transparent), color-mix(in srgb, ${categoryColor} 6%, transparent))`,
+        boxShadow: `inset 0 0 0 1px ${hairline}, inset 0 1px 0 ${topRim}, inset 4px 0 0 0 ${categoryColor}`,
       }}
     >
-      <div
-        aria-hidden
-        className="pointer-events-none absolute inset-x-6 top-0 h-px"
-        style={{ backgroundImage: edgeStroke, opacity: 0.95 }}
-      />
-      <div
-        aria-hidden
-        className="pointer-events-none absolute inset-x-6 bottom-0 h-px"
-        style={{ backgroundImage: edgeStroke, opacity: 0.95 }}
-      />
       <div className="flex items-start justify-between gap-2">
         <div className="flex min-w-0 items-center gap-2">
           <span

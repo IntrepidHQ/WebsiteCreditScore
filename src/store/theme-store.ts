@@ -55,6 +55,8 @@ interface ThemeState {
   setColorHarmony: (colorHarmony: ThemeColorHarmony) => void;
   setSurfaceFinish: (surfaceFinish: ThemeSurfaceFinish) => void;
   setGlassFillOpacity: (glassFillOpacity: number) => void;
+  setGlassStrokeOpacity: (glassStrokeOpacity: number) => void;
+  setDropShadowEnabled: (dropShadowEnabled: boolean) => void;
   applyLayoutDensity: (density: "compact" | "comfortable" | "spacious") => void;
   setMotionPreference: (preference: MotionPreference) => void;
   setLogoColor: (logoColor: string) => void;
@@ -221,6 +223,7 @@ export const useThemeStore = create<ThemeState>()(
           tokens: createThemeTokens({
             ...state.tokens,
             surfaceFinish,
+            dropShadowEnabled: surfaceFinish === "glassmorphic" ? false : state.tokens.dropShadowEnabled,
           }),
           undoStack: [...state.undoStack, cloneSnapshot(state)].slice(-50),
           redoStack: [],
@@ -235,6 +238,31 @@ export const useThemeStore = create<ThemeState>()(
           undoStack: [...state.undoStack, cloneSnapshot(state)].slice(-50),
           redoStack: [],
         })),
+      setGlassStrokeOpacity: (glassStrokeOpacity) =>
+        set((state) => ({
+          presetId: null,
+          tokens: createThemeTokens({
+            ...state.tokens,
+            glassStrokeOpacity,
+          }),
+          undoStack: [...state.undoStack, cloneSnapshot(state)].slice(-50),
+          redoStack: [],
+        })),
+      setDropShadowEnabled: (dropShadowEnabled) =>
+        set((state) => {
+          const next =
+            state.tokens.surfaceFinish === "glassmorphic" ? false : dropShadowEnabled;
+
+          return {
+            presetId: null,
+            tokens: createThemeTokens({
+              ...state.tokens,
+              dropShadowEnabled: next,
+            }),
+            undoStack: [...state.undoStack, cloneSnapshot(state)].slice(-50),
+            redoStack: [],
+          };
+        }),
       applyLayoutDensity: (density) =>
         set((state) => {
           const base = {

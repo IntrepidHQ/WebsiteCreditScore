@@ -274,6 +274,10 @@ export interface ThemeTokens {
   heroGridPattern: HeroGridPattern;
   /** Opacity of glass panel fills (0–1); only affects glassmorphic studio surfaces. */
   glassFillOpacity: number;
+  /** Opacity of glass borders / rim lines (0–1); independent from fill. */
+  glassStrokeOpacity: number;
+  /** Card drop shadows from `--theme-shadow` and glass pooled shadows. */
+  dropShadowEnabled: boolean;
   surfaces: ThemeSurfaces;
 }
 

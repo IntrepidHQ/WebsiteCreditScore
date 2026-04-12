@@ -135,6 +135,8 @@ export function SettingsPanel() {
   const colorHarmonyLabelId = useId();
   const surfaceFinishLabelId = useId();
   const glassFillOpacityLabelId = useId();
+  const glassStrokeOpacityLabelId = useId();
+  const dropShadowLabelId = useId();
   const headerFontLabelId = useId();
   const bodyFontLabelId = useId();
   const headingScalesLabelId = useId();
@@ -168,6 +170,8 @@ export function SettingsPanel() {
   const setColorHarmony = useThemeStore((state) => state.setColorHarmony);
   const setSurfaceFinish = useThemeStore((state) => state.setSurfaceFinish);
   const setGlassFillOpacity = useThemeStore((state) => state.setGlassFillOpacity);
+  const setGlassStrokeOpacity = useThemeStore((state) => state.setGlassStrokeOpacity);
+  const setDropShadowEnabled = useThemeStore((state) => state.setDropShadowEnabled);
   const undoTheme = useThemeStore((state) => state.undoTheme);
   const redoTheme = useThemeStore((state) => state.redoTheme);
   const canUndo = useThemeStore((state) => state.undoStack.length > 0);
@@ -623,7 +627,7 @@ export function SettingsPanel() {
                           <Tooltip>
                             <TooltipTrigger asChild>
                               <button
-                                aria-label="Glassmorphic panel finish. Corner glints, pooled shadows, screened accent wash."
+                                aria-label="Glassmorphic panel finish. Frosted wash with hairline rim; pooled drop shadows off."
                                 aria-pressed={tokens.surfaceFinish === "glassmorphic"}
                                 className={cn(
                                   "aspect-square w-full rounded-[calc(var(--theme-radius)-2px)] border p-3 text-left transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/45 focus-visible:ring-offset-2 focus-visible:ring-offset-background",
@@ -645,32 +649,54 @@ export function SettingsPanel() {
                               </button>
                             </TooltipTrigger>
                             <TooltipContent className="max-w-xs">
-                              Corner highlights, deeper shadow pools, and a screened accent + white wash in the field.
+                              Frosted washes with a continuous hairline rim — card drop shadows stay off so edges read
+                              like dock icons.
                             </TooltipContent>
                           </Tooltip>
                         </div>
 
                         {tokens.surfaceFinish === "glassmorphic" ? (
-                          <div className="rounded-[calc(var(--theme-radius)-4px)] border border-border/60 bg-panel/50 p-3">
-                            <p className="text-xs font-semibold text-foreground" id={glassFillOpacityLabelId}>
-                              Glass fill opacity
-                            </p>
-                            <p className="mt-1 text-[11px] leading-snug text-muted">
-                              Softens the glass panel wash for studio tiles and previews — sits with the Glass finish
-                              control.
-                            </p>
-                            <Slider
-                              aria-labelledby={glassFillOpacityLabelId}
-                              className="mt-3"
-                              max={0.92}
-                              min={0.22}
-                              onValueChange={(value) => setGlassFillOpacity(value[0] ?? 0.58)}
-                              step={0.01}
-                              value={[tokens.glassFillOpacity]}
-                            />
-                            <p className="mt-2 text-sm text-muted">
-                              Current value: {(tokens.glassFillOpacity * 100).toFixed(0)}%
-                            </p>
+                          <div className="grid gap-4 rounded-[calc(var(--theme-radius)-4px)] border border-border/60 bg-panel/50 p-3">
+                            <div>
+                              <p className="text-xs font-semibold text-foreground" id={glassFillOpacityLabelId}>
+                                Glass fill opacity
+                              </p>
+                              <p className="mt-1 text-[11px] leading-snug text-muted">
+                                Softens the translucent panel wash — independent from rim stroke strength.
+                              </p>
+                              <Slider
+                                aria-labelledby={glassFillOpacityLabelId}
+                                className="mt-3"
+                                max={0.92}
+                                min={0.22}
+                                onValueChange={(value) => setGlassFillOpacity(value[0] ?? 0.58)}
+                                step={0.01}
+                                value={[tokens.glassFillOpacity]}
+                              />
+                              <p className="mt-2 text-sm text-muted">
+                                Current value: {(tokens.glassFillOpacity * 100).toFixed(0)}%
+                              </p>
+                            </div>
+                            <div>
+                              <p className="text-xs font-semibold text-foreground" id={glassStrokeOpacityLabelId}>
+                                Glass stroke opacity
+                              </p>
+                              <p className="mt-1 text-[11px] leading-snug text-muted">
+                                Hairline borders and top rim on glass tiles — tune without changing fill depth.
+                              </p>
+                              <Slider
+                                aria-labelledby={glassStrokeOpacityLabelId}
+                                className="mt-3"
+                                max={1}
+                                min={0.12}
+                                onValueChange={(value) => setGlassStrokeOpacity(value[0] ?? 0.55)}
+                                step={0.01}
+                                value={[tokens.glassStrokeOpacity]}
+                              />
+                              <p className="mt-2 text-sm text-muted">
+                                Current value: {(tokens.glassStrokeOpacity * 100).toFixed(0)}%
+                              </p>
+                            </div>
                           </div>
                         ) : null}
                       </div>
@@ -1062,6 +1088,44 @@ export function SettingsPanel() {
                       value={[tokens.shadowSpread]}
                     />
                     <p className="mt-2 text-sm text-muted">Current value: {tokens.shadowSpread}px</p>
+                  </SettingRow>
+
+                  <SettingRow
+                    titleId={dropShadowLabelId}
+                    label="Card drop shadows"
+                    description={
+                      tokens.surfaceFinish === "glassmorphic"
+                        ? "Glass finish keeps depth in strokes and washes — pooled shadows stay off (switch disabled)."
+                        : "Turn off for flatter decks; intensity and spread sliders only apply when this is on."
+                    }
+                  >
+                    <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                      <div className="flex items-center gap-3">
+                        <Switch
+                          aria-labelledby={dropShadowLabelId}
+                          checked={tokens.dropShadowEnabled}
+                          disabled={tokens.surfaceFinish === "glassmorphic"}
+                          id={`${dropShadowLabelId}-switch`}
+                          onCheckedChange={(checked) => setDropShadowEnabled(checked)}
+                        />
+                        <label
+                          className={cn(
+                            "text-sm font-medium text-foreground",
+                            tokens.surfaceFinish === "glassmorphic" && "text-muted",
+                          )}
+                          htmlFor={`${dropShadowLabelId}-switch`}
+                        >
+                          {tokens.dropShadowEnabled ? "On" : "Off"}
+                        </label>
+                      </div>
+                      <p className="text-xs text-muted sm:max-w-[min(100%,18rem)] sm:text-right">
+                        {tokens.surfaceFinish === "glassmorphic"
+                          ? "No drop shadow (glass)"
+                          : tokens.dropShadowEnabled
+                            ? "Shadows follow intensity + spread."
+                            : "No drop shadow — cards rely on borders only."}
+                      </p>
+                    </div>
                   </SettingRow>
 
                   <SettingRow
