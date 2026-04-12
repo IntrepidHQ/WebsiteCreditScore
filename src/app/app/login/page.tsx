@@ -113,48 +113,30 @@ export default async function AppLoginPage({
 
   return (
     <div
-      className="relative isolate min-h-screen overflow-hidden bg-background max-md:flex max-md:flex-col max-md:gap-6 max-md:px-5 max-md:py-6 sm:max-md:px-6 md:grid md:h-[100dvh] md:min-h-0 md:grid-rows-[auto_minmax(0,1fr)] md:gap-0 md:overflow-hidden md:px-0 md:py-0 md:max-lg:grid-cols-[minmax(13.5rem,42%)_minmax(0,1fr)] md:max-lg:px-7 md:max-lg:py-8 lg:grid-cols-[minmax(15rem,22vw)_minmax(0,1fr)_minmax(15.5rem,21vw)] lg:px-0 lg:py-0"
+      className="relative isolate min-h-screen overflow-hidden bg-background max-md:flex max-md:flex-col max-md:gap-6 max-md:px-5 max-md:py-6 sm:max-md:px-6 md:grid md:h-[100dvh] md:min-h-0 md:grid-cols-1 md:grid-rows-[auto_minmax(0,1fr)] md:gap-0 md:overflow-hidden md:px-0 md:py-0 md:max-lg:px-7 md:max-lg:py-8 lg:grid-cols-[minmax(15rem,22vw)_minmax(0,1fr)_minmax(15.5rem,21vw)] lg:grid-rows-[auto_minmax(0,1fr)] lg:px-0 lg:py-0"
       id="app-login-root"
     >
       <LoginLatticeBackdrop />
 
       {/* ── Top bar: wordmark + optional env notice (full width) ── */}
-      <div className="order-1 flex shrink-0 items-start justify-between gap-4 border-b border-border/50 pb-5 sm:pb-6 md:col-span-2 md:row-start-1 md:items-center md:border-border/55 md:px-8 md:pb-5 md:pt-6 lg:col-span-3 lg:px-10">
+      <div className="order-1 flex shrink-0 items-start justify-between gap-4 border-b border-border/50 pb-5 sm:pb-6 md:col-span-1 md:row-start-1 md:items-center md:border-border/55 md:px-8 md:pb-5 md:pt-6 lg:col-span-3 lg:px-10">
         <BrandWordmarkLinkThemed className="shrink-0" />
         <div className="min-w-0 max-w-xl shrink md:text-right">
           <LoginSupabaseEnvBanner />
         </div>
       </div>
 
-      {/* ── Marketing + recent scan meta: single column, one vertical rule ── */}
-      <aside className="order-2 min-w-0 md:col-start-1 md:row-start-2 md:flex md:min-h-0 md:flex-col md:justify-between md:border-r md:border-border/55 md:px-6 md:py-9 lg:px-9 lg:py-10 xl:px-11">
-        <div className="md:flex md:min-h-0 md:flex-1 md:flex-col md:justify-center">
+      {/* ── Main: mobile column; tablet = form + copy (left) | graphics (right); lg = aside | graphics | form ── */}
+      <div
+        className="order-2 flex min-h-0 flex-1 flex-col gap-8 max-md:gap-6 md:col-span-1 md:row-start-2 md:min-h-0 md:flex-none md:gap-0 md:overflow-hidden md:max-lg:grid md:max-lg:min-h-0 md:max-lg:grid-cols-[minmax(11.25rem,34%)_minmax(0,1fr)] md:max-lg:grid-rows-[auto_auto_minmax(0,1fr)] md:max-lg:gap-x-0 md:max-lg:gap-y-5 lg:col-span-3 lg:grid lg:min-h-0 lg:flex-none lg:grid-cols-[minmax(15rem,22vw)_minmax(0,1fr)_minmax(15.5rem,21vw)] lg:grid-rows-[minmax(0,1fr)] lg:gap-0 lg:overflow-hidden"
+        id="app-login-main"
+      >
+        <div className="order-1 min-w-0 max-md:order-1 md:max-lg:col-start-1 md:max-lg:row-start-1 md:max-lg:border-r md:max-lg:border-border/55 md:max-lg:px-6 md:max-lg:pt-1 md:max-lg:pr-5 lg:col-start-1 lg:row-start-1 lg:self-start lg:border-r lg:border-border/55 lg:px-9 lg:pb-0 lg:pt-10 xl:px-11">
           <LoginMarketingColumn features={features} />
         </div>
-        <LoginScanMetaFooter className="mt-8 md:mt-10" showcase={loginShowcase} />
-      </aside>
 
-      <div className="order-3 flex min-h-0 flex-col gap-8 max-md:gap-6 md:col-start-2 md:row-start-2 md:min-h-0 md:gap-6 md:overflow-y-auto md:px-6 md:py-9 lg:contents lg:gap-0 lg:overflow-visible lg:px-0 lg:py-0">
-        {/* ── Graphics (radar + editorial + horizontal roulette) ── */}
-        <section
-          aria-label="Live audit preview"
-          className="relative min-h-0 flex-1 overflow-x-clip md:max-lg:flex-1 md:max-lg:border-b md:max-lg:border-border/55 lg:order-none lg:col-start-2 lg:row-start-2 lg:flex lg:min-h-0 lg:flex-1 lg:flex-col lg:justify-center lg:border-b-0 lg:border-r lg:border-border/55 lg:px-8 lg:py-10 xl:px-12"
-        >
-          <div
-            aria-hidden="true"
-            className="login-showcase-ambient-glow pointer-events-none absolute left-1/2 top-1/2 hidden h-[min(34rem,58vh)] w-[min(34rem,58vh)] -translate-x-1/2 -translate-y-1/2 rounded-full opacity-90 md:block"
-            style={{
-              background:
-                "radial-gradient(circle, color-mix(in srgb, var(--theme-accent) 26%, transparent) 0%, transparent 68%)",
-              filter: "blur(28px)",
-            }}
-          />
-          <LoginGraphicsColumn className="relative" showcase={loginShowcase} />
-        </section>
-
-        {/* ── Form: third column on large screens; stacks under preview on tablet ── */}
-        <div className="min-h-0 shrink-0 md:max-lg:pt-2 lg:order-none lg:col-start-3 lg:row-start-2 lg:flex lg:min-h-0 lg:flex-col lg:items-center lg:justify-center lg:overflow-y-auto lg:px-6 lg:py-10 xl:px-8">
-        <div className="mx-auto w-full min-w-0 max-w-md md:max-w-[17.5rem]">
+        <div className="order-3 min-h-0 shrink-0 max-md:order-3 md:max-lg:col-start-1 md:max-lg:row-start-2 md:max-lg:min-h-0 md:max-lg:overflow-y-auto md:max-lg:border-r md:max-lg:border-border/55 md:max-lg:px-6 md:max-lg:pb-2 md:max-lg:pr-5 lg:col-start-3 lg:row-start-1 lg:flex lg:min-h-0 lg:flex-col lg:items-center lg:justify-center lg:overflow-y-auto lg:border-0 lg:px-6 lg:py-10 xl:px-8">
+        <div className="mx-auto w-full min-w-0 max-w-md md:max-lg:mx-0 md:max-lg:max-w-full lg:max-w-[17.5rem]">
         {sentConfirm ? (
           <div className="space-y-4">
             <div className="flex h-12 w-12 items-center justify-center rounded-full bg-success/15">
@@ -414,6 +396,27 @@ export default async function AppLoginPage({
         )}
         </div>
         </div>
+
+        <section
+          aria-label="Live audit preview"
+          className="relative order-2 min-h-0 flex-1 overflow-x-clip max-md:order-2 md:max-lg:col-start-2 md:max-lg:row-span-3 md:max-lg:row-start-1 md:max-lg:min-h-0 md:max-lg:overflow-y-auto md:max-lg:overflow-x-clip md:max-lg:pl-6 md:max-lg:pr-4 md:max-lg:py-7 lg:col-start-2 lg:row-start-1 lg:flex lg:min-h-0 lg:flex-1 lg:flex-col lg:justify-center lg:border-r lg:border-border/55 lg:px-8 lg:py-10 xl:px-12"
+        >
+          <div
+            aria-hidden="true"
+            className="login-showcase-ambient-glow pointer-events-none absolute left-1/2 top-1/2 hidden h-[min(34rem,58vh)] w-[min(34rem,58vh)] -translate-x-1/2 -translate-y-1/2 rounded-full opacity-90 md:block"
+            style={{
+              background:
+                "radial-gradient(circle, color-mix(in srgb, var(--theme-accent) 26%, transparent) 0%, transparent 68%)",
+              filter: "blur(28px)",
+            }}
+          />
+          <LoginGraphicsColumn className="relative" showcase={loginShowcase} />
+        </section>
+
+        <LoginScanMetaFooter
+          className="order-4 mt-8 max-md:order-4 md:mt-0 md:max-lg:col-start-1 md:max-lg:row-start-3 md:max-lg:border-r md:max-lg:border-border/55 md:max-lg:px-6 md:max-lg:pb-4 md:max-lg:pr-5 lg:col-start-1 lg:row-start-1 lg:self-end lg:border-r lg:border-border/55 lg:px-9 lg:pb-10 lg:pt-0 xl:px-11"
+          showcase={loginShowcase}
+        />
       </div>
     </div>
   );
