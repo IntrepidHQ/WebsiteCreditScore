@@ -87,7 +87,7 @@ export function LandingWorkflowSection({
           <div className="space-y-5 rounded-[28px] border border-border/60 bg-[linear-gradient(180deg,color-mix(in_srgb,var(--theme-panel)_88%,transparent),color-mix(in_srgb,var(--theme-background-alt)_96%,transparent))] p-6 sm:p-7">
             <div className="space-y-3">
               <Badge variant="accent">Weighted categories</Badge>
-              <h3 className="font-display text-[clamp(3rem,2.4rem+1vw,4.3rem)] leading-[0.92] tracking-[-0.05em] text-foreground">
+              <h3 className="theme-display-title-landing-block font-display leading-[0.92] tracking-[-0.05em] text-foreground">
                 The score rewards clarity, trust, and momentum, not just polish
               </h3>
               <p className="text-base leading-7 text-muted">

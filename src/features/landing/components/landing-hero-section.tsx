@@ -40,13 +40,13 @@ export function LandingHeroSection({
               <p className="text-[11px] font-semibold uppercase tracking-[0.3em] text-muted">
                 For business owners who want a site that earns more trust
               </p>
-              <h1 className="max-w-[min(100%,48rem)] font-display text-[clamp(2.65rem,2.05rem+1.35vw,5.15rem)] leading-[0.92] tracking-[-0.055em] text-foreground">
+              <h1 className="theme-display-title-marketing max-w-[min(100%,48rem)] font-display leading-[0.92] tracking-[-0.055em] text-foreground">
                 <BlurText
                   text="Turn your website into a stronger case for more business."
                   delay={60}
                   animateBy="words"
                   direction="top"
-                  className="font-display text-[clamp(2.65rem,2.05rem+1.35vw,5.15rem)] leading-[0.92] tracking-[-0.055em]"
+                  className="theme-display-title-marketing font-display leading-[0.92] tracking-[-0.055em]"
                 />
               </h1>
               <p className="max-w-3xl text-[1.08rem] leading-8 text-muted sm:text-[1.2rem] sm:leading-9">
@@ -116,7 +116,7 @@ export function LandingHeroSection({
                   <p className="text-[11px] font-semibold uppercase tracking-[0.24em] text-muted">
                     Live proof
                   </p>
-                  <h2 className="mt-2 font-display text-[clamp(2.7rem,2.1rem+0.8vw,3.6rem)] leading-[0.95] tracking-[-0.05em] text-foreground">
+                  <h2 className="theme-display-title-marketing-secondary mt-2 font-display leading-[0.95] tracking-[-0.05em] text-foreground">
                     {featuredAudit.title}
                   </h2>
                 </div>

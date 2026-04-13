@@ -263,6 +263,11 @@ export interface ThemeTokens {
   headingScaleH5: number;
   headingScaleH6: number;
   fontScale: number;
+  /**
+   * Multiplier for oversized marketing display titles (landing hero, `SectionHeading`, audit hero).
+   * Independent from semantic `h1`–`h6` heading scales and body `fontScale`.
+   */
+  displayTitleScale: number;
   lineHeightScale: number;
   glowIntensity: number;
   radius: number;

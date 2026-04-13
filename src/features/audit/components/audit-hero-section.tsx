@@ -99,7 +99,7 @@ export function AuditHeroSection({ report }: { report: AuditReport }) {
           <div className="space-y-5">
             <Badge data-hero-chip variant="accent">Live audit</Badge>
             <div className="space-y-3">
-              <h1 className="font-display text-[clamp(4.5rem,3.9rem+1vw,6rem)] font-semibold leading-[0.94] tracking-[-0.055em] text-foreground">
+              <h1 className="theme-display-title-audit-hero font-display font-semibold leading-[0.94] tracking-[-0.055em] text-foreground">
                 {report.title}
               </h1>
               <p className="max-w-3xl text-[1.18rem] leading-[2rem] text-muted">

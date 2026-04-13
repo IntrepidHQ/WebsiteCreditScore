@@ -31,7 +31,7 @@ export function SectionHeading({
         {eyebrow}
       </Badge>
       <div className="space-y-2">
-        <h2 className="font-display text-[clamp(3.35rem,2.8rem+1.15vw,4.85rem)] font-semibold leading-[0.9] tracking-[-0.05em] text-foreground">
+        <h2 className="theme-display-title-section font-display font-semibold leading-[0.9] tracking-[-0.05em] text-foreground">
           {title}
         </h2>
         <p className="max-w-3xl text-[1.04rem] leading-7 text-muted sm:text-[1.14rem] sm:leading-8">

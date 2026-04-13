@@ -120,6 +120,7 @@ export function SettingsPanel() {
   const logoColorLabelId = useId();
   const logoScaleLabelId = useId();
   const fontScaleLabelId = useId();
+  const displayTitleScaleLabelId = useId();
   const radiusLabelId = useId();
   const shadowLabelId = useId();
   const shadowSpreadLabelId = useId();
@@ -156,6 +157,7 @@ export function SettingsPanel() {
   const setLogoColor = useThemeStore((state) => state.setLogoColor);
   const setLogoScale = useThemeStore((state) => state.setLogoScale);
   const setFontScale = useThemeStore((state) => state.setFontScale);
+  const setDisplayTitleScale = useThemeStore((state) => state.setDisplayTitleScale);
   const setRadius = useThemeStore((state) => state.setRadius);
   const setShadowIntensity = useThemeStore((state) => state.setShadowIntensity);
   const setShadowSpread = useThemeStore((state) => state.setShadowSpread);
@@ -969,6 +971,28 @@ export function SettingsPanel() {
                     />
                     <p className="mt-2 text-sm text-muted">Current value: {tokens.fontScale.toFixed(2)}</p>
                   </SettingRow>
+
+                  <SettingRow
+                    titleId={displayTitleScaleLabelId}
+                    label="Display titles"
+                    description="Hero, section, and audit report display-serif headlines (the big clamp-based titles). Separate from body font scale and semantic H1–H6."
+                  >
+                    <Slider
+                      aria-labelledby={displayTitleScaleLabelId}
+                      max={1.35}
+                      min={0.72}
+                      onValueChange={(value) => setDisplayTitleScale(value[0] ?? 1)}
+                      step={0.01}
+                      value={[tokens.displayTitleScale]}
+                    />
+                    <p className="mt-2 text-sm text-muted">
+                      Current value: {tokens.displayTitleScale.toFixed(2)}×
+                    </p>
+                    <p className="theme-display-title-section mt-4 font-display font-semibold leading-[0.9] tracking-[-0.05em] text-foreground">
+                      Section title preview
+                    </p>
+                  </SettingRow>
+
                   <SettingRow
                     titleId={lineHeightLabelId}
                     label="Line height"

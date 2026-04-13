@@ -41,6 +41,7 @@ interface ThemeState {
   setMode: (mode: ThemeMode) => void;
   setAccentColor: (accentColor: string) => void;
   setFontScale: (fontScale: number) => void;
+  setDisplayTitleScale: (displayTitleScale: number) => void;
   setLineHeightScale: (lineHeightScale: number) => void;
   setGlowIntensity: (glowIntensity: number) => void;
   setRadius: (radius: number) => void;
@@ -319,6 +320,16 @@ export const useThemeStore = create<ThemeState>()(
           tokens: createThemeTokens({
             ...state.tokens,
             fontScale,
+          }),
+          undoStack: [...state.undoStack, cloneSnapshot(state)].slice(-50),
+          redoStack: [],
+        })),
+      setDisplayTitleScale: (displayTitleScale) =>
+        set((state) => ({
+          presetId: null,
+          tokens: createThemeTokens({
+            ...state.tokens,
+            displayTitleScale,
           }),
           undoStack: [...state.undoStack, cloneSnapshot(state)].slice(-50),
           redoStack: [],

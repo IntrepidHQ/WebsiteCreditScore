@@ -851,6 +851,13 @@ export function createThemeTokens(options?: ThemeTokensInput) {
     headingScaleH5: headingClamp(options?.headingScaleH5),
     headingScaleH6: headingClamp(options?.headingScaleH6),
     fontScale: clamp(options?.fontScale ?? 1, 0.9, 1.15),
+    displayTitleScale: clamp(
+      typeof options?.displayTitleScale === "number" && Number.isFinite(options.displayTitleScale)
+        ? options.displayTitleScale
+        : 1,
+      0.72,
+      1.35,
+    ),
     lineHeightScale: clamp(options?.lineHeightScale ?? 1, 0.9, 1.15),
     glowIntensity: clamp(options?.glowIntensity ?? 1, 0.55, 1.45),
     radius: clamp(options?.radius ?? 12, 8, 20),
@@ -932,6 +939,7 @@ export function createRandomTheme(mode: ThemeMode) {
     headingScaleH5: pickRandomHeadingScale(),
     headingScaleH6: pickRandomHeadingScale(),
     fontScale: clamp(0.94 + Math.random() * 0.16, 0.92, 1.12),
+    displayTitleScale: clamp(0.82 + Math.random() * 0.28, 0.72, 1.35),
     lineHeightScale: clamp(0.94 + Math.random() * 0.18, 0.92, 1.12),
     glowIntensity: clamp(0.75 + Math.random() * 0.55, 0.65, 1.35),
     radius: Math.round(clamp(8 + Math.random() * 10, 8, 18)),
@@ -994,6 +1002,7 @@ export function getThemeCssVariables(tokens: ThemeTokens) {
     "--theme-warning": tokens.surfaces.warning,
     "--theme-danger": tokens.surfaces.danger,
     "--theme-font-scale": `${tokens.fontScale}`,
+    "--theme-display-title-scale": `${tokens.displayTitleScale}`,
     "--theme-line-height-scale": `${tokens.lineHeightScale}`,
     "--theme-glow-intensity": `${tokens.glowIntensity}`,
     "--theme-radius": `${tokens.radius}px`,
@@ -1107,6 +1116,10 @@ export function parseThemeImportPayload(raw: string): {
       headingScaleH5: data.tokens.headingScaleH5,
       headingScaleH6: data.tokens.headingScaleH6,
       fontScale: data.tokens.fontScale,
+      displayTitleScale:
+        typeof data.tokens.displayTitleScale === "number" && Number.isFinite(data.tokens.displayTitleScale)
+          ? clamp(data.tokens.displayTitleScale, 0.72, 1.35)
+          : undefined,
       lineHeightScale: data.tokens.lineHeightScale,
       glowIntensity: data.tokens.glowIntensity,
       radius: data.tokens.radius,

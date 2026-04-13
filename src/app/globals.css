@@ -18,6 +18,7 @@
   --theme-warning: #ffcf66;
   --theme-danger: #ff8b8b;
   --theme-font-scale: 1;
+  --theme-display-title-scale: 1;
   --theme-line-height-scale: 1;
   --theme-glow-intensity: 1;
   --theme-radius: 12px;
@@ -170,6 +171,27 @@ html {
   letter-spacing: -0.03em;
   line-height: 0.98;
   text-wrap: balance;
+}
+
+/* Marketing / hero / section display titles — size from Settings → Typography → Display titles */
+.theme-display-title-marketing {
+  font-size: calc(clamp(2.65rem, 2.05rem + 1.35vw, 5.15rem) * var(--theme-display-title-scale, 1));
+}
+
+.theme-display-title-marketing-secondary {
+  font-size: calc(clamp(2.7rem, 2.1rem + 0.8vw, 3.6rem) * var(--theme-display-title-scale, 1));
+}
+
+.theme-display-title-section {
+  font-size: calc(clamp(3.35rem, 2.8rem + 1.15vw, 4.85rem) * var(--theme-display-title-scale, 1));
+}
+
+.theme-display-title-audit-hero {
+  font-size: calc(clamp(4.5rem, 3.9rem + 1vw, 6rem) * var(--theme-display-title-scale, 1));
+}
+
+.theme-display-title-landing-block {
+  font-size: calc(clamp(3rem, 2.4rem + 1vw, 4.3rem) * var(--theme-display-title-scale, 1));
 }
 
 p,
