@@ -185,26 +185,27 @@ export function ScanLoadingOverlay({
     <div
       aria-busy="true"
       aria-live="polite"
-      className="fixed inset-0 z-[200] flex items-center justify-center bg-background/88 px-4 py-10 backdrop-blur-md"
+      className="fixed inset-0 z-[200] flex items-center justify-center bg-background/88 px-4 py-4 backdrop-blur-md sm:py-10"
       role="status"
     >
       <span className="sr-only">Generating audit, please wait</span>
       <div
         className={cn(
-          "w-full max-w-lg rounded-[28px] border border-border/60 bg-[linear-gradient(180deg,color-mix(in_srgb,var(--theme-panel)_88%,transparent),color-mix(in_srgb,var(--theme-background-alt)_96%,transparent))] p-6 shadow-[0_28px_80px_rgba(0,0,0,0.35)]",
+          "max-h-[calc(100dvh-2rem)] w-full max-w-lg overflow-y-auto rounded-[28px] border border-border/60 bg-[linear-gradient(180deg,color-mix(in_srgb,var(--theme-panel)_88%,transparent),color-mix(in_srgb,var(--theme-background-alt)_96%,transparent))] p-5 shadow-[0_28px_80px_rgba(0,0,0,0.35)] sm:p-6",
         )}
       >
         <p className="text-center text-[11px] font-semibold uppercase tracking-[0.22em] text-muted">
           Live scan in progress
         </p>
-        <div className="mt-6 flex flex-col items-center">
+        <div className="mt-5 flex flex-col items-center sm:mt-6">
           <div className="relative flex items-center justify-center">
+            {/* Dial is slightly smaller on mobile to save vertical space */}
             <svg
               aria-hidden
               className="rotate-[-90deg]"
               height={size}
+              style={{ width: size, height: size }}
               viewBox={`0 0 ${size} ${size}`}
-              width={size}
             >
               <circle
                 cx={size / 2}
@@ -237,9 +238,9 @@ export function ScanLoadingOverlay({
           </div>
         </div>
 
-        <div className="mt-9 space-y-3.5">
+        <div className="mt-6 space-y-3 sm:mt-9 sm:space-y-3.5">
           {skeletonCategories.map((row, index) => (
-            <div className="space-y-2" key={row.key}>
+            <div className="space-y-1.5 sm:space-y-2" key={row.key}>
               <div className="flex items-center justify-between text-[11px] font-semibold uppercase tracking-[0.14em] text-muted">
                 <span>{row.label}</span>
                 <span className="text-foreground/70">…</span>
@@ -261,7 +262,7 @@ export function ScanLoadingOverlay({
           ))}
         </div>
 
-        <p className="mt-7 text-center text-[0.95rem] leading-7 text-muted">
+        <p className="mt-5 text-center text-[0.95rem] leading-7 text-muted sm:mt-7">
           Scoring the live site, benchmarks, and trust signals — this usually takes a moment.
         </p>
       </div>
