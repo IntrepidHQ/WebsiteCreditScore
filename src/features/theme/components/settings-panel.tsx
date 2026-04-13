@@ -1377,7 +1377,7 @@ export function SettingsPanel() {
 
                 <div className="mt-4 grid gap-3 sm:grid-cols-2">
                   <div className="rounded-[calc(var(--theme-radius))] border border-border/70 bg-elevated/80 p-4">
-                    <p className="text-xs uppercase tracking-[0.18em] text-muted">Mini packet header</p>
+                    <p className="text-[10px] font-semibold uppercase tracking-[0.16em] text-muted">Mini packet header</p>
                     <div className="mt-3 space-y-2">
                       <div className="h-2.5 w-28 rounded-full bg-accent/70" />
                       <div className="h-4 w-full rounded-full bg-foreground/14" />
@@ -1385,22 +1385,22 @@ export function SettingsPanel() {
                     </div>
                   </div>
                   <div className="rounded-[calc(var(--theme-radius))] border border-border/70 bg-elevated/80 p-4">
-                    <p className="text-xs uppercase tracking-[0.18em] text-muted">Score stack</p>
+                    <p className="text-[10px] font-semibold uppercase tracking-[0.16em] text-muted">Score stack</p>
                     <div className="mt-3 grid gap-2">
                       <div className="rounded-[calc(var(--theme-radius)-4px)] border border-border/70 bg-panel px-3 py-2">
                         <p className="text-[11px] uppercase tracking-[0.16em] text-muted">Current score</p>
-                        <p className="mt-1 font-display text-2xl font-semibold text-foreground">4.2 / 10</p>
+                        <p className="mt-1 font-display text-2xl font-semibold text-foreground whitespace-nowrap">4.2 / 10</p>
                       </div>
                       <div className="rounded-[calc(var(--theme-radius)-4px)] border border-border/70 bg-panel px-3 py-2">
                         <p className="text-[11px] uppercase tracking-[0.16em] text-muted">Projected score</p>
-                        <p className="mt-1 font-display text-2xl font-semibold text-foreground">8.9 / 10</p>
+                        <p className="mt-1 font-display text-2xl font-semibold text-foreground whitespace-nowrap">8.9 / 10</p>
                       </div>
                     </div>
                   </div>
                 </div>
 
                 <div className="mt-4 rounded-[calc(var(--theme-radius))] border border-border/70 bg-background-alt/70 p-4">
-                  <p className="text-xs uppercase tracking-[0.18em] text-muted">Surface rhythm</p>
+                  <p className="text-[10px] font-semibold uppercase tracking-[0.16em] text-muted">Surface rhythm</p>
                   <div className="mt-3 grid gap-2 sm:grid-cols-3">
                     <div className="rounded-[calc(var(--theme-radius)-4px)] border border-border/70 bg-panel px-3 py-3 text-sm text-foreground">
                       Executive summary
