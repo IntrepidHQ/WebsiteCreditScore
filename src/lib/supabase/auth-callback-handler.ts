@@ -33,7 +33,7 @@ const parseEmailOtpType = (raw: string): EmailOtpType | null => {
  */
 export const handleSupabaseAuthCallback = async (request: Request): Promise<NextResponse> => {
   const url = new URL(request.url);
-  const next = sanitizeInternalNextPath(url.searchParams.get("next"));
+  const next = sanitizeInternalNextPath(url.searchParams.get("next"), "/app");
 
   if (!hasSupabaseEnv()) {
     return NextResponse.redirect(new URL("/app/login", url));

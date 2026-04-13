@@ -32,7 +32,7 @@ export default async function TemplatesPage() {
               <label className="grid gap-2 text-sm font-semibold text-foreground">
                 Body
                 <textarea
-                  className="min-h-40 rounded-[8px] border border-border/70 bg-panel/80 px-3 py-3 text-sm text-foreground outline-none focus:border-accent/40"
+                  className="min-h-40 rounded-[8px] border border-border/70 bg-panel/80 px-3 py-3 text-sm text-foreground outline-none transition focus-visible:border-accent/60 focus-visible:ring-2 focus-visible:ring-accent/35"
                   defaultValue={template.body}
                   name="body"
                 />
@@ -77,7 +77,7 @@ export default async function TemplatesPage() {
             <label className="grid gap-2 text-sm font-semibold text-foreground">
               Body
               <textarea
-                className="min-h-40 rounded-[8px] border border-border/70 bg-panel/80 px-3 py-3 text-sm text-foreground outline-none focus:border-accent/40"
+                className="min-h-40 rounded-[8px] border border-border/70 bg-panel/80 px-3 py-3 text-sm text-foreground outline-none transition focus-visible:border-accent/60 focus-visible:ring-2 focus-visible:ring-accent/35"
                 name="body"
                 placeholder="Wanted to follow up on the packet I sent over..."
               />

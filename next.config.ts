@@ -1,5 +1,22 @@
 import type { NextConfig } from "next";
 
+const cspHeader = {
+  key: "Content-Security-Policy",
+  value: [
+    "default-src 'self'",
+    // Next.js requires unsafe-inline for its runtime scripts/styles; nonce-based CSP requires framework changes
+    "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://js.stripe.com https://vercel.live https://va.vercel-scripts.com",
+    "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
+    "font-src 'self' https://fonts.gstatic.com",
+    "img-src 'self' data: blob: https:",
+    "frame-src https://js.stripe.com",
+    "connect-src 'self' https://*.supabase.co wss://*.supabase.co https://api.stripe.com https://vitals.vercel-insights.com https://va.vercel-scripts.com",
+    "object-src 'none'",
+    "base-uri 'self'",
+    "form-action 'self'",
+  ].join("; "),
+};
+
 const baseSecurityHeaders = [
   { key: "Referrer-Policy", value: "strict-origin-when-cross-origin" },
   { key: "X-Content-Type-Options", value: "nosniff" },
@@ -8,6 +25,7 @@ const baseSecurityHeaders = [
     key: "Permissions-Policy",
     value: "camera=(), microphone=(), geolocation=(), browsing-topics=(), payment=()",
   },
+  cspHeader,
 ];
 
 const coopHeader = { key: "Cross-Origin-Opener-Policy", value: "same-origin" } as const;

@@ -18,7 +18,7 @@ export async function POST(request: Request) {
 
   const { supabase, applyCookiesToResponse } = createSupabaseOAuthRouteClient(request);
   await supabase.auth.resetPasswordForEmail(email, {
-    redirectTo: `${url.origin}/auth/callback?next=/app`,
+    redirectTo: `${url.origin}/auth/callback?next=/app/update-password`,
   });
 
   // Always show success — never reveal whether an account exists for this email
