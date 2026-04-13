@@ -36,6 +36,10 @@ export function LandingForm() {
       return;
     }
 
+    // Snap to top before navigation so the audit page always starts at the top,
+    // regardless of where the user had scrolled on the landing page.
+    window.scrollTo({ top: 0, left: 0, behavior: "instant" as ScrollBehavior });
+
     startTransition(() => {
       if (payload.persisted && payload.leadId) {
         router.push(`/app/leads/${payload.leadId}`);
