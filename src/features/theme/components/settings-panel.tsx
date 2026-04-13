@@ -28,6 +28,7 @@ import { HeroGridSurface } from "@/features/landing/components/hero-grid-surface
 import { NodeGridBackdrop } from "@/features/landing/components/node-grid/node-grid-backdrop";
 import { cn } from "@/lib/utils/cn";
 import type { HeroNodeGridPreset } from "@/lib/types/audit";
+import { NODE_GRID_ORDER, gridTypeLabel } from "@/features/landing/components/node-grid/grid-types";
 import type { GridType } from "@/features/landing/components/node-grid/grid-types";
 import {
   getContrastChecks,
@@ -79,13 +80,12 @@ const HERO_NODE_GRID_PRESETS: HeroPresetConfig[] = [
   },
 ];
 
+/** Maps a GridType back to the nearest named preset (for the preset card highlight). */
 const gridTypeToHeroPreset = (g: GridType): HeroNodeGridPreset => {
-  if (g === "triangular") {
-    return "truss";
-  }
-  if (g === "flux") {
-    return "flux";
-  }
+  if (g === "triangular") return "truss";
+  if (g === "flux") return "flux";
+  if (g === "waves") return "waves";
+  // Any non-standard type (e.g. hexagonal, spiral) maps to the closest visual preset
   return "waves";
 };
 
@@ -270,7 +270,9 @@ export function SettingsPanel() {
 
   useEffect(() => {
     if (showCanvasBuilder && !canvasBuilderWasOpenRef.current) {
-      setTunerGridType(heroPresetToGridType(tokens.heroNodeGridPreset));
+      // Prefer the exact stored grid type (set by a previous tuner apply); fall back to preset
+      const activeType = (tokens.heroNodeGridGridType as GridType | null) ?? heroPresetToGridType(tokens.heroNodeGridPreset);
+      setTunerGridType(activeType);
       setTunerCell(tokens.heroNodeGridCellSize);
       setTunerStroke(tokens.heroNodeGridStrokeScale);
     }
@@ -278,6 +280,7 @@ export function SettingsPanel() {
   }, [
     showCanvasBuilder,
     tokens.heroNodeGridCellSize,
+    tokens.heroNodeGridGridType,
     tokens.heroNodeGridPreset,
     tokens.heroNodeGridStrokeScale,
   ]);
@@ -402,6 +405,8 @@ export function SettingsPanel() {
   const handleApplyCanvasTuner = useCallback(() => {
     applyHeroNodeGridCanvas({
       heroNodeGridPreset: gridTypeToHeroPreset(tunerGridType),
+      // Store the exact grid type so the hero uses it directly (not just the nearest preset)
+      heroNodeGridGridType: tunerGridType,
       heroNodeGridCellSize: tunerCell,
       heroNodeGridStrokeScale: tunerStroke,
     });
@@ -1516,16 +1521,16 @@ export function SettingsPanel() {
                         className={FONT_SELECT_CLASSES}
                         id={canvasTunerGridSelectId}
                         onChange={(event) => {
-                          const value = event.target.value;
-                          if (value === "waves" || value === "flux" || value === "triangular") {
-                            setTunerGridType(value);
-                          }
+                          const value = event.target.value as GridType;
+                          setTunerGridType(value);
                         }}
                         value={tunerGridType}
                       >
-                        <option value="waves">Waves</option>
-                        <option value="flux">Flux</option>
-                        <option value="triangular">Truss</option>
+                        {NODE_GRID_ORDER.map((type) => (
+                          <option key={type} value={type}>
+                            {gridTypeLabel(type)}
+                          </option>
+                        ))}
                       </select>
                     </label>
                     <div className="grid gap-2">

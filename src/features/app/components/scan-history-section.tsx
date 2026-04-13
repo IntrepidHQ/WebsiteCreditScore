@@ -30,9 +30,9 @@ function WorkspaceScanHistoryCard({
   }
 
   const desktopShot =
-    report.previewSet?.current?.desktop ?? "/previews/fallback-desktop.svg";
+    report.previewSet?.current?.desktop || "/previews/fallback-desktop.svg";
   const fallbackShot =
-    report.previewSet?.fallbackCurrent?.desktop ?? desktopShot;
+    report.previewSet?.fallbackCurrent?.desktop || desktopShot;
   const score = Number(lead?.currentScore ?? report.overallScore ?? 0);
   const domain = savedReport.normalizedUrl.replace(/^https?:\/\//, "");
   const auditHref = `/audit/${report.id}?url=${encodeURIComponent(report.normalizedUrl)}`;

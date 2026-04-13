@@ -33,11 +33,15 @@ export const LandingHeroBackdrop = ({ className }: { className?: string }) => {
   const heroNodeGridPreset = useThemeStore(
     (state) => state.tokens.heroNodeGridPreset ?? "waves",
   );
+  const heroNodeGridGridType = useThemeStore((state) => state.tokens.heroNodeGridGridType);
   const heroNodeGridCellSize = useThemeStore((state) => state.tokens.heroNodeGridCellSize);
   const heroNodeGridStrokeScale = useThemeStore((state) => state.tokens.heroNodeGridStrokeScale);
   const { reduceMotion } = useMotionSettings();
 
   const preset = PRESET_MAP[heroNodeGridPreset] ?? PRESET_MAP.waves;
+  // heroNodeGridGridType (set by canvas tuner) overrides the preset's implied grid type
+  const effectiveGridType: GridType =
+    (heroNodeGridGridType as GridType | null) ?? preset.gridType;
 
   // Aurora color stops
   const colorStops = useMemo(() => {
@@ -130,7 +134,7 @@ export const LandingHeroBackdrop = ({ className }: { className?: string }) => {
 
         <NodeGridBackdrop
           gridCellSize={heroNodeGridCellSize}
-          gridType={preset.gridType}
+          gridType={effectiveGridType}
           linkHoverFromPointer={false}
           onCanvasReady={handleCanvasReady}
           strokeScale={heroNodeGridStrokeScale}

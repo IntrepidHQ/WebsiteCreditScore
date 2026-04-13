@@ -53,6 +53,7 @@ interface ThemeState {
   setHeroNodeGridPreset: (heroNodeGridPreset: HeroNodeGridPreset) => void;
   applyHeroNodeGridCanvas: (payload: {
     heroNodeGridPreset: HeroNodeGridPreset;
+    heroNodeGridGridType: string | null;
     heroNodeGridCellSize: number;
     heroNodeGridStrokeScale: number;
   }) => void;
@@ -417,6 +418,8 @@ export const useThemeStore = create<ThemeState>()(
           tokens: createThemeTokens({
             ...state.tokens,
             heroNodeGridPreset,
+            // Clicking a preset card resets any custom grid type from the tuner
+            heroNodeGridGridType: null,
           }),
           undoStack: [...state.undoStack, cloneSnapshot(state)].slice(-50),
           redoStack: [],
@@ -427,6 +430,7 @@ export const useThemeStore = create<ThemeState>()(
           tokens: createThemeTokens({
             ...state.tokens,
             heroNodeGridPreset: payload.heroNodeGridPreset,
+            heroNodeGridGridType: payload.heroNodeGridGridType,
             heroNodeGridCellSize: payload.heroNodeGridCellSize,
             heroNodeGridStrokeScale: payload.heroNodeGridStrokeScale,
           }),

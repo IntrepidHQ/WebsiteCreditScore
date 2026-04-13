@@ -877,6 +877,10 @@ export function createThemeTokens(options?: ThemeTokensInput) {
       options?.heroNodeGridPreset === "truss"
         ? options.heroNodeGridPreset
         : "waves",
+    heroNodeGridGridType:
+      typeof options?.heroNodeGridGridType === "string" && options.heroNodeGridGridType
+        ? options.heroNodeGridGridType
+        : null,
     heroNodeGridCellSize: clamp(
       typeof options?.heroNodeGridCellSize === "number" && Number.isFinite(options.heroNodeGridCellSize)
         ? options.heroNodeGridCellSize

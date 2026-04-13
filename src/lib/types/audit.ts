@@ -282,6 +282,12 @@ export interface ThemeTokens {
   heroGridPattern: HeroGridPattern;
   /** Node-grid canvas preset powering the hero background (Waves / Flux / Truss). */
   heroNodeGridPreset: HeroNodeGridPreset;
+  /**
+   * Actual GridType applied to the hero canvas. When set (e.g. from the canvas tuner)
+   * this overrides the gridType implied by heroNodeGridPreset, allowing any of the 14
+   * grid types to be selected without adding more preset values.
+   */
+  heroNodeGridGridType: string | null;
   /** Dot spacing (px) for the hero node grid canvas; typical range 16–120. */
   heroNodeGridCellSize: number;
   /** Stroke width multiplier for hero node grid links; typical range 0.25–4. */
