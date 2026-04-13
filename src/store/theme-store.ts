@@ -6,6 +6,7 @@ import { createJSONStorage, persist } from "zustand/middleware";
 import type {
   AgencyBranding,
   HeroGridPattern,
+  HeroNodeGridPreset,
   ThemeColorHarmony,
   ThemeFontStackId,
   ThemeMode,
@@ -49,6 +50,12 @@ interface ThemeState {
   setShadowSpread: (shadowSpread: number) => void;
   setSpacingDensity: (spacingDensity: number) => void;
   setHeroGridPattern: (heroGridPattern: HeroGridPattern) => void;
+  setHeroNodeGridPreset: (heroNodeGridPreset: HeroNodeGridPreset) => void;
+  applyHeroNodeGridCanvas: (payload: {
+    heroNodeGridPreset: HeroNodeGridPreset;
+    heroNodeGridCellSize: number;
+    heroNodeGridStrokeScale: number;
+  }) => void;
   setFontDisplay: (fontDisplay: ThemeFontStackId) => void;
   setFontBody: (fontBody: ThemeFontStackId) => void;
   setHeadingScale: (level: ThemeHeadingLevel, scale: number) => void;
@@ -400,6 +407,28 @@ export const useThemeStore = create<ThemeState>()(
           tokens: createThemeTokens({
             ...state.tokens,
             heroGridPattern,
+          }),
+          undoStack: [...state.undoStack, cloneSnapshot(state)].slice(-50),
+          redoStack: [],
+        })),
+      setHeroNodeGridPreset: (heroNodeGridPreset) =>
+        set((state) => ({
+          presetId: null,
+          tokens: createThemeTokens({
+            ...state.tokens,
+            heroNodeGridPreset,
+          }),
+          undoStack: [...state.undoStack, cloneSnapshot(state)].slice(-50),
+          redoStack: [],
+        })),
+      applyHeroNodeGridCanvas: (payload) =>
+        set((state) => ({
+          presetId: null,
+          tokens: createThemeTokens({
+            ...state.tokens,
+            heroNodeGridPreset: payload.heroNodeGridPreset,
+            heroNodeGridCellSize: payload.heroNodeGridCellSize,
+            heroNodeGridStrokeScale: payload.heroNodeGridStrokeScale,
           }),
           undoStack: [...state.undoStack, cloneSnapshot(state)].slice(-50),
           redoStack: [],

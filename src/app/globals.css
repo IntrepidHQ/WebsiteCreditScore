@@ -175,7 +175,7 @@ html {
 
 /* Marketing / hero / section display titles — size from Settings → Typography → Display titles */
 .theme-display-title-marketing {
-  font-size: calc(clamp(2.65rem, 2.05rem + 1.35vw, 5.15rem) * var(--theme-display-title-scale, 1));
+  font-size: calc(clamp(3.75rem, 2.35rem + 4.8vw, 7.75rem) * var(--theme-display-title-scale, 1));
 }
 
 .theme-display-title-marketing-secondary {

@@ -871,6 +871,26 @@ export function createThemeTokens(options?: ThemeTokensInput) {
     ),
     spacingDensity: clamp(options?.spacingDensity ?? 1, 0.82, 1.18),
     heroGridPattern: isHeroGridPattern(options?.heroGridPattern) ? options.heroGridPattern : "web",
+    heroNodeGridPreset:
+      options?.heroNodeGridPreset === "waves" ||
+      options?.heroNodeGridPreset === "flux" ||
+      options?.heroNodeGridPreset === "truss"
+        ? options.heroNodeGridPreset
+        : "waves",
+    heroNodeGridCellSize: clamp(
+      typeof options?.heroNodeGridCellSize === "number" && Number.isFinite(options.heroNodeGridCellSize)
+        ? options.heroNodeGridCellSize
+        : 16,
+      16,
+      120,
+    ),
+    heroNodeGridStrokeScale: clamp(
+      typeof options?.heroNodeGridStrokeScale === "number" && Number.isFinite(options.heroNodeGridStrokeScale)
+        ? options.heroNodeGridStrokeScale
+        : 0.45,
+      0.25,
+      4,
+    ),
     glassFillOpacity: clamp(
       typeof options?.glassFillOpacity === "number" && Number.isFinite(options.glassFillOpacity)
         ? options.glassFillOpacity
@@ -1132,6 +1152,20 @@ export function parseThemeImportPayload(raw: string): {
       heroGridPattern: isHeroGridPattern(data.tokens.heroGridPattern)
         ? data.tokens.heroGridPattern
         : undefined,
+      heroNodeGridPreset:
+        data.tokens.heroNodeGridPreset === "waves" ||
+        data.tokens.heroNodeGridPreset === "flux" ||
+        data.tokens.heroNodeGridPreset === "truss"
+          ? data.tokens.heroNodeGridPreset
+          : undefined,
+      heroNodeGridCellSize:
+        typeof data.tokens.heroNodeGridCellSize === "number" && Number.isFinite(data.tokens.heroNodeGridCellSize)
+          ? clamp(data.tokens.heroNodeGridCellSize, 16, 120)
+          : undefined,
+      heroNodeGridStrokeScale:
+        typeof data.tokens.heroNodeGridStrokeScale === "number" && Number.isFinite(data.tokens.heroNodeGridStrokeScale)
+          ? clamp(data.tokens.heroNodeGridStrokeScale, 0.25, 4)
+          : undefined,
       glassFillOpacity:
         typeof data.tokens.glassFillOpacity === "number" && Number.isFinite(data.tokens.glassFillOpacity)
           ? clamp(data.tokens.glassFillOpacity, 0.22, 0.92)

@@ -6,6 +6,7 @@ import {
   getThemePresets,
   getContrastChecks,
   getThemeCssVariables,
+  parseThemeImportPayload,
 } from "@/lib/utils/theme";
 
 describe("theme generation", () => {
@@ -106,5 +107,23 @@ describe("theme generation", () => {
     expect(comp.surfaces.background).not.toBe(mono.surfaces.background);
     expect(getContrastChecks(comp).foregroundOnBackground).toBeGreaterThan(4.5);
     expect(getContrastChecks(comp).accentOnAccentForeground).toBeGreaterThan(4.5);
+  });
+
+  it("parses hero node grid preset, cell size, and stroke from imported theme JSON", () => {
+    const raw = JSON.stringify({
+      tokens: {
+        mode: "dark",
+        accentColor: "#f7b21b",
+        heroNodeGridPreset: "flux",
+        heroNodeGridCellSize: 24,
+        heroNodeGridStrokeScale: 0.9,
+      },
+      branding: {},
+    });
+    const parsed = parseThemeImportPayload(raw);
+    expect(parsed).not.toBeNull();
+    expect(parsed!.tokens.heroNodeGridPreset).toBe("flux");
+    expect(parsed!.tokens.heroNodeGridCellSize).toBe(24);
+    expect(parsed!.tokens.heroNodeGridStrokeScale).toBe(0.9);
   });
 });

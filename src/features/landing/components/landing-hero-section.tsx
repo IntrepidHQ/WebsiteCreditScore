@@ -40,7 +40,7 @@ export function LandingHeroSection({
               <p className="text-[11px] font-semibold uppercase tracking-[0.3em] text-muted">
                 For business owners who want a site that earns more trust
               </p>
-              <h1 className="theme-display-title-marketing max-w-[min(100%,48rem)] font-display leading-[0.92] tracking-[-0.055em] text-foreground">
+              <h1 className="theme-display-title-marketing max-w-[min(100%,58rem)] font-display leading-[0.92] tracking-[-0.055em] text-foreground">
                 <BlurText
                   text="Turn your website into a stronger case for more business."
                   delay={60}
