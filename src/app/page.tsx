@@ -1,5 +1,6 @@
 import { LandingPageContent } from "@/features/landing/components/landing-page-content";
 import { getDesignPatternNotesForProfile } from "@/lib/benchmarks/library";
+import { FORTUNE_500_HERO_CANDIDATE_IDS } from "@/lib/mock/fortune-500-sample-audits";
 import { buildAuditReportById, getPublicScanHistoryCards } from "@/lib/mock/report-builder";
 import { getRecentScans, MAX_RECENT_SCANS } from "@/lib/utils/scan-cache";
 import {
@@ -12,31 +13,37 @@ import type { SampleAuditCard } from "@/lib/types/audit";
 
 export const dynamic = "force-dynamic";
 
+const HOME_RECENT_SCAN_LIMIT = Math.min(20, MAX_RECENT_SCANS);
+
 export default async function Home() {
   const catalogSamples = getPublicScanHistoryCards();
 
+  const fortuneHeroPool = catalogSamples.filter((sample) =>
+    FORTUNE_500_HERO_CANDIDATE_IDS.includes(sample.id),
+  );
   // Hero + benchmark breakdown must use catalog IDs `buildAuditReportById` can resolve (sample audits).
-  const featuredAudit =
-    catalogSamples.find((sample) => sample.id === "saunders-woodworks") ?? catalogSamples[0];
+  const featuredAudit = (() => {
+    if (!fortuneHeroPool.length) {
+      return catalogSamples[0]!;
+    }
+    const [head, ...tail] = fortuneHeroPool;
+    return tail.reduce(
+      (best, current) => ((current.score ?? 0) > (best.score ?? 0) ? current : best),
+      head,
+    );
+  })();
   const featuredReport = featuredAudit ? buildAuditReportById(featuredAudit.id) : null;
 
-  // Merge in real recent scans from the cache (dedupe by normalized URL vs catalog).
+  // Merge in recent public scans (seeded JSON in dev, Supabase in production). Dedupe by report id.
   const recentScans = await getRecentScans();
-  const catalogUrlKeys = new Set(
-    catalogSamples.map((s) => normalizeUrl(s.url, { stripWww: true })),
-  );
-  const seenRecentKeys = new Set<string>();
-  const recentCards: SampleAuditCard[] = recentScans
-    .filter((scan) => {
-      const key = normalizeUrl(scan.normalizedUrl, { stripWww: true });
-      if (catalogUrlKeys.has(key) || seenRecentKeys.has(key)) {
-        return false;
-      }
-      seenRecentKeys.add(key);
-      return true;
-    })
-    .slice(0, 9)
-    .map((scan) => ({
+  const seenReportIds = new Set<string>();
+  const recentCards: SampleAuditCard[] = [];
+  for (const scan of recentScans) {
+    if (seenReportIds.has(scan.reportId)) {
+      continue;
+    }
+    seenReportIds.add(scan.reportId);
+    recentCards.push({
       id: scan.reportId,
       title: scan.title,
       url: scan.normalizedUrl,
@@ -47,13 +54,16 @@ export default async function Home() {
         createWebsiteScreenshotUrl(normalizeUrl(scan.normalizedUrl, { stripWww: false }), "desktop"),
       score: scan.score,
       scannedAt: scan.scannedAt,
-    }));
-  // Fill up to 9 cards: real recent scans first, then catalog samples as fallback
-  const seenInRecent = new Set(recentCards.map((c) => normalizeUrl(c.url ?? "", { stripWww: true })));
+    });
+    if (recentCards.length >= HOME_RECENT_SCAN_LIMIT) {
+      break;
+    }
+  }
+  // Fill remaining slots with catalog samples not already shown (keeps the grid lively in dev).
   const catalogFill = catalogSamples
-    .filter((s) => !seenInRecent.has(normalizeUrl(s.url ?? "", { stripWww: true })))
-    .slice(0, Math.max(0, 9 - recentCards.length));
-  const displaySamples = [...recentCards, ...catalogFill].slice(0, 9);
+    .filter((s) => !seenReportIds.has(s.id))
+    .slice(0, Math.max(0, HOME_RECENT_SCAN_LIMIT - recentCards.length));
+  const displaySamples = [...recentCards, ...catalogFill].slice(0, HOME_RECENT_SCAN_LIMIT);
 
   if (!featuredAudit || !featuredReport) {
     return null;

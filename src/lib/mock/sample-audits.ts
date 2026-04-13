@@ -1,7 +1,8 @@
 import type { SampleAuditCard } from "@/lib/types/audit";
+import { fortune500SampleAudits } from "@/lib/mock/fortune-500-sample-audits";
 import { createWebsiteScreenshotUrl } from "@/lib/utils/url";
 
-export const sampleAudits: SampleAuditCard[] = [
+const legacySampleAudits: SampleAuditCard[] = [
   {
     id: "mark-deford-md",
     title: "Mark Deford M.D.",
@@ -142,3 +143,5 @@ export const sampleAudits: SampleAuditCard[] = [
     },
   },
 ];
+
+export const sampleAudits: SampleAuditCard[] = [...fortune500SampleAudits, ...legacySampleAudits];

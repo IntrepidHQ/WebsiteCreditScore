@@ -9,6 +9,7 @@ import { createWebsiteScreenshotUrl, normalizeUrl } from "@/lib/utils/url";
 
 const CACHE_DIR = path.join("/tmp", "craydl-scan-cache");
 const RECENT_FILE = path.join(CACHE_DIR, "_recent-scans.json");
+const SEED_RECENT_SCANS_FILE = path.join(process.cwd(), "data", "public-recent-scans.seed.json");
 const CACHE_TTL_MS = 1000 * 60 * 60 * 4; // 4 hours
 /** Cap for stored list and homepage “recent scans” merge (single source of truth). */
 export const MAX_RECENT_SCANS = 24;
@@ -187,10 +188,24 @@ async function trimRecentScansRemote(supabase: NonNullable<ReturnType<typeof get
   await supabase.from(RECENT_SCANS_TABLE).delete().in("normalized_url", keys);
 }
 
+const sortRecentDesc = (entries: RecentScanEntry[]) =>
+  [...entries].sort((a, b) => new Date(b.scannedAt).getTime() - new Date(a.scannedAt).getTime());
+
 async function getRecentScansFromFile(): Promise<RecentScanEntry[]> {
   try {
     const raw = await fs.readFile(RECENT_FILE, "utf-8");
-    return JSON.parse(raw) as RecentScanEntry[];
+    const parsed = JSON.parse(raw) as RecentScanEntry[];
+    if (parsed.length) {
+      return sortRecentDesc(parsed);
+    }
+  } catch {
+    // fall through to seed
+  }
+
+  try {
+    const raw = await fs.readFile(SEED_RECENT_SCANS_FILE, "utf-8");
+    const parsed = JSON.parse(raw) as RecentScanEntry[];
+    return sortRecentDesc(parsed);
   } catch {
     return [];
   }
