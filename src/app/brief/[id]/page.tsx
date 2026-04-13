@@ -1,4 +1,5 @@
 import { notFound } from "next/navigation";
+import type { Metadata } from "next";
 
 import { WorkspaceThemeFrame } from "@/components/common/workspace-theme-frame";
 import { ReportEmptyState } from "@/features/audit/components/report-empty-state";
@@ -10,6 +11,52 @@ import {
 import { getProductRepository } from "@/lib/product/repository";
 import { getCachedReport } from "@/lib/utils/scan-cache";
 import { normalizeUrl } from "@/lib/utils/url";
+
+async function resolveReportForMeta(id: string, url?: string, share?: string) {
+  try {
+    if (share) {
+      const shared = await getProductRepository().resolvePublicShare("brief", id, share);
+      return shared?.savedReport.reportSnapshot ?? null;
+    }
+    if (url) {
+      const normalized = normalizeUrl(url);
+      const cached = await getCachedReport(normalized);
+      return cached ?? (await buildLiveAuditReportFromUrl(url));
+    }
+    return await buildLiveAuditReportById(id);
+  } catch {
+    return null;
+  }
+}
+
+export async function generateMetadata({
+  params,
+  searchParams,
+}: {
+  params: Promise<{ id: string }>;
+  searchParams: Promise<{ url?: string; share?: string }>;
+}): Promise<Metadata> {
+  const { id } = await params;
+  const { url, share } = await searchParams;
+  const report = await resolveReportForMeta(id, url, share);
+
+  if (!report) {
+    return { title: "Discovery Brief | WebsiteCreditScore" };
+  }
+
+  const domain = report.normalizedUrl.replace(/^https?:\/\//, "").replace(/\/$/, "");
+  const title = `Discovery Brief: ${report.title || domain} | WebsiteCreditScore`;
+  const description = report.executiveSummary
+    ? report.executiveSummary.slice(0, 160)
+    : `Discovery brief and redesign direction for ${domain}.`;
+
+  return {
+    title,
+    description,
+    openGraph: { title, description, type: "article" },
+    twitter: { card: "summary", title, description },
+  };
+}
 
 export default async function BriefPage({
   params,

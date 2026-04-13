@@ -23,7 +23,7 @@ export function AppShellNav() {
   const pathname = usePathname();
 
   return (
-    <nav aria-label="Workspace" className="flex flex-wrap gap-2 pb-1">
+    <nav aria-label="Workspace" className="flex gap-2 overflow-x-auto pb-2 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
       {navItems.map((item) => {
         const active =
           item.href === "/app" ? pathname === item.href : pathname.startsWith(item.href);

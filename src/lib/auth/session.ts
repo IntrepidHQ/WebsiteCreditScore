@@ -102,7 +102,16 @@ export const sanitizeInternalNextPath = (next: string | null | undefined, fallba
     return fallback;
   }
 
-  return trimmed;
+  // Resolve any path traversal (e.g. /app/../../evil) and re-validate
+  try {
+    const resolved = new URL(trimmed, "http://x").pathname;
+    if (!resolved.startsWith("/") || resolved.startsWith("//")) {
+      return fallback;
+    }
+    return resolved;
+  } catch {
+    return fallback;
+  }
 };
 
 /**

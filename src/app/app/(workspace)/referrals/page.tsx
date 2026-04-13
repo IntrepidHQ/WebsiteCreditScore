@@ -95,7 +95,15 @@ export default async function ReferralsPage() {
                 <CopyLinkButton label="Copy code" value={referralCode.code} variant="outline" />
               </div>
             </>
-          ) : null}
+          ) : (
+            <p className="rounded-xl border border-dashed border-border/60 bg-panel/30 px-4 py-8 text-center text-sm text-muted">
+              Your referral code will appear here once your account is active.{" "}
+              <a className="text-accent underline underline-offset-2" href="/contact">
+                Contact us
+              </a>{" "}
+              if you expected a code.
+            </p>
+          )}
           <div className="grid gap-3 sm:grid-cols-2">
             <div className="rounded-[10px] border border-border/70 bg-background-alt/60 p-4">
               <p className="text-xs uppercase tracking-[0.18em] text-muted">Pending credits</p>
