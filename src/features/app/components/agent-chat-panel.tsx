@@ -6,6 +6,7 @@ import Link from "next/link";
 
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { AgentChatMessageBody } from "@/features/app/components/agent-chat-message-body";
 import { MAX_ENTITLEMENT_ERROR } from "@/lib/billing/max-access";
 import { cn } from "@/lib/utils/cn";
 
@@ -151,7 +152,7 @@ export function AgentChatPanel({
       >
         <div
           aria-hidden
-          className="pointer-events-none absolute inset-0 opacity-[0.14]"
+          className="pointer-events-none absolute inset-0 opacity-[0.055]"
           style={{
             backgroundImage:
               "repeating-linear-gradient(125deg, rgba(255,255,255,0.09) 0px, rgba(255,255,255,0.09) 1px, transparent 1px, transparent 14px)",
@@ -188,16 +189,16 @@ export function AgentChatPanel({
 
         <div
           ref={listRef}
-          className="relative z-[1] flex-1 space-y-4 overflow-y-auto px-4 py-4 sm:px-5"
+          className="relative z-[1] flex-1 space-y-5 overflow-y-auto px-4 py-5 sm:px-6"
           role="log"
           aria-live="polite"
           aria-relevant="additions"
         >
           {messages.length === 0 ? (
-            <div className="mx-auto max-w-2xl rounded-2xl border border-border/50 bg-background/35 px-4 py-4 text-sm leading-7 text-muted sm:px-5">
+            <div className="mx-auto max-w-2xl rounded-2xl border border-border/50 bg-background/40 px-4 py-4 text-[14px] leading-relaxed text-muted sm:px-5">
               {reportContext ? (
                 <>
-                  <span className="font-medium text-foreground">Context:</span> {reportContext.title}. Try: “Draft a
+                  <span className="font-semibold text-foreground">Context:</span> {reportContext.title}. Try: “Draft a
                   Lovable-ready prompt that closes the top three findings.”
                 </>
               ) : (
@@ -209,24 +210,41 @@ export function AgentChatPanel({
           {messages.map((m, i) =>
             m.role === "user" ? (
               <div className="flex justify-end" key={`${i}-user`}>
-                <div className="max-w-[min(100%,34rem)] rounded-[22px] bg-accent/14 px-4 py-3 text-sm leading-7 text-foreground shadow-[inset_0_1px_0_rgba(255,255,255,0.06)]">
+                <div className="max-w-[min(100%,36rem)] rounded-[20px] bg-accent/16 px-4 py-3.5 text-[15px] leading-[1.6] text-foreground shadow-[inset_0_1px_0_rgba(255,255,255,0.07)] sm:px-5 sm:py-4">
                   {m.content}
                 </div>
               </div>
             ) : (
               <div className="flex justify-start" key={`${i}-assistant`}>
-                <div className="max-w-[min(100%,40rem)] rounded-[22px] border border-border/55 bg-panel/55 px-4 py-3 text-sm leading-7 text-foreground shadow-[0_12px_40px_rgba(0,0,0,0.18)]">
-                  <p className="whitespace-pre-wrap">{m.content}</p>
+                <div
+                  className={cn(
+                    "max-w-[min(100%,44rem)] rounded-[20px] border border-border/50 bg-panel/70 px-4 py-4 text-foreground",
+                    "shadow-[0_16px_48px_rgba(0,0,0,0.22)] backdrop-blur-sm sm:px-5 sm:py-[1.15rem]",
+                  )}
+                >
+                  <AgentChatMessageBody content={m.content} messageKey={`msg-${i}`} />
                 </div>
               </div>
             ),
           )}
 
           {pending ? (
-            <div className="flex items-center gap-2 text-xs text-muted">
-              <Loader2 aria-hidden className="size-4 animate-spin text-accent" />
-              Thinking
-              <TypingDots />
+            <div className="flex justify-start" role="status">
+              <div
+                className={cn(
+                  "max-w-md rounded-[18px] border border-accent/25 bg-[linear-gradient(135deg,color-mix(in_srgb,var(--theme-accent)_12%,transparent),color-mix(in_srgb,var(--theme-panel)_40%,transparent)))]",
+                  "px-4 py-3.5 shadow-[inset_0_0_0_1px_rgba(255,255,255,0.05)]",
+                )}
+              >
+                <div className="flex items-center gap-2 text-[11px] font-semibold uppercase tracking-[0.2em] text-accent">
+                  <Loader2 aria-hidden className="size-3.5 animate-spin" />
+                  Thinking
+                </div>
+                <p className="mt-2 text-xs leading-5 text-muted">Composing a response from your workspace context…</p>
+                <div className="mt-2">
+                  <TypingDots />
+                </div>
+              </div>
             </div>
           ) : null}
         </div>
