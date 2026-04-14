@@ -36,15 +36,18 @@ type HeaderQuickAction = {
   icon?: LucideIcon;
 };
 
-function getPrimaryNavigation() {
-  return [
+function getPrimaryNavigation(isAuthenticated: boolean) {
+  const items: NavItem[] = [
     { href: "/platform", label: "Platform" },
-    { href: "/examples", label: "Examples" },
+    { href: "/examples", label: "Recent scans" },
     { href: "/benchmarks", label: "Benchmarks" },
     { href: "/pricing", label: "Pricing" },
     { href: "/docs", label: "Docs" },
-    { href: "/app/chat", label: "Workspace chat" },
-  ] satisfies NavItem[];
+  ];
+  if (isAuthenticated) {
+    items.push({ href: "/app/chat", label: "Chat" });
+  }
+  return items;
 }
 
 function getSectionNavigation(pathname: string) {
@@ -184,7 +187,7 @@ export function SiteHeader({
   const isAuditPath = pathname.startsWith("/audit/");
   const isBriefPath = pathname.startsWith("/brief/");
   const isWorkspacePath = isAuditPath || isBriefPath;
-  const primaryNavigation = useMemo(() => getPrimaryNavigation(), []);
+  const primaryNavigation = useMemo(() => getPrimaryNavigation(isAuthenticated), [isAuthenticated]);
   const sectionNavigation = useMemo(() => getSectionNavigation(pathname), [pathname]);
   const packetHref = buildRouteWithOptionalUrl(`/packet/${reportId}`, normalizedUrl);
   const briefHref = buildRouteWithOptionalUrl(`/brief/${reportId}`, normalizedUrl);
@@ -255,8 +258,8 @@ export function SiteHeader({
           signInOrWorkspace,
         ]
       : [
-          { href: "/examples", label: "Examples", icon: Compass },
-          { href: "/audit/mark-deford-md", label: "Sample audit", icon: ScanSearch },
+          { href: "/examples", label: "Recent scans", icon: Compass },
+          { href: "/audit/f500-apple", label: "Sample high score", icon: ScanSearch },
           signInOrWorkspace,
         ];
   const mobileQuickActions = quickActions;

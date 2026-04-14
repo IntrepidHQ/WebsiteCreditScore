@@ -36,11 +36,11 @@ export default function ExamplesPage() {
     <main className="presentation-section pt-10 sm:pt-14" id="main-content">
       <section className="pb-8">
         <div className="mx-auto w-full max-w-7xl space-y-6 px-4 sm:px-6 xl:px-8">
-          <Badge variant="accent">Examples</Badge>
+          <Badge variant="accent">Recent scans</Badge>
           <div className="grid gap-6 xl:grid-cols-[minmax(0,1fr)_auto] xl:items-end">
             <div className="space-y-4">
               <h1 className="max-w-5xl font-display text-[clamp(4rem,3.1rem+2vw,6.2rem)] leading-[0.9] tracking-[-0.06em] text-foreground">
-                Examples that show the score as proof, not decoration.
+                Recent scans that show the score as proof, not decoration.
               </h1>
               <p className="max-w-3xl text-[1.08rem] leading-8 text-muted sm:text-[1.18rem] sm:leading-9">
                 Each scan starts from a live site, carries a weighted score breakdown,
@@ -66,10 +66,10 @@ export default function ExamplesPage() {
       </section>
 
       <LandingRecentReportsSection
-        description="Examples and scan history are the same thing here: every scan becomes a reference for how the audit reads."
+        description="Every recent scan doubles as a practical example of how the audit reads."
         eyebrow="Scan history"
         samples={samples}
-        title="Examples and scan history, in one place"
+        title="Recent scans, in one place"
       />
 
       <section className="presentation-section py-8">

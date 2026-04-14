@@ -33,7 +33,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
                 <Button asChild className="shrink-0" size="sm" variant="secondary">
                   <Link href="/examples">
                     <ArrowUpRight className="size-4" />
-                    Public examples
+                    Recent scans
                   </Link>
                 </Button>
                 <Button asChild className="shrink-0" size="sm" variant="ghost">
@@ -73,11 +73,11 @@ export function AppShell({ children }: { children: React.ReactNode }) {
             <Link className="hover:text-accent" href="/app/dataroom">
               Dataroom
             </Link>
-            <Link className="hover:text-accent" href="/app/benchmarks">
+            <Link className="hover:text-accent" href="/benchmarks">
               Benchmarks
             </Link>
             <Link className="hover:text-accent" href="/examples">
-              Examples
+              Recent scans
             </Link>
             <Link className="hover:text-accent" href="/pricing">
               Pricing

@@ -113,7 +113,7 @@ export function DocsPage() {
           <SectionHeading
             eyebrow="Documentation"
             title="How WebsiteCreditScore.com works"
-            description="The docs stay short, visual, and practical. Each page explains what the app scores, how to read it, and what to do next."
+            description="Each guide gets to the point fast, shows real examples, and ends with the next move so you can apply it right away."
           />
 
           <section className="grid gap-4 lg:grid-cols-3" id="start">
@@ -157,7 +157,7 @@ export function DocsPage() {
                 <Badge variant="accent">The score</Badge>
                 <CardTitle className="font-display text-[2.6rem]">What the number means</CardTitle>
               </CardHeader>
-              <CardContent className="space-y-3">
+              <CardContent className="space-y-3 pt-0">
                 <p className="text-base leading-8 text-muted">
                   Design, animation, conversion, mobile clarity, trust, accessibility, and security posture all feed the audit score. A high score means the site is easier to trust and easier to act on.
                 </p>
@@ -172,12 +172,12 @@ export function DocsPage() {
                 <Badge variant="neutral">Benchmarks</Badge>
                 <CardTitle className="font-display text-[2.6rem]">How the bar is set</CardTitle>
               </CardHeader>
-              <CardContent className="space-y-3">
+              <CardContent className="space-y-3 pt-0">
                 <p className="text-base leading-8 text-muted">
                   The benchmark library scans a broader pool, then only features the strongest measured examples. This keeps the references grounded in what good actually looks like.
                 </p>
                 <Button asChild variant="secondary">
-                  <Link href="/app/benchmarks">
+                  <Link href="/benchmarks">
                     Open benchmarks
                     <ArrowRight className="size-4" />
                   </Link>
