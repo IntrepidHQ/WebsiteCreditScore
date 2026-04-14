@@ -2,6 +2,7 @@ import { notFound } from "next/navigation";
 import type { Metadata } from "next";
 
 import { WorkspaceThemeFrame } from "@/components/common/workspace-theme-frame";
+import { AuditFromScanClient } from "@/features/audit/components/audit-from-scan-client";
 import { AuditReportContent } from "@/features/audit/components/audit-report-content";
 import { ReportEmptyState } from "@/features/audit/components/report-empty-state";
 import {
@@ -35,10 +36,25 @@ export async function generateMetadata({
   searchParams,
 }: {
   params: Promise<{ id: string }>;
-  searchParams: Promise<{ url?: string; share?: string }>;
+  searchParams: Promise<{ url?: string; share?: string; from?: string }>;
 }): Promise<Metadata> {
   const { id } = await params;
-  const { url, share } = await searchParams;
+  const { url, share, from } = await searchParams;
+
+  if (from === "scan" && url) {
+    let label = "your site";
+    try {
+      label = new URL(normalizeUrl(url)).hostname.replace(/^www\./, "");
+    } catch {
+      /* keep default */
+    }
+
+    return {
+      title: `${label} — audit | WebsiteCreditScore`,
+      description: "Live website score, benchmarks, and redesign direction.",
+    };
+  }
+
   const report = await resolveReportForMeta(id, url, share);
 
   if (!report) {
@@ -65,22 +81,56 @@ export default async function AuditPage({
   searchParams,
 }: {
   params: Promise<{ id: string }>;
-  searchParams: Promise<{ url?: string; share?: string }>;
+  searchParams: Promise<{ url?: string; share?: string; from?: string }>;
 }) {
   const { id } = await params;
-  const { url, share } = await searchParams;
+  const { url, share, from } = await searchParams;
 
-  let report = null;
+  const session = await getOptionalWorkspaceSession();
+  const isAuthenticated = Boolean(session);
 
   if (share) {
+    let report = null;
     const shared = await getProductRepository().resolvePublicShare("audit", id, share);
 
     if (shared) {
       report = shared.savedReport.reportSnapshot;
     }
-  } else if (url) {
+
+    if (!report) {
+      notFound();
+    }
+
+    return (
+      <WorkspaceThemeFrame>
+        <AuditReportContent isAuthenticated={isAuthenticated} report={report} />
+      </WorkspaceThemeFrame>
+    );
+  }
+
+  if (url && from === "scan") {
     try {
-      // Check scan cache first to avoid redundant re-scanning
+      normalizeUrl(url);
+    } catch {
+      return (
+        <ReportEmptyState
+          description="Use a valid public website URL to generate the audit. The report route itself is working, but the incoming URL was not parseable."
+          title="This URL needs a cleaner format"
+        />
+      );
+    }
+
+    return (
+      <WorkspaceThemeFrame>
+        <AuditFromScanClient isAuthenticated={isAuthenticated} reportId={id} scanUrl={url} />
+      </WorkspaceThemeFrame>
+    );
+  }
+
+  let report = null;
+
+  if (url) {
+    try {
       const normalized = normalizeUrl(url);
       report = await getCachedReport(normalized);
 
@@ -102,9 +152,6 @@ export default async function AuditPage({
   if (!report) {
     notFound();
   }
-
-  const session = await getOptionalWorkspaceSession();
-  const isAuthenticated = Boolean(session);
 
   return (
     <WorkspaceThemeFrame>

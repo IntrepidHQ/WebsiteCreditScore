@@ -135,6 +135,7 @@ export const LandingHeroEditorial = ({ variant, featuredAudit, featuredBreakdown
             fallbackSrc={featuredAudit.fallbackPreviewImage}
             imageClassName="transition duration-500 hover:scale-[1.015]"
             loadingLabel="Capturing live example"
+            priority={!isMirror}
             src={featuredAudit.previewImage}
           >
             <div className="pointer-events-none absolute inset-x-0 top-0 h-28 bg-gradient-to-b from-background/40 via-transparent to-transparent" />

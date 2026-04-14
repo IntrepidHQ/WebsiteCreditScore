@@ -7,6 +7,8 @@ import { useRouter } from "next/navigation";
 import { ScanUrlFieldGroup } from "@/components/common/scan-url-field-group";
 import { Button } from "@/components/ui/button";
 import { ScanLoadingOverlay } from "@/features/landing/components/scan-loading-overlay";
+import { persistAuditHandoff } from "@/lib/audit-handoff-storage";
+import type { AuditReport } from "@/lib/types/audit";
 
 /**
  * Public homepage scan: same URL field pattern as the signed-in workspace (`ScanUrlFieldGroup` +
@@ -75,7 +77,13 @@ export function LandingForm() {
       });
 
       const payload = (await response.json()) as
-        | { id: string; normalizedUrl: string; persisted?: boolean; leadId?: string }
+        | {
+            id: string;
+            normalizedUrl: string;
+            persisted?: boolean;
+            leadId?: string;
+            report?: AuditReport;
+          }
         | { error: string };
 
       if (!response.ok || !("id" in payload)) {
@@ -84,6 +92,10 @@ export function LandingForm() {
             ? payload.error
             : "Unable to generate the audit right now.",
         );
+      }
+
+      if (payload.report) {
+        persistAuditHandoff(payload.report);
       }
 
       pendingNavRef.current = payload;

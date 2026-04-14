@@ -1,7 +1,7 @@
 /* eslint-disable @next/next/no-img-element */
 "use client";
 
-import { useState, type ReactNode } from "react";
+import { useEffect, useState, type ReactNode } from "react";
 
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils/cn";
@@ -82,6 +82,26 @@ function PreviewImageInner({
   const [phase, setPhase] = useState<PreviewPhase>("loading");
   const [usingFallback, setUsingFallback] = useState(false);
 
+  useEffect(() => {
+    if (phase !== "loading") {
+      return;
+    }
+
+    const slowLoadMs = 12_000;
+    const timer = window.setTimeout(() => {
+      if (fallbackSrc && currentSrc !== fallbackSrc) {
+        setCurrentSrc(fallbackSrc);
+        setUsingFallback(true);
+        setPhase("loading");
+        return;
+      }
+
+      setPhase("error");
+    }, slowLoadMs);
+
+    return () => window.clearTimeout(timer);
+  }, [phase, currentSrc, fallbackSrc]);
+
   return (
     <div
       className={cn(
@@ -124,7 +144,7 @@ function PreviewImageInner({
       )}
       {children}
       {phase === "loading" ? (
-        <div className="pointer-events-none absolute inset-0 grid place-items-center bg-background/45 backdrop-blur-[1px]">
+        <div className="pointer-events-none absolute inset-0 grid place-items-center bg-background/55">
           <Badge variant="neutral">{usingFallback ? fallbackLabel : loadingLabel}</Badge>
         </div>
       ) : null}
