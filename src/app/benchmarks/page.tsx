@@ -12,9 +12,14 @@ import type { BenchmarkVertical } from "@/lib/types/audit";
 import { buildBenchmarkTargetCategoryScores } from "@/lib/utils/score-visuals";
 
 export const metadata: Metadata = {
-  title: "Benchmarks | WebsiteCreditScore.com",
+  title: "Website Benchmark Standards — What Does a High-Scoring Site Look Like?",
   description:
-    "Benchmark methodology for WebsiteCreditScore.com, including score thresholds, weighted categories, design principles, and benchmark examples.",
+    "Explore the benchmark scoring criteria behind WebsiteCreditScore.com. See how visual design, UX, mobile experience, trust, SEO, and accessibility are weighted.",
+  openGraph: {
+    title: "Website Benchmark Standards",
+    description:
+      "The scoring rubric behind every website audit — weighted criteria, industry standards, and what separates 8+ score sites from 5-score sites.",
+  },
 };
 
 const benchmarkProfiles: Array<{

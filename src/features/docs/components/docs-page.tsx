@@ -6,6 +6,7 @@ import {
   Globe2,
   Rocket,
   Sparkles,
+  TrendingUp,
   WandSparkles,
 } from "lucide-react";
 
@@ -55,6 +56,9 @@ const docLinks = [
   { href: "#seo", label: "SEO" },
   { href: "#max", label: "MAX workflow" },
   { href: "#domains", label: "Custom domains" },
+  { href: "#methodology", label: "Methodology" },
+  { href: "#prompt-patterns", label: "Prompt patterns" },
+  { href: "/docs/trends", label: "Trends & insights" },
 ] as const;
 
 export function DocsPage() {
@@ -273,6 +277,134 @@ export function DocsPage() {
               ))}
             </div>
           </section>
+
+          <section className="grid gap-4" id="methodology">
+            <SectionHeading
+              eyebrow="Scoring methodology"
+              title="How the score is calculated"
+              description="The overall score is a weighted average of seven categories. Each category is scored independently so the report shows exactly where a site is strong and where it's costing the business."
+            />
+            <div className="grid gap-4 lg:grid-cols-2">
+              {[
+                {
+                  category: "Visual design",
+                  weight: "20%",
+                  detail:
+                    "Typography hierarchy, color contrast, logo quality, image production value, and whitespace discipline.",
+                },
+                {
+                  category: "UX & conversion",
+                  weight: "22%",
+                  detail:
+                    "Value proposition clarity, CTA placement and copy, form design, navigation efficiency, and page focus.",
+                },
+                {
+                  category: "Mobile experience",
+                  weight: "18%",
+                  detail:
+                    "Tap target sizing, font readability, layout reflow, CTA visibility on small screens, and scroll performance.",
+                },
+                {
+                  category: "Trust signals",
+                  weight: "18%",
+                  detail:
+                    "Social proof specificity, team visibility, testimonial quality, security indicators, and contact accessibility.",
+                },
+                {
+                  category: "SEO fundamentals",
+                  weight: "10%",
+                  detail:
+                    "Title tags, meta descriptions, heading hierarchy, image alt text, and page speed.",
+                },
+                {
+                  category: "Accessibility",
+                  weight: "7%",
+                  detail:
+                    "Keyboard navigation, screen reader compatibility, color dependence, and error message clarity.",
+                },
+                {
+                  category: "Security posture",
+                  weight: "5%",
+                  detail:
+                    "HTTPS enforcement, cookie consent, privacy policy presence, and third-party script hygiene.",
+                },
+              ].map((item) => (
+                <Card key={item.category}>
+                  <CardHeader className="space-y-2">
+                    <div className="flex items-center justify-between">
+                      <span className="text-xs font-semibold uppercase tracking-[0.14em] text-accent">
+                        {item.weight}
+                      </span>
+                    </div>
+                    <CardTitle className="font-display text-[1.9rem]">{item.category}</CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <p className="text-sm leading-7 text-muted">{item.detail}</p>
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
+          </section>
+
+          <section className="grid gap-4" id="prompt-patterns">
+            <SectionHeading
+              eyebrow="Prompt patterns"
+              title="Using your brief with AI tools"
+              description="The MAX workflow generates a structured brief designed to be pasted directly into Claude, ChatGPT, Cursor, or Lovable. Here's how to get the most out of it."
+            />
+            <div className="grid gap-4 lg:grid-cols-3">
+              {[
+                {
+                  tool: "Claude",
+                  pattern: "Paste the full brief, then follow with: 'Start with a sitemap and page-by-page content outline.' Claude handles long briefs well and will maintain the audit reasoning throughout.",
+                },
+                {
+                  tool: "Cursor / Windsurf",
+                  pattern: "Paste the brief into a new file called BRIEF.md. Then open a chat and reference the file: 'Use the brief in BRIEF.md as the foundation for this build.' The IDE context keeps the brief in scope across sessions.",
+                },
+                {
+                  tool: "Lovable / v0",
+                  pattern: "Paste the brief into the initial prompt and request a component-by-component build. Start with the hero section, then expand outward. Smaller scoped requests produce better output than asking for the full site in one go.",
+                },
+              ].map((item) => (
+                <Card key={item.tool}>
+                  <CardHeader className="space-y-2">
+                    <Badge variant="accent">{item.tool}</Badge>
+                    <CardTitle className="font-display text-[1.9rem]">{item.tool}</CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <p className="text-sm leading-7 text-muted">{item.pattern}</p>
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
+          </section>
+
+          <div className="rounded-[24px] border border-accent/20 bg-accent/5 px-6 py-7 sm:px-8">
+            <div className="flex flex-col gap-5 sm:flex-row sm:items-center sm:justify-between">
+              <div className="space-y-2">
+                <div className="flex items-center gap-2 text-accent">
+                  <TrendingUp className="size-4" />
+                  <span className="text-xs font-semibold uppercase tracking-[0.12em]">
+                    Trends & insights
+                  </span>
+                </div>
+                <h2 className="font-display text-[2.2rem] leading-[1.05] tracking-[-0.03em] text-foreground">
+                  Research-backed writing for designers and agencies
+                </h2>
+                <p className="text-sm leading-7 text-muted">
+                  Articles on conversion design, trust signals, audit methodology, and industry
+                  benchmarks. Written for practitioners, not beginners.
+                </p>
+              </div>
+              <Button asChild className="shrink-0">
+                <Link href="/docs/trends">
+                  Read our design insights
+                  <ArrowRight className="size-4" />
+                </Link>
+              </Button>
+            </div>
+          </div>
         </div>
       </div>
     </main>

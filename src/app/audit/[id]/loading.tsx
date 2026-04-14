@@ -1,7 +1,9 @@
-"use client";
-
-import { ScanLoadingOverlay } from "@/features/landing/components/scan-loading-overlay";
-
 export default function AuditRouteLoading() {
-  return <ScanLoadingOverlay active mode="route" />;
+  return (
+    <div
+      className="fixed inset-0 z-[50] bg-background/80 backdrop-blur-sm transition-opacity"
+      aria-hidden
+      aria-label="Loading audit..."
+    />
+  );
 }

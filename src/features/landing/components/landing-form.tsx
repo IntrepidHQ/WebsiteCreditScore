@@ -1,6 +1,6 @@
 "use client";
 
-import { startTransition, useCallback, useId, useRef, useState } from "react";
+import { useCallback, useId, useRef, useState } from "react";
 import { ArrowRight, Loader2, Sparkles } from "lucide-react";
 import { useRouter } from "next/navigation";
 
@@ -40,17 +40,15 @@ export function LandingForm() {
     // regardless of where the user had scrolled on the landing page.
     window.scrollTo({ top: 0, left: 0, behavior: "instant" as ScrollBehavior });
 
-    startTransition(() => {
-      if (payload.persisted && payload.leadId) {
-        router.push(`/app/leads/${payload.leadId}`);
-      } else {
-        router.push(
-          `/audit/${payload.id}?url=${encodeURIComponent(payload.normalizedUrl)}&ref=landing`,
-        );
-      }
-      setShowScanOverlay(false);
-      setScanDataReady(false);
-    });
+    if (payload.persisted && payload.leadId) {
+      router.push(`/app/leads/${payload.leadId}?from=scan`);
+    } else {
+      router.push(
+        `/audit/${payload.id}?url=${encodeURIComponent(payload.normalizedUrl)}&ref=landing&from=scan`,
+      );
+    }
+    setShowScanOverlay(false);
+    setScanDataReady(false);
   }, [router]);
 
   const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
