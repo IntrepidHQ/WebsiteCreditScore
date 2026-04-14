@@ -8,6 +8,10 @@ import { applyProposalOffer } from "@/lib/utils/proposal-offers";
 import { calculatePricingSummary, getDefaultSelectedIds } from "@/lib/utils/pricing";
 import { usePricingStore } from "@/store/pricing-store";
 
+function escapeRegExp(value: string) {
+  return value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+}
+
 describe("PricingConfigurator", () => {
   const report = buildAuditReportFromUrl("https://pulseboardhq.com");
 
@@ -46,7 +50,9 @@ describe("PricingConfigurator", () => {
     render(<PricingConfigurator report={report} />);
 
     await user.click(
-      screen.getByRole("button", { name: new RegExp(`^Add ${firstOptionalAddOn.title}$`, "i") }),
+      screen.getByRole("button", {
+        name: new RegExp(`^Add ${escapeRegExp(firstOptionalAddOn.title)}$`, "i"),
+      }),
     );
 
     await waitFor(() =>

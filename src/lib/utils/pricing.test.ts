@@ -23,8 +23,8 @@ describe("pricing utilities", () => {
   it("calculates add-on totals and synergy notes", () => {
     const selectedIds = [
       ...getDefaultSelectedIds(bundle),
-      "booking-funnel",
-      "analytics",
+      "expanded-audit-brief",
+      "ai-assisted-handoff",
     ];
     const summary = calculatePricingSummary(bundle, selectedIds);
 
@@ -36,9 +36,8 @@ describe("pricing utilities", () => {
 
   it("projects score lift with diminishing returns", () => {
     const projected = calculateProjectedScore(report.overallScore, [
-      bundle.addOns.find((item) => item.id === "full-site")!,
-      bundle.addOns.find((item) => item.id === "copywriting")!,
-      bundle.addOns.find((item) => item.id === "search-foundation")!,
+      bundle.addOns.find((item) => item.id === "expanded-audit-brief")!,
+      bundle.addOns.find((item) => item.id === "white-glove-build")!,
     ]);
 
     expect(projected).toBeGreaterThan(report.overallScore);

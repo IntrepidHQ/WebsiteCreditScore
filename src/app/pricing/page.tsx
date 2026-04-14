@@ -12,7 +12,7 @@ import { hasSupabaseEnv } from "@/lib/supabase/config";
 export const metadata: Metadata = {
   title: "Pricing | WebsiteCreditScore.com",
   description:
-    "Choose the free tier, buy the Pro token pack, and unlock deeper scoring layers with Stripe checkout.",
+    "DIY scans with credits, optional SEO and MAX unlocks, and human help sized under typical $10K Stripe checkouts — audit + brief, AI-assisted supervision, or white-glove delivery.",
 };
 
 export default async function PricingPage() {

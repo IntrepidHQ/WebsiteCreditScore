@@ -6,7 +6,7 @@ import {
   assertWorkspaceAllowsMaxPrompt,
   workspaceWithComplimentaryMaxEntitlement,
 } from "@/lib/billing/max-access";
-import { getTokenActionCost } from "@/lib/billing/catalog";
+import { FREE_TIER_CREDITS, getTokenActionCost } from "@/lib/billing/catalog";
 import { buildAuditReportById, buildAuditReportFromUrl, buildLiveAuditReportFromUrl } from "@/lib/mock/report-builder";
 import { sampleAudits } from "@/lib/mock/sample-audits";
 import { prepareReportForStorage, passesReportQualityCheck } from "@/lib/product/report-quality";
@@ -75,8 +75,8 @@ function buildWorkspace(ownerUserId: string, session: WorkspaceSession): Workspa
     updatedAt: createdAt,
     billingStatus: unlimited ? "active" : "trial",
     billingPlan: unlimited ? "pro" : "free",
-    creditBalance: unlimited ? 999_999 : 10,
-    tokenBalance: unlimited ? 999_999 : 10,
+    creditBalance: unlimited ? 999_999 : FREE_TIER_CREDITS,
+    tokenBalance: unlimited ? 999_999 : FREE_TIER_CREDITS,
     entitlements: unlimited ? (["seo-benchmark", "max-stealth"] as WorkspaceEntitlement[]) : [],
     branding: {
       agencyName: "WebsiteCreditScore.com",
@@ -123,8 +123,8 @@ function normalizeWorkspaceRecord(workspace: WorkspaceRecord) {
   ].some((value) => LEGACY_BRAND_PATTERN.test(value));
   const usesLegacyBilling = workspace.tokenBalance == null && workspace.billingPlan == null;
   const normalizedTokenBalance = usesLegacyBilling
-    ? 10
-    : workspace.tokenBalance ?? workspace.creditBalance ?? 10;
+    ? FREE_TIER_CREDITS
+    : workspace.tokenBalance ?? workspace.creditBalance ?? FREE_TIER_CREDITS;
 
   return {
     ...workspace,
@@ -134,7 +134,7 @@ function normalizeWorkspaceRecord(workspace: WorkspaceRecord) {
     slug: usesLegacyBrand ? "websitecreditscore" : workspace.slug,
     billingPlan: workspace.billingPlan ?? (workspace.billingStatus === "active" ? "pro" : "free"),
     creditBalance: usesLegacyBilling
-      ? 10
+      ? FREE_TIER_CREDITS
       : workspace.creditBalance ?? normalizedTokenBalance,
     tokenBalance: normalizedTokenBalance,
     entitlements: workspace.entitlements ?? [],
@@ -561,7 +561,7 @@ export async function ensureSupabaseWorkspace(session: WorkspaceSession) {
     updatedAt: workspace.createdAt,
   };
   const creditEntry: WorkspaceCreditEntry = {
-    ...createBalanceEntry(workspace.id, 10, "Free tier included tokens", {
+    ...createBalanceEntry(workspace.id, FREE_TIER_CREDITS, "Free tier included credits", {
       type: "grant",
       source: "system",
     }),

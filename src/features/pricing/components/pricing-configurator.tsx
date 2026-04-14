@@ -329,7 +329,7 @@ export function PricingConfigurator({ report }: { report: AuditReport }) {
         <SectionHeading
           eyebrow="Choose your price"
           title="Scope the proposal like a real estimate"
-          description="The base rebuild should create a visible lift on its own. Add-ons are only for broader page coverage, search growth, or follow-up systems. Shown prices are estimates for planning, not a binding quote."
+          description="Start from the included scan, then add a written brief, AI-assisted supervision, or white-glove delivery — sized for common SMB budgets and Stripe-friendly totals. Shown prices are planning anchors, not a binding quote until scope is approved."
         />
         <div className="grid gap-6 xl:grid-cols-[minmax(0,1fr)_20rem] 2xl:grid-cols-[minmax(0,1fr)_21rem]">
           <div className="space-y-6">
@@ -337,10 +337,10 @@ export function PricingConfigurator({ report }: { report: AuditReport }) {
               <CardHeader>
                 <div className="flex flex-wrap items-center justify-between gap-4">
                   <div>
-                    <Badge variant="accent">Base package</Badge>
+                    <Badge variant="accent">Foundation</Badge>
                     <CardTitle className="mt-3 text-3xl">{report.pricingBundle.baseItem.title}</CardTitle>
                     <p className="mt-2 text-sm text-muted">
-                      +{report.pricingBundle.baseItem.estimatedScoreLift.toFixed(1)} score when the core rebuild is completed well.
+                      {report.pricingBundle.baseItem.estimatedLiftLabel} (+{report.pricingBundle.baseItem.estimatedScoreLift.toFixed(1)} modeled lift when recommendations ship).
                     </p>
                   </div>
                   <p className="font-display text-4xl font-semibold text-accent">
