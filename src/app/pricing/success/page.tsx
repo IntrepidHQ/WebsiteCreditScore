@@ -86,7 +86,7 @@ export default async function PricingSuccessPage({
     const updatedWorkspace = await fulfillCheckoutSession(checkoutSession);
 
     if (updatedWorkspace) {
-      appliedBalance = updatedWorkspace.tokenBalance;
+      appliedBalance = updatedWorkspace.tokenBalance ?? updatedWorkspace.creditBalance ?? 0;
       appliedWorkspaceName = updatedWorkspace.name;
     }
   }
@@ -104,7 +104,7 @@ export default async function PricingSuccessPage({
               The balance is ready for more scoring
             </CardTitle>
             <p className="text-sm leading-7 text-muted">
-              Stripe confirmed the payment. The tokens and unlocks were applied from the Checkout Session, so the balance does not depend on the browser reaching this page.
+              Stripe confirmed the payment. Credits and unlocks were applied from the Checkout Session, so the balance does not depend on the browser reaching this page.
             </p>
           </CardHeader>
           <CardContent className="grid gap-4 pt-0 md:grid-cols-2">
@@ -128,7 +128,7 @@ export default async function PricingSuccessPage({
               <div className="flex items-center gap-2 text-accent">
                 <Coins className="size-4" />
                 <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-muted">
-                  Tokens added
+                  Credits added
                 </p>
               </div>
               <p className="mt-2 font-display text-[2.6rem] leading-none text-foreground">
@@ -136,7 +136,7 @@ export default async function PricingSuccessPage({
               </p>
               <p className="mt-3 text-sm leading-6 text-muted">
                 {appliedWorkspaceName
-                  ? `${appliedWorkspaceName} now has ${appliedBalance} tokens available.`
+                  ? `${appliedWorkspaceName} now has ${appliedBalance} credits available.`
                   : "The purchase has been recorded. If the balance is still missing, double-check that the Checkout Session has workspace metadata and webhook delivery configured."}
               </p>
             </div>

@@ -148,7 +148,7 @@ export const LandingHeroBackdrop = ({
   const isDark = mode !== "light";
 
   const magnifierLensActive =
-    !reduceMotion && cursorEffects.heroMagnifierLens !== false && isOverHero;
+    !reduceMotion && cursorEffects.heroMagnifierLens === true && isOverHero;
 
   useEffect(() => {
     const hero = document.getElementById("generate");

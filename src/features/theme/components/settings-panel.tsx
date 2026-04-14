@@ -1142,7 +1142,7 @@ export function SettingsPanel() {
                   <SettingRow
                     titleId={cursorMagnifierLabelId}
                     label="Cursor effects"
-                    description="Decorative magnifier on the marketing hero. Reduced motion always wins — when enabled, the lens is hidden regardless of this toggle."
+                    description="Optional water / caustics-style magnifier on the marketing hero (zoomed refraction read of the grid or WebGPU layer). Off by default for a cleaner look. Reduced motion always wins — when enabled at the OS level, the lens stays hidden."
                   >
                     <div className="flex items-center justify-between rounded-[calc(var(--theme-radius))] border border-border/70 bg-background-alt/70 px-4 py-3">
                       <div>
@@ -1153,7 +1153,7 @@ export function SettingsPanel() {
                       </div>
                       <Switch
                         aria-labelledby={cursorMagnifierLabelId}
-                        checked={cursorEffects.heroMagnifierLens}
+                        checked={cursorEffects.heroMagnifierLens === true}
                         onCheckedChange={(checked) => setCursorEffectHeroMagnifierLens(checked)}
                       />
                     </div>

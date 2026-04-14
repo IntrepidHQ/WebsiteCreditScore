@@ -296,4 +296,91 @@ This has a practical implication for how agencies should pitch website redesigns
       },
     ],
   },
+  {
+    slug: "vibecoding-speed-without-sacrificing-launch-quality",
+    title: "Vibecoding Broke the Speed Barrier — Why Launch Quality Still Needs Humans",
+    excerpt:
+      "Modern AI assistants make it possible to ship a credible UI in hours instead of weeks. That is a real breakthrough — and it is also where teams quietly accumulate launch risk.",
+    publishedAt: "2026-04-01T00:00:00Z",
+    readMinutes: 9,
+    tags: ["vibecoding", "AI", "launch quality"],
+    sections: [
+      {
+        heading: "What actually changed with vibecoding",
+        body: `Vibecoding — moving fast with AI-generated layout, copy, and even full components — collapses the distance between an idea and something you can click through. That is not a small improvement. It changes who can prototype, how quickly stakeholders align, and how cheaply you can explore multiple directions.
+
+The barrier that broke is not taste. It is throughput. Teams that previously waited on resourcing can now produce a surface that looks finished long before the underlying product decisions are finished. That mismatch is the new risk.`,
+      },
+      {
+        heading: "The weaknesses that still show up on real launches",
+        body: `AI tools are strongest at local coherence: a section that reads well, a card grid that looks balanced, a form that appears complete. They are weaker at global coherence: information architecture that matches how buyers decide, accessibility decisions that survive keyboard and screen reader review, performance budgets that stay stable as third-party scripts arrive, and security posture around auth, cookies, and data handling.
+
+They are also weaker at accountability: the difference between "it works on my machine" and "it works under traffic, on older phones, with analytics verified, and with a rollback plan." Those gaps are not theoretical. They show up as launch-week fires, SEO regressions, and subtle conversion leaks that do not appear in a vibe check.`,
+      },
+      {
+        heading: "Where a skilled engineer review still pays for itself",
+        body: `A human review is not about gatekeeping AI. It is about applying a launch lens: threat modeling for foot-guns, verifying measurement, validating edge states, and making sure the brand story stays consistent across pages that were not generated in the same "session" of thought.
+
+If you vibecoded the UI, the review should focus on integration points — routing, data fetching, error handling, empty states, and the parts of the stack the tools cannot see from a screenshot. That is how you keep the speed breakthrough without paying the full price on launch night.`,
+      },
+    ],
+  },
+  {
+    slug: "vibecoding-trust-layer-human-audit",
+    title: "After Vibecoding: Why the Trust Layer Still Belongs to Humans",
+    excerpt:
+      "AI can draft proof, polish testimonials, and design credible layouts — but trust is a system of evidence, consistency, and accountability that needs a skeptical reader.",
+    publishedAt: "2026-04-05T00:00:00Z",
+    readMinutes: 8,
+    tags: ["vibecoding", "trust", "credibility"],
+    sections: [
+      {
+        heading: "AI is excellent at the shape of trust",
+        body: `Vibecoding accelerates the visual vocabulary of trust: badges, testimonial grids, clean typography, reassuring microcopy. Those shapes matter because visitors pattern-match in seconds.
+
+The weakness is evidentiary depth. Trust is not only how the page looks — it is whether the claims hold, whether the numbers are defensible, whether the policies match the tracking scripts, and whether the contact paths signal a real organization that can be held accountable.`,
+      },
+      {
+        heading: "The credibility failures that slip through automated passes",
+        body: `Over-general claims, duplicated phrasing across pages, inconsistent product names, and "placeholder true" details are common failure modes. They are not always caught by automated checks because they are not syntax errors — they are meaning errors.
+
+A human reviewer asks the uncomfortable questions: can we prove this testimonial, is this metric still true, does this headline promise something operations cannot support, and does the privacy story match the embeds on the page? That is the trust layer in practice.`,
+      },
+      {
+        heading: "A practical trust audit after a vibecoded build",
+        body: `Treat trust as a checklist with teeth: quantified proof, named humans, working contact channels, policy links that resolve, and security basics verified end-to-end. Then do a cold visit test: in sixty seconds, does the site feel both premium and accountable?
+
+If the answer is not an easy yes, the issue is rarely "more design." It is usually missing evidence or inconsistent narrative — exactly where a skilled reviewer saves a launch from sounding better than it is.`,
+      },
+    ],
+  },
+  {
+    slug: "vibecoding-to-production-checklist",
+    title: "From Vibecoding to Production: A Launch Checklist for AI-Assisted Sites",
+    excerpt:
+      "Use vibecoding to move fast, then use a disciplined production checklist so fast does not become fragile.",
+    publishedAt: "2026-04-10T00:00:00Z",
+    readMinutes: 10,
+    tags: ["vibecoding", "checklist", "engineering"],
+    sections: [
+      {
+        heading: "Keep the breakthrough: what vibecoding should own",
+        body: `Let vibecoding own exploration: alternative heroes, alternate information architecture sketches, component variants, and early content drafts. That is where iteration cost should be low and optionality should be high.
+
+The goal is to separate creative search from production commitment. Production begins when you choose a direction and accept responsibility for what ships.`,
+      },
+      {
+        heading: "Move from vibe to verifiable requirements",
+        body: `Translate the chosen direction into verifiable requirements: performance budgets, accessibility acceptance criteria, analytics events for the primary funnel, SEO constraints for indexable pages, and a short list of "must never break" user journeys.
+
+This is where tools weaken if they are used as oracles rather than assistants. Tools can suggest implementations, but they do not automatically hold the full system context for your domain, your analytics setup, your auth model, or your compliance constraints.`,
+      },
+      {
+        heading: "The minimum human review before you flip the switch",
+        body: `Before launch, have a skilled engineer review integration and edge cases: error handling, empty states, form submission paths, redirects, canonical URLs, and security headers where applicable. Then run a launch rehearsal on a staging domain with realistic content and measurement enabled.
+
+If you want a simple rule: vibecoding is allowed to be optimistic; production review is supposed to be skeptical. The combination is how teams keep speed without turning launch day into improvisation.`,
+      },
+    ],
+  },
 ];

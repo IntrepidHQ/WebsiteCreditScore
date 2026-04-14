@@ -41,12 +41,21 @@ export interface BillingAddOnDefinition {
   entitlements?: WorkspaceEntitlement[];
 }
 
+/** DIY free-account monthly balance — credits are workspace balance units (not crypto). */
+export const FREE_TIER_CREDITS = 5;
+
+/** Paid pack: $49 → 50 credits (1 credit ≈ 1 live scan in typical use). */
+export const PRO_PACK_CREDITS = 50;
+
+/** Credits issued to each side when a referral is marked converted (policy hook for fulfillment). */
+export const REFERRAL_CONVERSION_CREDITS = 10;
+
 export const TOKEN_ACTIONS: TokenActionDefinition[] = [
   {
     id: "scan-site",
     label: "Scan a live website",
     cost: 1,
-    detail: "Runs the live score and saves the audit to the workspace.",
+    detail: "Spends one credit to run the live score and save the audit to your workspace.",
   },
   {
     id: "outreach-draft",
@@ -73,13 +82,13 @@ export const BILLING_PLANS: BillingPlanDefinition[] = [
     id: "free",
     label: "Free",
     priceCents: 0,
-    includedTokens: 10,
+    includedTokens: FREE_TIER_CREDITS,
     description:
-      "Start with enough balance to score real sites, review the breakdown, and see how the product fits your workflow.",
+      "Enough credits to try the DIY loop: scan, read the report, unlock the free MAX-style prompt path, then decide when Ask a Pro is worth it.",
     highlights: [
-      "10 included tokens",
-      "Public scan history and workspace storage",
-      "Audit, packet, and brief workflow",
+      `${FREE_TIER_CREDITS} starter credits (≈ ${FREE_TIER_CREDITS} live scans)`,
+      "Report, benchmarks, and workspace storage",
+      "Credits are a balance meter — not cryptocurrency",
     ],
     ctaLabel: "Start free",
   },
@@ -87,15 +96,15 @@ export const BILLING_PLANS: BillingPlanDefinition[] = [
     id: "pro",
     label: "Pro",
     priceCents: 4900,
-    includedTokens: 100,
+    includedTokens: PRO_PACK_CREDITS,
     description:
-      "Enough balance to make scanning, outreach prep, and follow-up a repeatable habit instead of a one-off review.",
+      "Buy a simple credit pack when you are ready to scan a portfolio of sites or keep weekly audits on rhythm.",
     highlights: [
-      "100 included tokens",
-      "Best fit for weekly scans and outreach",
-      "Works with optional unlocks and token top-ups",
+      `${PRO_PACK_CREDITS} credits for $49 (≈ ${PRO_PACK_CREDITS} scans)`,
+      "Same unlocks — optional add-ons still apply",
+      "Usage is tied to your signed-in workspace to reduce abuse",
     ],
-    ctaLabel: "Buy Pro",
+    ctaLabel: "Buy credits",
     recommended: true,
   },
 ] as const;
@@ -103,7 +112,7 @@ export const BILLING_PLANS: BillingPlanDefinition[] = [
 export const BILLING_ADD_ONS: BillingAddOnDefinition[] = [
   {
     id: "extra-50-tokens",
-    label: "50 extra tokens",
+    label: "50 extra credits",
     priceCents: 1900,
     description: "Top up the balance when you need more scans and exports.",
     detail: "Best when the free or Pro balance is running low.",

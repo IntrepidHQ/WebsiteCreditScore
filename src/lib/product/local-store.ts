@@ -8,7 +8,7 @@ import {
   assertWorkspaceAllowsMaxPrompt,
   workspaceWithComplimentaryMaxEntitlement,
 } from "@/lib/billing/max-access";
-import { getTokenActionCost } from "@/lib/billing/catalog";
+import { FREE_TIER_CREDITS, getTokenActionCost } from "@/lib/billing/catalog";
 import { buildAuditReportById, buildAuditReportFromUrl, buildLiveAuditReportFromUrl } from "@/lib/mock/report-builder";
 import { sampleAudits } from "@/lib/mock/sample-audits";
 import { prepareReportForStorage, passesReportQualityCheck } from "@/lib/product/report-quality";
@@ -99,8 +99,8 @@ function getWorkspaceDefaults(ownerUserId: string) {
     updatedAt: createdAt,
     billingStatus: (unlimited ? "active" : "trial") as BillingStatus,
     billingPlan: (unlimited ? "pro" : "free") as BillingPlan,
-    creditBalance: unlimited ? 999_999 : 10,
-    tokenBalance: unlimited ? 999_999 : 10,
+    creditBalance: unlimited ? 999_999 : FREE_TIER_CREDITS,
+    tokenBalance: unlimited ? 999_999 : FREE_TIER_CREDITS,
     entitlements: unlimited ? (["seo-benchmark", "max-stealth"] as WorkspaceEntitlement[]) : [],
     branding: {
       agencyName: "WebsiteCreditScore.com",
@@ -152,7 +152,7 @@ function normalizeWorkspaceRecord(workspace: WorkspaceRecord) {
   const usesLegacyBilling = workspace.tokenBalance == null && workspace.billingPlan == null;
   const normalizedTokenBalance = usesLegacyBilling
     ? 10
-    : workspace.tokenBalance ?? workspace.creditBalance ?? 10;
+    : workspace.tokenBalance ?? workspace.creditBalance ?? FREE_TIER_CREDITS;
 
   return {
     ...workspace,
@@ -440,7 +440,7 @@ async function createSeedStore(ownerUserId: string): Promise<LocalProductStore> 
         codeId: referralCodeId,
         inviteeEmail: "studio@example.com",
         status: "pending",
-        creditAmount: 2,
+        creditAmount: 0,
         createdAt: now.toISOString(),
       },
       {
@@ -449,14 +449,14 @@ async function createSeedStore(ownerUserId: string): Promise<LocalProductStore> 
         codeId: referralCodeId,
         inviteeEmail: "ops@example.com",
         status: "credited",
-        creditAmount: 2,
+        creditAmount: 10,
         createdAt: seededLeads[1]?.savedReport.createdAt ?? now.toISOString(),
         convertedAt: latestSeedDate.toISOString(),
       },
     ],
     workspaceCredits: [
       {
-        ...createBalanceEntry(workspace.id, 10, "Free tier included tokens", {
+        ...createBalanceEntry(workspace.id, FREE_TIER_CREDITS, "Free tier included credits", {
           type: "grant",
           source: "system",
         }),

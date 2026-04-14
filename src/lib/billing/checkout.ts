@@ -38,8 +38,8 @@ export function buildCheckoutSessionParams({
         currency: "usd",
         unit_amount: selection.plan.priceCents,
         product_data: {
-          name: `${selection.plan.label} token pack`,
-          description: `${selection.plan.includedTokens} tokens included for WebsiteCreditScore.com`,
+          name: `${selection.plan.label} credit pack`,
+          description: `${selection.plan.includedTokens} credits included for WebsiteCreditScore.com (balance units — not crypto)`,
         },
       },
     });

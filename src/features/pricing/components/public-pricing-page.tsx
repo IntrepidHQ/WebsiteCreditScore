@@ -17,6 +17,8 @@ import {
 import {
   BILLING_ADD_ONS,
   BILLING_PLANS,
+  FREE_TIER_CREDITS,
+  REFERRAL_CONVERSION_CREDITS,
   TOKEN_ACTIONS,
   formatUsd,
   resolveCheckoutSelection,
@@ -115,9 +117,84 @@ export function PublicPricingPage({
         <div className="space-y-8">
           <SectionHeading
             eyebrow="Pricing"
-            title="Buy tokens once, then spend them where the site needs work"
-            description="The free tier gives you enough balance to test the workflow. Pro adds a larger token pack, and the optional upgrades unlock deeper scoring or private delivery when you need it."
+            title="Credits for DIY scans — humans for the parts that cannot be automated"
+            description="Credits are a simple workspace balance (not crypto): they meter live scans, exports, and MAX-style unlocks. Pair them with optional human tiers when you want a pro in the loop before launch."
           />
+
+          <div className="grid gap-4 lg:grid-cols-2">
+            <Card className="border-border/60 bg-panel/45 shadow-none">
+              <CardHeader className="pb-4">
+                <div className="flex items-center gap-2 text-accent">
+                  <ScanSearch className="size-4" />
+                  <span className="text-xs uppercase tracking-[0.18em]">DIY flow</span>
+                </div>
+                <CardTitle className="text-[clamp(2.15rem,1.95rem+0.35vw,2.55rem)]">
+                  Scan → report → account → free prompt → Ask a Pro
+                </CardTitle>
+                <p className="text-sm leading-7 text-muted">
+                  Anonymous visitors can run a report from cache; additional sites should create a free account so usage stays honest. Signed-in workspaces start with{" "}
+                  <strong>{FREE_TIER_CREDITS} credits</strong> (about {FREE_TIER_CREDITS} live scans) before you buy the{" "}
+                  <strong>$49 / 50 credit</strong> pack. Abuse resistance ties usage to your signed-in workspace (and server-side signals such as IP where available).
+                </p>
+              </CardHeader>
+              <CardContent className="grid gap-3 pt-0 sm:grid-cols-2">
+                <div className="rounded-[16px] border border-border/60 bg-background-alt/55 px-4 py-3 text-sm leading-6 text-foreground">
+                  <p className="font-semibold">What credits cover</p>
+                  <p className="mt-2 text-muted">
+                    Each live scan, outreach draft, packet export, or MAX prompt draw down the same balance so finance and product stay aligned.
+                  </p>
+                </div>
+                <div className="rounded-[16px] border border-border/60 bg-background-alt/55 px-4 py-3 text-sm leading-6 text-foreground">
+                  <p className="font-semibold">Referrals</p>
+                  <p className="mt-2 text-muted">
+                    Referral rewards accrue as credits toward future scans or services — see your workspace for the live ledger ({REFERRAL_CONVERSION_CREDITS} credits per completed referral in the current policy hook).
+                  </p>
+                </div>
+              </CardContent>
+            </Card>
+
+            <Card className="border-border/60 bg-panel/45 shadow-none">
+              <CardHeader className="pb-4">
+                <div className="flex items-center gap-2 text-accent">
+                  <Sparkles className="size-4" />
+                  <span className="text-xs uppercase tracking-[0.18em]">Human help</span>
+                </div>
+                <CardTitle className="text-[clamp(2.15rem,1.95rem+0.35vw,2.55rem)]">
+                  Optimization & production under ~$10K (via Stripe)
+                </CardTitle>
+                <p className="text-sm leading-7 text-muted">
+                  Most SMB rebuilds land near <strong>40–60 hours at $100–$150/hr</strong> (~$4k–$9k). We keep the menu small so checkout stays predictable.
+                </p>
+              </CardHeader>
+              <CardContent className="grid gap-3 pt-0">
+                {[
+                  {
+                    title: "Audit + brief",
+                    detail: "Free to ~$200 depending on depth — written guidance on top of the scored report.",
+                  },
+                  {
+                    title: "AI-assisted supervision & handoff",
+                    detail: "~$1.5k–$2.5k — we guardrail vibe-coded output while you ship with modern AI builders.",
+                  },
+                  {
+                    title: "Full white-glove delivery",
+                    detail: "~$3.5k–$5k — human-led implementation, QA, and launch readiness sized for Stripe-friendly totals.",
+                  },
+                ].map((row) => (
+                  <div
+                    className="rounded-[16px] border border-border/60 bg-background-alt/55 px-4 py-3"
+                    key={row.title}
+                  >
+                    <p className="text-sm font-semibold text-foreground">{row.title}</p>
+                    <p className="mt-2 text-sm leading-6 text-muted">{row.detail}</p>
+                  </div>
+                ))}
+                <p className="text-xs leading-5 text-muted">
+                  Inside any saved audit you will still see the interactive proposal builder — it now mirrors these three delivery tiers instead of a long à la carte list.
+                </p>
+              </CardContent>
+            </Card>
+          </div>
 
           <div className="grid gap-4 xl:grid-cols-2">
             {BILLING_PLANS.map((plan) => {
@@ -141,7 +218,7 @@ export function PublicPricingPage({
                           {plan.label}
                         </Badge>
                         <span className="text-xs font-semibold uppercase tracking-[0.18em] text-muted">
-                          {plan.includedTokens} tokens included
+                          {plan.includedTokens} credits included
                         </span>
                       </div>
                       <p className="font-display text-[clamp(2.5rem,2.1rem+0.5vw,3.2rem)] leading-none text-foreground">
@@ -197,13 +274,13 @@ export function PublicPricingPage({
             <CardHeader className="pb-4">
               <div className="flex items-center gap-2 text-accent">
                 <Coins className="size-4" />
-                <span className="text-xs uppercase tracking-[0.18em]">Token costs</span>
+                <span className="text-xs uppercase tracking-[0.18em]">Credit costs</span>
               </div>
               <CardTitle className="text-[clamp(2.6rem,2.15rem+0.7vw,3.35rem)]">
-                Keep the token math obvious
+                Keep the credit math obvious
               </CardTitle>
               <p className="text-sm leading-7 text-muted">
-                The goal is simple: spend one token when a new piece of work is created, and keep the bigger unlocks rare enough that they still feel valuable.
+                Spend one credit for a new live scan or lightweight artifact, and save the bigger draws for MAX prompts or private delivery unlocks.
               </p>
             </CardHeader>
             <CardContent className="grid gap-3 pt-0 md:grid-cols-2">
@@ -223,7 +300,7 @@ export function PublicPricingPage({
                         <div>
                           <p className="text-sm font-semibold text-foreground">{action.label}</p>
                           <p className="text-xs uppercase tracking-[0.18em] text-muted">
-                            {action.cost} token{action.cost === 1 ? "" : "s"}
+                            {action.cost} credit{action.cost === 1 ? "" : "s"}
                           </p>
                         </div>
                       </div>
@@ -245,7 +322,7 @@ export function PublicPricingPage({
                 Add the deeper layers only when they matter
               </CardTitle>
               <p className="text-sm leading-7 text-muted">
-                Keep the base workflow lean. Reach for the extra benchmark layer, private delivery, or a bigger token pack when the opportunity is real enough to justify it.
+                Keep the base workflow lean. Add the SEO benchmark layer, private delivery, or a bigger credit pack when the opportunity is real enough to justify it.
               </p>
             </CardHeader>
             <CardContent className="grid gap-4 pt-0">
@@ -267,7 +344,7 @@ export function PublicPricingPage({
                       <div className="space-y-2">
                         <div className="flex flex-wrap items-center gap-2">
                           <Badge variant={selected ? "accent" : "neutral"}>
-                            {item.tokenAmount ? `+${item.tokenAmount} tokens` : "Unlock"}
+                            {item.tokenAmount ? `+${item.tokenAmount} credits` : "Unlock"}
                           </Badge>
                           <span className="text-sm font-semibold text-foreground">
                             {formatUsd(item.priceCents)}
@@ -329,7 +406,7 @@ export function PublicPricingPage({
               <p className="text-sm leading-7 text-muted">
                 {workspaceName
                   ? `This purchase will attach to ${workspaceName}.`
-                  : "Pricing is public. Sign in before checkout so the tokens land in the right workspace."}
+                  : "Pricing is public. Sign in before checkout so credits land in the right workspace."}
               </p>
             </CardHeader>
             <CardContent className="space-y-5 pt-0">
@@ -339,7 +416,7 @@ export function PublicPricingPage({
                     Current balance
                   </p>
                   <p className="text-sm font-semibold text-foreground">
-                    {tokenBalance ?? 0} tokens
+                    {tokenBalance ?? 0} credits
                   </p>
                 </div>
                 <div className="mt-3 space-y-2">
@@ -350,7 +427,7 @@ export function PublicPricingPage({
                     </div>
                   ) : (
                     <div className="text-sm leading-6 text-muted">
-                      Start free if you only need the included 10 tokens.
+                      Start free if you only need the included {FREE_TIER_CREDITS} credits.
                     </div>
                   )}
                   {selection.addOnEntries.map((entry) => (
@@ -378,7 +455,7 @@ export function PublicPricingPage({
                       {(tokenBalance ?? 0) + selection.tokenTotal}
                     </p>
                     <p className="mt-2 text-sm leading-6 text-muted">
-                      Tokens available once the purchase lands in the workspace.
+                      Credits available once the purchase lands in the workspace.
                     </p>
                   </div>
                   <div className="text-right">
@@ -450,7 +527,7 @@ export function PublicPricingPage({
                     </Link>
                   </Button>
                   <p className="text-center text-xs leading-5 text-muted">
-                    The pricing page stays public. Checkout attaches tokens to a workspace.
+                    The pricing page stays public. Checkout attaches credits to a workspace.
                   </p>
                 </div>
               )}

@@ -113,7 +113,7 @@ export const useThemeStore = create<ThemeState>()(
       tokens: defaultTokens,
       branding: defaultBranding,
       motionPreference: "system",
-      cursorEffects: { heroMagnifierLens: true },
+      cursorEffects: { heroMagnifierLens: false },
       presetId: themePresets[0]?.id ?? null,
       undoStack: [],
       redoStack: [],
@@ -508,7 +508,7 @@ export const useThemeStore = create<ThemeState>()(
           tokens: defaultTokens,
           branding: defaultBranding,
           motionPreference: "system",
-          cursorEffects: { heroMagnifierLens: true },
+          cursorEffects: { heroMagnifierLens: false },
           presetId: themePresets[0]?.id ?? null,
           undoStack: [...state.undoStack, cloneSnapshot(state)].slice(-50),
           redoStack: [],
@@ -570,8 +570,7 @@ export const useThemeStore = create<ThemeState>()(
           ...persisted,
           branding: persistedBranding,
           cursorEffects: {
-            heroMagnifierLens:
-              persisted.cursorEffects?.heroMagnifierLens !== false,
+            heroMagnifierLens: persisted.cursorEffects?.heroMagnifierLens === true,
           },
           tokens: persisted.tokens
             ? createThemeTokens(persisted.tokens)

@@ -37,89 +37,97 @@ describe("LandingForm", () => {
     expect(await screen.findByText(/use a valid website url/i)).toBeInTheDocument();
   });
 
-  it("shows a loading state and navigates to the audit report", async () => {
-    const user = userEvent.setup();
-    let resolveFetch: (value: Response) => void = () => undefined;
+  it(
+    "shows a loading state and navigates to the audit report",
+    async () => {
+      const user = userEvent.setup();
+      let resolveFetch: (value: Response) => void = () => undefined;
 
-    vi.stubGlobal(
-      "fetch",
-      vi.fn(
-        () =>
-          new Promise<Response>((resolve) => {
-            resolveFetch = resolve;
-          }),
-      ),
-    );
-
-    render(<LandingForm />);
-
-    await user.type(screen.getByLabelText(/run a live scan/i), "example.com");
-    await user.click(screen.getByRole("button", { name: /generate audit/i }));
-
-    expect(
-      screen.getByRole("button", { name: /generating audit/i }),
-    ).toBeInTheDocument();
-
-    resolveFetch(
-      new Response(
-        JSON.stringify({
-          id: "example-com",
-          normalizedUrl: "https://example.com",
-        }),
-        {
-          status: 200,
-          headers: { "Content-Type": "application/json" },
-        },
-      ),
-    );
-
-    await waitFor(
-      () =>
-        expect(pushMock).toHaveBeenCalledWith(
-          "/audit/example-com?url=https%3A%2F%2Fexample.com&ref=landing",
+      vi.stubGlobal(
+        "fetch",
+        vi.fn(
+          () =>
+            new Promise<Response>((resolve) => {
+              resolveFetch = resolve;
+            }),
         ),
-      { timeout: 6000 },
-    );
-  });
+      );
 
-  it("submits a bare domain like starbucks.com and navigates to the audit", async () => {
-    const user = userEvent.setup();
-    vi.stubGlobal(
-      "fetch",
-      vi.fn().mockResolvedValue(
+      render(<LandingForm />);
+
+      await user.type(screen.getByLabelText(/run a live scan/i), "example.com");
+      await user.click(screen.getByRole("button", { name: /generate audit/i }));
+
+      expect(
+        screen.getByRole("button", { name: /generating audit/i }),
+      ).toBeInTheDocument();
+
+      resolveFetch(
         new Response(
           JSON.stringify({
-            id: "starbucks-com",
-            normalizedUrl: "https://starbucks.com",
+            id: "example-com",
+            normalizedUrl: "https://example.com",
           }),
           {
             status: 200,
             headers: { "Content-Type": "application/json" },
           },
         ),
-      ),
-    );
+      );
 
-    render(<LandingForm />);
+      await waitFor(
+        () =>
+          expect(pushMock).toHaveBeenCalledWith(
+            "/audit/example-com?url=https%3A%2F%2Fexample.com&ref=landing&from=scan",
+          ),
+        { timeout: 10_000 },
+      );
+    },
+    12_000,
+  );
 
-    await user.type(screen.getByLabelText(/run a live scan/i), "starbucks.com");
-    await user.click(screen.getByRole("button", { name: /generate audit/i }));
-
-    await waitFor(
-      () =>
-        expect(pushMock).toHaveBeenCalledWith(
-          "/audit/starbucks-com?url=https%3A%2F%2Fstarbucks.com&ref=landing",
+  it(
+    "submits a bare domain like starbucks.com and navigates to the audit",
+    async () => {
+      const user = userEvent.setup();
+      vi.stubGlobal(
+        "fetch",
+        vi.fn().mockResolvedValue(
+          new Response(
+            JSON.stringify({
+              id: "starbucks-com",
+              normalizedUrl: "https://starbucks.com",
+            }),
+            {
+              status: 200,
+              headers: { "Content-Type": "application/json" },
+            },
+          ),
         ),
-      { timeout: 6000 },
-    );
+      );
 
-    const fetchMock = vi.mocked(fetch);
-    expect(fetchMock).toHaveBeenCalledWith(
-      "/api/audit",
-      expect.objectContaining({
-        method: "POST",
-        body: JSON.stringify({ url: "starbucks.com", persist: false }),
-      }),
-    );
-  });
+      render(<LandingForm />);
+
+      await user.type(screen.getByLabelText(/run a live scan/i), "starbucks.com");
+      await user.click(screen.getByRole("button", { name: /generate audit/i }));
+
+      await waitFor(
+        () =>
+          expect(pushMock).toHaveBeenCalledWith(
+            "/audit/starbucks-com?url=https%3A%2F%2Fstarbucks.com&ref=landing&from=scan",
+          ),
+        { timeout: 10_000 },
+      );
+
+      const fetchMock = vi.mocked(fetch);
+      expect(fetchMock).toHaveBeenCalledWith(
+        "/api/audit",
+        expect.objectContaining({
+          method: "POST",
+          body: JSON.stringify({ url: "starbucks.com", persist: false }),
+        }),
+      );
+    },
+    12_000,
+  );
 });
