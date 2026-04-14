@@ -1,8 +1,19 @@
 "use client";
 
-import { useCallback, useEffect, useId, useRef, useState } from "react";
+import { useCallback, useEffect, useId, useMemo, useRef, useState } from "react";
 import { IconArrowBackUp, IconArrowForwardUp, IconLayout2, IconSparkles } from "@tabler/icons-react";
-import { Download, RefreshCcw, Shuffle, Sparkles, Upload, Check, AlertCircle, Cloud } from "lucide-react";
+import {
+  Download,
+  RefreshCcw,
+  Shuffle,
+  Sparkles,
+  Upload,
+  Check,
+  AlertCircle,
+  Cloud,
+  ExternalLink,
+  X,
+} from "lucide-react";
 
 import { saveWorkspaceThemeAction } from "@/app/app/actions";
 import { THEME_SAVE_NO_SESSION } from "@/lib/theme/workspace-theme-save";
@@ -13,9 +24,9 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
   Dialog,
+  DialogClose,
   DialogContent,
   DialogDescription,
-  DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
@@ -28,7 +39,7 @@ import { HeroGridSurface } from "@/features/landing/components/hero-grid-surface
 import { NodeGridBackdrop } from "@/features/landing/components/node-grid/node-grid-backdrop";
 import { cn } from "@/lib/utils/cn";
 import type { HeroBackdropKind, HeroNodeGridPreset } from "@/lib/types/audit";
-import { NODE_GRID_ORDER, gridTypeLabel } from "@/features/landing/components/node-grid/grid-types";
+import { NODEGRID_GITHUB_BASE } from "@/features/landing/components/node-grid/grid-types";
 import type { GridType } from "@/features/landing/components/node-grid/grid-types";
 import {
   getContrastChecks,
@@ -211,8 +222,7 @@ export function SettingsPanel() {
   const heroNodeGridPresetsGroupId = useId();
   const heroLatticeBackgroundsLabelId = useId();
   const heroLatticeBackgroundsSelectId = useId();
-  const canvasTunerGridLabelId = useId();
-  const canvasTunerGridSelectId = useId();
+  const canvasTunerPresetGroupId = useId();
   const canvasTunerCellLabelId = useId();
   const canvasTunerStrokeLabelId = useId();
 
@@ -267,6 +277,8 @@ export function SettingsPanel() {
   const [showCanvasBuilder, setShowCanvasBuilder] = useState(false);
   const [syncMessage, setSyncMessage] = useState<string | null>(null);
   const [syncTone, setSyncTone] = useState<"neutral" | "success" | "warning" | "danger">("neutral");
+  const [browserOnlyHint, setBrowserOnlyHint] = useState(false);
+  const [tunerNoise, setTunerNoise] = useState(false);
   const [importError, setImportError] = useState<string | null>(null);
   const [tunerGridType, setTunerGridType] = useState<GridType>("waves");
   const [tunerCell, setTunerCell] = useState(16);
@@ -334,6 +346,7 @@ export function SettingsPanel() {
     setSyncMessage("Saving…");
     const result = await saveWorkspaceThemeAction(nextTokens, nextBranding);
     if (result.ok) {
+      setBrowserOnlyHint(false);
       setSyncTone("success");
       setSyncMessage("Saved to your workspace.");
       if (syncDismissRef.current) {
@@ -344,7 +357,8 @@ export function SettingsPanel() {
     }
     if (result.error === THEME_SAVE_NO_SESSION) {
       setSyncTone("neutral");
-      setSyncMessage("Stored in this browser only. Sign in under Workspace to sync across devices.");
+      setSyncMessage(null);
+      setBrowserOnlyHint(true);
       return;
     }
     setSyncTone("danger");
@@ -388,6 +402,7 @@ export function SettingsPanel() {
           setImportError("That file is not valid theme JSON.");
           return;
         }
+        setBrowserOnlyHint(false);
         setSyncTone("success");
         setSyncMessage("Theme imported — syncing…");
       };
@@ -418,6 +433,22 @@ export function SettingsPanel() {
     setShowCanvasBuilder(false);
   }, [applyHeroNodeGridCanvas, tunerCell, tunerGridType, tunerStroke]);
 
+  const handleTunerPickNamedPreset = useCallback((presetId: HeroNodeGridPreset) => {
+    const match = HERO_NODE_GRID_PRESETS.find((p) => p.id === presetId);
+    if (!match) {
+      return;
+    }
+    setTunerGridType(match.gridType);
+    setTunerCell(match.gridCellSize);
+    setTunerStroke(match.strokeScale);
+  }, []);
+
+  const tunerShellBackground = useMemo(() => {
+    const angle =
+      tunerGridType === "flux" ? "158deg" : tunerGridType === "triangular" ? "22deg" : "208deg";
+    return `linear-gradient(${angle}, color-mix(in srgb, var(--theme-background) 82%, var(--theme-accent) 12%), var(--theme-background-alt))`;
+  }, [tunerGridType]);
+
   return (
     <TooltipProvider>
     <section className="space-y-8" id="settings-panel">
@@ -427,12 +458,32 @@ export function SettingsPanel() {
             contentMaxWidthClassName="w-full max-w-[min(100%,88rem)]"
             eyebrow="Studio settings"
             title="Theme & proposal identity"
-            description="Presets, typography, layout density, and agency fields. Sync from Workspace when signed in; otherwise they stay in this browser."
+            description="Presets, typography, layout density, and agency fields. Workspace saves sync to your account when signed in."
           />
 
-          <Card>
+          <Card className="relative">
+            {browserOnlyHint ? (
+              <div className="pointer-events-auto absolute right-3 top-3 z-20 sm:right-5 sm:top-5">
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Button
+                      aria-label="Theme is stored in this browser only. Sign in under Workspace to sync across devices."
+                      className="size-10 rounded-full border border-border/70 bg-panel/90 text-muted shadow-sm backdrop-blur-sm transition hover:border-accent/35 hover:text-foreground"
+                      size="icon"
+                      type="button"
+                      variant="ghost"
+                    >
+                      <Cloud aria-hidden className="size-5" />
+                    </Button>
+                  </TooltipTrigger>
+                  <TooltipContent className="max-w-xs leading-snug" side="left">
+                    Stored in this browser only. Sign in under Workspace to sync across devices.
+                  </TooltipContent>
+                </Tooltip>
+              </div>
+            ) : null}
             <CardHeader>
-              <div className="flex flex-col gap-4 sm:flex-row sm:flex-wrap sm:items-start sm:justify-between">
+              <div className="flex flex-col gap-4 pr-12 sm:flex-row sm:flex-wrap sm:items-start sm:justify-between sm:pr-14">
                 <div>
                   <Badge variant="accent">Theme controls</Badge>
                   <CardTitle className="mt-3 text-3xl">Visual system</CardTitle>
@@ -455,9 +506,6 @@ export function SettingsPanel() {
                       ) : null}
                       {syncTone === "danger" ? (
                         <AlertCircle aria-hidden className="size-3.5 shrink-0" />
-                      ) : null}
-                      {syncTone === "neutral" && syncMessage.includes("browser") ? (
-                        <Cloud aria-hidden className="size-3.5 shrink-0" />
                       ) : null}
                       <span className="leading-snug">{syncMessage}</span>
                     </span>
@@ -1349,7 +1397,7 @@ export function SettingsPanel() {
                               "rounded-[calc(var(--theme-radius))] border p-3 text-left transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/40 focus-visible:ring-offset-2 focus-visible:ring-offset-background",
                               selected
                                 ? "border-accent/60 bg-accent/10 shadow-sm"
-                                : "border-border/70 bg-panel/50 hover:border-accent/25 hover:bg-panel/65",
+                                : "border-border/70 bg-panel/50 hover:-translate-y-0.5 hover:border-accent/35 hover:bg-panel/70 hover:shadow-md",
                             )}
                             key={item.id}
                             onClick={() => setHeroBackdropKind(item.id)}
@@ -1365,8 +1413,8 @@ export function SettingsPanel() {
 
                   <SettingRow
                     titleId={heroNodeGridPresetsGroupId}
-                    label="Landing hero node canvas"
-                    description="Pick a recipe for the animated dot grid behind the marketing hero. Open the canvas tuner to adjust cell spacing and stroke, then Apply."
+                    label="Animated backgrounds"
+                    description="Choose the motion lattice for the marketing hero (Waves, Flux, or Truss). Open the canvas tuner to fine-tune cell spacing and stroke, then Apply."
                   >
                     <div
                       aria-labelledby={heroNodeGridPresetsGroupId}
@@ -1383,10 +1431,10 @@ export function SettingsPanel() {
                             aria-label={`${item.label}. ${item.description}`}
                             aria-pressed={selected}
                             className={cn(
-                              "overflow-hidden rounded-[calc(var(--theme-radius))] border p-3 text-left transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/40 focus-visible:ring-offset-2 focus-visible:ring-offset-background",
+                              "group overflow-hidden rounded-[calc(var(--theme-radius))] border p-3 text-left transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/40 focus-visible:ring-offset-2 focus-visible:ring-offset-background",
                               selected
                                 ? "border-accent/60 bg-accent/10 shadow-sm"
-                                : "border-border/70 bg-panel/50 hover:border-accent/25 hover:bg-panel/65",
+                                : "border-border/70 bg-panel/50 hover:-translate-y-0.5 hover:border-accent/35 hover:bg-panel/70 hover:shadow-md",
                             )}
                             disabled={tokens.heroBackdropKind === "lightRays"}
                             key={item.id}
@@ -1395,11 +1443,11 @@ export function SettingsPanel() {
                           >
                             <div className="relative h-28 w-full overflow-hidden rounded-md border border-border/50 bg-background/40">
                               <NodeGridBackdrop
-                                className="relative h-full min-h-0 w-full"
+                                className="relative h-full min-h-0 w-full transition-[transform,box-shadow] duration-300 group-hover:shadow-[inset_0_0_0_1px_color-mix(in_srgb,var(--theme-accent)_35%,transparent)]"
                                 gridCellSize={item.gridCellSize}
                                 gridType={item.gridType}
                                 inline
-                                linkHoverFromPointer={false}
+                                linkHoverFromPointer
                                 strokeScale={item.strokeScale}
                                 withNoiseOverlay={false}
                               />
@@ -1567,92 +1615,169 @@ export function SettingsPanel() {
                 </TabsContent>
               </Tabs>
 
-              <Dialog onOpenChange={setShowCanvasBuilder} open={showCanvasBuilder}>
-                <DialogContent className="max-h-[90vh] max-w-4xl overflow-y-auto">
-                  <DialogHeader>
-                    <DialogTitle>Canvas tuner</DialogTitle>
-                    <DialogDescription>
-                      Preview the hero node grid. Apply saves grid type (Waves, Flux, or Truss), cell spacing, and
-                      stroke to your theme.
-                    </DialogDescription>
-                  </DialogHeader>
-                  <div className="relative mt-2 h-[min(70vh,640px)] w-full overflow-hidden rounded-[calc(var(--theme-radius))] border border-border/70 bg-background">
+              <Dialog
+                onOpenChange={(open) => {
+                  setShowCanvasBuilder(open);
+                  if (!open) {
+                    setTunerNoise(false);
+                  }
+                }}
+                open={showCanvasBuilder}
+              >
+                <DialogContent
+                  hideCloseButton
+                  overlayClassName="z-50 bg-background/50 backdrop-blur-sm"
+                  className={cn(
+                    "fixed left-0 top-0 z-50 flex h-[100dvh] max-h-[100dvh] w-full max-w-none translate-x-0 translate-y-0 flex-col gap-0 overflow-hidden rounded-none border-0 bg-transparent p-0 shadow-none",
+                    "md:h-[100dvh] md:flex-row",
+                  )}
+                >
+                  <div
+                    className="relative flex min-h-[48dvh] min-w-0 flex-1 flex-col overflow-hidden transition-[background] duration-500 md:min-h-0"
+                    style={{ background: tunerShellBackground }}
+                  >
                     <NodeGridBackdrop
-                      key={`${tunerGridType}-${tunerCell}-${tunerStroke}`}
-                      className="h-full min-h-0 w-full"
+                      key={`${tunerGridType}-${tunerCell}-${tunerStroke}-${tunerNoise}`}
+                      className="min-h-0 w-full flex-1"
                       gridCellSize={tunerCell}
                       gridType={tunerGridType}
                       inline
-                      linkHoverFromPointer={false}
+                      linkHoverFromPointer
                       strokeScale={tunerStroke}
-                      withNoiseOverlay={false}
+                      withNoiseOverlay={tunerNoise}
                     />
                   </div>
-                  <div className="mt-4 grid gap-4">
-                    <label className="grid gap-2" htmlFor={canvasTunerGridSelectId}>
-                      <span className="text-sm font-semibold text-foreground" id={canvasTunerGridLabelId}>
-                        Grid type
-                      </span>
-                      <select
-                        aria-labelledby={canvasTunerGridLabelId}
-                        className={FONT_SELECT_CLASSES}
-                        id={canvasTunerGridSelectId}
-                        onChange={(event) => {
-                          const value = event.target.value as GridType;
-                          setTunerGridType(value);
-                        }}
-                        value={tunerGridType}
+
+                  <aside
+                    className="flex max-h-[52dvh] w-full shrink-0 flex-col gap-2 overflow-hidden border-t border-border/50 p-3 md:max-h-none md:h-[100dvh] md:w-[min(100%,22rem)] md:border-l md:border-t-0 md:gap-3 md:p-4"
+                    style={{ background: tunerShellBackground }}
+                  >
+                    <div className="flex shrink-0 items-start justify-between gap-3">
+                      <div className="min-w-0 space-y-1 pr-2">
+                        <DialogTitle className="font-display text-xl font-semibold tracking-tight text-foreground md:text-2xl">
+                          Canvas tuner
+                        </DialogTitle>
+                        <DialogDescription className="text-xs leading-snug text-muted">
+                          Pointer-driven neighbor glow matches the upstream node grid demo. Sidebar tint follows your
+                          lattice choice.
+                        </DialogDescription>
+                      </div>
+                      <DialogClose asChild>
+                        <Button
+                          aria-label="Close canvas tuner"
+                          className="size-10 shrink-0 rounded-full"
+                          size="icon"
+                          type="button"
+                          variant="outline"
+                        >
+                          <X aria-hidden className="size-4" />
+                        </Button>
+                      </DialogClose>
+                    </div>
+
+                    <div className="min-h-0 flex-1 space-y-2 overflow-y-auto overscroll-contain hide-scrollbar md:space-y-3">
+                      <div>
+                        <p
+                          className="text-[11px] font-semibold uppercase tracking-[0.14em] text-muted"
+                          id={canvasTunerPresetGroupId}
+                        >
+                          Lattice
+                        </p>
+                        <div
+                          aria-labelledby={canvasTunerPresetGroupId}
+                          className="mt-2 grid grid-cols-3 gap-2"
+                          role="group"
+                        >
+                          {HERO_NODE_GRID_PRESETS.map((preset) => {
+                            const active = tunerGridType === preset.gridType;
+                            return (
+                              <button
+                                aria-label={`${preset.label}. ${preset.description}`}
+                                aria-pressed={active}
+                                className={cn(
+                                  "rounded-xl border px-2 py-2.5 text-center text-xs font-semibold transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/45 focus-visible:ring-offset-2 focus-visible:ring-offset-background",
+                                  active
+                                    ? "border-accent/60 bg-accent/15 text-foreground shadow-sm"
+                                    : "border-border/70 bg-panel/50 text-muted hover:-translate-y-0.5 hover:border-accent/35 hover:text-foreground",
+                                )}
+                                key={preset.id}
+                                onClick={() => handleTunerPickNamedPreset(preset.id)}
+                                type="button"
+                              >
+                                {preset.label}
+                              </button>
+                            );
+                          })}
+                        </div>
+                      </div>
+
+                      <div className="flex items-center justify-between rounded-xl border border-border/60 bg-panel/40 px-3 py-2.5">
+                        <div>
+                          <p className="text-xs font-semibold text-foreground">Film grain</p>
+                          <p className="text-[10px] text-muted">Preview only</p>
+                        </div>
+                        <Switch
+                          aria-label="Toggle film grain overlay on tuner preview"
+                          checked={tunerNoise}
+                          onCheckedChange={setTunerNoise}
+                        />
+                      </div>
+
+                      <div className="grid gap-2">
+                        <div className="flex items-center justify-between gap-2">
+                          <label className="text-xs font-semibold text-foreground" htmlFor={canvasTunerCellLabelId}>
+                            Cell size (px)
+                          </label>
+                          <span className="font-mono text-[11px] text-muted">{Math.round(tunerCell)}</span>
+                        </div>
+                        <Slider
+                          aria-labelledby={canvasTunerCellLabelId}
+                          id={canvasTunerCellLabelId}
+                          max={120}
+                          min={16}
+                          onValueChange={(value) => setTunerCell(value[0] ?? 16)}
+                          step={1}
+                          value={[tunerCell]}
+                        />
+                      </div>
+                      <div className="grid gap-2">
+                        <div className="flex items-center justify-between gap-2">
+                          <label className="text-xs font-semibold text-foreground" htmlFor={canvasTunerStrokeLabelId}>
+                            Stroke scale
+                          </label>
+                          <span className="font-mono text-[11px] text-muted">{tunerStroke.toFixed(2)}</span>
+                        </div>
+                        <Slider
+                          aria-labelledby={canvasTunerStrokeLabelId}
+                          id={canvasTunerStrokeLabelId}
+                          max={4}
+                          min={0.25}
+                          onValueChange={(value) => setTunerStroke(value[0] ?? 0.45)}
+                          step={0.05}
+                          value={[tunerStroke]}
+                        />
+                      </div>
+
+                      <a
+                        className="inline-flex items-center gap-2 rounded-xl border border-border/60 bg-panel/35 px-3 py-2 text-xs font-medium text-foreground transition hover:border-accent/35 hover:bg-panel/55"
+                        href={NODEGRID_GITHUB_BASE}
+                        rel="noopener noreferrer"
+                        target="_blank"
                       >
-                        {NODE_GRID_ORDER.map((type) => (
-                          <option key={type} value={type}>
-                            {gridTypeLabel(type)}
-                          </option>
-                        ))}
-                      </select>
-                    </label>
-                    <div className="grid gap-2">
-                      <div className="flex items-center justify-between gap-2">
-                        <label className="text-sm font-semibold text-foreground" htmlFor={canvasTunerCellLabelId}>
-                          Cell size (px)
-                        </label>
-                        <span className="font-mono text-xs text-muted">{Math.round(tunerCell)}</span>
-                      </div>
-                      <Slider
-                        aria-labelledby={canvasTunerCellLabelId}
-                        id={canvasTunerCellLabelId}
-                        max={120}
-                        min={16}
-                        onValueChange={(value) => setTunerCell(value[0] ?? 16)}
-                        step={1}
-                        value={[tunerCell]}
-                      />
+                        <ExternalLink aria-hidden className="size-3.5 shrink-0 text-accent" />
+                        Upstream hover demo (GitHub)
+                      </a>
                     </div>
-                    <div className="grid gap-2">
-                      <div className="flex items-center justify-between gap-2">
-                        <label className="text-sm font-semibold text-foreground" htmlFor={canvasTunerStrokeLabelId}>
-                          Stroke scale
-                        </label>
-                        <span className="font-mono text-xs text-muted">{tunerStroke.toFixed(2)}</span>
-                      </div>
-                      <Slider
-                        aria-labelledby={canvasTunerStrokeLabelId}
-                        id={canvasTunerStrokeLabelId}
-                        max={4}
-                        min={0.25}
-                        onValueChange={(value) => setTunerStroke(value[0] ?? 0.45)}
-                        step={0.05}
-                        value={[tunerStroke]}
-                      />
+
+                    <div className="flex shrink-0 flex-wrap justify-end gap-2 border-t border-border/40 pt-3">
+                      <Button onClick={() => setShowCanvasBuilder(false)} type="button" variant="outline">
+                        Cancel
+                      </Button>
+                      <Button onClick={handleApplyCanvasTuner} type="button" variant="default">
+                        Apply
+                      </Button>
                     </div>
-                  </div>
-                  <div className="mt-6 flex flex-wrap justify-end gap-2">
-                    <Button onClick={() => setShowCanvasBuilder(false)} type="button" variant="outline">
-                      Cancel
-                    </Button>
-                    <Button onClick={handleApplyCanvasTuner} type="button" variant="default">
-                      Apply
-                    </Button>
-                  </div>
+                  </aside>
                 </DialogContent>
               </Dialog>
             </CardContent>

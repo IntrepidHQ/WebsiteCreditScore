@@ -116,12 +116,12 @@ export function NodeGridBackdrop({
           theme={isDark ? "dark" : "light"}
         />
       )}
-      {/* Gradient vignette fades the grid into the page background */}
+      {/* Gradient vignette — extra mid-stops so the fade never reads as a hard horizontal band */}
       <div
         className="absolute inset-0"
         style={{
           background:
-            "linear-gradient(180deg, color-mix(in srgb, var(--theme-background) 0%, transparent) 0%, color-mix(in srgb, var(--theme-background) 60%, transparent) 70%, var(--theme-background) 100%)",
+            "linear-gradient(180deg, color-mix(in srgb, var(--theme-background) 0%, transparent) 0%, color-mix(in srgb, var(--theme-background) 18%, transparent) 38%, color-mix(in srgb, var(--theme-background) 52%, transparent) 62%, color-mix(in srgb, var(--theme-background) 82%, transparent) 84%, color-mix(in srgb, var(--theme-background) 96%, transparent) 94%, var(--theme-background) 100%)",
         }}
       />
       {/* Subtle radial accent glow at the top */}
