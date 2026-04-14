@@ -22,6 +22,17 @@ const PRESET_MAP: Record<HeroNodeGridPreset, PresetConfig> = {
   waves: { gridType: "waves", gridCellSize: 16, strokeScale: 0.45 },
   flux: { gridType: "flux", gridCellSize: 16, strokeScale: 0.45 },
   truss: { gridType: "triangular", gridCellSize: 16, strokeScale: 0.45 },
+  rectangular: { gridType: "rectangular", gridCellSize: 16, strokeScale: 0.45 },
+  hexagonal: { gridType: "hexagonal", gridCellSize: 16, strokeScale: 0.45 },
+  isometric: { gridType: "isometric", gridCellSize: 16, strokeScale: 0.45 },
+  webOne: { gridType: "web_one", gridCellSize: 16, strokeScale: 0.45 },
+  quantumWeb: { gridType: "quantum_web", gridCellSize: 16, strokeScale: 0.45 },
+  mesh: { gridType: "mesh", gridCellSize: 16, strokeScale: 0.45 },
+  constellation: { gridType: "constellation", gridCellSize: 16, strokeScale: 0.45 },
+  floral: { gridType: "floral", gridCellSize: 16, strokeScale: 0.45 },
+  spiral: { gridType: "spiral", gridCellSize: 16, strokeScale: 0.45 },
+  organic: { gridType: "organic", gridCellSize: 16, strokeScale: 0.45 },
+  automate: { gridType: "automate", gridCellSize: 16, strokeScale: 0.45 },
 };
 
 const MAG_RADIUS = 88;
