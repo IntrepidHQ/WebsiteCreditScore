@@ -16,6 +16,7 @@ import { RouteScrollReset } from "@/components/common/route-scroll-reset";
 import { SiteFooter } from "@/components/common/site-footer";
 import { SiteHeader } from "@/components/common/site-header";
 import { ThemeStyleProvider } from "@/components/common/theme-style-provider";
+import { SiteAmbientBackdrop } from "@/components/theme/site-ambient-backdrop";
 import { getOptionalWorkspaceSession } from "@/lib/auth/session";
 
 import "./globals.css";
@@ -143,6 +144,7 @@ export default async function RootLayout({
         <ThemeStyleProvider>
           {/* overflow-x must not clip the main column or sticky header will not stick to the viewport */}
           <div className="relative isolate min-h-screen">
+            <SiteAmbientBackdrop />
             <div className="relative z-10 flex min-h-screen flex-col">
               <Suspense fallback={null}>
                 <SiteHeader accountHint={accountHint} isAuthenticated={isAuthenticated} />

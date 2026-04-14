@@ -1,8 +1,7 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from "react";
+import { useCallback, useEffect, useRef, useState, type ReactNode } from "react";
 
-import { Aurora } from "@/components/ui/aurora";
 import { LightRaysHeroCanvas } from "@/features/landing/components/light-rays/light-rays-hero-canvas";
 import { NodeGridBackdrop } from "@/features/landing/components/node-grid/node-grid-backdrop";
 import { MagnifierDomLens } from "@/features/landing/components/node-grid/magnifier-dom-lens";
@@ -37,7 +36,6 @@ export const LandingHeroBackdrop = ({
   magnifierMirror?: ReactNode;
 }) => {
   const mode = useThemeStore((state) => state.tokens.mode);
-  const surfaces = useThemeStore((state) => state.tokens.surfaces);
   const heroBackdropKind = useThemeStore((state) => state.tokens.heroBackdropKind);
   const heroNodeGridPreset = useThemeStore(
     (state) => state.tokens.heroNodeGridPreset ?? "waves",
@@ -52,13 +50,6 @@ export const LandingHeroBackdrop = ({
   const preset = PRESET_MAP[heroNodeGridPreset] ?? PRESET_MAP.waves;
   const effectiveGridType: GridType =
     (heroNodeGridGridType as GridType | null) ?? preset.gridType;
-
-  const colorStops = useMemo(() => {
-    if (mode === "light") {
-      return [surfaces.accent, surfaces.background, surfaces.muted];
-    }
-    return [surfaces.glow, surfaces.background, surfaces.panel];
-  }, [mode, surfaces]);
 
   const mousePosRef = useRef<{ x: number; y: number } | null>(null);
   const [isOverHero, setIsOverHero] = useState(false);
@@ -173,18 +164,10 @@ export const LandingHeroBackdrop = ({
     <>
       <div
         className={cn(
-          "pointer-events-none absolute inset-x-0 -top-24 -z-10 h-[calc(min(44rem,120vh)+6rem)]",
+          "pointer-events-none absolute inset-x-0 -top-24 -z-10 min-h-[min(52rem,115vh)] h-[calc(min(48rem,125vh)+4rem)]",
           className,
         )}
       >
-        <Aurora
-          amplitude={mode === "light" ? 0.22 : 0.35}
-          blend={mode === "light" ? 0.58 : 0.4}
-          className={cn(mode === "light" ? "opacity-50" : "opacity-70")}
-          colorStops={colorStops}
-          speed={0.25}
-        />
-
         {useLightRays ? (
           <div className="absolute inset-0 -z-10 min-h-[min(44rem,120vh)] w-full">
             <LightRaysHeroCanvas
@@ -207,7 +190,7 @@ export const LandingHeroBackdrop = ({
 
         <div
           aria-hidden
-          className="absolute inset-0 opacity-80 mix-blend-soft-light [mask-image:linear-gradient(180deg,black_0%,black_38%,rgba(0,0,0,0.55)_58%,rgba(0,0,0,0.2)_78%,transparent_100%)] [-webkit-mask-image:linear-gradient(180deg,black_0%,black_38%,rgba(0,0,0,0.55)_58%,rgba(0,0,0,0.2)_78%,transparent_100%)]"
+          className="absolute inset-0 opacity-55 mix-blend-soft-light [mask-image:linear-gradient(180deg,black_0%,black_32%,rgba(0,0,0,0.45)_55%,rgba(0,0,0,0.12)_82%,transparent_100%)] [-webkit-mask-image:linear-gradient(180deg,black_0%,black_32%,rgba(0,0,0,0.45)_55%,rgba(0,0,0,0.12)_82%,transparent_100%)]"
           style={{ backgroundImage: accentSpot }}
         />
       </div>
