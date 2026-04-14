@@ -539,52 +539,8 @@ export function getPreviewSet(profile: ReportProfileType): AuditReport["previewS
         ? "/previews/service-future.svg"
         : "/previews/saas-future.svg";
 
-  if (profile === "healthcare") {
-    return {
-      current: {
-        desktop: currentFallback,
-        mobile: currentFallback,
-      },
-      future: {
-        desktop: futureFallback,
-        mobile: futureFallback,
-      },
-      fallbackCurrent: {
-        desktop: "",
-        mobile: "",
-      },
-      fallbackFuture: {
-        desktop: futureFallback,
-        mobile: futureFallback,
-      },
-      mobileLabel: "Mobile",
-      desktopLabel: "Desktop",
-    };
-  }
-
-  if (profile === "local-service") {
-    return {
-      current: {
-        desktop: currentFallback,
-        mobile: currentFallback,
-      },
-      future: {
-        desktop: futureFallback,
-        mobile: futureFallback,
-      },
-      fallbackCurrent: {
-        desktop: "",
-        mobile: "",
-      },
-      fallbackFuture: {
-        desktop: futureFallback,
-        mobile: futureFallback,
-      },
-      mobileLabel: "Mobile",
-      desktopLabel: "Desktop",
-    };
-  }
-
+  // All profiles share the same structure; currentFallback is the static SVG that shows
+  // whenever a live screenshot hasn't been captured yet (or failed).
   return {
     current: {
       desktop: currentFallback,
@@ -594,9 +550,11 @@ export function getPreviewSet(profile: ReportProfileType): AuditReport["previewS
       desktop: futureFallback,
       mobile: futureFallback,
     },
+    // Point fallbackCurrent at the profile SVG (not empty string) so PreviewImage
+    // always has a valid second-chance asset when the live screenshot request fails.
     fallbackCurrent: {
-      desktop: "",
-      mobile: "",
+      desktop: currentFallback,
+      mobile: currentFallback,
     },
     fallbackFuture: {
       desktop: futureFallback,

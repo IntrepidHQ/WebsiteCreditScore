@@ -15,6 +15,22 @@ type Props = {
   withNoiseOverlay?: boolean;
   /** Additional className applied to the wrapper div */
   className?: string;
+  /** Pixel spacing for grid cells (default 40). Forwarded to DotGridCanvas. */
+  gridCellSize?: number;
+  /** Stroke width multiplier (default 1). Forwarded to DotGridCanvas. */
+  strokeScale?: number;
+  /** Called once when the backing HTMLCanvasElement is ready (or null on unmount). */
+  onCanvasReady?: (canvas: HTMLCanvasElement | null) => void;
+  /**
+   * When true, renders as a `relative` element in document flow (for preview cards).
+   * Default (false) uses `absolute inset-0 -z-10` — behind all page content.
+   */
+  inline?: boolean;
+  /**
+   * When true (default), pointer position is forwarded to the canvas so neighbor links brighten near the cursor.
+   * Set false for marketing hero backgrounds to avoid playground-style hover strokes.
+   */
+  linkHoverFromPointer?: boolean;
 };
 
 /**
@@ -26,6 +42,11 @@ export function NodeGridBackdrop({
   gridType = "constellation",
   withNoiseOverlay = true,
   className,
+  gridCellSize,
+  strokeScale,
+  onCanvasReady,
+  inline = false,
+  linkHoverFromPointer = true,
 }: Props) {
   const { reduceMotion } = useMotionSettings();
   const accentColor = useThemeStore((s) => s.branding.accentOverride || s.tokens.accentColor);
@@ -44,16 +65,15 @@ export function NodeGridBackdrop({
     return () => obs.disconnect();
   }, []);
 
-  // Mouse tracking for hover glow on the canvas
   const mousePosRef = useRef<{ x: number; y: number } | null>(null);
   useEffect(() => {
-    if (reduceMotion) return;
+    if (reduceMotion || !linkHoverFromPointer) return;
     const onMove = (e: MouseEvent) => {
       mousePosRef.current = { x: e.clientX, y: e.clientY };
     };
     window.addEventListener("mousemove", onMove, { passive: true });
     return () => window.removeEventListener("mousemove", onMove);
-  }, [reduceMotion]);
+  }, [reduceMotion, linkHoverFromPointer]);
 
   // Normalize accent to a plain 6-digit hex (DotGridCanvas expects #rrggbb)
   const accentHex = /^#[0-9a-fA-F]{6}$/.test(accentColor ?? "")
@@ -64,7 +84,8 @@ export function NodeGridBackdrop({
     <div
       aria-hidden
       className={[
-        "pointer-events-none absolute inset-0 -z-10 overflow-hidden",
+        "pointer-events-none overflow-hidden",
+        inline ? "relative" : "absolute inset-0 -z-10",
         className ?? "",
       ]
         .join(" ")
@@ -73,14 +94,16 @@ export function NodeGridBackdrop({
       {withNoiseOverlay && !reduceMotion && <NoiseOverlay />}
       {!reduceMotion && (
         <DotGridCanvas
-          key={`${gridType}-${isDark}`}
+          key={`${gridType}-${isDark}-${gridCellSize}-${strokeScale}`}
           accentHex={accentHex}
           connectionDrag={null}
           connections={[]}
           cutConnections={[]}
-          externalMousePosRef={mousePosRef}
+          externalMousePosRef={linkHoverFromPointer ? mousePosRef : null}
+          gridCellSize={gridCellSize}
           gridType={gridType}
           mousePos={null}
+          onCanvasReady={onCanvasReady}
           onCutAnimationComplete={() => {}}
           panelHeight={0}
           panelWidth={0}
@@ -89,6 +112,7 @@ export function NodeGridBackdrop({
           panels={[]}
           pulses={[]}
           sliceTrail={[]}
+          strokeScale={strokeScale}
           theme={isDark ? "dark" : "light"}
         />
       )}

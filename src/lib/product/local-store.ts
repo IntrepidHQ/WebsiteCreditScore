@@ -787,7 +787,7 @@ export async function createLocalLeadFromUrl(
       title: report.title,
       companyName: report.title,
       normalizedUrl: report.normalizedUrl,
-      previewImage: report.previewSet?.current?.desktop ?? "/previews/fallback-desktop.svg",
+      previewImage: report.previewSet?.current?.desktop || "/previews/fallback-desktop.svg",
       stage: "audit-ready",
       createdAt,
       updatedAt: createdAt,

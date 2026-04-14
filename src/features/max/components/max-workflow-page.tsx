@@ -13,6 +13,7 @@ import { SectionHeading } from "@/components/common/section-heading";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 type ProviderId = "claude" | "codex" | "lovable";
 
@@ -57,6 +58,13 @@ export type MaxSavedReportOption = {
   updatedAt: string;
 };
 
+const formatMaxApiError = (code: string | undefined, fallback: string) => {
+  if (code === "AUTH_REQUIRED") return "Sign in to generate a handoff.";
+  if (code === "MAX_GATED") return "MAX upgrade required to generate handoff prompts.";
+  if (code === "INSUFFICIENT_TOKENS") return "Not enough tokens for MAX prompt.";
+  return fallback;
+};
+
 export function MaxWorkflowPage({
   availableTokens,
   hasAccess,
@@ -70,8 +78,10 @@ export function MaxWorkflowPage({
   const [selectedReportId, setSelectedReportId] = useState(
     () => savedReportOptions[0]?.id ?? "",
   );
-  const [handoff, setHandoff] = useState<string | null>(null);
+  const [handoffMarkdown, setHandoffMarkdown] = useState<string | null>(null);
+  const [codingAgentPrompt, setCodingAgentPrompt] = useState<string | null>(null);
   const [handoffSource, setHandoffSource] = useState<"claude" | "template" | null>(null);
+  const [handoffTab, setHandoffTab] = useState<"design" | "coding">("coding");
   const [copied, setCopied] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [isPending, startTransition] = useTransition();
@@ -106,6 +116,8 @@ export function MaxWorkflowPage({
           body: JSON.stringify({ reportId: selectedReportId }),
         });
         const data = (await res.json()) as {
+          handoffMarkdown?: string;
+          codingAgentPrompt?: string;
           prompt?: string;
           source?: "claude" | "template";
           balance?: number;
@@ -119,17 +131,21 @@ export function MaxWorkflowPage({
             window.location.href = data.redirectTo;
             return;
           }
-          setErrorMessage(data.error ?? "Could not generate MAX handoff.");
+          setErrorMessage(formatMaxApiError(data.code, data.error ?? "Could not generate MAX handoff."));
           return;
         }
 
-        if (data.prompt) {
-          setHandoff(data.prompt);
+        const md = (data.handoffMarkdown ?? data.prompt ?? "").trim();
+        const coding = (data.codingAgentPrompt ?? "").trim();
+        if (md || coding) {
+          setHandoffMarkdown(md || null);
+          setCodingAgentPrompt(coding || null);
           setHandoffSource(data.source ?? "template");
           if (typeof data.balance === "number") {
             setTokenBalance(data.balance);
           }
-          await navigator.clipboard.writeText(data.prompt);
+          const primaryClipboard = coding || md;
+          await navigator.clipboard.writeText(primaryClipboard);
           setCopied(true);
           window.setTimeout(() => setCopied(false), 2000);
         }
@@ -162,7 +178,7 @@ export function MaxWorkflowPage({
             <p className="text-sm leading-6 text-muted">
               {selectedReport
                 ? "Pick a saved report, generate once per audit (tokens apply on first unlock), then paste into your builder."
-                : "Run a scan from the dashboard and save it to a lead so it appears here."}
+                : "Run a scan from the dashboard and save it so it appears here."}
             </p>
           </CardHeader>
           <CardContent className="space-y-4">
@@ -176,7 +192,8 @@ export function MaxWorkflowPage({
                       id="max-report"
                       onChange={(e) => {
                         setSelectedReportId(e.target.value);
-                        setHandoff(null);
+                        setHandoffMarkdown(null);
+                        setCodingAgentPrompt(null);
                         setHandoffSource(null);
                       }}
                       value={selectedReportId}
@@ -210,17 +227,40 @@ export function MaxWorkflowPage({
 
                 <div className="rounded-[12px] border border-border/70 bg-background-alt/70 p-4">
                   <div className="flex flex-wrap items-center justify-between gap-2">
-                    <p className="text-xs uppercase tracking-[0.14em] text-muted">Clipboard handoff</p>
+                    <p className="text-xs uppercase tracking-[0.14em] text-muted">Handoff output</p>
                     {handoffSource ? (
                       <Badge variant={handoffSource === "claude" ? "accent" : "neutral"}>
                         {handoffSource === "claude" ? "Claude generated" : "Template fallback"}
                       </Badge>
                     ) : null}
                   </div>
-                  <pre className="mt-3 max-h-[32rem] overflow-auto whitespace-pre-wrap text-sm leading-7 text-foreground">
-                    {handoff ??
-                      "Generate a handoff to populate this panel. First generation per saved audit uses 2 tokens (deduped per audit)."}
-                  </pre>
+                  {handoffMarkdown || codingAgentPrompt ? (
+                    <Tabs className="mt-3" onValueChange={(v) => setHandoffTab(v as "design" | "coding")} value={handoffTab}>
+                      <TabsList className="grid w-full max-w-md grid-cols-2">
+                        <TabsTrigger type="button" value="coding">
+                          Coding agent prompt
+                        </TabsTrigger>
+                        <TabsTrigger type="button" value="design">
+                          Design handoff (markdown)
+                        </TabsTrigger>
+                      </TabsList>
+                      <TabsContent className="mt-3" value="coding">
+                        <pre className="max-h-[32rem] overflow-auto whitespace-pre-wrap text-sm leading-7 text-foreground">
+                          {codingAgentPrompt ?? "—"}
+                        </pre>
+                      </TabsContent>
+                      <TabsContent className="mt-3" value="design">
+                        <pre className="max-h-[32rem] overflow-auto whitespace-pre-wrap text-sm leading-7 text-foreground">
+                          {handoffMarkdown ?? "—"}
+                        </pre>
+                      </TabsContent>
+                    </Tabs>
+                  ) : (
+                    <pre className="mt-3 max-h-[32rem] overflow-auto whitespace-pre-wrap text-sm leading-7 text-muted">
+                      Generate a handoff to populate this panel. First generation per saved audit uses 2 tokens
+                      (deduped per audit). The coding tab is copied automatically after generate.
+                    </pre>
+                  )}
                 </div>
 
                 <div className="flex flex-wrap gap-3">
@@ -233,17 +273,27 @@ export function MaxWorkflowPage({
                     {isPending
                       ? "Generating…"
                       : copied
-                        ? "Copied"
-                        : "Generate & copy handoff"}
+                        ? "Copied coding prompt"
+                        : "Generate & copy coding prompt"}
                   </Button>
-                  {handoff ? (
+                  {codingAgentPrompt ? (
                     <Button
                       disabled={isPending}
-                      onClick={() => void navigator.clipboard.writeText(handoff)}
+                      onClick={() => void navigator.clipboard.writeText(codingAgentPrompt)}
                       type="button"
                       variant="outline"
                     >
-                      Copy again
+                      Copy coding prompt
+                    </Button>
+                  ) : null}
+                  {handoffMarkdown ? (
+                    <Button
+                      disabled={isPending}
+                      onClick={() => void navigator.clipboard.writeText(handoffMarkdown)}
+                      type="button"
+                      variant="outline"
+                    >
+                      Copy design markdown
                     </Button>
                   ) : null}
                   {selectedProvider === "lovable" ? (

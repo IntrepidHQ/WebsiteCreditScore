@@ -1,6 +1,7 @@
 import type { AuditReport } from "@/lib/types/audit";
 
 import { buildMaxPrompt } from "@/lib/max/prompt";
+import { composeTaggedMaxHandoff } from "@/lib/max/split-max-handoff";
 
 function bulletBlock(title: string, lines: string[]) {
   if (!lines.length) {
@@ -69,7 +70,7 @@ export function buildMaxPromptExpanded(report: AuditReport | null, opts?: { asse
       ? `Performance (mobile PSI layer): score ${perf.performanceScore}${perf.lcp != null ? `, LCP ${Math.round(perf.lcp)}ms` : ""}.`
       : "";
 
-  return [
+  const markdownBody = [
     buildMaxPrompt(report),
     "",
     "---",
@@ -93,4 +94,13 @@ export function buildMaxPromptExpanded(report: AuditReport | null, opts?: { asse
   ]
     .filter(Boolean)
     .join("\n");
+
+  const codingAgentPrompt = [
+    "You are the coding agent. Implement the redesign described in the markdown handoff above.",
+    "Prioritize the highest-severity audit issues, keep layouts responsive, and ship accessible defaults.",
+    `Site: ${report.title} (${report.normalizedUrl}).`,
+    "Use Dataroom image URLs verbatim when the handoff lists them.",
+  ].join("\n");
+
+  return composeTaggedMaxHandoff(markdownBody, codingAgentPrompt);
 }

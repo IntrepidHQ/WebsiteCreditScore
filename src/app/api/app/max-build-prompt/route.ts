@@ -6,6 +6,7 @@ import { getOptionalWorkspaceSession } from "@/lib/auth/session";
 import { listDataroomForWorkspace } from "@/lib/dataroom/storage";
 import { generateMaxHandoffWithClaude } from "@/lib/max/ai-generate-handoff";
 import { buildMaxPromptExpanded } from "@/lib/max/prompt-expanded";
+import { splitMaxHandoff } from "@/lib/max/split-max-handoff";
 import { isUnlimitedWorkspace } from "@/lib/product/unlimited-workspace";
 import { getProductRepository } from "@/lib/product/repository";
 
@@ -63,7 +64,8 @@ export async function POST(request: Request) {
   const assetUrls = dataroomRows.map((r) => r.publicUrl);
 
   const aiPrompt = await generateMaxHandoffWithClaude(saved.reportSnapshot, assetUrls);
-  const prompt = aiPrompt ?? buildMaxPromptExpanded(saved.reportSnapshot, { assetUrls });
+  const combined = aiPrompt ?? buildMaxPromptExpanded(saved.reportSnapshot, { assetUrls });
+  const { handoffMarkdown, codingAgentPrompt } = splitMaxHandoff(combined);
   const source: "claude" | "template" = aiPrompt ? "claude" : "template";
 
   try {
@@ -74,7 +76,10 @@ export async function POST(request: Request) {
     });
 
     return NextResponse.json({
-      prompt,
+      handoffMarkdown,
+      codingAgentPrompt,
+      /** @deprecated Prefer handoffMarkdown — kept for older clients */
+      prompt: combined,
       source,
       balance: updated.tokenBalance ?? updated.creditBalance ?? balance,
     });

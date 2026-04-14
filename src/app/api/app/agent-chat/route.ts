@@ -1,5 +1,7 @@
 import { NextResponse } from "next/server";
+import type { MessageParam, ToolResultBlockParam } from "@anthropic-ai/sdk/resources/messages";
 
+import { buildWorkspaceAgentTools, handleWorkspaceAgentTool } from "@/lib/app/agent-chat/run-agent-chat";
 import { getAnthropicClient } from "@/lib/ai/client";
 import { selectModel } from "@/lib/ai/select-model";
 import { getOptionalWorkspaceSessionFromRequest } from "@/lib/auth/session";
@@ -20,7 +22,11 @@ Industry-aware lens (add this on top of the rubric — do not replace the rubric
 - When you recommend changes, tie recommendations to the likely primary conversion (call, book, buy, signup, follow) inferred from the audit context and page signals.
 - If the industry is ambiguous, state the assumption briefly and offer alternatives.
 
-If asked about data you cannot see, say so and suggest what to check in the product.`;
+If asked about data you cannot see, say so and suggest what to check in the product.
+
+Pipeline tools:
+- Use list_workspace_opportunities when the user asks about their workspace list, stages, or follow-ups.
+- Use update_opportunity_stage only when the user explicitly asks to change a stage and you have a valid opportunity id.`;
 
 type ChatMessage = { role?: string; content?: string };
 
@@ -113,22 +119,59 @@ export async function POST(request: Request) {
     );
   }
 
+  const tools = buildWorkspaceAgentTools();
+  let conversation: MessageParam[] = messages.map((m) => ({
+    role: m.role,
+    content: m.content,
+  }));
+
   try {
-    const response = await client.messages.create({
-      model,
-      max_tokens: maxTokens,
-      system,
-      messages,
-    });
+    for (let round = 0; round < 4; round += 1) {
+      const response = await client.messages.create({
+        model,
+        max_tokens: maxTokens,
+        system,
+        tools,
+        messages: conversation,
+      });
 
-    const text =
-      response.content[0]?.type === "text" ? response.content[0].text.trim() : "";
+      const blocks = response.content;
+      const toolUses = blocks.filter((b): b is Extract<typeof b, { type: "tool_use" }> => b.type === "tool_use");
 
-    if (!text) {
-      return NextResponse.json({ error: "Empty model response." }, { status: 502 });
+      if (!toolUses.length) {
+        const textBlock = blocks.find((b) => b.type === "text" && "text" in b);
+        const text =
+          textBlock && textBlock.type === "text" && typeof textBlock.text === "string"
+            ? textBlock.text.trim()
+            : "";
+
+        if (!text) {
+          return NextResponse.json({ error: "Empty model response." }, { status: 502 });
+        }
+
+        return NextResponse.json({ message: text });
+      }
+
+      conversation = [...conversation, { role: "assistant", content: blocks }];
+
+      const toolResults: ToolResultBlockParam[] = [];
+      for (const tu of toolUses) {
+        const payload = await handleWorkspaceAgentTool(tu.name, tu.input, {
+          repository,
+          workspaceId: workspace.id,
+          session,
+        });
+        toolResults.push({
+          type: "tool_result",
+          tool_use_id: tu.id,
+          content: payload,
+        });
+      }
+
+      conversation = [...conversation, { role: "user", content: toolResults }];
     }
 
-    return NextResponse.json({ message: text });
+    return NextResponse.json({ error: "Tool loop limit reached. Try a narrower question." }, { status: 502 });
   } catch (err) {
     console.warn("[api/app/agent-chat]", err);
     return NextResponse.json({ error: "Assistant request failed. Try again shortly." }, { status: 502 });

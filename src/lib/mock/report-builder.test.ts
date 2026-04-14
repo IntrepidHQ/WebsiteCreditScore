@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 
+import { FORTUNE_500_HERO_CANDIDATE_IDS } from "@/lib/mock/fortune-500-sample-audits";
 import { buildBenchmarkReferences, getBenchmarkReferenceScore } from "@/lib/mock/report-enhancements";
 import { getPublicScanHistoryCards, getSampleAuditCards, selectBenchmarkReferencesForReport } from "@/lib/mock/report-builder";
 
@@ -51,5 +52,21 @@ describe("report builder benchmark selection", () => {
       new Date(cards[1]!.scannedAt!).getTime(),
     );
     expect(publicHistory.map((card) => card.id)).toEqual(cards.map((card) => card.id));
+  });
+
+  it("exposes 20 fortune 500 demos with Apple as the highest-scoring marketing hero candidate (9+)", () => {
+    const cards = getPublicScanHistoryCards();
+    const pool = cards.filter((card) => FORTUNE_500_HERO_CANDIDATE_IDS.includes(card.id));
+
+    expect(pool).toHaveLength(20);
+
+    const [head, ...tail] = pool;
+    const hero = tail.reduce(
+      (best, current) => ((current.score ?? 0) > (best.score ?? 0) ? current : best),
+      head,
+    );
+
+    expect(hero?.id).toBe("f500-apple");
+    expect(hero?.score ?? 0).toBeGreaterThanOrEqual(9);
   });
 });

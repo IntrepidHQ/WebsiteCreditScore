@@ -51,9 +51,9 @@ function SearchRow({
   }
 
   const desktopShot =
-    report.previewSet?.current?.desktop ?? "/previews/fallback-desktop.svg";
+    report.previewSet?.current?.desktop || "/previews/fallback-desktop.svg";
   const fallbackShot =
-    report.previewSet?.fallbackCurrent?.desktop ?? desktopShot;
+    report.previewSet?.fallbackCurrent?.desktop || desktopShot;
 
   const auditHref = `/audit/${report.id}?url=${encodeURIComponent(report.normalizedUrl)}`;
   const domain = savedReport.normalizedUrl.replace(/^https?:\/\//, "");

@@ -11,6 +11,13 @@ import { SectionHeading } from "@/components/common/section-heading";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Slider } from "@/components/ui/slider";
 import { Switch } from "@/components/ui/switch";
@@ -18,7 +25,11 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { WebsiteCreditScoreLogo } from "@/components/common/website-credit-score-logo";
 import { HeroGridSurface } from "@/features/landing/components/hero-grid-surface";
+import { NodeGridBackdrop } from "@/features/landing/components/node-grid/node-grid-backdrop";
 import { cn } from "@/lib/utils/cn";
+import type { HeroBackdropKind, HeroNodeGridPreset } from "@/lib/types/audit";
+import { NODE_GRID_ORDER, gridTypeLabel } from "@/features/landing/components/node-grid/grid-types";
+import type { GridType } from "@/features/landing/components/node-grid/grid-types";
 import {
   getContrastChecks,
   getHarmonyPreviewSwatches,
@@ -32,6 +43,56 @@ import {
   THEME_HEADING_LEVELS,
 } from "@/lib/utils/theme";
 import { useThemeStore } from "@/store/theme-store";
+
+type HeroPresetConfig = {
+  id: HeroNodeGridPreset;
+  label: string;
+  description: string;
+  gridType: "waves" | "flux" | "triangular";
+  gridCellSize: number;
+  strokeScale: number;
+};
+
+const HERO_NODE_GRID_PRESETS: HeroPresetConfig[] = [
+  {
+    id: "waves",
+    label: "Waves",
+    description: "Flowing sine lattice — organic, movement-focused.",
+    gridType: "waves",
+    gridCellSize: 16,
+    strokeScale: 0.45,
+  },
+  {
+    id: "flux",
+    label: "Flux",
+    description: "Turbulent field lines — energetic, forward momentum.",
+    gridType: "flux",
+    gridCellSize: 16,
+    strokeScale: 0.45,
+  },
+  {
+    id: "truss",
+    label: "Truss",
+    description: "Triangular mesh — structural, engineering precision.",
+    gridType: "triangular",
+    gridCellSize: 16,
+    strokeScale: 0.45,
+  },
+];
+
+/** Maps a GridType back to the nearest named preset (for the preset card highlight). */
+const gridTypeToHeroPreset = (g: GridType): HeroNodeGridPreset => {
+  if (g === "triangular") return "truss";
+  if (g === "flux") return "flux";
+  if (g === "waves") return "waves";
+  // Any non-standard type (e.g. hexagonal, spiral) maps to the closest visual preset
+  return "waves";
+};
+
+const heroPresetToGridType = (id: HeroNodeGridPreset): GridType => {
+  const match = HERO_NODE_GRID_PRESETS.find((p) => p.id === id);
+  return match?.gridType ?? "waves";
+};
 
 const FONT_SELECT_CLASSES =
   "h-10 w-full max-w-md rounded-[calc(var(--theme-radius)-2px)] border border-border/70 bg-panel/70 px-3 text-sm text-foreground shadow-sm transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/40 focus-visible:ring-offset-2 focus-visible:ring-offset-background";
@@ -124,14 +185,13 @@ export function SettingsPanel() {
   const radiusLabelId = useId();
   const shadowLabelId = useId();
   const shadowSpreadLabelId = useId();
-  const heroGridLabelId = useId();
-  const heroGridSelectId = useId();
   const livePreviewLatticeReactId = useId();
   const livePreviewLatticeUid = livePreviewLatticeReactId.replace(/:/g, "");
   const spacingLabelId = useId();
   const lineHeightLabelId = useId();
   const glowIntensityLabelId = useId();
   const motionLabelId = useId();
+  const cursorMagnifierLabelId = useId();
   const accentHueLabelId = useId();
   const colorHarmonyLabelId = useId();
   const surfaceFinishLabelId = useId();
@@ -147,10 +207,19 @@ export function SettingsPanel() {
   const headerFontSelectId = useId();
   const bodyFontSelectId = useId();
   const importInputId = useId();
+  const heroBackdropKindGroupId = useId();
+  const heroNodeGridPresetsGroupId = useId();
+  const heroLatticeBackgroundsLabelId = useId();
+  const heroLatticeBackgroundsSelectId = useId();
+  const canvasTunerGridLabelId = useId();
+  const canvasTunerGridSelectId = useId();
+  const canvasTunerCellLabelId = useId();
+  const canvasTunerStrokeLabelId = useId();
 
   const tokens = useThemeStore((state) => state.tokens);
   const branding = useThemeStore((state) => state.branding);
   const motionPreference = useThemeStore((state) => state.motionPreference);
+  const cursorEffects = useThemeStore((state) => state.cursorEffects);
   const presetId = useThemeStore((state) => state.presetId);
   const setMode = useThemeStore((state) => state.setMode);
   const setAccentColor = useThemeStore((state) => state.setAccentColor);
@@ -163,6 +232,9 @@ export function SettingsPanel() {
   const setShadowSpread = useThemeStore((state) => state.setShadowSpread);
   const setSpacingDensity = useThemeStore((state) => state.setSpacingDensity);
   const setHeroGridPattern = useThemeStore((state) => state.setHeroGridPattern);
+  const setHeroBackdropKind = useThemeStore((state) => state.setHeroBackdropKind);
+  const setHeroNodeGridPreset = useThemeStore((state) => state.setHeroNodeGridPreset);
+  const applyHeroNodeGridCanvas = useThemeStore((state) => state.applyHeroNodeGridCanvas);
   const setLineHeightScale = useThemeStore((state) => state.setLineHeightScale);
   const setGlowIntensity = useThemeStore((state) => state.setGlowIntensity);
   const setFontDisplay = useThemeStore((state) => state.setFontDisplay);
@@ -180,6 +252,7 @@ export function SettingsPanel() {
   const canRedo = useThemeStore((state) => state.redoStack.length > 0);
   const applyLayoutDensity = useThemeStore((state) => state.applyLayoutDensity);
   const setMotionPreference = useThemeStore((state) => state.setMotionPreference);
+  const setCursorEffectHeroMagnifierLens = useThemeStore((state) => state.setCursorEffectHeroMagnifierLens);
   const applyPreset = useThemeStore((state) => state.applyPreset);
   const clearPresetSelection = useThemeStore((state) => state.clearPresetSelection);
   const updateBranding = useThemeStore((state) => state.updateBranding);
@@ -191,9 +264,31 @@ export function SettingsPanel() {
   const contrast = getContrastChecks(tokens);
 
   const [settingsTab, setSettingsTab] = useState("appearance");
+  const [showCanvasBuilder, setShowCanvasBuilder] = useState(false);
   const [syncMessage, setSyncMessage] = useState<string | null>(null);
   const [syncTone, setSyncTone] = useState<"neutral" | "success" | "warning" | "danger">("neutral");
   const [importError, setImportError] = useState<string | null>(null);
+  const [tunerGridType, setTunerGridType] = useState<GridType>("waves");
+  const [tunerCell, setTunerCell] = useState(16);
+  const [tunerStroke, setTunerStroke] = useState(0.45);
+  const canvasBuilderWasOpenRef = useRef(false);
+
+  useEffect(() => {
+    if (showCanvasBuilder && !canvasBuilderWasOpenRef.current) {
+      // Prefer the exact stored grid type (set by a previous tuner apply); fall back to preset
+      const activeType = (tokens.heroNodeGridGridType as GridType | null) ?? heroPresetToGridType(tokens.heroNodeGridPreset);
+      setTunerGridType(activeType);
+      setTunerCell(tokens.heroNodeGridCellSize);
+      setTunerStroke(tokens.heroNodeGridStrokeScale);
+    }
+    canvasBuilderWasOpenRef.current = showCanvasBuilder;
+  }, [
+    showCanvasBuilder,
+    tokens.heroNodeGridCellSize,
+    tokens.heroNodeGridGridType,
+    tokens.heroNodeGridPreset,
+    tokens.heroNodeGridStrokeScale,
+  ]);
 
   useEffect(() => {
     const handleGlobalKeyDown = (event: KeyboardEvent) => {
@@ -312,6 +407,17 @@ export function SettingsPanel() {
     URL.revokeObjectURL(url);
   }, [exportThemeJson]);
 
+  const handleApplyCanvasTuner = useCallback(() => {
+    applyHeroNodeGridCanvas({
+      heroNodeGridPreset: gridTypeToHeroPreset(tunerGridType),
+      // Store the exact grid type so the hero uses it directly (not just the nearest preset)
+      heroNodeGridGridType: tunerGridType,
+      heroNodeGridCellSize: tunerCell,
+      heroNodeGridStrokeScale: tunerStroke,
+    });
+    setShowCanvasBuilder(false);
+  }, [applyHeroNodeGridCanvas, tunerCell, tunerGridType, tunerStroke]);
+
   return (
     <TooltipProvider>
     <section className="space-y-8" id="settings-panel">
@@ -421,6 +527,7 @@ export function SettingsPanel() {
                   <TabsTrigger value="appearance">Look &amp; color</TabsTrigger>
                   <TabsTrigger value="typography">Typography</TabsTrigger>
                   <TabsTrigger value="layout">Layout &amp; depth</TabsTrigger>
+                  <TabsTrigger value="backgrounds">Backgrounds</TabsTrigger>
                   <TabsTrigger value="branding">Agency</TabsTrigger>
                 </TabsList>
 
@@ -1031,6 +1138,26 @@ export function SettingsPanel() {
                       />
                     </div>
                   </SettingRow>
+
+                  <SettingRow
+                    titleId={cursorMagnifierLabelId}
+                    label="Cursor effects"
+                    description="Decorative magnifier on the marketing hero. Reduced motion always wins — when enabled, the lens is hidden regardless of this toggle."
+                  >
+                    <div className="flex items-center justify-between rounded-[calc(var(--theme-radius))] border border-border/70 bg-background-alt/70 px-4 py-3">
+                      <div>
+                        <p className="text-sm font-semibold text-foreground">Hero magnifier lens</p>
+                        <p className="text-xs text-muted">
+                          {cursorEffects.heroMagnifierLens ? "On" : "Off"} — zooms the hero scene under the cursor.
+                        </p>
+                      </div>
+                      <Switch
+                        aria-labelledby={cursorMagnifierLabelId}
+                        checked={cursorEffects.heroMagnifierLens}
+                        onCheckedChange={(checked) => setCursorEffectHeroMagnifierLens(checked)}
+                      />
+                    </div>
+                  </SettingRow>
                 </TabsContent>
 
                 <TabsContent className="space-y-4" value="layout">
@@ -1153,33 +1280,6 @@ export function SettingsPanel() {
                   </SettingRow>
 
                   <SettingRow
-                    titleId={heroGridLabelId}
-                    label="Marketing hero lattice"
-                    description="Background mesh for the landing hero — matches the layered SVG system used on the homepage."
-                  >
-                    <label className="grid gap-2" htmlFor={heroGridSelectId}>
-                      <span className="sr-only">Choose hero lattice pattern</span>
-                      <select
-                        className={FONT_SELECT_CLASSES}
-                        id={heroGridSelectId}
-                        onChange={(event) => {
-                          const value = event.target.value;
-                          if (isHeroGridPattern(value)) {
-                            setHeroGridPattern(value);
-                          }
-                        }}
-                        value={tokens.heroGridPattern}
-                      >
-                        {HERO_GRID_PATTERN_OPTIONS.map((item) => (
-                          <option key={item.id} value={item.id}>
-                            {item.label} — {item.description}
-                          </option>
-                        ))}
-                      </select>
-                    </label>
-                  </SettingRow>
-
-                  <SettingRow
                     titleId={spacingLabelId}
                     label="Spacing density"
                     description="Tighten or loosen vertical rhythm between sections."
@@ -1212,6 +1312,145 @@ export function SettingsPanel() {
                     <p className="mt-2 text-sm text-muted">
                       Current value: {tokens.glowIntensity.toFixed(2)}
                     </p>
+                  </SettingRow>
+                </TabsContent>
+
+                <TabsContent className="space-y-4" value="backgrounds">
+                  <SettingRow
+                    titleId={heroBackdropKindGroupId}
+                    label="Marketing hero backdrop"
+                    description="Choose the animated layer behind the landing hero. Light rays need WebGPU (Chrome/Edge); otherwise the node canvas is used automatically."
+                  >
+                    <div
+                      aria-labelledby={heroBackdropKindGroupId}
+                      className="grid gap-3 sm:grid-cols-2"
+                      role="group"
+                    >
+                      {(
+                        [
+                          {
+                            id: "nodeGrid" as const satisfies HeroBackdropKind,
+                            label: "Node canvas",
+                            description: "Robot-style dot grid — tunable below.",
+                          },
+                          {
+                            id: "lightRays" as const satisfies HeroBackdropKind,
+                            label: "Light rays (WebGPU)",
+                            description: "Soft volumetric beams tinted by your accent.",
+                          },
+                        ] as const
+                      ).map((item) => {
+                        const selected = tokens.heroBackdropKind === item.id;
+                        return (
+                          <button
+                            aria-label={`${item.label}. ${item.description}`}
+                            aria-pressed={selected}
+                            className={cn(
+                              "rounded-[calc(var(--theme-radius))] border p-3 text-left transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/40 focus-visible:ring-offset-2 focus-visible:ring-offset-background",
+                              selected
+                                ? "border-accent/60 bg-accent/10 shadow-sm"
+                                : "border-border/70 bg-panel/50 hover:border-accent/25 hover:bg-panel/65",
+                            )}
+                            key={item.id}
+                            onClick={() => setHeroBackdropKind(item.id)}
+                            type="button"
+                          >
+                            <p className="text-sm font-semibold text-foreground">{item.label}</p>
+                            <p className="mt-1 text-xs leading-snug text-muted">{item.description}</p>
+                          </button>
+                        );
+                      })}
+                    </div>
+                  </SettingRow>
+
+                  <SettingRow
+                    titleId={heroNodeGridPresetsGroupId}
+                    label="Landing hero node canvas"
+                    description="Pick a recipe for the animated dot grid behind the marketing hero. Open the canvas tuner to adjust cell spacing and stroke, then Apply."
+                  >
+                    <div
+                      aria-labelledby={heroNodeGridPresetsGroupId}
+                      className={cn(
+                        "grid gap-3 sm:grid-cols-3",
+                        tokens.heroBackdropKind === "lightRays" && "pointer-events-none opacity-45",
+                      )}
+                      role="group"
+                    >
+                      {HERO_NODE_GRID_PRESETS.map((item) => {
+                        const selected = tokens.heroNodeGridPreset === item.id;
+                        return (
+                          <button
+                            aria-label={`${item.label}. ${item.description}`}
+                            aria-pressed={selected}
+                            className={cn(
+                              "overflow-hidden rounded-[calc(var(--theme-radius))] border p-3 text-left transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/40 focus-visible:ring-offset-2 focus-visible:ring-offset-background",
+                              selected
+                                ? "border-accent/60 bg-accent/10 shadow-sm"
+                                : "border-border/70 bg-panel/50 hover:border-accent/25 hover:bg-panel/65",
+                            )}
+                            disabled={tokens.heroBackdropKind === "lightRays"}
+                            key={item.id}
+                            onClick={() => setHeroNodeGridPreset(item.id)}
+                            type="button"
+                          >
+                            <div className="relative h-28 w-full overflow-hidden rounded-md border border-border/50 bg-background/40">
+                              <NodeGridBackdrop
+                                className="relative h-full min-h-0 w-full"
+                                gridCellSize={item.gridCellSize}
+                                gridType={item.gridType}
+                                inline
+                                linkHoverFromPointer={false}
+                                strokeScale={item.strokeScale}
+                                withNoiseOverlay={false}
+                              />
+                            </div>
+                            <p className="mt-2 text-sm font-semibold text-foreground">{item.label}</p>
+                            <p className="mt-1 text-xs leading-snug text-muted">{item.description}</p>
+                          </button>
+                        );
+                      })}
+                    </div>
+                    <div className="mt-4 flex flex-wrap items-center gap-3">
+                      <Button
+                        disabled={tokens.heroBackdropKind === "lightRays"}
+                        onClick={() => setShowCanvasBuilder(true)}
+                        type="button"
+                        variant="secondary"
+                      >
+                        Open canvas tuner
+                      </Button>
+                      <p className="max-w-prose text-xs text-muted">
+                        Preview grid type, cell size, and stroke. Apply saves to the live hero and theme export.
+                      </p>
+                    </div>
+                  </SettingRow>
+
+                  <SettingRow
+                    titleId={heroLatticeBackgroundsLabelId}
+                    label="Studio lattice (live preview)"
+                    description="Layered SVG mesh behind the packet preview card on the right. Separate from the hero canvas."
+                  >
+                    <label className="grid gap-2" htmlFor={heroLatticeBackgroundsSelectId}>
+                      <span className="sr-only">Choose studio lattice pattern</span>
+                      <select
+                        aria-labelledby={heroLatticeBackgroundsLabelId}
+                        className={FONT_SELECT_CLASSES}
+                        id={heroLatticeBackgroundsSelectId}
+                        onChange={(event) => {
+                          const value = event.target.value;
+                          if (isHeroGridPattern(value)) {
+                            setHeroGridPattern(value);
+                          }
+                        }}
+                        value={tokens.heroGridPattern}
+                      >
+                        {HERO_GRID_PATTERN_OPTIONS.map((item) => (
+                          <option key={item.id} value={item.id}>
+                            {item.label} — {item.description}
+                          </option>
+                        ))}
+                      </select>
+                    </label>
                   </SettingRow>
                 </TabsContent>
 
@@ -1327,6 +1566,95 @@ export function SettingsPanel() {
                   </div>
                 </TabsContent>
               </Tabs>
+
+              <Dialog onOpenChange={setShowCanvasBuilder} open={showCanvasBuilder}>
+                <DialogContent className="max-h-[90vh] max-w-4xl overflow-y-auto">
+                  <DialogHeader>
+                    <DialogTitle>Canvas tuner</DialogTitle>
+                    <DialogDescription>
+                      Preview the hero node grid. Apply saves grid type (Waves, Flux, or Truss), cell spacing, and
+                      stroke to your theme.
+                    </DialogDescription>
+                  </DialogHeader>
+                  <div className="relative mt-2 h-[min(70vh,640px)] w-full overflow-hidden rounded-[calc(var(--theme-radius))] border border-border/70 bg-background">
+                    <NodeGridBackdrop
+                      key={`${tunerGridType}-${tunerCell}-${tunerStroke}`}
+                      className="h-full min-h-0 w-full"
+                      gridCellSize={tunerCell}
+                      gridType={tunerGridType}
+                      inline
+                      linkHoverFromPointer={false}
+                      strokeScale={tunerStroke}
+                      withNoiseOverlay={false}
+                    />
+                  </div>
+                  <div className="mt-4 grid gap-4">
+                    <label className="grid gap-2" htmlFor={canvasTunerGridSelectId}>
+                      <span className="text-sm font-semibold text-foreground" id={canvasTunerGridLabelId}>
+                        Grid type
+                      </span>
+                      <select
+                        aria-labelledby={canvasTunerGridLabelId}
+                        className={FONT_SELECT_CLASSES}
+                        id={canvasTunerGridSelectId}
+                        onChange={(event) => {
+                          const value = event.target.value as GridType;
+                          setTunerGridType(value);
+                        }}
+                        value={tunerGridType}
+                      >
+                        {NODE_GRID_ORDER.map((type) => (
+                          <option key={type} value={type}>
+                            {gridTypeLabel(type)}
+                          </option>
+                        ))}
+                      </select>
+                    </label>
+                    <div className="grid gap-2">
+                      <div className="flex items-center justify-between gap-2">
+                        <label className="text-sm font-semibold text-foreground" htmlFor={canvasTunerCellLabelId}>
+                          Cell size (px)
+                        </label>
+                        <span className="font-mono text-xs text-muted">{Math.round(tunerCell)}</span>
+                      </div>
+                      <Slider
+                        aria-labelledby={canvasTunerCellLabelId}
+                        id={canvasTunerCellLabelId}
+                        max={120}
+                        min={16}
+                        onValueChange={(value) => setTunerCell(value[0] ?? 16)}
+                        step={1}
+                        value={[tunerCell]}
+                      />
+                    </div>
+                    <div className="grid gap-2">
+                      <div className="flex items-center justify-between gap-2">
+                        <label className="text-sm font-semibold text-foreground" htmlFor={canvasTunerStrokeLabelId}>
+                          Stroke scale
+                        </label>
+                        <span className="font-mono text-xs text-muted">{tunerStroke.toFixed(2)}</span>
+                      </div>
+                      <Slider
+                        aria-labelledby={canvasTunerStrokeLabelId}
+                        id={canvasTunerStrokeLabelId}
+                        max={4}
+                        min={0.25}
+                        onValueChange={(value) => setTunerStroke(value[0] ?? 0.45)}
+                        step={0.05}
+                        value={[tunerStroke]}
+                      />
+                    </div>
+                  </div>
+                  <div className="mt-6 flex flex-wrap justify-end gap-2">
+                    <Button onClick={() => setShowCanvasBuilder(false)} type="button" variant="outline">
+                      Cancel
+                    </Button>
+                    <Button onClick={handleApplyCanvasTuner} type="button" variant="default">
+                      Apply
+                    </Button>
+                  </div>
+                </DialogContent>
+              </Dialog>
             </CardContent>
           </Card>
         </div>
@@ -1377,7 +1705,7 @@ export function SettingsPanel() {
 
                 <div className="mt-4 grid gap-3 sm:grid-cols-2">
                   <div className="rounded-[calc(var(--theme-radius))] border border-border/70 bg-elevated/80 p-4">
-                    <p className="text-xs uppercase tracking-[0.18em] text-muted">Mini packet header</p>
+                    <p className="text-[10px] font-semibold uppercase tracking-[0.16em] text-muted">Mini packet header</p>
                     <div className="mt-3 space-y-2">
                       <div className="h-2.5 w-28 rounded-full bg-accent/70" />
                       <div className="h-4 w-full rounded-full bg-foreground/14" />
@@ -1385,22 +1713,22 @@ export function SettingsPanel() {
                     </div>
                   </div>
                   <div className="rounded-[calc(var(--theme-radius))] border border-border/70 bg-elevated/80 p-4">
-                    <p className="text-xs uppercase tracking-[0.18em] text-muted">Score stack</p>
+                    <p className="text-[10px] font-semibold uppercase tracking-[0.16em] text-muted">Score stack</p>
                     <div className="mt-3 grid gap-2">
                       <div className="rounded-[calc(var(--theme-radius)-4px)] border border-border/70 bg-panel px-3 py-2">
                         <p className="text-[11px] uppercase tracking-[0.16em] text-muted">Current score</p>
-                        <p className="mt-1 font-display text-2xl font-semibold text-foreground">4.2 / 10</p>
+                        <p className="mt-1 font-display text-2xl font-semibold text-foreground whitespace-nowrap">4.2 / 10</p>
                       </div>
                       <div className="rounded-[calc(var(--theme-radius)-4px)] border border-border/70 bg-panel px-3 py-2">
                         <p className="text-[11px] uppercase tracking-[0.16em] text-muted">Projected score</p>
-                        <p className="mt-1 font-display text-2xl font-semibold text-foreground">8.9 / 10</p>
+                        <p className="mt-1 font-display text-2xl font-semibold text-foreground whitespace-nowrap">8.9 / 10</p>
                       </div>
                     </div>
                   </div>
                 </div>
 
                 <div className="mt-4 rounded-[calc(var(--theme-radius))] border border-border/70 bg-background-alt/70 p-4">
-                  <p className="text-xs uppercase tracking-[0.18em] text-muted">Surface rhythm</p>
+                  <p className="text-[10px] font-semibold uppercase tracking-[0.16em] text-muted">Surface rhythm</p>
                   <div className="mt-3 grid gap-2 sm:grid-cols-3">
                     <div className="rounded-[calc(var(--theme-radius)-4px)] border border-border/70 bg-panel px-3 py-3 text-sm text-foreground">
                       Executive summary

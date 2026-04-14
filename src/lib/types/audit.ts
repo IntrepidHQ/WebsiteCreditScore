@@ -75,6 +75,12 @@ export type HeroGridPattern =
   | "web"
   | "quantum";
 
+/** Node-grid canvas preset for the marketing hero background (Backgrounds tab in Settings). */
+export type HeroNodeGridPreset = "waves" | "flux" | "truss";
+
+/** Marketing hero backdrop family: canvas node grid vs WebGPU volumetric beams. */
+export type HeroBackdropKind = "nodeGrid" | "lightRays";
+
 export type PreviewDevice = "desktop" | "mobile";
 export type ReportProvenance = "live-observed" | "fallback-estimated" | "sample-based";
 export type BenchmarkVertical =
@@ -277,6 +283,20 @@ export interface ThemeTokens {
   spacingDensity: number;
   /** Landing hero / marketing lattice style. */
   heroGridPattern: HeroGridPattern;
+  /** Hero background renderer: animated node canvas or WebGPU light beams. */
+  heroBackdropKind: HeroBackdropKind;
+  /** Node-grid canvas preset powering the hero background (Waves / Flux / Truss). */
+  heroNodeGridPreset: HeroNodeGridPreset;
+  /**
+   * Actual GridType applied to the hero canvas. When set (e.g. from the canvas tuner)
+   * this overrides the gridType implied by heroNodeGridPreset, allowing any of the 14
+   * grid types to be selected without adding more preset values.
+   */
+  heroNodeGridGridType: string | null;
+  /** Dot spacing (px) for the hero node grid canvas; typical range 16–120. */
+  heroNodeGridCellSize: number;
+  /** Stroke width multiplier for hero node grid links; typical range 0.25–4. */
+  heroNodeGridStrokeScale: number;
   /** Opacity of glass panel fills (0–1); only affects glassmorphic studio surfaces. */
   glassFillOpacity: number;
   /** Opacity of glass borders / rim lines (0–1); independent from fill. */

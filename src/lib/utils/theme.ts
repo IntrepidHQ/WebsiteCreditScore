@@ -1,5 +1,6 @@
 import type {
   AgencyBranding,
+  HeroBackdropKind,
   HeroGridPattern,
   ThemeColorHarmony,
   ThemeFontProfile,
@@ -711,6 +712,10 @@ export function isHeroGridPattern(value: unknown): value is HeroGridPattern {
   return typeof value === "string" && (HERO_GRID_PATTERN_IDS as string[]).includes(value);
 }
 
+export function isHeroBackdropKind(value: unknown): value is HeroBackdropKind {
+  return value === "nodeGrid" || value === "lightRays";
+}
+
 /** Settings + landing hero lattice presets (robot-components–style layering). */
 export const HERO_GRID_PATTERN_OPTIONS: Array<{
   id: HeroGridPattern;
@@ -871,6 +876,31 @@ export function createThemeTokens(options?: ThemeTokensInput) {
     ),
     spacingDensity: clamp(options?.spacingDensity ?? 1, 0.82, 1.18),
     heroGridPattern: isHeroGridPattern(options?.heroGridPattern) ? options.heroGridPattern : "web",
+    heroBackdropKind: isHeroBackdropKind(options?.heroBackdropKind) ? options.heroBackdropKind : "nodeGrid",
+    heroNodeGridPreset:
+      options?.heroNodeGridPreset === "waves" ||
+      options?.heroNodeGridPreset === "flux" ||
+      options?.heroNodeGridPreset === "truss"
+        ? options.heroNodeGridPreset
+        : "waves",
+    heroNodeGridGridType:
+      typeof options?.heroNodeGridGridType === "string" && options.heroNodeGridGridType
+        ? options.heroNodeGridGridType
+        : null,
+    heroNodeGridCellSize: clamp(
+      typeof options?.heroNodeGridCellSize === "number" && Number.isFinite(options.heroNodeGridCellSize)
+        ? options.heroNodeGridCellSize
+        : 16,
+      16,
+      120,
+    ),
+    heroNodeGridStrokeScale: clamp(
+      typeof options?.heroNodeGridStrokeScale === "number" && Number.isFinite(options.heroNodeGridStrokeScale)
+        ? options.heroNodeGridStrokeScale
+        : 0.45,
+      0.25,
+      4,
+    ),
     glassFillOpacity: clamp(
       typeof options?.glassFillOpacity === "number" && Number.isFinite(options.glassFillOpacity)
         ? options.glassFillOpacity
@@ -1132,6 +1162,23 @@ export function parseThemeImportPayload(raw: string): {
       heroGridPattern: isHeroGridPattern(data.tokens.heroGridPattern)
         ? data.tokens.heroGridPattern
         : undefined,
+      heroBackdropKind: isHeroBackdropKind(data.tokens.heroBackdropKind)
+        ? data.tokens.heroBackdropKind
+        : undefined,
+      heroNodeGridPreset:
+        data.tokens.heroNodeGridPreset === "waves" ||
+        data.tokens.heroNodeGridPreset === "flux" ||
+        data.tokens.heroNodeGridPreset === "truss"
+          ? data.tokens.heroNodeGridPreset
+          : undefined,
+      heroNodeGridCellSize:
+        typeof data.tokens.heroNodeGridCellSize === "number" && Number.isFinite(data.tokens.heroNodeGridCellSize)
+          ? clamp(data.tokens.heroNodeGridCellSize, 16, 120)
+          : undefined,
+      heroNodeGridStrokeScale:
+        typeof data.tokens.heroNodeGridStrokeScale === "number" && Number.isFinite(data.tokens.heroNodeGridStrokeScale)
+          ? clamp(data.tokens.heroNodeGridStrokeScale, 0.25, 4)
+          : undefined,
       glassFillOpacity:
         typeof data.tokens.glassFillOpacity === "number" && Number.isFinite(data.tokens.glassFillOpacity)
           ? clamp(data.tokens.glassFillOpacity, 0.22, 0.92)

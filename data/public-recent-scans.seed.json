@@ -1,0 +1,182 @@
+[
+  {
+    "normalized_url": "https://apple.com",
+    "title": "Apple",
+    "score": 9.7,
+    "summary": "Category-defining restraint — the homepage feels like a product gallery with editorial confidence.",
+    "report_id": "f500-apple",
+    "preview_image": null,
+    "scanned_at": "2026-04-12T20:40:00.000Z"
+  },
+  {
+    "normalized_url": "https://wellsfargo.com",
+    "title": "Wells Fargo",
+    "score": 7.7,
+    "summary": "National bank homepage — familiar patterns, with strong task shortcuts and steady visual rhythm.",
+    "report_id": "f500-wellsfargo",
+    "preview_image": null,
+    "scanned_at": "2026-04-09T15:25:00.000Z"
+  },
+  {
+    "normalized_url": "https://meta.com",
+    "title": "Meta",
+    "score": 8.4,
+    "summary": "Brand-forward tech storytelling — confident visuals, with a homepage that sells ecosystems, not a single SKU.",
+    "report_id": "f500-meta",
+    "preview_image": null,
+    "scanned_at": "2026-04-08T18:50:00.000Z"
+  },
+  {
+    "normalized_url": "https://bankofamerica.com",
+    "title": "Bank of America",
+    "score": 7.9,
+    "summary": "Consumer banking at scale — strong sign-in momentum, with marketing modules competing for attention.",
+    "report_id": "f500-bofa",
+    "preview_image": null,
+    "scanned_at": "2026-04-08T13:05:00.000Z"
+  },
+  {
+    "normalized_url": "https://elevancehealth.com",
+    "title": "Elevance Health",
+    "score": 7.5,
+    "summary": "Payer homepage with consumer moments — clearer than many peers, still enterprise-heavy.",
+    "report_id": "f500-elevance",
+    "preview_image": null,
+    "scanned_at": "2026-04-07T16:15:00.000Z"
+  },
+  {
+    "normalized_url": "https://jnj.com",
+    "title": "Johnson & Johnson",
+    "score": 7.5,
+    "summary": "Healthcare conglomerate narrative — careful, human-centered copy with conservative visual energy.",
+    "report_id": "f500-jnj",
+    "preview_image": null,
+    "scanned_at": "2026-04-07T12:40:00.000Z"
+  },
+  {
+    "normalized_url": "https://jpmorganchase.com",
+    "title": "JPMorgan Chase",
+    "score": 8.2,
+    "summary": "Institutional finance homepage — disciplined, with a premium calm that still carries many destinations.",
+    "report_id": "f500-jpmorgan",
+    "preview_image": null,
+    "scanned_at": "2026-04-06T17:55:00.000Z"
+  },
+  {
+    "normalized_url": "https://cencora.com",
+    "title": "Cencora",
+    "score": 7.4,
+    "summary": "Post-rebrand pharmaceutical distribution — clearer story, still navigating legacy URL expectations.",
+    "report_id": "f500-cencora",
+    "preview_image": null,
+    "scanned_at": "2026-04-06T13:30:00.000Z"
+  },
+  {
+    "normalized_url": "https://cardinalhealth.com",
+    "title": "Cardinal Health",
+    "score": 7.1,
+    "summary": "Clinical supply chain authority — competent IA, with a homepage that reads slightly conservative.",
+    "report_id": "f500-cardinal-health",
+    "preview_image": null,
+    "scanned_at": "2026-04-05T18:45:00.000Z"
+  },
+  {
+    "normalized_url": "https://microsoft.com",
+    "title": "Microsoft",
+    "score": 9.2,
+    "summary": "Product constellation navigation — strong systems design, with many valid next steps.",
+    "report_id": "f500-microsoft",
+    "preview_image": null,
+    "scanned_at": "2026-04-05T14:10:00.000Z"
+  },
+  {
+    "normalized_url": "https://costco.com",
+    "title": "Costco Wholesale",
+    "score": 7.7,
+    "summary": "Retail clarity — membership logic is central, and the homepage rewards repeat shoppers.",
+    "report_id": "f500-costco",
+    "preview_image": null,
+    "scanned_at": "2026-04-04T17:35:00.000Z"
+  },
+  {
+    "normalized_url": "https://thecignagroup.com",
+    "title": "The Cigna Group",
+    "score": 7.6,
+    "summary": "Enterprise payer narrative — careful language, with a homepage tuned for reputation management.",
+    "report_id": "f500-cigna",
+    "preview_image": null,
+    "scanned_at": "2026-04-04T15:00:00.000Z"
+  },
+  {
+    "normalized_url": "https://mckesson.com",
+    "title": "McKesson",
+    "score": 6.9,
+    "summary": "B2B healthcare distribution tone — competent, with a homepage that behaves like a portal hub.",
+    "report_id": "f500-mckesson",
+    "preview_image": null,
+    "scanned_at": "2026-04-03T20:25:00.000Z"
+  },
+  {
+    "normalized_url": "https://corporate.exxonmobil.com",
+    "title": "ExxonMobil",
+    "score": 7.2,
+    "summary": "Industrial credibility — strong systems storytelling, with dense navigation typical of energy majors.",
+    "report_id": "f500-exxon",
+    "preview_image": null,
+    "scanned_at": "2026-04-03T16:10:00.000Z"
+  },
+  {
+    "normalized_url": "https://abc.xyz",
+    "title": "Alphabet",
+    "score": 8.2,
+    "summary": "Investor-forward story with editorial restraint — fewer modules, more whitespace discipline.",
+    "report_id": "f500-alphabet",
+    "preview_image": null,
+    "scanned_at": "2026-04-03T12:50:00.000Z"
+  },
+  {
+    "normalized_url": "https://berkshirehathaway.com",
+    "title": "Berkshire Hathaway",
+    "score": 5.5,
+    "summary": "Radically minimal — almost anti-design — which reads as confidence until expectations shift.",
+    "report_id": "f500-berkshire",
+    "preview_image": null,
+    "scanned_at": "2026-04-02T19:05:00.000Z"
+  },
+  {
+    "normalized_url": "https://cvshealth.com",
+    "title": "CVS Health",
+    "score": 7.5,
+    "summary": "Healthcare + retail hybrid — strong mission framing, with a lot of destinations to choose from.",
+    "report_id": "f500-cvs",
+    "preview_image": null,
+    "scanned_at": "2026-04-02T15:40:00.000Z"
+  },
+  {
+    "normalized_url": "https://unitedhealthgroup.com",
+    "title": "UnitedHealth Group",
+    "score": 7.3,
+    "summary": "Enterprise healthcare voice — credible, but the homepage can feel like a holding company index.",
+    "report_id": "f500-unitedhealth",
+    "preview_image": null,
+    "scanned_at": "2026-04-02T13:15:00.000Z"
+  },
+  {
+    "normalized_url": "https://amazon.com",
+    "title": "Amazon",
+    "score": 8.1,
+    "summary": "Relentless optimization culture shows up as tight modules — still busy, but intentionally so.",
+    "report_id": "f500-amazon",
+    "preview_image": null,
+    "scanned_at": "2026-04-01T18:20:00.000Z"
+  },
+  {
+    "normalized_url": "https://walmart.com",
+    "title": "Walmart",
+    "score": 7.5,
+    "summary": "Commerce giant with dense navigation — clarity competes with breadth at the top of the funnel.",
+    "report_id": "f500-walmart",
+    "preview_image": null,
+    "scanned_at": "2026-04-01T14:05:00.000Z"
+  }
+]
