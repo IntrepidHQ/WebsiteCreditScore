@@ -86,7 +86,7 @@ export const POST = async (request: NextRequest) => {
 
   let workspace;
   try {
-    workspace = await repository.ensureWorkspace(session);
+    workspace = await repository.ensureWorkspace(session, request);
   } catch (err) {
     redirectOnRecoverableProductError(err);
     throw err;

@@ -8,12 +8,25 @@ const COMPLIMENTARY_MAX_EMAILS = new Set(
   ["seekercray@gmail.com", "crayhanssolo@gmail.com"].map((email) => email.toLowerCase()),
 );
 
+const parseCommaSeparatedEmails = (raw: string | undefined): string[] => {
+  if (!raw?.trim()) {
+    return [];
+  }
+  return raw
+    .split(",")
+    .map((entry) => entry.trim().toLowerCase())
+    .filter(Boolean);
+};
+
 export const isComplimentaryMaxEmail = (email: string | null | undefined): boolean => {
   const normalized = (email ?? "").trim().toLowerCase();
   if (!normalized) {
     return false;
   }
-  return COMPLIMENTARY_MAX_EMAILS.has(normalized);
+  if (COMPLIMENTARY_MAX_EMAILS.has(normalized)) {
+    return true;
+  }
+  return parseCommaSeparatedEmails(process.env.COMPLIMENTARY_MAX_EMAILS).includes(normalized);
 };
 
 const mergeEntitlementSets = (
@@ -51,6 +64,24 @@ export const workspaceHasMaxAccess = (workspace: WorkspaceRecord): boolean => {
     return true;
   }
   return workspace.entitlements?.includes("max-stealth") ?? false;
+};
+
+const isTruthyEnv = (value: string | undefined): boolean =>
+  value === "1" || value?.toLowerCase() === "true";
+
+/**
+ * When `WORKSPACE_CHAT_ALLOW_WITHOUT_MAX` is `1` or `true`, workspace chat is allowed without the
+ * MAX add-on (for staging and internal testing). Production should leave this unset.
+ */
+export const workspaceAgentChatSkipsMaxGate = (): boolean =>
+  isTruthyEnv(process.env.WORKSPACE_CHAT_ALLOW_WITHOUT_MAX);
+
+/** Workspace assistant chat: MAX add-on unless testing bypass env is enabled. */
+export const workspaceHasAgentChatAccess = (workspace: WorkspaceRecord): boolean => {
+  if (workspaceAgentChatSkipsMaxGate()) {
+    return true;
+  }
+  return workspaceHasMaxAccess(workspace);
 };
 
 export const assertWorkspaceAllowsMaxPrompt = (workspace: WorkspaceRecord): void => {

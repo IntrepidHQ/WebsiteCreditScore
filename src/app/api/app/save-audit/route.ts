@@ -1,7 +1,7 @@
 import { revalidatePath } from "next/cache";
 import { NextResponse } from "next/server";
 
-import { getOptionalWorkspaceSession } from "@/lib/auth/session";
+import { getOptionalWorkspaceSessionFromRequest } from "@/lib/auth/session";
 import { getProductRepository } from "@/lib/product/repository";
 import { redirectOnRecoverableProductError } from "@/lib/product/workspace-load-errors";
 import { normalizeUrl } from "@/lib/utils/url";
@@ -35,7 +35,7 @@ export async function POST(request: Request) {
     );
   }
 
-  const session = await getOptionalWorkspaceSession();
+  const session = await getOptionalWorkspaceSessionFromRequest(request);
   if (!session) {
     return NextResponse.json({ error: "Sign in required." }, { status: 401 });
   }
@@ -44,7 +44,7 @@ export async function POST(request: Request) {
 
   let workspace;
   try {
-    workspace = await repository.ensureWorkspace(session);
+    workspace = await repository.ensureWorkspace(session, request);
   } catch (err) {
     redirectOnRecoverableProductError(err);
     throw err;
