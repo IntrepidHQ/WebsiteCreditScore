@@ -11,7 +11,7 @@ const messageFromUnknown = (err: unknown): string => {
 };
 
 /**
- * Maps Supabase/Postgres/product errors to a login redirect instead of a generic 500.
+ * Maps Supabase/Postgres/product errors to a safe redirect instead of a generic 500.
  * Call from catch blocks after repository reads (dashboard, lead detail, etc.).
  */
 export const redirectOnRecoverableProductError = (err: unknown): void => {
@@ -62,8 +62,12 @@ export const redirectOnRecoverableProductError = (err: unknown): void => {
     redirect("/app/login?error=db-not-ready");
   }
 
-  if (isDuplicateKey || isRlsOrPermission || isAuthDrift) {
+  if (isAuthDrift) {
     redirect("/app/login?error=workspace-unavailable");
+  }
+
+  if (isDuplicateKey || isRlsOrPermission) {
+    redirect("/app/workspace-unavailable");
   }
 
   // Transient network / upstream issues: do not send users to login (session is usually still valid).

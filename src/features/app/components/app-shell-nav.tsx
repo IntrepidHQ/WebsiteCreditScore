@@ -37,6 +37,7 @@ export function AppShellNav() {
             )}
             href={item.href}
             key={item.href}
+            prefetch={false}
           >
             {item.label}
           </Link>
