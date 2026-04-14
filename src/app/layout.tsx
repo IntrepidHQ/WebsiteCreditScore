@@ -76,9 +76,44 @@ const fontVariableClassName = [
 ].join(" ");
 
 export const metadata: Metadata = {
-  title: "WebsiteCreditScore.com",
+  title: {
+    default: "WebsiteCreditScore.com — Score Any Website in Seconds",
+    template: "%s | WebsiteCreditScore",
+  },
   description:
-    "WebsiteCreditScore.com turns prospect sites into sharper audits, clearer redesign direction, and measurable design benchmarks.",
+    "Get a weighted website audit score, competitive benchmarks, and a redesign brief in seconds. Built for web designers, agencies, and business owners who want sites that earn trust.",
+  metadataBase: new URL("https://websitecreditscore.com"),
+  keywords: [
+    "website audit",
+    "website score",
+    "web design benchmarks",
+    "website redesign brief",
+    "site audit tool",
+    "conversion optimization",
+    "website trust signals",
+    "web design agency tools",
+  ],
+  openGraph: {
+    type: "website",
+    siteName: "WebsiteCreditScore.com",
+    title: "WebsiteCreditScore.com — Score Any Website in Seconds",
+    description:
+      "Weighted audit score, competitive benchmarks, and a redesign brief. Know exactly what to fix before you rebuild.",
+    url: "https://websitecreditscore.com",
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "WebsiteCreditScore.com — Score Any Website in Seconds",
+    description:
+      "Weighted audit score, competitive benchmarks, and a redesign brief. Know exactly what to fix before you rebuild.",
+  },
+  alternates: {
+    canonical: "https://websitecreditscore.com",
+  },
+  robots: {
+    index: true,
+    follow: true,
+  },
   icons: {
     icon: [
       { url: "/favicon.svg", type: "image/svg+xml" },

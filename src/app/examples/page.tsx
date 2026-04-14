@@ -1,4 +1,16 @@
+import type { Metadata } from "next";
 import Link from "next/link";
+
+export const metadata: Metadata = {
+  title: "Website Audit Examples — Real Sites, Real Scores",
+  description:
+    "Browse scored website audits for real companies. Each example includes a weighted score breakdown, key findings, and redesign recommendations.",
+  openGraph: {
+    title: "Website Audit Examples",
+    description:
+      "Real website audits with scores, findings, and redesign direction. See how the audit reads in practice.",
+  },
+};
 import { ArrowRight, Eye, FileText, Layers3 } from "lucide-react";
 
 import { ScoreBreakdownBars } from "@/components/common/score-breakdown-bars";

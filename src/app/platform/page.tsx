@@ -1,4 +1,11 @@
+import type { Metadata } from "next";
 import Link from "next/link";
+
+export const metadata: Metadata = {
+  title: "Platform Features — The Website Scoring Toolkit for Designers",
+  description:
+    "Run scored audits, generate competitive benchmarks, build redesign briefs, and export client-ready packets. WebsiteCreditScore.com is built for web designers and agencies.",
+};
 import { ArrowRight, ClipboardList, FileText, ScanSearch } from "lucide-react";
 
 import { ScoreBreakdownBars } from "@/components/common/score-breakdown-bars";

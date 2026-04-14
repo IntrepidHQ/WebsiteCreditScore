@@ -96,8 +96,8 @@ export function ScanLoadingOverlay({
       tick();
       gsap.to(counter, {
         value: 10,
-        duration: 10,
-        ease: "power2.out",
+        duration: 8,
+        ease: "power2.inOut",
         onUpdate: tick,
         onComplete: () => {
           setDisplayScore(10);
@@ -108,13 +108,18 @@ export function ScanLoadingOverlay({
 
     const finishToTenAndExit = () => {
       gsap.killTweensOf(counter);
-      const remaining = 10 - counter.value;
-      const duration = Math.min(0.55, Math.max(0.22, remaining * 0.09));
+      const duration = Math.min(0.4, Math.max(0.15, (10 - counter.value) * 0.05));
+      const bars = barRefs.current.filter(Boolean) as HTMLDivElement[];
       gsap.to(counter, {
         value: 10,
         duration,
         ease: "power2.out",
-        onUpdate: tick,
+        onUpdate: () => {
+          tick();
+          if (bars.length) {
+            gsap.to(bars, { width: "100%", duration, ease: "power2.out", stagger: 0 });
+          }
+        },
         onComplete: () => {
           setDisplayScore(10);
           if (!firedRef.current) {
@@ -132,13 +137,20 @@ export function ScanLoadingOverlay({
 
     counter.value = 0;
     tick();
+    // Phase 1: 0 → 7.0 over 9 seconds
     gsap.to(counter, {
-      value: 10,
-      duration: 26,
-      ease: "power2.out",
+      value: 7.0,
+      duration: 9,
+      ease: "power1.inOut",
       onUpdate: tick,
       onComplete: () => {
-        setDisplayScore(10);
+        // Phase 2: 7.0 → 9.4 over 20 seconds
+        gsap.to(counter, {
+          value: 9.4,
+          duration: 20,
+          ease: "power2.out",
+          onUpdate: tick,
+        });
       },
     });
 

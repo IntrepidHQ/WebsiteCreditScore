@@ -363,15 +363,30 @@ export interface OutreachEmailTemplate {
 }
 
 export interface QuestionnaireResponseSet {
-  primaryGoal: string;
-  primaryAction: string;
-  brandKeywords: string;
+  // Step 1: Business
+  businessDescription: string;
+  targetAudience: string;
+  painPoints: string;
+  uniqueValue: string;
+  // Step 2: Competition & positioning
+  competitors: string;
+  differentiators: string;
+  // Step 3: Brand & tone
+  tone: string;
+  colorPreference: string;
+  existingAssets: string;
+  testimonials: string;
+  // Step 4: Scope & timeline
   mustHavePages: string;
   mustHaveFeatures: string;
   contentReadiness: string;
   launchTiming: string;
   successMetric: string;
   internalNotes: string;
+  // Legacy fields kept for backward compat (brief generation still uses these)
+  primaryGoal: string;
+  primaryAction: string;
+  brandKeywords: string;
 }
 
 export interface CreativeBrief {
