@@ -10,21 +10,21 @@ import { Button } from "@/components/ui/button";
 
 const primaryLinks = [
   { href: "/platform", label: "Platform" },
-  { href: "/examples", label: "Examples" },
+  { href: "/examples", label: "Recent scans" },
   { href: "/benchmarks", label: "Benchmarks" },
   { href: "/pricing", label: "Pricing" },
   { href: "/agencies", label: "Agencies" },
   { href: "/docs", label: "Docs" },
-  { href: "/audit/mark-deford-md", label: "Sample Audit" },
+  { href: "/audit/f500-apple", label: "Sample high score" },
 ];
 
 export function SiteFooter({ isAuthenticated }: { isAuthenticated: boolean }) {
   const pathname = usePathname();
 
   const toolLinks = [
-    { href: "/brief/mark-deford-md", label: "Discovery Brief" },
+    { href: "/brief/f500-apple", label: "Discovery Brief" },
     { href: "/settings", label: "Theme" },
-    { href: "/app/chat", label: "Workspace chat (MAX)" },
+    { href: "/app/chat", label: "Chat (MAX)" },
     isAuthenticated
       ? { href: "/app", label: "Workspace" }
       : { href: "/app/login", label: "Sign in" },
@@ -52,9 +52,9 @@ export function SiteFooter({ isAuthenticated }: { isAuthenticated: boolean }) {
           </div>
           <div className="grid gap-3 sm:flex sm:flex-wrap">
             <Button asChild className="w-full sm:w-auto" size="sm">
-              <Link href="/audit/mark-deford-md">
+              <Link href="/audit/f500-apple">
                 <ScanSearch className="size-4" />
-                Open sample audit
+                Open sample high score
               </Link>
             </Button>
             <Button asChild className="w-full sm:w-auto" size="sm" variant="secondary">

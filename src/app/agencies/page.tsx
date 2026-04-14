@@ -12,7 +12,7 @@ export const metadata = {
 
 export default function AgenciesPage() {
   return (
-    <div className="mx-auto w-full max-w-3xl space-y-10 px-4 py-14 sm:px-6">
+    <div className="mx-auto w-full max-w-3xl space-y-6 px-4 py-14 sm:px-6">
       <SectionHeading
         eyebrow="For agencies"
         title="Run audits faster. Keep every build organized."
@@ -23,7 +23,7 @@ export default function AgenciesPage() {
         <CardHeader>
           <CardTitle className="font-display text-2xl">MAX workspace</CardTitle>
         </CardHeader>
-        <CardContent className="space-y-4 text-sm leading-7 text-muted">
+        <CardContent className="space-y-4 pt-0 text-sm leading-7 text-muted">
           <p>
             With the MAX add-on you get private handoff generation, workspace chat grounded in saved audits, and a
             pipeline view that ties scans to delivery — framed as opportunities and tasks, not cold “lead” language

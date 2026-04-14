@@ -11,7 +11,7 @@ const navItems = [
   { href: "/app/pipeline", label: "Pipeline" },
   { href: "/app/dataroom", label: "Dataroom" },
   { href: "/app/chat", label: "Chat" },
-  { href: "/app/benchmarks", label: "Benchmarks" },
+  { href: "/benchmarks", label: "Benchmarks" },
   { href: "/app/max", label: "MAX" },
   { href: "/app/seo", label: "SEO" },
   { href: "/app/templates", label: "Templates" },
