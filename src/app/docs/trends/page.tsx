@@ -37,51 +37,47 @@ export default function TrendsIndexPage() {
         />
         <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
           {TREND_ARTICLES.map((article) => (
-            <Card
+            <Link
               key={article.slug}
-              className="group flex flex-col overflow-hidden transition hover:-translate-y-0.5 hover:border-accent/30"
+              aria-label={`${article.title}`}
+              className="group block h-full rounded-[10px] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/45 focus-visible:ring-offset-2 focus-visible:ring-offset-background"
+              href={`/docs/trends/${article.slug}`}
             >
-              <CardHeader className="space-y-3">
-                <div className="flex flex-wrap gap-2">
-                  {article.tags.slice(0, 2).map((tag) => (
-                    <Badge
-                      key={tag}
-                      variant="neutral"
-                      className="text-[10px] uppercase tracking-[0.12em]"
-                    >
-                      {tag}
-                    </Badge>
-                  ))}
-                </div>
-                <CardTitle className="text-xl leading-snug">
-                  <Link
-                    href={`/docs/trends/${article.slug}`}
-                    className="transition hover:text-accent"
-                  >
+              <Card className="flex h-full flex-col overflow-hidden transition hover:-translate-y-0.5 hover:border-accent/30">
+                <CardHeader className="space-y-3 px-6 pb-0 pt-6 sm:px-7 sm:pt-7">
+                  <div className="flex flex-wrap gap-2">
+                    {article.tags.slice(0, 2).map((tag) => (
+                      <Badge
+                        key={tag}
+                        variant="neutral"
+                        className="text-[10px] uppercase tracking-[0.12em]"
+                      >
+                        {tag}
+                      </Badge>
+                    ))}
+                  </div>
+                  <CardTitle className="font-display text-2xl font-semibold leading-snug tracking-tight text-foreground transition group-hover:text-accent sm:text-[1.7rem] sm:leading-snug">
                     {article.title}
-                  </Link>
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="flex flex-1 flex-col gap-4">
-                <p className="flex-1 text-sm leading-7 text-muted">{article.excerpt}</p>
-                <div className="flex items-center justify-between text-[11px] uppercase tracking-[0.14em] text-muted">
-                  <span className="flex items-center gap-1.5">
-                    <Calendar className="size-3" />
-                    {formatDate(article.publishedAt)}
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="flex flex-1 flex-col gap-4 px-6 pb-6 pt-3 sm:px-7 sm:pb-7">
+                  <p className="flex-1 text-sm leading-7 text-muted">{article.excerpt}</p>
+                  <div className="flex items-center justify-between text-[11px] uppercase tracking-[0.14em] text-muted">
+                    <span className="flex items-center gap-1.5">
+                      <Calendar aria-hidden className="size-3 shrink-0" />
+                      {formatDate(article.publishedAt)}
+                    </span>
+                    <span className="flex items-center gap-1.5">
+                      <Clock aria-hidden className="size-3 shrink-0" />
+                      {article.readMinutes} min read
+                    </span>
+                  </div>
+                  <span className="inline-flex items-center gap-2 text-sm font-semibold text-accent transition group-hover:gap-3">
+                    Read article <ArrowRight aria-hidden className="size-4 shrink-0" />
                   </span>
-                  <span className="flex items-center gap-1.5">
-                    <Clock className="size-3" />
-                    {article.readMinutes} min read
-                  </span>
-                </div>
-                <Link
-                  href={`/docs/trends/${article.slug}`}
-                  className="inline-flex items-center gap-2 text-sm font-semibold text-accent transition hover:gap-3"
-                >
-                  Read article <ArrowRight className="size-4" />
-                </Link>
-              </CardContent>
-            </Card>
+                </CardContent>
+              </Card>
+            </Link>
           ))}
         </div>
       </div>

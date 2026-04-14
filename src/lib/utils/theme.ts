@@ -10,6 +10,7 @@ import type {
   ThemeSurfaceFinish,
   ThemeTokens,
 } from "@/lib/types/audit";
+import { isHeroNodeGridPreset } from "@/lib/types/audit";
 import { getAllThemePresetSeeds } from "@/lib/benchmarks/library";
 
 type ThemeTokensInput = Partial<ThemeTokens> & { fontProfile?: ThemeFontProfile };
@@ -877,12 +878,9 @@ export function createThemeTokens(options?: ThemeTokensInput) {
     spacingDensity: clamp(options?.spacingDensity ?? 1, 0.82, 1.18),
     heroGridPattern: isHeroGridPattern(options?.heroGridPattern) ? options.heroGridPattern : "web",
     heroBackdropKind: isHeroBackdropKind(options?.heroBackdropKind) ? options.heroBackdropKind : "nodeGrid",
-    heroNodeGridPreset:
-      options?.heroNodeGridPreset === "waves" ||
-      options?.heroNodeGridPreset === "flux" ||
-      options?.heroNodeGridPreset === "truss"
-        ? options.heroNodeGridPreset
-        : "waves",
+    heroNodeGridPreset: isHeroNodeGridPreset(options?.heroNodeGridPreset)
+      ? options.heroNodeGridPreset
+      : "waves",
     heroNodeGridGridType:
       typeof options?.heroNodeGridGridType === "string" && options.heroNodeGridGridType
         ? options.heroNodeGridGridType
@@ -1165,11 +1163,12 @@ export function parseThemeImportPayload(raw: string): {
       heroBackdropKind: isHeroBackdropKind(data.tokens.heroBackdropKind)
         ? data.tokens.heroBackdropKind
         : undefined,
-      heroNodeGridPreset:
-        data.tokens.heroNodeGridPreset === "waves" ||
-        data.tokens.heroNodeGridPreset === "flux" ||
-        data.tokens.heroNodeGridPreset === "truss"
-          ? data.tokens.heroNodeGridPreset
+      heroNodeGridPreset: isHeroNodeGridPreset(data.tokens.heroNodeGridPreset)
+        ? data.tokens.heroNodeGridPreset
+        : undefined,
+      heroNodeGridGridType:
+        typeof data.tokens.heroNodeGridGridType === "string" && data.tokens.heroNodeGridGridType.trim()
+          ? data.tokens.heroNodeGridGridType.trim()
           : undefined,
       heroNodeGridCellSize:
         typeof data.tokens.heroNodeGridCellSize === "number" && Number.isFinite(data.tokens.heroNodeGridCellSize)

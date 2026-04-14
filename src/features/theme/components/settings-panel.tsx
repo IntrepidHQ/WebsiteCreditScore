@@ -59,7 +59,7 @@ type HeroPresetConfig = {
   id: HeroNodeGridPreset;
   label: string;
   description: string;
-  gridType: "waves" | "flux" | "triangular";
+  gridType: GridType;
   gridCellSize: number;
   strokeScale: number;
 };
@@ -89,15 +89,128 @@ const HERO_NODE_GRID_PRESETS: HeroPresetConfig[] = [
     gridCellSize: 16,
     strokeScale: 0.45,
   },
+  {
+    id: "rectangular",
+    label: "Rectangular",
+    description: "Orthogonal snap lattice — crisp, ledger-like order.",
+    gridType: "rectangular",
+    gridCellSize: 16,
+    strokeScale: 0.45,
+  },
+  {
+    id: "hexagonal",
+    label: "Honeycomb",
+    description: "Axial hex cells — modular, cellular rhythm.",
+    gridType: "hexagonal",
+    gridCellSize: 16,
+    strokeScale: 0.45,
+  },
+  {
+    id: "isometric",
+    label: "Isometric",
+    description: "Pseudo-3D tile projection — blueprint depth, calm structure.",
+    gridType: "isometric",
+    gridCellSize: 16,
+    strokeScale: 0.45,
+  },
+  {
+    id: "webOne",
+    label: "Web one",
+    description: "Single-layer weave graph — sparse, narrative routing.",
+    gridType: "web_one",
+    gridCellSize: 16,
+    strokeScale: 0.45,
+  },
+  {
+    id: "quantumWeb",
+    label: "Quantum web",
+    description: "Entangled dual mesh — shimmering, high-link density.",
+    gridType: "quantum_web",
+    gridCellSize: 16,
+    strokeScale: 0.45,
+  },
+  {
+    id: "mesh",
+    label: "Mesh",
+    description: "Jittered point field — organic scatter with latent order.",
+    gridType: "mesh",
+    gridCellSize: 16,
+    strokeScale: 0.45,
+  },
+  {
+    id: "constellation",
+    label: "Constellation",
+    description: "k-nearest star links — astral, sparse connectivity.",
+    gridType: "constellation",
+    gridCellSize: 16,
+    strokeScale: 0.45,
+  },
+  {
+    id: "floral",
+    label: "Floral",
+    description: "Radial growth curves — botanical, graceful expansion.",
+    gridType: "floral",
+    gridCellSize: 16,
+    strokeScale: 0.45,
+  },
+  {
+    id: "spiral",
+    label: "Spiral",
+    description: "Polar spiral arms — vortex motion, centripetal focus.",
+    gridType: "spiral",
+    gridCellSize: 16,
+    strokeScale: 0.45,
+  },
+  {
+    id: "organic",
+    label: "Organic",
+    description: "Soft blob clusters — biomimetic breathing, fluid calm.",
+    gridType: "organic",
+    gridCellSize: 16,
+    strokeScale: 0.45,
+  },
+  {
+    id: "automate",
+    label: "Automate",
+    description: "Mechanized arc rings — kinetic, factory-floor precision.",
+    gridType: "automate",
+    gridCellSize: 16,
+    strokeScale: 0.45,
+  },
 ];
 
-/** Maps a GridType back to the nearest named preset (for the preset card highlight). */
+/** Maps a GridType back to the matching hero preset card (for tuner apply + highlight sync). */
 const gridTypeToHeroPreset = (g: GridType): HeroNodeGridPreset => {
-  if (g === "triangular") return "truss";
-  if (g === "flux") return "flux";
-  if (g === "waves") return "waves";
-  // Any non-standard type (e.g. hexagonal, spiral) maps to the closest visual preset
-  return "waves";
+  switch (g) {
+    case "triangular":
+      return "truss";
+    case "web_one":
+      return "webOne";
+    case "quantum_web":
+      return "quantumWeb";
+    case "waves":
+      return "waves";
+    case "flux":
+      return "flux";
+    case "rectangular":
+      return "rectangular";
+    case "hexagonal":
+      return "hexagonal";
+    case "isometric":
+      return "isometric";
+    case "mesh":
+      return "mesh";
+    case "constellation":
+      return "constellation";
+    case "floral":
+      return "floral";
+    case "spiral":
+      return "spiral";
+    case "organic":
+      return "organic";
+    case "automate":
+      return "automate";
+  }
 };
 
 const heroPresetToGridType = (id: HeroNodeGridPreset): GridType => {
@@ -1414,12 +1527,12 @@ export function SettingsPanel() {
                   <SettingRow
                     titleId={heroNodeGridPresetsGroupId}
                     label="Animated backgrounds"
-                    description="Choose the motion lattice for the marketing hero (Waves, Flux, or Truss). Open the canvas tuner to fine-tune cell spacing and stroke, then Apply."
+                    description="Choose the motion lattice for the marketing hero (14 engine modes). Open the canvas tuner to fine-tune cell spacing and stroke, then Apply."
                   >
                     <div
                       aria-labelledby={heroNodeGridPresetsGroupId}
                       className={cn(
-                        "grid gap-3 sm:grid-cols-3",
+                        "grid gap-3 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4",
                         tokens.heroBackdropKind === "lightRays" && "pointer-events-none opacity-45",
                       )}
                       role="group"
@@ -1685,7 +1798,7 @@ export function SettingsPanel() {
                         </p>
                         <div
                           aria-labelledby={canvasTunerPresetGroupId}
-                          className="mt-2 grid grid-cols-3 gap-2"
+                          className="mt-2 grid grid-cols-2 gap-2 sm:grid-cols-3 lg:grid-cols-4"
                           role="group"
                         >
                           {HERO_NODE_GRID_PRESETS.map((preset) => {

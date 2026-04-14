@@ -75,8 +75,28 @@ export type HeroGridPattern =
   | "web"
   | "quantum";
 
-/** Node-grid canvas preset for the marketing hero background (Backgrounds tab in Settings). */
-export type HeroNodeGridPreset = "waves" | "flux" | "truss";
+/** Node-grid canvas presets for the marketing hero (Backgrounds tab — one card per engine mode). */
+export const HERO_NODE_GRID_PRESET_IDS = [
+  "waves",
+  "flux",
+  "truss",
+  "rectangular",
+  "hexagonal",
+  "isometric",
+  "webOne",
+  "quantumWeb",
+  "mesh",
+  "constellation",
+  "floral",
+  "spiral",
+  "organic",
+  "automate",
+] as const;
+
+export type HeroNodeGridPreset = (typeof HERO_NODE_GRID_PRESET_IDS)[number];
+
+export const isHeroNodeGridPreset = (value: unknown): value is HeroNodeGridPreset =>
+  typeof value === "string" && (HERO_NODE_GRID_PRESET_IDS as readonly string[]).includes(value);
 
 /** Marketing hero backdrop family: canvas node grid vs WebGPU volumetric beams. */
 export type HeroBackdropKind = "nodeGrid" | "lightRays";
@@ -285,7 +305,7 @@ export interface ThemeTokens {
   heroGridPattern: HeroGridPattern;
   /** Hero background renderer: animated node canvas or WebGPU light beams. */
   heroBackdropKind: HeroBackdropKind;
-  /** Node-grid canvas preset powering the hero background (Waves / Flux / Truss). */
+  /** Node-grid canvas preset powering the hero background (see `HERO_NODE_GRID_PRESET_IDS`). */
   heroNodeGridPreset: HeroNodeGridPreset;
   /**
    * Actual GridType applied to the hero canvas. When set (e.g. from the canvas tuner)
