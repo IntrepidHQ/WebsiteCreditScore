@@ -806,6 +806,40 @@ function classifyFetchError(error: unknown): FetchErrorReason {
   return "unknown";
 }
 
+/**
+ * Returns true if the text block is garbage from a dynamic JS site:
+ * raw JSON fragments, i18n key dumps, internal state payloads, etc.
+ * Conservative — only flags clear garbage, not borderline content.
+ */
+function isGarbageBlock(text: string): boolean {
+  if (!text || text.length < 4) return false;
+
+  // High symbol density: >12% of chars are {}:,"
+  const symbolCount = (text.match(/[{}:,"]/g) ?? []).length;
+  if (symbolCount / text.length > 0.12) return true;
+
+  // i18n key pattern: dot/underscore-connected identifiers with no spaces
+  // e.g. "nav.home", "common.label_text", "page.section.title"
+  const words = text.trim().split(/\s+/);
+  const i18nLike = words.filter((w) => /^[a-z][a-zA-Z0-9]*([._][a-zA-Z0-9]+){1,}$/.test(w));
+  if (words.length > 0 && i18nLike.length / words.length > 0.5) return true;
+
+  // Random-looking alphanumeric tokens: 8+ chars, <10% vowels
+  // e.g. "xfxaVpgbQt", "gHtKplMnX"
+  const randomTokens = text.match(/\b[a-zA-Z0-9]{8,}\b/g) ?? [];
+  const vowelless = randomTokens.filter(
+    (tok) => (tok.match(/[aeiouAEIOU]/g) ?? []).length / tok.length < 0.1,
+  );
+  if (randomTokens.length > 0 && vowelless.length / randomTokens.length > 0.6) return true;
+
+  // Mostly key-value pairs, no real sentences
+  const kvMatches = (text.match(/["']?\w+["']?\s*[=:]\s*["']?[^,\n]{1,80}["']?/g) ?? []).length;
+  const sentences = text.split(/[.!?]/).filter((s) => s.trim().length > 10).length;
+  if (kvMatches >= 3 && sentences === 0) return true;
+
+  return false;
+}
+
 function markdownParagraphsForFirecrawl(markdown: string, limit = 24): string[] {
   const blocks = markdown
     .replace(/```[\s\S]*?```/g, " ")
@@ -818,7 +852,8 @@ function markdownParagraphsForFirecrawl(markdown: string, limit = 24): string[] 
         .replace(/\s+/g, " ")
         .trim(),
     )
-    .filter((p) => p.length > 24);
+    .filter((p) => p.length > 24)
+    .filter((p) => !isGarbageBlock(p));
 
   return uniqueTexts(blocks, limit);
 }
@@ -837,12 +872,15 @@ function firstMarkdownHeading(markdown: string): string {
 
 function markdownToReadableText(markdown: string): string {
   const withoutCode = markdown.replace(/```[\s\S]*?```/g, " ");
-  return cleanText(
-    withoutCode
-      .replace(/^#{1,6}\s+/gm, "")
-      .replace(/\[([^\]]+)\]\([^)]+\)/g, "$1")
-      .replace(/[*_`]+/g, " "),
-  );
+  const stripped = withoutCode
+    .replace(/^#{1,6}\s+/gm, "")
+    .replace(/\[([^\]]+)\]\([^)]+\)/g, "$1")
+    .replace(/[*_`]+/g, " ");
+  const filtered = stripped
+    .split("\n")
+    .filter((line) => !isGarbageBlock(line.trim()))
+    .join("\n");
+  return cleanText(filtered);
 }
 
 function derivePrimaryCtasFromMarkdown(markdown: string): string[] {

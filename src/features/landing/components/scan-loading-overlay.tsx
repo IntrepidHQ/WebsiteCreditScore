@@ -8,6 +8,20 @@ import { useMotionSettings } from "@/hooks/use-motion-settings";
 import { cn } from "@/lib/utils/cn";
 import { getDialMetrics } from "@/lib/utils/score-visuals";
 
+const SCAN_STEPS = [
+  "Crawling the live site",
+  "Analyzing trust signals",
+  "Scoring UX and conversion",
+  "Building your report",
+] as const;
+
+function getScanStepIndex(score: number): number {
+  if (score < 3.5) return 0;
+  if (score < 7.0) return 1;
+  if (score < 8.7) return 2;
+  return 3;
+}
+
 const skeletonCategories = [
   { label: "Visual design", key: "vd" },
   { label: "UX / conversion", key: "ux" },
@@ -46,6 +60,7 @@ export function ScanLoadingOverlay({
   const strokeWidth = 11;
   const [displayScore, setDisplayScore] = useState(0);
   const { circumference, dashOffset } = getDialMetrics(Math.min(displayScore, 10), radius);
+  const currentStepLabel = SCAN_STEPS[getScanStepIndex(displayScore)];
   const onDialReachedTenRef = useRef(onDialReachedTen);
   const firedRef = useRef(false);
   const counterRef = useRef({ value: 0 });
@@ -274,9 +289,17 @@ export function ScanLoadingOverlay({
           ))}
         </div>
 
-        <p className="mt-5 text-center text-[0.95rem] leading-7 text-muted sm:mt-7">
-          Scoring the live site, benchmarks, and trust signals — this usually takes a moment.
-        </p>
+        <div className="mt-5 space-y-1 text-center sm:mt-7">
+          <p
+            key={currentStepLabel}
+            className="text-[0.95rem] font-medium leading-7 text-foreground/80 transition-opacity duration-500"
+          >
+            {currentStepLabel}
+          </p>
+          <p className="text-[0.8rem] leading-6 text-muted">
+            This usually takes around 20 seconds
+          </p>
+        </div>
       </div>
     </div>
   );

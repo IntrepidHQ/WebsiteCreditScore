@@ -1,6 +1,7 @@
 "use client";
 
-import { useCallback, useId, useRef, useState } from "react";
+import { useCallback, useEffect, useId, useRef, useState } from "react";
+import { createPortal } from "react-dom";
 import { ArrowRight, Loader2, Sparkles } from "lucide-react";
 import { useRouter } from "next/navigation";
 
@@ -26,6 +27,11 @@ export function LandingForm() {
   const [showScanOverlay, setShowScanOverlay] = useState(false);
   const [scanDataReady, setScanDataReady] = useState(false);
   const [error, setError] = useState("");
+  const [portalTarget, setPortalTarget] = useState<HTMLElement | null>(null);
+
+  useEffect(() => {
+    setPortalTarget(document.body);
+  }, []);
   const pendingNavRef = useRef<
     | { id: string; normalizedUrl: string; persisted?: boolean; leadId?: string }
     | null
@@ -163,10 +169,10 @@ export function LandingForm() {
       <div className="flex flex-wrap items-center gap-3 text-sm text-muted" id={metaId}>
         <span className="inline-flex items-center gap-2">
           <Sparkles aria-hidden className="size-4 text-accent" />
-          Audit, score breakdown, packet PDF, and brief
+          Instant results — no account needed
         </span>
         <span className="hidden text-border sm:inline">•</span>
-        <span>See what is hurting trust, clarity, and conversion before you rebuild</span>
+        <span>Score, breakdown, and action brief — free to run</span>
       </div>
       {error ? (
         <p
@@ -177,12 +183,17 @@ export function LandingForm() {
           {error}
         </p>
       ) : null}
-      <ScanLoadingOverlay
-        active={showScanOverlay}
-        mode="landing"
-        scanDataReady={scanDataReady}
-        onDialReachedTen={handleDialReachedTen}
-      />
+      {portalTarget
+        ? createPortal(
+            <ScanLoadingOverlay
+              active={showScanOverlay}
+              mode="landing"
+              scanDataReady={scanDataReady}
+              onDialReachedTen={handleDialReachedTen}
+            />,
+            portalTarget,
+          )
+        : null}
     </form>
   );
 }

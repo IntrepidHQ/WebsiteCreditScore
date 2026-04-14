@@ -48,10 +48,10 @@ export const LandingHeroEditorial = ({ variant, featuredAudit, featuredBreakdown
             </p>
             <h1 className="theme-display-title-marketing max-w-[min(100%,58rem)] font-display leading-[0.92] tracking-[-0.055em] text-foreground">
               {isMirror ? (
-                "Turn your website into a stronger case for more business."
+                "Find what's holding your website back — and fix it first."
               ) : (
                 <BlurText
-                  text="Turn your website into a stronger case for more business."
+                  text="Find what's holding your website back — and fix it first."
                   delay={60}
                   animateBy="words"
                   direction="top"
