@@ -92,9 +92,22 @@ export function NoiseOverlay({ overlayZIndex = 1 }: { overlayZIndex?: number } =
     let animationId: number;
     let frameCount = 0;
     const render = (time: number) => {
-      canvas.width = window.innerWidth;
-      canvas.height = window.innerHeight;
-      gl.viewport(0, 0, canvas.width, canvas.height);
+      const parent = canvas.parentElement;
+      let w = 1;
+      let h = 1;
+      if (parent && parent.clientWidth > 0 && parent.clientHeight > 0) {
+        w = Math.max(1, Math.floor(parent.clientWidth));
+        h = Math.max(1, Math.floor(parent.clientHeight));
+      } else if (!parent) {
+        w = Math.max(1, Math.floor(window.innerWidth));
+        h = Math.max(1, Math.floor(window.innerHeight));
+      }
+
+      if (canvas.width !== w || canvas.height !== h) {
+        canvas.width = w;
+        canvas.height = h;
+        gl.viewport(0, 0, w, h);
+      }
 
       gl.uniform2f(resolutionLocation, canvas.width, canvas.height);
       gl.uniform1f(timeLocation, time * 0.001);
@@ -120,13 +133,8 @@ export function NoiseOverlay({ overlayZIndex = 1 }: { overlayZIndex?: number } =
   return (
     <canvas
       ref={canvasRef}
+      className="pointer-events-none absolute inset-0 h-full w-full"
       style={{
-        position: 'fixed',
-        top: 0,
-        left: 0,
-        right: 0,
-        bottom: 0,
-        pointerEvents: 'none',
         zIndex: overlayZIndex,
         mixBlendMode: 'overlay',
         opacity: ready ? 1 : 0,
@@ -761,17 +769,8 @@ export function DotGridCanvas({
       });
     };
 
-    let width = window.innerWidth;
-    let height = window.innerHeight;
-    canvas.width = width;
-    canvas.height = height;
-    
-    // Set polar grid parameters now that width/height are available
-    polarCenterX = width / 2;
-    polarCenterY = height / 2;
-    // Extend grid to fill more of the screen, reaching closer to corners
-    const diagonal = Math.sqrt(width * width + height * height);
-    polarMaxRadius = diagonal * 0.6; // Use diagonal to reach corners better
+    let width = 1;
+    let height = 1;
 
     // Convert isometric grid coordinates to screen coordinates
     const isometricToScreen = (isoX: number, isoY: number) => {
@@ -1293,7 +1292,47 @@ export function DotGridCanvas({
 
     // Initialize with current grid type
     let currentType: GridType = gridTypeRef.current;
-    initDots(currentType);
+
+    const readHostCanvasSize = () => {
+      const parent = canvas.parentElement;
+      if (parent) {
+        const w = Math.floor(parent.clientWidth);
+        const h = Math.floor(parent.clientHeight);
+        if (w > 0 && h > 0) {
+          return { w: Math.max(1, w), h: Math.max(1, h) };
+        }
+        return null;
+      }
+
+      return {
+        w: Math.max(1, Math.floor(window.innerWidth)),
+        h: Math.max(1, Math.floor(window.innerHeight)),
+      };
+    };
+
+    const applyHostDimensions = () => {
+      const dims = readHostCanvasSize();
+      if (!dims) {
+        return;
+      }
+
+      width = dims.w;
+      height = dims.h;
+      canvas.width = width;
+      canvas.height = height;
+
+      polarCenterX = width / 2;
+      polarCenterY = height / 2;
+      const diagonal = Math.sqrt(width * width + height * height);
+      polarMaxRadius = diagonal * 0.6;
+
+      initDots(gridTypeRef.current);
+    };
+
+    applyHostDimensions();
+    requestAnimationFrame(() => {
+      applyHostDimensions();
+    });
 
     let lastTime = performance.now();
 
@@ -1304,7 +1343,18 @@ export function DotGridCanvas({
 
       const extMouse = externalMousePosRefRef.current;
       if (extMouse) {
-        mousePosRef.current = extMouse.current;
+        const raw = extMouse.current;
+        if (raw) {
+          const rect = canvas.getBoundingClientRect();
+          const scaleX = rect.width > 0 ? canvas.width / rect.width : 1;
+          const scaleY = rect.height > 0 ? canvas.height / rect.height : 1;
+          mousePosRef.current = {
+            x: (raw.x - rect.left) * scaleX,
+            y: (raw.y - rect.top) * scaleY,
+          };
+        } else {
+          mousePosRef.current = null;
+        }
       }
 
       // If the requested gridType changed, start a smooth transition
@@ -3002,18 +3052,22 @@ export function DotGridCanvas({
 
     animationRef.current = requestAnimationFrame(animate);
 
-    const handleResize = () => {
-      width = window.innerWidth;
-      height = window.innerHeight;
-      canvas.width = width;
-      canvas.height = height;
-      initDots(gridTypeRef.current);
-    };
+    const canvasHost = canvas.parentElement;
+    const resizeObserver =
+      typeof ResizeObserver !== 'undefined' && canvasHost
+        ? new ResizeObserver(() => {
+            applyHostDimensions();
+          })
+        : null;
+    if (resizeObserver && canvasHost) {
+      resizeObserver.observe(canvasHost);
+    }
 
-    window.addEventListener('resize', handleResize);
+    window.addEventListener('resize', applyHostDimensions);
 
     return () => {
-      window.removeEventListener('resize', handleResize);
+      resizeObserver?.disconnect();
+      window.removeEventListener('resize', applyHostDimensions);
       if (animationRef.current) cancelAnimationFrame(animationRef.current);
     };
   }, [gridCellSize, strokeScale]);
@@ -3076,15 +3130,7 @@ export function DotGridCanvas({
   return (
     <canvas
       ref={canvasRef}
-      style={{
-        position: 'fixed',
-        top: 0,
-        left: 0,
-        right: 0,
-        bottom: 0,
-        pointerEvents: 'none',
-        zIndex: 0,
-      }}
+      className="pointer-events-none absolute inset-0 z-0 h-full w-full"
     />
   );
 }
