@@ -1348,6 +1348,9 @@ export function DotGridCanvas({
       const panelRight = currentPanel.x + currentPanel.width;
       const panelTop = currentPanel.y;
       const panelBottom = currentPanel.y + currentPanel.height;
+      /** Full-viewport marketing / settings backdrops: no real panel — lines must stay legible. */
+      const ambientBackdrop =
+        currentPanel.width <= 0 && currentPanel.height <= 0 && panelsRef.current.length === 0;
 
       ctx.clearRect(0, 0, width, height);
 
@@ -1774,7 +1777,11 @@ export function DotGridCanvas({
         }
 
         const normalizedDist = Math.min(lineMinDist / maxDist, 1);
-        const baseLineOpacity = (0.25 - normalizedDist * 0.2) * 0.5;
+        const baseLineOpacity = ambientBackdrop
+          ? themeRef.current === "light"
+            ? 0.11
+            : 0.19
+          : (0.25 - normalizedDist * 0.2) * 0.5;
 
         // Get pulse intensity at this dot's position
         const pulseIntensity = getPulseIntensity(dot.x, dot.y);
@@ -2125,10 +2132,10 @@ export function DotGridCanvas({
         const brightnessDist = Math.min(dist / brightnessRadius, 1);
         const brightnessFalloff = Math.pow(brightnessDist, 2);
 
-        // Base opacity for all dots
-        const baseOpacity = 0.12;
+        // Base opacity for all dots (marketing backdrops boost so the lattice reads on real pages)
+        const baseOpacity = ambientBackdrop ? (themeRef.current === "light" ? 0.2 : 0.3) : 0.12;
         // Extra brightness only for dots very close to panel
-        const brightnessBoost = (1 - brightnessFalloff) * 0.8;
+        const brightnessBoost = (1 - brightnessFalloff) * (ambientBackdrop ? 0.55 : 0.8);
 
         const opacity = baseOpacity + brightnessBoost;
 

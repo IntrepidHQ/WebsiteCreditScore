@@ -116,12 +116,12 @@ export function NodeGridBackdrop({
           theme={isDark ? "dark" : "light"}
         />
       )}
-      {/* Gradient vignette — extra mid-stops so the fade never reads as a hard horizontal band */}
+      {/* Vignette: align bottom with body gradient (--theme-background-alt) and keep stops soft (no banding) */}
       <div
-        className="absolute inset-0"
+        className="absolute inset-0 opacity-[0.78]"
         style={{
           background:
-            "linear-gradient(180deg, color-mix(in srgb, var(--theme-background) 0%, transparent) 0%, color-mix(in srgb, var(--theme-background) 18%, transparent) 38%, color-mix(in srgb, var(--theme-background) 52%, transparent) 62%, color-mix(in srgb, var(--theme-background) 82%, transparent) 84%, color-mix(in srgb, var(--theme-background) 96%, transparent) 94%, var(--theme-background) 100%)",
+            "linear-gradient(180deg, transparent 0%, color-mix(in srgb, var(--theme-background) 10%, transparent) 28%, color-mix(in srgb, var(--theme-background) 28%, transparent) 52%, color-mix(in srgb, var(--theme-background-alt) 52%, transparent) 72%, color-mix(in srgb, var(--theme-background-alt) 78%, transparent) 88%, var(--theme-background-alt) 100%)",
         }}
       />
       {/* Subtle radial accent glow at the top */}

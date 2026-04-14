@@ -11,7 +11,7 @@ import { AppShellNav } from "@/features/app/components/app-shell-nav";
  */
 export function AppShell({ children }: { children: React.ReactNode }) {
   return (
-    <main className="flex min-h-screen flex-col bg-background" id="main-content">
+    <main className="flex min-h-screen flex-col bg-transparent" id="main-content">
       <header className="fixed inset-x-0 top-0 z-[100] print:hidden">
         <div className="border-b border-border/60 bg-background/92 shadow-sm backdrop-blur-xl supports-[backdrop-filter]:bg-background/84">
           <div className="mx-auto flex w-full max-w-[min(100%,96rem)] flex-col gap-3 px-4 py-3 sm:px-6 lg:px-8">
