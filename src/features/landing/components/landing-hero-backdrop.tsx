@@ -207,7 +207,7 @@ export const LandingHeroBackdrop = ({
 
         <div
           aria-hidden
-          className="absolute inset-0 opacity-80 mix-blend-soft-light [mask-image:linear-gradient(180deg,black_0%,black_42%,transparent_92%)] [-webkit-mask-image:linear-gradient(180deg,black_0%,black_42%,transparent_92%)]"
+          className="absolute inset-0 opacity-80 mix-blend-soft-light [mask-image:linear-gradient(180deg,black_0%,black_38%,rgba(0,0,0,0.55)_58%,rgba(0,0,0,0.2)_78%,transparent_100%)] [-webkit-mask-image:linear-gradient(180deg,black_0%,black_38%,rgba(0,0,0,0.55)_58%,rgba(0,0,0,0.2)_78%,transparent_100%)]"
           style={{ backgroundImage: accentSpot }}
         />
       </div>
