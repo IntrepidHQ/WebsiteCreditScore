@@ -62,8 +62,13 @@ export const MagnifierDomLens = ({
           try {
             ctx.drawImage(src, 0, 0);
           } catch {
-            // ignore cross-origin / not-ready errors
+            // WebGPU canvases or cross-origin sources may reject drawImage — DOM mirror still renders.
           }
+        }
+      } else if (mirror) {
+        const ctx = mirror.getContext("2d");
+        if (ctx && mirror.width > 0 && mirror.height > 0) {
+          ctx.clearRect(0, 0, mirror.width, mirror.height);
         }
       }
 

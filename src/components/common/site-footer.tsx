@@ -13,6 +13,7 @@ const primaryLinks = [
   { href: "/examples", label: "Examples" },
   { href: "/benchmarks", label: "Benchmarks" },
   { href: "/pricing", label: "Pricing" },
+  { href: "/agencies", label: "Agencies" },
   { href: "/docs", label: "Docs" },
   { href: "/audit/mark-deford-md", label: "Sample Audit" },
 ];

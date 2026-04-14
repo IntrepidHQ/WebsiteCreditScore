@@ -78,6 +78,9 @@ export type HeroGridPattern =
 /** Node-grid canvas preset for the marketing hero background (Backgrounds tab in Settings). */
 export type HeroNodeGridPreset = "waves" | "flux" | "truss";
 
+/** Marketing hero backdrop family: canvas node grid vs WebGPU volumetric beams. */
+export type HeroBackdropKind = "nodeGrid" | "lightRays";
+
 export type PreviewDevice = "desktop" | "mobile";
 export type ReportProvenance = "live-observed" | "fallback-estimated" | "sample-based";
 export type BenchmarkVertical =
@@ -280,6 +283,8 @@ export interface ThemeTokens {
   spacingDensity: number;
   /** Landing hero / marketing lattice style. */
   heroGridPattern: HeroGridPattern;
+  /** Hero background renderer: animated node canvas or WebGPU light beams. */
+  heroBackdropKind: HeroBackdropKind;
   /** Node-grid canvas preset powering the hero background (Waves / Flux / Truss). */
   heroNodeGridPreset: HeroNodeGridPreset;
   /**

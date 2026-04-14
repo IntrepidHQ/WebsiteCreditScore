@@ -68,6 +68,10 @@ html {
   scroll-behavior: smooth;
 }
 
+#generate[data-hero-magnifier-active="true"] {
+  cursor: none;
+}
+
 @keyframes scan-bar-shimmer {
   0% {
     background-position: 0% 50%;

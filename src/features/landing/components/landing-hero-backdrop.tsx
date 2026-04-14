@@ -1,8 +1,9 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 
 import { Aurora } from "@/components/ui/aurora";
+import { LightRaysHeroCanvas } from "@/features/landing/components/light-rays/light-rays-hero-canvas";
 import { NodeGridBackdrop } from "@/features/landing/components/node-grid/node-grid-backdrop";
 import { MagnifierDomLens } from "@/features/landing/components/node-grid/magnifier-dom-lens";
 import { MagnifierGridOcclusion } from "@/features/landing/components/node-grid/magnifier-grid-occlusion";
@@ -27,23 +28,31 @@ const PRESET_MAP: Record<HeroNodeGridPreset, PresetConfig> = {
 const MAG_RADIUS = 88;
 const MAG_ZOOM = 1.85;
 
-export const LandingHeroBackdrop = ({ className }: { className?: string }) => {
+export const LandingHeroBackdrop = ({
+  className,
+  magnifierMirror,
+}: {
+  className?: string;
+  /** Non-interactive duplicate of hero foreground for the magnifier lens. */
+  magnifierMirror?: ReactNode;
+}) => {
   const mode = useThemeStore((state) => state.tokens.mode);
   const surfaces = useThemeStore((state) => state.tokens.surfaces);
+  const heroBackdropKind = useThemeStore((state) => state.tokens.heroBackdropKind);
   const heroNodeGridPreset = useThemeStore(
     (state) => state.tokens.heroNodeGridPreset ?? "waves",
   );
   const heroNodeGridGridType = useThemeStore((state) => state.tokens.heroNodeGridGridType);
   const heroNodeGridCellSize = useThemeStore((state) => state.tokens.heroNodeGridCellSize);
   const heroNodeGridStrokeScale = useThemeStore((state) => state.tokens.heroNodeGridStrokeScale);
+  const accentColor = useThemeStore((state) => state.branding.accentOverride || state.tokens.accentColor);
+  const cursorEffects = useThemeStore((state) => state.cursorEffects);
   const { reduceMotion } = useMotionSettings();
 
   const preset = PRESET_MAP[heroNodeGridPreset] ?? PRESET_MAP.waves;
-  // heroNodeGridGridType (set by canvas tuner) overrides the preset's implied grid type
   const effectiveGridType: GridType =
     (heroNodeGridGridType as GridType | null) ?? preset.gridType;
 
-  // Aurora color stops
   const colorStops = useMemo(() => {
     if (mode === "light") {
       return [surfaces.accent, surfaces.background, surfaces.muted];
@@ -51,10 +60,34 @@ export const LandingHeroBackdrop = ({ className }: { className?: string }) => {
     return [surfaces.glow, surfaces.background, surfaces.panel];
   }, [mode, surfaces]);
 
-  // Mouse tracking — shared between accent spot and magnifier
   const mousePosRef = useRef<{ x: number; y: number } | null>(null);
   const [isOverHero, setIsOverHero] = useState(false);
   const [gridCanvas, setGridCanvas] = useState<HTMLCanvasElement | null>(null);
+  const [webGpuCanvas, setWebGpuCanvas] = useState<HTMLCanvasElement | null>(null);
+  const [webGpuSupported, setWebGpuSupported] = useState(false);
+
+  useEffect(() => {
+    let cancelled = false;
+    const run = async () => {
+      if (typeof navigator === "undefined" || !("gpu" in navigator)) return;
+      const gpu = navigator.gpu;
+      if (!gpu) return;
+      try {
+        const adapter = await gpu.requestAdapter();
+        if (!cancelled && adapter) {
+          setWebGpuSupported(true);
+        }
+      } catch {
+        if (!cancelled) setWebGpuSupported(false);
+      }
+    };
+    void run();
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  const useLightRays = heroBackdropKind === "lightRays" && webGpuSupported;
 
   useEffect(() => {
     if (reduceMotion) return;
@@ -78,7 +111,6 @@ export const LandingHeroBackdrop = ({ className }: { className?: string }) => {
     return () => window.removeEventListener("mousemove", onMove);
   }, [reduceMotion]);
 
-  // Accent spot follows mouse within the hero section
   const [pointer, setPointer] = useState({ x: 0.5, y: 0.26 });
   useEffect(() => {
     if (reduceMotion) return;
@@ -115,9 +147,30 @@ export const LandingHeroBackdrop = ({ className }: { className?: string }) => {
 
   const isDark = mode !== "light";
 
+  const magnifierLensActive =
+    !reduceMotion && cursorEffects.heroMagnifierLens !== false && isOverHero;
+
+  useEffect(() => {
+    const hero = document.getElementById("generate");
+    if (!hero) return;
+    if (magnifierLensActive) {
+      hero.setAttribute("data-hero-magnifier-active", "true");
+    } else {
+      hero.removeAttribute("data-hero-magnifier-active");
+    }
+    return () => hero.removeAttribute("data-hero-magnifier-active");
+  }, [magnifierLensActive]);
+
+  const sourceCanvasForLens = useLightRays ? webGpuCanvas : gridCanvas;
+
+  useEffect(() => {
+    if (!useLightRays) {
+      setWebGpuCanvas(null);
+    }
+  }, [useLightRays]);
+
   return (
     <>
-      {/* Static backdrop layer — positioned behind page content */}
       <div
         className={cn(
           "pointer-events-none absolute inset-x-0 -top-24 -z-10 h-[calc(min(44rem,120vh)+6rem)]",
@@ -132,14 +185,25 @@ export const LandingHeroBackdrop = ({ className }: { className?: string }) => {
           speed={0.25}
         />
 
-        <NodeGridBackdrop
-          gridCellSize={heroNodeGridCellSize}
-          gridType={effectiveGridType}
-          linkHoverFromPointer={false}
-          onCanvasReady={handleCanvasReady}
-          strokeScale={heroNodeGridStrokeScale}
-          withNoiseOverlay={false}
-        />
+        {useLightRays ? (
+          <div className="absolute inset-0 -z-10 min-h-[min(44rem,120vh)] w-full">
+            <LightRaysHeroCanvas
+              accentHex={accentColor}
+              className="h-full min-h-[inherit] w-full"
+              mode={mode}
+              onGpuCanvas={setWebGpuCanvas}
+            />
+          </div>
+        ) : (
+          <NodeGridBackdrop
+            gridCellSize={heroNodeGridCellSize}
+            gridType={effectiveGridType}
+            linkHoverFromPointer={false}
+            onCanvasReady={handleCanvasReady}
+            strokeScale={heroNodeGridStrokeScale}
+            withNoiseOverlay={false}
+          />
+        )}
 
         <div
           aria-hidden
@@ -148,8 +212,7 @@ export const LandingHeroBackdrop = ({ className }: { className?: string }) => {
         />
       </div>
 
-      {/* Magnifier — rendered as fixed-position overlays, visible only on hover */}
-      {!reduceMotion && isOverHero ? (
+      {magnifierLensActive ? (
         <>
           <MagnifierGridOcclusion
             active={isOverHero}
@@ -160,9 +223,11 @@ export const LandingHeroBackdrop = ({ className }: { className?: string }) => {
           <MagnifierDomLens
             mousePosRef={mousePosRef}
             radius={MAG_RADIUS}
-            sourceCanvas={gridCanvas}
+            sourceCanvas={sourceCanvasForLens}
             zoom={MAG_ZOOM}
-          />
+          >
+            {magnifierMirror}
+          </MagnifierDomLens>
         </>
       ) : null}
     </>

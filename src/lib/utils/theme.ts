@@ -1,5 +1,6 @@
 import type {
   AgencyBranding,
+  HeroBackdropKind,
   HeroGridPattern,
   ThemeColorHarmony,
   ThemeFontProfile,
@@ -711,6 +712,10 @@ export function isHeroGridPattern(value: unknown): value is HeroGridPattern {
   return typeof value === "string" && (HERO_GRID_PATTERN_IDS as string[]).includes(value);
 }
 
+export function isHeroBackdropKind(value: unknown): value is HeroBackdropKind {
+  return value === "nodeGrid" || value === "lightRays";
+}
+
 /** Settings + landing hero lattice presets (robot-components–style layering). */
 export const HERO_GRID_PATTERN_OPTIONS: Array<{
   id: HeroGridPattern;
@@ -871,6 +876,7 @@ export function createThemeTokens(options?: ThemeTokensInput) {
     ),
     spacingDensity: clamp(options?.spacingDensity ?? 1, 0.82, 1.18),
     heroGridPattern: isHeroGridPattern(options?.heroGridPattern) ? options.heroGridPattern : "web",
+    heroBackdropKind: isHeroBackdropKind(options?.heroBackdropKind) ? options.heroBackdropKind : "nodeGrid",
     heroNodeGridPreset:
       options?.heroNodeGridPreset === "waves" ||
       options?.heroNodeGridPreset === "flux" ||
@@ -1155,6 +1161,9 @@ export function parseThemeImportPayload(raw: string): {
       spacingDensity: data.tokens.spacingDensity,
       heroGridPattern: isHeroGridPattern(data.tokens.heroGridPattern)
         ? data.tokens.heroGridPattern
+        : undefined,
+      heroBackdropKind: isHeroBackdropKind(data.tokens.heroBackdropKind)
+        ? data.tokens.heroBackdropKind
         : undefined,
       heroNodeGridPreset:
         data.tokens.heroNodeGridPreset === "waves" ||

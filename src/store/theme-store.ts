@@ -5,6 +5,7 @@ import { createJSONStorage, persist } from "zustand/middleware";
 
 import type {
   AgencyBranding,
+  HeroBackdropKind,
   HeroGridPattern,
   HeroNodeGridPreset,
   ThemeColorHarmony,
@@ -26,6 +27,11 @@ import {
 
 type MotionPreference = "system" | "reduced";
 
+export type CursorEffectsSettings = {
+  /** Marketing hero magnifier lens (cursor effect). */
+  heroMagnifierLens: boolean;
+};
+
 type ThemeSnapshot = {
   tokens: ThemeTokens;
   branding: AgencyBranding;
@@ -36,6 +42,7 @@ interface ThemeState {
   tokens: ThemeTokens;
   branding: AgencyBranding;
   motionPreference: MotionPreference;
+  cursorEffects: CursorEffectsSettings;
   presetId: string | null;
   undoStack: ThemeSnapshot[];
   redoStack: ThemeSnapshot[];
@@ -50,6 +57,7 @@ interface ThemeState {
   setShadowSpread: (shadowSpread: number) => void;
   setSpacingDensity: (spacingDensity: number) => void;
   setHeroGridPattern: (heroGridPattern: HeroGridPattern) => void;
+  setHeroBackdropKind: (heroBackdropKind: HeroBackdropKind) => void;
   setHeroNodeGridPreset: (heroNodeGridPreset: HeroNodeGridPreset) => void;
   applyHeroNodeGridCanvas: (payload: {
     heroNodeGridPreset: HeroNodeGridPreset;
@@ -68,6 +76,7 @@ interface ThemeState {
   setDropShadowEnabled: (dropShadowEnabled: boolean) => void;
   applyLayoutDensity: (density: "compact" | "comfortable" | "spacious") => void;
   setMotionPreference: (preference: MotionPreference) => void;
+  setCursorEffectHeroMagnifierLens: (enabled: boolean) => void;
   setLogoColor: (logoColor: string) => void;
   setLogoScale: (logoScale: number) => void;
   applyPreset: (presetId: string) => void;
@@ -104,6 +113,7 @@ export const useThemeStore = create<ThemeState>()(
       tokens: defaultTokens,
       branding: defaultBranding,
       motionPreference: "system",
+      cursorEffects: { heroMagnifierLens: true },
       presetId: themePresets[0]?.id ?? null,
       undoStack: [],
       redoStack: [],
@@ -412,6 +422,16 @@ export const useThemeStore = create<ThemeState>()(
           undoStack: [...state.undoStack, cloneSnapshot(state)].slice(-50),
           redoStack: [],
         })),
+      setHeroBackdropKind: (heroBackdropKind) =>
+        set((state) => ({
+          presetId: null,
+          tokens: createThemeTokens({
+            ...state.tokens,
+            heroBackdropKind,
+          }),
+          undoStack: [...state.undoStack, cloneSnapshot(state)].slice(-50),
+          redoStack: [],
+        })),
       setHeroNodeGridPreset: (heroNodeGridPreset) =>
         set((state) => ({
           presetId: null,
@@ -438,6 +458,8 @@ export const useThemeStore = create<ThemeState>()(
           redoStack: [],
         })),
       setMotionPreference: (motionPreference) => set({ motionPreference }),
+      setCursorEffectHeroMagnifierLens: (heroMagnifierLens) =>
+        set({ cursorEffects: { heroMagnifierLens } }),
       setLogoColor: (logoColor) =>
         set((state) => ({
           branding: { ...state.branding, logoColor },
@@ -486,6 +508,7 @@ export const useThemeStore = create<ThemeState>()(
           tokens: defaultTokens,
           branding: defaultBranding,
           motionPreference: "system",
+          cursorEffects: { heroMagnifierLens: true },
           presetId: themePresets[0]?.id ?? null,
           undoStack: [...state.undoStack, cloneSnapshot(state)].slice(-50),
           redoStack: [],
@@ -528,6 +551,7 @@ export const useThemeStore = create<ThemeState>()(
         tokens: state.tokens,
         branding: state.branding,
         motionPreference: state.motionPreference,
+        cursorEffects: state.cursorEffects,
         presetId: state.presetId,
       }),
       merge: (persistedState, currentState) => {
@@ -545,6 +569,10 @@ export const useThemeStore = create<ThemeState>()(
           ...currentState,
           ...persisted,
           branding: persistedBranding,
+          cursorEffects: {
+            heroMagnifierLens:
+              persisted.cursorEffects?.heroMagnifierLens !== false,
+          },
           tokens: persisted.tokens
             ? createThemeTokens(persisted.tokens)
             : currentState.tokens,

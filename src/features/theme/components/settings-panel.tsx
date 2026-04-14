@@ -27,7 +27,7 @@ import { WebsiteCreditScoreLogo } from "@/components/common/website-credit-score
 import { HeroGridSurface } from "@/features/landing/components/hero-grid-surface";
 import { NodeGridBackdrop } from "@/features/landing/components/node-grid/node-grid-backdrop";
 import { cn } from "@/lib/utils/cn";
-import type { HeroNodeGridPreset } from "@/lib/types/audit";
+import type { HeroBackdropKind, HeroNodeGridPreset } from "@/lib/types/audit";
 import { NODE_GRID_ORDER, gridTypeLabel } from "@/features/landing/components/node-grid/grid-types";
 import type { GridType } from "@/features/landing/components/node-grid/grid-types";
 import {
@@ -191,6 +191,7 @@ export function SettingsPanel() {
   const lineHeightLabelId = useId();
   const glowIntensityLabelId = useId();
   const motionLabelId = useId();
+  const cursorMagnifierLabelId = useId();
   const accentHueLabelId = useId();
   const colorHarmonyLabelId = useId();
   const surfaceFinishLabelId = useId();
@@ -206,6 +207,7 @@ export function SettingsPanel() {
   const headerFontSelectId = useId();
   const bodyFontSelectId = useId();
   const importInputId = useId();
+  const heroBackdropKindGroupId = useId();
   const heroNodeGridPresetsGroupId = useId();
   const heroLatticeBackgroundsLabelId = useId();
   const heroLatticeBackgroundsSelectId = useId();
@@ -217,6 +219,7 @@ export function SettingsPanel() {
   const tokens = useThemeStore((state) => state.tokens);
   const branding = useThemeStore((state) => state.branding);
   const motionPreference = useThemeStore((state) => state.motionPreference);
+  const cursorEffects = useThemeStore((state) => state.cursorEffects);
   const presetId = useThemeStore((state) => state.presetId);
   const setMode = useThemeStore((state) => state.setMode);
   const setAccentColor = useThemeStore((state) => state.setAccentColor);
@@ -229,6 +232,7 @@ export function SettingsPanel() {
   const setShadowSpread = useThemeStore((state) => state.setShadowSpread);
   const setSpacingDensity = useThemeStore((state) => state.setSpacingDensity);
   const setHeroGridPattern = useThemeStore((state) => state.setHeroGridPattern);
+  const setHeroBackdropKind = useThemeStore((state) => state.setHeroBackdropKind);
   const setHeroNodeGridPreset = useThemeStore((state) => state.setHeroNodeGridPreset);
   const applyHeroNodeGridCanvas = useThemeStore((state) => state.applyHeroNodeGridCanvas);
   const setLineHeightScale = useThemeStore((state) => state.setLineHeightScale);
@@ -248,6 +252,7 @@ export function SettingsPanel() {
   const canRedo = useThemeStore((state) => state.redoStack.length > 0);
   const applyLayoutDensity = useThemeStore((state) => state.applyLayoutDensity);
   const setMotionPreference = useThemeStore((state) => state.setMotionPreference);
+  const setCursorEffectHeroMagnifierLens = useThemeStore((state) => state.setCursorEffectHeroMagnifierLens);
   const applyPreset = useThemeStore((state) => state.applyPreset);
   const clearPresetSelection = useThemeStore((state) => state.clearPresetSelection);
   const updateBranding = useThemeStore((state) => state.updateBranding);
@@ -1133,6 +1138,26 @@ export function SettingsPanel() {
                       />
                     </div>
                   </SettingRow>
+
+                  <SettingRow
+                    titleId={cursorMagnifierLabelId}
+                    label="Cursor effects"
+                    description="Decorative magnifier on the marketing hero. Reduced motion always wins — when enabled, the lens is hidden regardless of this toggle."
+                  >
+                    <div className="flex items-center justify-between rounded-[calc(var(--theme-radius))] border border-border/70 bg-background-alt/70 px-4 py-3">
+                      <div>
+                        <p className="text-sm font-semibold text-foreground">Hero magnifier lens</p>
+                        <p className="text-xs text-muted">
+                          {cursorEffects.heroMagnifierLens ? "On" : "Off"} — zooms the hero scene under the cursor.
+                        </p>
+                      </div>
+                      <Switch
+                        aria-labelledby={cursorMagnifierLabelId}
+                        checked={cursorEffects.heroMagnifierLens}
+                        onCheckedChange={(checked) => setCursorEffectHeroMagnifierLens(checked)}
+                      />
+                    </div>
+                  </SettingRow>
                 </TabsContent>
 
                 <TabsContent className="space-y-4" value="layout">
@@ -1292,13 +1317,63 @@ export function SettingsPanel() {
 
                 <TabsContent className="space-y-4" value="backgrounds">
                   <SettingRow
+                    titleId={heroBackdropKindGroupId}
+                    label="Marketing hero backdrop"
+                    description="Choose the animated layer behind the landing hero. Light rays need WebGPU (Chrome/Edge); otherwise the node canvas is used automatically."
+                  >
+                    <div
+                      aria-labelledby={heroBackdropKindGroupId}
+                      className="grid gap-3 sm:grid-cols-2"
+                      role="group"
+                    >
+                      {(
+                        [
+                          {
+                            id: "nodeGrid" as const satisfies HeroBackdropKind,
+                            label: "Node canvas",
+                            description: "Robot-style dot grid — tunable below.",
+                          },
+                          {
+                            id: "lightRays" as const satisfies HeroBackdropKind,
+                            label: "Light rays (WebGPU)",
+                            description: "Soft volumetric beams tinted by your accent.",
+                          },
+                        ] as const
+                      ).map((item) => {
+                        const selected = tokens.heroBackdropKind === item.id;
+                        return (
+                          <button
+                            aria-label={`${item.label}. ${item.description}`}
+                            aria-pressed={selected}
+                            className={cn(
+                              "rounded-[calc(var(--theme-radius))] border p-3 text-left transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/40 focus-visible:ring-offset-2 focus-visible:ring-offset-background",
+                              selected
+                                ? "border-accent/60 bg-accent/10 shadow-sm"
+                                : "border-border/70 bg-panel/50 hover:border-accent/25 hover:bg-panel/65",
+                            )}
+                            key={item.id}
+                            onClick={() => setHeroBackdropKind(item.id)}
+                            type="button"
+                          >
+                            <p className="text-sm font-semibold text-foreground">{item.label}</p>
+                            <p className="mt-1 text-xs leading-snug text-muted">{item.description}</p>
+                          </button>
+                        );
+                      })}
+                    </div>
+                  </SettingRow>
+
+                  <SettingRow
                     titleId={heroNodeGridPresetsGroupId}
                     label="Landing hero node canvas"
                     description="Pick a recipe for the animated dot grid behind the marketing hero. Open the canvas tuner to adjust cell spacing and stroke, then Apply."
                   >
                     <div
                       aria-labelledby={heroNodeGridPresetsGroupId}
-                      className="grid gap-3 sm:grid-cols-3"
+                      className={cn(
+                        "grid gap-3 sm:grid-cols-3",
+                        tokens.heroBackdropKind === "lightRays" && "pointer-events-none opacity-45",
+                      )}
                       role="group"
                     >
                       {HERO_NODE_GRID_PRESETS.map((item) => {
@@ -1313,6 +1388,7 @@ export function SettingsPanel() {
                                 ? "border-accent/60 bg-accent/10 shadow-sm"
                                 : "border-border/70 bg-panel/50 hover:border-accent/25 hover:bg-panel/65",
                             )}
+                            disabled={tokens.heroBackdropKind === "lightRays"}
                             key={item.id}
                             onClick={() => setHeroNodeGridPreset(item.id)}
                             type="button"
@@ -1336,6 +1412,7 @@ export function SettingsPanel() {
                     </div>
                     <div className="mt-4 flex flex-wrap items-center gap-3">
                       <Button
+                        disabled={tokens.heroBackdropKind === "lightRays"}
                         onClick={() => setShowCanvasBuilder(true)}
                         type="button"
                         variant="secondary"
