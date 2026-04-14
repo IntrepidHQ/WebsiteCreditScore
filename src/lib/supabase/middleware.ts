@@ -1,6 +1,7 @@
 import { createServerClient } from "@supabase/ssr";
 import { type NextRequest, NextResponse } from "next/server";
 
+import { readSupabaseUserWithRefresh } from "@/lib/auth/session";
 import { getSupabaseCookieOptions } from "@/lib/supabase/cookie-options";
 import { getSupabaseEnv, hasSupabaseEnv } from "@/lib/supabase/config";
 
@@ -43,7 +44,7 @@ export const updateSupabaseSession = async (request: NextRequest) => {
     },
   });
 
-  await supabase.auth.getUser();
+  await readSupabaseUserWithRefresh(supabase);
 
   return response;
 };

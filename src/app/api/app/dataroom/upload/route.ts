@@ -2,7 +2,7 @@ import { randomUUID } from "node:crypto";
 
 import { NextResponse } from "next/server";
 
-import { getOptionalWorkspaceSession } from "@/lib/auth/session";
+import { getOptionalWorkspaceSessionFromRequest } from "@/lib/auth/session";
 import {
   DATAROOM_ALLOWED_MIME,
   DATAROOM_MAX_FILE_BYTES,
@@ -17,7 +17,7 @@ const safeBaseName = (name: string) => {
 };
 
 export async function POST(request: Request) {
-  const session = await getOptionalWorkspaceSession();
+  const session = await getOptionalWorkspaceSessionFromRequest(request);
   if (!session) {
     return NextResponse.json({ error: "Sign in required." }, { status: 401 });
   }
@@ -30,7 +30,7 @@ export async function POST(request: Request) {
   }
 
   const repository = getProductRepository(session);
-  const workspace = await repository.ensureWorkspace(session);
+  const workspace = await repository.ensureWorkspace(session, request);
 
   let formData: FormData;
   try {

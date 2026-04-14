@@ -4,12 +4,12 @@ import { AgentChatPanel } from "@/features/app/components/agent-chat-panel";
 import { buildAgentChatReportContext } from "@/features/app/utils/build-agent-chat-context";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { workspaceHasMaxAccess } from "@/lib/billing/max-access";
+import { workspaceHasAgentChatAccess } from "@/lib/billing/max-access";
 import { getWorkspaceDashboardContext } from "@/lib/product/context";
 
 export default async function WorkspaceChatPage() {
   const { workspace, dashboard } = await getWorkspaceDashboardContext();
-  const hasMax = workspaceHasMaxAccess(workspace);
+  const hasMax = workspaceHasAgentChatAccess(workspace);
   const latestSavedReport = dashboard.savedReports[0] ?? null;
   const reportContext = buildAgentChatReportContext(latestSavedReport);
 

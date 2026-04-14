@@ -5,7 +5,7 @@ import { buildWorkspaceAgentTools, handleWorkspaceAgentTool } from "@/lib/app/ag
 import { getAnthropicClient } from "@/lib/ai/client";
 import { selectModel } from "@/lib/ai/select-model";
 import { getOptionalWorkspaceSessionFromRequest } from "@/lib/auth/session";
-import { workspaceHasMaxAccess } from "@/lib/billing/max-access";
+import { workspaceHasAgentChatAccess } from "@/lib/billing/max-access";
 import { getProductRepository } from "@/lib/product/repository";
 
 export const dynamic = "force-dynamic";
@@ -72,8 +72,20 @@ export async function POST(request: Request) {
   }
 
   const repository = getProductRepository(session);
-  const workspace = await repository.ensureWorkspace(session);
-  if (!workspaceHasMaxAccess(workspace)) {
+  let workspace;
+  try {
+    workspace = await repository.ensureWorkspace(session, request);
+  } catch (err) {
+    console.warn("[api/app/agent-chat] ensureWorkspace failed:", err);
+    return NextResponse.json(
+      {
+        error: "Could not load your workspace from the database. Check Supabase migrations and RLS, then refresh.",
+        code: "WORKSPACE_LOAD_FAILED",
+      },
+      { status: 503 },
+    );
+  }
+  if (!workspaceHasAgentChatAccess(workspace)) {
     return NextResponse.json(
       {
         error: "MAX add-on required to use workspace chat.",

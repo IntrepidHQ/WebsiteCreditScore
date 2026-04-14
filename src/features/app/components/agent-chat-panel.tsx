@@ -2,9 +2,11 @@
 
 import { useCallback, useEffect, useId, useRef, useState, type KeyboardEvent } from "react";
 import { ArrowUp, Layers, Loader2 } from "lucide-react";
+import Link from "next/link";
 
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { MAX_ENTITLEMENT_ERROR } from "@/lib/billing/max-access";
 import { cn } from "@/lib/utils/cn";
 
 type ChatTurn = { role: "user" | "assistant"; content: string };
@@ -43,6 +45,7 @@ export function AgentChatPanel({
   const [input, setInput] = useState("");
   const [pending, setPending] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [errorAction, setErrorAction] = useState<{ href: string; label: string } | null>(null);
 
   const handleSend = useCallback(async () => {
     const trimmed = input.trim();
@@ -54,6 +57,7 @@ export function AgentChatPanel({
     setMessages(nextMessages);
     setInput("");
     setError(null);
+    setErrorAction(null);
     setPending(true);
 
     try {
@@ -69,6 +73,25 @@ export function AgentChatPanel({
       const data = (await res.json()) as { message?: string; error?: string; code?: string };
 
       if (!res.ok) {
+        if (res.status === 401) {
+          setError(
+            "We could not confirm your session on this request. Refresh the page, then sign in again if the problem continues.",
+          );
+          return;
+        }
+        if (res.status === 403 && data.code === MAX_ENTITLEMENT_ERROR) {
+          setError(data.error ?? "MAX add-on required to use workspace chat.");
+          setErrorAction({ href: "/app/max", label: "Open MAX in workspace" });
+          return;
+        }
+        if (res.status === 503 && data.code === "WORKSPACE_LOAD_FAILED") {
+          setError(
+            data.error ??
+              "Your workspace could not be loaded from the database. Confirm Supabase migrations and RLS, then refresh.",
+          );
+          setErrorAction({ href: "/app/login?error=workspace-unavailable", label: "Open sign-in help" });
+          return;
+        }
         setError(data.error ?? "Request failed.");
         return;
       }
@@ -210,9 +233,14 @@ export function AgentChatPanel({
 
         <div className="relative z-[1] border-t border-border/50 bg-background/55 p-3 sm:p-4">
           {error ? (
-            <p className="mb-3 text-sm text-danger" role="alert">
-              {error}
-            </p>
+            <div className="mb-3 space-y-2" role="alert">
+              <p className="text-sm text-danger">{error}</p>
+              {errorAction ? (
+                <Button asChild className="h-8" size="sm" variant="outline">
+                  <Link href={errorAction.href}>{errorAction.label}</Link>
+                </Button>
+              ) : null}
+            </div>
           ) : null}
 
           <div className="mx-auto flex w-full max-w-3xl flex-col gap-3 rounded-[22px] border border-border/60 bg-elevated/70 p-3 shadow-[0_18px_60px_rgba(0,0,0,0.28)] backdrop-blur-md">

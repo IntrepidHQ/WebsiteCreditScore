@@ -44,7 +44,7 @@ import type { BillingAddOnId, BillingPlanId, TokenActionId } from "@/lib/billing
 
 export interface ProductRepository {
   kind: "local" | "supabase";
-  ensureWorkspace(session: WorkspaceSession): Promise<WorkspaceRecord>;
+  ensureWorkspace(session: WorkspaceSession, request?: Request | null): Promise<WorkspaceRecord>;
   getDashboard(workspaceId: string, session: WorkspaceSession): Promise<DashboardSnapshot>;
   getLeadDetail(
     workspaceId: string,
@@ -116,7 +116,7 @@ export interface ProductRepository {
 function createLocalRepository(): ProductRepository {
   return {
     kind: "local",
-    ensureWorkspace: ensureLocalWorkspace,
+    ensureWorkspace: (session) => ensureLocalWorkspace(session),
     getDashboard: (workspaceId, session) => getLocalDashboard(workspaceId, session.userId),
     getLeadDetail: (workspaceId, leadId, session) =>
       getLocalLeadDetail(workspaceId, leadId, session.userId),
@@ -144,7 +144,7 @@ function createLocalRepository(): ProductRepository {
 function createSupabaseRepository(): ProductRepository {
   return {
     kind: "supabase",
-    ensureWorkspace: ensureSupabaseWorkspace,
+    ensureWorkspace: (session, request) => ensureSupabaseWorkspace(session, request),
     getDashboard: (workspaceId) => getSupabaseDashboard(workspaceId),
     getLeadDetail: (workspaceId, leadId) => getSupabaseLeadDetail(workspaceId, leadId),
     createLeadFromUrl: (workspaceId, rawUrl) => createSupabaseLeadFromUrl(workspaceId, rawUrl),

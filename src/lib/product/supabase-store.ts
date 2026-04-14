@@ -12,6 +12,7 @@ import { sampleAudits } from "@/lib/mock/sample-audits";
 import { prepareReportForStorage, passesReportQualityCheck } from "@/lib/product/report-quality";
 import { isUnlimitedWorkspace } from "@/lib/product/unlimited-workspace";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
+import { createSupabaseServerClientForRoute } from "@/lib/supabase/server-route";
 import type {
   DashboardSnapshot,
   EmailTemplateRecord,
@@ -36,6 +37,8 @@ import { createDefaultProposalOffer } from "@/lib/utils/proposal-offers";
 import { calculatePricingSummary, calculateProjectedScore, getDefaultSelectedIds } from "@/lib/utils/pricing";
 import { createThemeTokens } from "@/lib/utils/theme";
 import { slugFromUrl } from "@/lib/utils/url";
+
+type AppSupabaseClient = Awaited<ReturnType<typeof createSupabaseServerClient>>;
 
 const LEGACY_BRAND_PATTERN = new RegExp(["C", "r", "a", "y", "d", "l"].join(""), "i");
 const LEGACY_PROVIDER_PAGES_PATTERN = /provider pages/i;
@@ -298,11 +301,12 @@ function buildSeededLead(
   return { savedReport, lead, shareLinks, activity, reminder };
 }
 
-async function ensurePublicSampleSeeds(workspaceId: string) {
+async function ensurePublicSampleSeeds(workspaceId: string, db?: AppSupabaseClient) {
   const existingReports = await listPayloadRecords<SavedReport>(
     "saved_reports",
     "workspace_id",
     workspaceId,
+    db,
   );
   const existingReportIds = new Set(existingReports.map((report) => report.id));
 
@@ -319,47 +323,68 @@ async function ensurePublicSampleSeeds(workspaceId: string) {
       sample.scannedAt,
     );
 
-    await upsertPayloadRecord("saved_reports", {
-      id: seeded.savedReport.id,
-      workspace_id: workspaceId,
-      lead_id: seeded.lead.id,
-      payload: seeded.savedReport,
-    });
-    await upsertPayloadRecord("leads", {
-      id: seeded.lead.id,
-      workspace_id: workspaceId,
-      payload: seeded.lead,
-    });
-    for (const shareLink of seeded.shareLinks) {
-      await upsertPayloadRecord("share_links", {
-        id: shareLink.id,
+    await upsertPayloadRecord(
+      "saved_reports",
+      {
+        id: seeded.savedReport.id,
         workspace_id: workspaceId,
         lead_id: seeded.lead.id,
-        surface: shareLink.surface,
-        token: shareLink.token,
-        payload: shareLink,
-      });
+        payload: seeded.savedReport,
+      },
+      db,
+    );
+    await upsertPayloadRecord(
+      "leads",
+      {
+        id: seeded.lead.id,
+        workspace_id: workspaceId,
+        payload: seeded.lead,
+      },
+      db,
+    );
+    for (const shareLink of seeded.shareLinks) {
+      await upsertPayloadRecord(
+        "share_links",
+        {
+          id: shareLink.id,
+          workspace_id: workspaceId,
+          lead_id: seeded.lead.id,
+          surface: shareLink.surface,
+          token: shareLink.token,
+          payload: shareLink,
+        },
+        db,
+      );
     }
-    await upsertPayloadRecord("activities", {
-      id: seeded.activity.id,
-      workspace_id: workspaceId,
-      lead_id: seeded.lead.id,
-      payload: seeded.activity,
-    });
-    await upsertPayloadRecord("reminders", {
-      id: seeded.reminder.id,
-      workspace_id: workspaceId,
-      lead_id: seeded.lead.id,
-      payload: seeded.reminder,
-    });
+    await upsertPayloadRecord(
+      "activities",
+      {
+        id: seeded.activity.id,
+        workspace_id: workspaceId,
+        lead_id: seeded.lead.id,
+        payload: seeded.activity,
+      },
+      db,
+    );
+    await upsertPayloadRecord(
+      "reminders",
+      {
+        id: seeded.reminder.id,
+        workspace_id: workspaceId,
+        lead_id: seeded.lead.id,
+        payload: seeded.reminder,
+      },
+      db,
+    );
   }
 }
 
 async function upsertPayloadRecord(
   table: string,
   row: Record<string, unknown>,
+  db?: AppSupabaseClient,
 ) {
-  const supabase = await createSupabaseServerClient();
+  const supabase = db ?? (await createSupabaseServerClient());
   const { error } = await supabase.from(table).upsert(row, { onConflict: "id" });
 
   if (error) {
@@ -390,8 +415,9 @@ async function listPayloadRecords<T>(
   table: string,
   column: string,
   value: string,
+  db?: AppSupabaseClient,
 ): Promise<T[]> {
-  const supabase = await createSupabaseServerClient();
+  const supabase = db ?? (await createSupabaseServerClient());
   const { data, error } = await supabase.from(table).select("payload").eq(column, value);
 
   if (error) {
@@ -401,8 +427,13 @@ async function listPayloadRecords<T>(
   return (data ?? []).map((row) => row.payload as T);
 }
 
-async function ensurePromoCatalog(workspaceId: string) {
-  const promos = await listPayloadRecords<ProductPromoRecord>("product_promos", "workspace_id", workspaceId);
+async function ensurePromoCatalog(workspaceId: string, db?: AppSupabaseClient) {
+  const promos = await listPayloadRecords<ProductPromoRecord>(
+    "product_promos",
+    "workspace_id",
+    workspaceId,
+    db,
+  );
   const now = new Date().toISOString();
 
   const seeds: ProductPromoRecord[] = [];
@@ -450,14 +481,18 @@ async function ensurePromoCatalog(workspaceId: string) {
   }
 
   for (const promo of seeds) {
-    await upsertPayloadRecord("product_promos", {
-      id: promo.id,
-      workspace_id: workspaceId,
-      payload: {
-        ...promo,
-        createdAt: now,
+    await upsertPayloadRecord(
+      "product_promos",
+      {
+        id: promo.id,
+        workspace_id: workspaceId,
+        payload: {
+          ...promo,
+          createdAt: now,
+        },
       },
-    });
+      db,
+    );
   }
 }
 
@@ -508,8 +543,9 @@ export async function saveSupabaseTheme(
   return workspace;
 }
 
-export async function ensureSupabaseWorkspace(session: WorkspaceSession) {
-  const supabase = await createSupabaseServerClient();
+export async function ensureSupabaseWorkspace(session: WorkspaceSession, request?: Request | null) {
+  const supabase =
+    request != null ? await createSupabaseServerClientForRoute(request) : await createSupabaseServerClient();
   // Prefer oldest row; limit(1) avoids PostgREST errors when duplicate owner rows exist.
   const { data, error } = await supabase
     .from("workspaces")
@@ -528,14 +564,18 @@ export async function ensureSupabaseWorkspace(session: WorkspaceSession) {
     let workspace: WorkspaceRecord = normalizeWorkspaceRecord(currentWorkspace);
     workspace = workspaceWithComplimentaryMaxEntitlement(workspace, session.email);
     if (JSON.stringify(workspace) !== JSON.stringify(currentWorkspace)) {
-      await upsertPayloadRecord("workspaces", {
-        id: workspace.id,
-        owner_user_id: session.userId,
-        payload: workspace,
-      });
+      await upsertPayloadRecord(
+        "workspaces",
+        {
+          id: workspace.id,
+          owner_user_id: session.userId,
+          payload: workspace,
+        },
+        supabase,
+      );
     }
-    await ensurePromoCatalog(workspace.id);
-    await ensurePublicSampleSeeds(workspace.id);
+    await ensurePromoCatalog(workspace.id, supabase);
+    await ensurePublicSampleSeeds(workspace.id, supabase);
     return workspace;
   }
 
@@ -567,28 +607,44 @@ export async function ensureSupabaseWorkspace(session: WorkspaceSession) {
     }),
     createdAt: workspace.createdAt,
   };
-  await upsertPayloadRecord("workspaces", {
-    id: workspace.id,
-    owner_user_id: session.userId,
-    payload: workspace,
-  });
-  await upsertPayloadRecord("referral_codes", {
-    id: referralCode.id,
-    workspace_id: workspace.id,
-    payload: referralCode,
-  });
-  await upsertPayloadRecord("email_templates", {
-    id: template.id,
-    workspace_id: workspace.id,
-    payload: template,
-  });
-  await upsertPayloadRecord("workspace_credits", {
-    id: creditEntry.id,
-    workspace_id: workspace.id,
-    payload: creditEntry,
-  });
-  await ensurePromoCatalog(workspace.id);
-  await ensurePublicSampleSeeds(workspace.id);
+  await upsertPayloadRecord(
+    "workspaces",
+    {
+      id: workspace.id,
+      owner_user_id: session.userId,
+      payload: workspace,
+    },
+    supabase,
+  );
+  await upsertPayloadRecord(
+    "referral_codes",
+    {
+      id: referralCode.id,
+      workspace_id: workspace.id,
+      payload: referralCode,
+    },
+    supabase,
+  );
+  await upsertPayloadRecord(
+    "email_templates",
+    {
+      id: template.id,
+      workspace_id: workspace.id,
+      payload: template,
+    },
+    supabase,
+  );
+  await upsertPayloadRecord(
+    "workspace_credits",
+    {
+      id: creditEntry.id,
+      workspace_id: workspace.id,
+      payload: creditEntry,
+    },
+    supabase,
+  );
+  await ensurePromoCatalog(workspace.id, supabase);
+  await ensurePublicSampleSeeds(workspace.id, supabase);
 
   return workspace;
 }
