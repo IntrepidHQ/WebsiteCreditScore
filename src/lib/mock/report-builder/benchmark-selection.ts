@@ -9,7 +9,9 @@ export const selectBenchmarkReferencesForReport = (
   references: BenchmarkReference[],
 ) => {
   const ranked = rankMeasuredBenchmarkReferences(currentUrl, currentOverallScore, references);
-  const highScoring = ranked.filter((reference) => getBenchmarkReferenceScore(reference) >= 9);
+  const highScoring = ranked.filter(
+    (reference) => getBenchmarkReferenceScore(reference) >= Math.max(9, currentOverallScore),
+  );
 
   return (highScoring.length ? highScoring : ranked).slice(0, REPORT_COMPETITOR_REFERENCE_LIMIT);
 };

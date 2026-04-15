@@ -90,12 +90,13 @@ function ResearchPreview({
 }: {
   alt: string;
   src: string;
-  fallbackSrc: string;
+  fallbackSrc?: string;
 }) {
   return (
     <PreviewImage
       alt={alt}
       className="aspect-[16/10] border-b border-border/70"
+      errorLabel="Screenshot unavailable"
       fallbackSrc={fallbackSrc}
       loadingLabel="Capturing desktop screenshot"
       src={src}
@@ -132,7 +133,6 @@ function CompetitorCard({
       <a href={reference.url} rel="noreferrer" target="_blank">
         <ResearchPreview
           alt={`${reference.name} preview`}
-          fallbackSrc={fallbackImage}
           src={reference.previewImage}
         />
       </a>

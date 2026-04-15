@@ -118,7 +118,7 @@ export function FindingsSection({
           </div>
         </div>
 
-        <div className="space-y-3">
+        <div className="min-w-0 space-y-3">
           <p className="text-sm text-muted lg:hidden">
             Swipe or scroll sideways to move through these findings.
           </p>
@@ -127,8 +127,7 @@ export function FindingsSection({
               <Card className="h-full min-w-[20rem] max-w-[25rem] border-dashed border-border/80 bg-background-alt/40">
                 <CardContent className="p-6 sm:p-7">
                   <p className="text-sm leading-6 text-muted">
-                    No findings landed in this rail from the captured page data. Re-run the scan or try a
-                    different URL if this looks wrong.
+                    Nothing flagged here.
                   </p>
                 </CardContent>
               </Card>
