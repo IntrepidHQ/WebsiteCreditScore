@@ -129,25 +129,24 @@ export function PublicPricingPage({
                   <span className="text-xs uppercase tracking-[0.18em]">DIY flow</span>
                 </div>
                 <CardTitle className="text-[clamp(2.15rem,1.95rem+0.35vw,2.55rem)]">
-                  Scan → report → account → free prompt → Ask a Pro
+                  Simple pricing. $1 = 1 credit = 1 scan.
                 </CardTitle>
                 <p className="text-sm leading-7 text-muted">
-                  Anonymous visitors can run a report from cache; additional sites should create a free account so usage stays honest. Signed-in workspaces start with{" "}
-                  <strong>{FREE_TIER_CREDITS} credits</strong> (about {FREE_TIER_CREDITS} live scans) before you buy the{" "}
-                  <strong>$49 / 50 credit</strong> pack. Abuse resistance ties usage to your signed-in workspace (and server-side signals such as IP where available).
+                  Run your first scan free — no card required. Create a free account to save your audit and unlock the workspace. When you're ready to scan more sites, grab the{" "}
+                  <strong>$49 / 50 credit</strong> pack. Every scan, export, and AI prompt draws from the same balance.
                 </p>
               </CardHeader>
               <CardContent className="grid gap-3 pt-0 sm:grid-cols-2">
                 <div className="rounded-[16px] border border-border/60 bg-background-alt/55 px-4 py-3 text-sm leading-6 text-foreground">
-                  <p className="font-semibold">What credits cover</p>
+                  <p className="font-semibold">One balance, everything included</p>
                   <p className="mt-2 text-muted">
-                    Each live scan, outreach draft, packet export, or MAX prompt draw down the same balance so finance and product stay aligned.
+                    Scans, PDF exports, outreach drafts, and AI prompts all pull from the same credit balance — no separate plans or feature unlocks.
                   </p>
                 </div>
                 <div className="rounded-[16px] border border-border/60 bg-background-alt/55 px-4 py-3 text-sm leading-6 text-foreground">
-                  <p className="font-semibold">Referrals</p>
+                  <p className="font-semibold">Earn credits by referring</p>
                   <p className="mt-2 text-muted">
-                    Referral rewards accrue as credits toward future scans or services — see your workspace for the live ledger ({REFERRAL_CONVERSION_CREDITS} credits per completed referral in the current policy hook).
+                    Share your referral link and earn {REFERRAL_CONVERSION_CREDITS} credits for every person who signs up. Credits hit your balance automatically.
                   </p>
                 </div>
               </CardContent>
@@ -277,10 +276,10 @@ export function PublicPricingPage({
                 <span className="text-xs uppercase tracking-[0.18em]">Credit costs</span>
               </div>
               <CardTitle className="text-[clamp(2.6rem,2.15rem+0.7vw,3.35rem)]">
-                Keep the credit math obvious
+                What does each credit get you?
               </CardTitle>
               <p className="text-sm leading-7 text-muted">
-                Spend one credit for a new live scan or lightweight artifact, and save the bigger draws for MAX prompts or private delivery unlocks.
+                Most actions cost 1 credit. AI-assisted deep dives cost a few more. Here's exactly what to expect before you spend anything.
               </p>
             </CardHeader>
             <CardContent className="grid gap-3 pt-0 md:grid-cols-2">

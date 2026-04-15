@@ -1899,14 +1899,14 @@ export function SettingsPanel() {
 
         <aside className="lg:sticky lg:top-28 lg:h-fit">
           <Card className="relative overflow-hidden">
-            <div className="pointer-events-none absolute inset-x-0 top-0 h-[min(11.5rem,46%)] min-h-[9.5rem]">
+            <div className="pointer-events-none absolute inset-0">
               <HeroGridSurface
-                className="text-border opacity-95"
+                className="text-border opacity-50"
                 pattern={tokens.heroGridPattern}
                 reduceMotion
                 uid={`live-${livePreviewLatticeUid}`}
               />
-              <div className="absolute inset-0 bg-gradient-to-b from-background/15 via-background/78 to-background" />
+              <div className="absolute inset-0 bg-gradient-to-b from-background/10 via-background/70 to-background/90" />
             </div>
             <CardHeader className="relative z-[1]">
               <div className="flex items-center gap-2 text-accent">

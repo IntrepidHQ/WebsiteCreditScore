@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { ScanSearch, BookOpen } from "lucide-react";
+import { BookOpen } from "lucide-react";
 import { usePathname } from "next/navigation";
 
 import { StripeWordmark } from "@/components/common/stripe-wordmark";
@@ -15,7 +15,6 @@ const primaryLinks = [
   { href: "/pricing", label: "Pricing" },
   { href: "/agencies", label: "Agencies" },
   { href: "/docs", label: "Docs" },
-  { href: "/audit/f500-apple", label: "Sample high score" },
 ];
 
 export function SiteFooter({ isAuthenticated }: { isAuthenticated: boolean }) {
@@ -51,12 +50,6 @@ export function SiteFooter({ isAuthenticated }: { isAuthenticated: boolean }) {
             <StripeWordmark className="h-5" />
           </div>
           <div className="grid gap-3 sm:flex sm:flex-wrap">
-            <Button asChild className="w-full sm:w-auto" size="sm">
-              <Link href="/audit/f500-apple">
-                <ScanSearch className="size-4" />
-                Open sample high score
-              </Link>
-            </Button>
             <Button asChild className="w-full sm:w-auto" size="sm" variant="secondary">
               <Link href="/docs">
                 <BookOpen className="size-4" />

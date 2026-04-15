@@ -3,7 +3,6 @@
 import Link from "next/link";
 import {
   ArrowUpRight,
-  Compass,
   FileText,
   Menu,
   ScanSearch,
@@ -257,11 +256,7 @@ export function SiteHeader({
           { href: packetHref, label: "Packet PDF", icon: FileText },
           signInOrWorkspace,
         ]
-      : [
-          { href: "/examples", label: "Recent scans", icon: Compass },
-          { href: "/audit/f500-apple", label: "Sample high score", icon: ScanSearch },
-          signInOrWorkspace,
-        ];
+      : [signInOrWorkspace];
   const mobileQuickActions = quickActions;
 
   if (isAppPath) {
