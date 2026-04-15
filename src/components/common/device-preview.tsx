@@ -68,7 +68,7 @@ export function DevicePreview({
           "rounded-[6px] border border-border/70",
           device === "desktop" ? "aspect-[16/10] max-h-[44rem]" : "aspect-[9/18] max-h-[44rem]",
         )}
-        fallbackLabel="Using site image"
+        fallbackLabel="Screenshot unavailable"
         fallbackSrc={fallbackImage}
         imageClassName={cn(
           "transition duration-700",
