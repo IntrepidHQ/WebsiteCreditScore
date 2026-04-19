@@ -25,7 +25,7 @@ export type ActivityType =
 export type ReferralStatus = "pending" | "converted" | "credited";
 export type BillingStatus = "trial" | "active" | "past-due" | "manual";
 export type BillingPlan = "free" | "pro";
-export type WorkspaceEntitlement = "seo-benchmark" | "max-stealth";
+export type WorkspaceEntitlement = "seo-benchmark" | "max-stealth" | "privacy-pro";
 export type WorkspaceBalanceEntryType =
   | "grant"
   | "purchase"

@@ -10,7 +10,7 @@ import {
   getAdminDailySeries,
   getAdminSummary,
   planLabel,
-} from "@/lib/admin/mock-data";
+} from "@/lib/admin/data-source";
 
 export const dynamic = "force-dynamic";
 
@@ -30,10 +30,12 @@ const formatRelative = (iso: string | null) => {
   return months === 1 ? "1 month ago" : `${months} months ago`;
 };
 
-export default function AdminDashboardPage() {
-  const summary = getAdminSummary();
-  const series = getAdminDailySeries(30);
-  const customers = getAdminCustomers();
+export default async function AdminDashboardPage() {
+  const [summary, series, customers] = await Promise.all([
+    getAdminSummary(),
+    getAdminDailySeries(30),
+    getAdminCustomers(),
+  ]);
 
   const scanSeries = series.map((p) => p.scans);
   const revenueSeries = series.map((p) => p.revenueCents / 100);
