@@ -30,16 +30,16 @@ export function SignupPromptBanner({
               <div className="flex items-center gap-2 text-accent">
                 <Sparkles className="size-4" />
                 <p className="text-xs font-semibold uppercase tracking-[0.24em]">
-                  Save this audit
+                  This audit is free — an account only saves it
                 </p>
               </div>
               <h2 className="font-display text-[clamp(2.6rem,2rem+1vw,4rem)] leading-[0.92] tracking-[-0.04em] text-foreground">
                 Want to scan more sites like {reportTitle}?
               </h2>
               <p className="max-w-2xl text-base leading-7 text-muted">
-                Create a free account to save your audits, track score changes
-                over time, generate outreach packets, and scan unlimited sites
-                from your dashboard.
+                The report above is yours to keep — no sign-in required to read or share it. A free
+                account adds saved history, shareable client links, outreach packets, and unlimited
+                future scans from one dashboard.
               </p>
               <ul className="grid gap-2 text-sm text-muted sm:grid-cols-2">
                 {[

@@ -36,6 +36,16 @@ export function LandingForm() {
     | { id: string; normalizedUrl: string; persisted?: boolean; leadId?: string }
     | null
   >(null);
+  const abortRef = useRef<AbortController | null>(null);
+
+  const handleCancel = useCallback(() => {
+    abortRef.current?.abort();
+    abortRef.current = null;
+    pendingNavRef.current = null;
+    setShowScanOverlay(false);
+    setScanDataReady(false);
+    setLoading(false);
+  }, []);
 
   const handleDialReachedTen = useCallback(() => {
     const payload = pendingNavRef.current;
@@ -72,6 +82,10 @@ export function LandingForm() {
     pendingNavRef.current = null;
     setError("");
 
+    abortRef.current?.abort();
+    const controller = new AbortController();
+    abortRef.current = controller;
+
     try {
       const response = await fetch("/api/audit", {
         method: "POST",
@@ -80,6 +94,7 @@ export function LandingForm() {
         },
         credentials: "include",
         body: JSON.stringify({ url: trimmed, persist: false }),
+        signal: controller.signal,
       });
 
       const payload = (await response.json()) as
@@ -107,15 +122,25 @@ export function LandingForm() {
       pendingNavRef.current = payload;
       setScanDataReady(true);
     } catch (caughtError) {
+      if (controller.signal.aborted) {
+        // Cancelled by the user — `handleCancel` already reset UI state.
+        return;
+      }
       setShowScanOverlay(false);
       setScanDataReady(false);
       pendingNavRef.current = null;
+      const message =
+        caughtError instanceof Error ? caughtError.message : "Unable to generate the audit right now.";
+      // Common bad-URL shapes: spaces, missing TLD, http without scheme. Give a retry hint.
+      const urlLooksInvalid =
+        /\s/.test(trimmed) || !/\.[a-z]{2,}/i.test(trimmed);
       setError(
-        caughtError instanceof Error
-          ? caughtError.message
-          : "Unable to generate the audit right now.",
+        urlLooksInvalid
+          ? `That URL doesn't look right. Try something like example.com, agency.co, or shop.store.com — no spaces, and a real domain suffix.`
+          : message,
       );
     } finally {
+      if (abortRef.current === controller) abortRef.current = null;
       setLoading(false);
     }
   };
@@ -175,13 +200,20 @@ export function LandingForm() {
         <span>Score, breakdown, and action brief — free to run</span>
       </div>
       {error ? (
-        <p
+        <div
           className="rounded-2xl border border-danger/30 bg-danger/10 px-4 py-3 text-sm text-danger"
           id={errorId}
           role="alert"
         >
-          {error}
-        </p>
+          <p>{error}</p>
+          <button
+            className="mt-2 text-[11px] font-semibold uppercase tracking-[0.14em] text-danger/90 underline underline-offset-4 transition hover:text-danger"
+            onClick={() => setError("")}
+            type="button"
+          >
+            Try a different URL
+          </button>
+        </div>
       ) : null}
       {portalTarget
         ? createPortal(
@@ -190,6 +222,7 @@ export function LandingForm() {
               mode="landing"
               scanDataReady={scanDataReady}
               onDialReachedTen={handleDialReachedTen}
+              onCancel={handleCancel}
             />,
             portalTarget,
           )

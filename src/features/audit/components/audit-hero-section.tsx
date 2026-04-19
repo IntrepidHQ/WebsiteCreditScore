@@ -130,7 +130,7 @@ export function AuditHeroSection({ report }: { report: AuditReport }) {
                 onClick={() => setContactModalOpen(true)}
                 variant="outline"
               >
-                Book Strategy Call
+                Request 15-min call
                 <ArrowRight className="size-4" />
               </Button>
             </div>
