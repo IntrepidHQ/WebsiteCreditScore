@@ -29,6 +29,12 @@ export function SiteFooter({ isAuthenticated }: { isAuthenticated: boolean }) {
       : { href: "/app/login", label: "Sign in" },
   ];
 
+  const legalLinks = [
+    { href: "/privacy", label: "Privacy" },
+    { href: "/terms", label: "Terms" },
+    { href: "/cookies", label: "Cookies" },
+  ];
+
   if (pathname.startsWith("/app")) {
     return null;
   }
@@ -93,6 +99,24 @@ export function SiteFooter({ isAuthenticated }: { isAuthenticated: boolean }) {
               </ul>
             </nav>
           </div>
+        </div>
+      </div>
+      <div className="border-t border-border/40">
+        <div className="mx-auto flex w-full max-w-[min(100%,96rem)] flex-wrap items-center justify-between gap-3 px-4 py-4 text-xs text-muted sm:px-6 lg:px-8">
+          <p>
+            &copy; {new Date().getFullYear()} WebsiteCreditScore.com. All rights reserved.
+          </p>
+          <nav aria-label="Legal">
+            <ul className="flex flex-wrap gap-4">
+              {legalLinks.map((link) => (
+                <li key={link.href}>
+                  <Link className="hover:text-foreground" href={link.href}>
+                    {link.label}
+                  </Link>
+                </li>
+              ))}
+            </ul>
+          </nav>
         </div>
       </div>
     </footer>

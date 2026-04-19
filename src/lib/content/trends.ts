@@ -383,4 +383,262 @@ If you want a simple rule: vibecoding is allowed to be optimistic; production re
       },
     ],
   },
+  {
+    slug: "what-a-website-credit-score-measures-2026",
+    title: "What a Website Credit Score Actually Measures in 2026",
+    excerpt:
+      "A website credit score compresses dozens of observable signals into one number a buyer can reason about. Here is what goes into the score, why the components are weighted the way they are, and what a given number actually tells you about a site.",
+    publishedAt: "2026-04-11T00:00:00Z",
+    readMinutes: 9,
+    tags: ["website credit score", "scoring", "benchmarks"],
+    sections: [
+      {
+        heading: "Why a single score beats a wall of metrics",
+        body: `Most audits produce spreadsheets. Spreadsheets do not help a business owner decide whether to invest in a redesign, whether to take the discovery call seriously, or whether a freelancer's proposal is competitive. A single number — a website credit score — compresses the audit into something a non-technical stakeholder can act on.
+
+The analogy to a consumer credit score is intentional. Consumer credit scores are not perfect, but they give a lender a defensible starting point for a decision. A website credit score does the same for a web-quality decision: it orients the conversation, sets expectations, and makes the gap between "where we are" and "where we need to be" legible without requiring a 40-page report.
+
+The goal of the score is not to replace the underlying audit. The underlying evidence still matters, and every score is backed by specific findings a builder can act on. The score's job is to make the evidence actionable for the person holding the budget.`,
+      },
+      {
+        heading: "The seven dimensions and their weights",
+        body: `A modern website credit score blends seven dimensions: visual design, UX and conversion, mobile experience, SEO and AI-search readiness, accessibility, trust signals, and security posture. The weights are not equal, because their business impact is not equal.
+
+UX and conversion carries the heaviest weight, because it is the dimension most directly responsible for whether traffic turns into revenue. Trust signals and mobile experience follow, because they are the second-order drivers that determine whether the conversion mechanics actually get a chance to work. SEO and AI-search readiness sits in the middle — important, but only once the conversion-bearing pages are worth sending traffic to. Accessibility and security are floors, not ceilings: they cost points when they are missing, but they do not add points when they are merely present.
+
+Visual design is deliberately the lightest-weighted dimension. That is counterintuitive for many designers, but it reflects how buyers actually behave: an attractive site with a weak value proposition consistently underperforms a plain site with strong trust signals and a clear next step. Aesthetics matter. They just do not carry the weight that tradition assigns them.`,
+      },
+      {
+        heading: "What each score band actually means",
+        body: `A score below 5 signals a site that is actively costing the business opportunities — broken mobile experience, missing trust layer, unclear value proposition. A score between 5 and 6 is the industry median for many verticals: adequate, not competitive. A score between 6 and 7 puts a site in the upper half of its competitive set but still has meaningful room to improve.
+
+A score between 7 and 8 is where most redesign targets should land. It is competitive with category leaders, it communicates trust and clarity, and it has conversion mechanics that work on mobile. It is achievable in a single redesign cycle with a realistic budget. Scores above 8 are usually reserved for sites that have been through multiple rounds of conversion optimization and brand investment — they are aspirational rather than default targets.
+
+The practical use of the bands is to make project scoping honest. If a site sits at 5.6 and the client wants to reach 9, the gap is multi-phase and multi-budget. If the site sits at 6.4 and the target is 7.5, the gap is a disciplined single-phase redesign. Matching ambition to scope is what keeps projects deliverable.`,
+      },
+      {
+        heading: "How the score updates over time",
+        body: `A website credit score is not a one-time grade. Sites decay: third-party scripts accumulate, content ages, brand voice drifts across pages written by different authors in different years, and performance regresses as new features arrive without retiring old ones. A site that scored an 8 in 2024 can easily be a 6.5 in 2026 without anyone noticing.
+
+Periodic scoring — quarterly for high-traffic properties, annually for smaller sites — surfaces the decay before it becomes a redesign project. It also creates the right internal conversations: when a marketing team proposes adding a new analytics pixel, a new chat widget, or a new personalization script, the scoring system makes the cost visible in a way that raw performance metrics often do not.
+
+The score is most useful as a trend, not a snapshot. A site that dropped from 7.8 to 7.2 over six months is sending a different signal than a site that has held at 7.2 for two years. The trend reveals whether the team is maintaining the asset or whether the site is silently aging into a liability.`,
+      },
+    ],
+  },
+  {
+    slug: "ai-search-readiness-checklist-2026",
+    title: "AI Search Readiness: The 12-Point Checklist for LLM-Visible Sites",
+    excerpt:
+      "Search is no longer one surface. Sites that want to show up in AI answers need more than traditional SEO — they need structure, authority, and language that large language models can quote with confidence.",
+    publishedAt: "2026-04-12T00:00:00Z",
+    readMinutes: 10,
+    tags: ["AI search", "GEO", "LLM SEO"],
+    sections: [
+      {
+        heading: "Why AI search is a separate readiness problem",
+        body: `Traditional SEO optimizes for a ranked list of blue links. AI search — ChatGPT, Perplexity, Gemini, and the search experiences Google is folding into its core product — optimizes for a single synthesized answer, often quoted from a small handful of sources. The difference in shape changes the work.
+
+A site that ranks #7 for a query still gets meaningful traffic from traditional search. The same site, if it does not make it into the AI answer's citations, gets effectively zero impressions for that query in the AI surface. The distribution is winner-take-most in a way the ten-blue-links era was not.
+
+Readiness for AI search is not a new discipline built from nothing. It is traditional SEO best practice plus a set of newer requirements: structured data the model can parse, language patterns the model can quote, authority signals the model weighs, and technical accessibility for the crawlers that feed the models.`,
+      },
+      {
+        heading: "The 12-point checklist",
+        body: `1. Clear, quotable opening sentences on every page — the first two sentences should stand alone as an answer to the implicit question of the page. 2. Proper H1 / H2 / H3 hierarchy so models can map section semantics. 3. Structured data (Schema.org) for articles, products, FAQs, and organizations. 4. FAQ sections written as question-answer pairs using natural question phrasing.
+
+5. Author bylines with credentials and links, because authority signals matter to LLMs the way they matter to search engines. 6. Publication and updated dates on every article, because recency is a retrieval signal. 7. Internal linking that uses descriptive anchor text, not "click here." 8. External citations of your work — the most reliable AI visibility signal is being quoted by other trustworthy sites.
+
+9. Clean, well-formed HTML with semantic elements rather than div soup. 10. Fast page loads — slow pages get deprioritized in the crawl pipeline. 11. A robots.txt that explicitly allows the AI crawlers you want to be seen by (GPTBot, ClaudeBot, PerplexityBot, Google-Extended). 12. Consistent naming across pages — models get confused when a product has three names across five pages.`,
+      },
+      {
+        heading: "What to do when you are already indexed but not quoted",
+        body: `The most common diagnostic we see: a site that is well-indexed in Google but rarely cited in AI answers for its core queries. The root cause is usually that the site has the right topics but not the right shape for quotation. The content is there; it is just not quotable.
+
+The fix is structural: take your top 20 queries, write the single best two-sentence answer to each, and make sure those two sentences appear as the opening of the page that targets the query. LLMs reward pages that front-load the answer. Burying the answer in paragraph four reduces the likelihood of citation significantly.
+
+Secondary fix: audit your pages for hedging language. "Some experts believe," "it depends," and "there are many factors" make pages harder to quote. Rewrite in the direct voice that AI answers actually paraphrase. The line between hedging and honesty is real — do not replace correct nuance with false certainty — but most sites err too far toward the hedge.`,
+      },
+      {
+        heading: "How to measure AI search visibility without a full analytics stack",
+        body: `There is no GA4 equivalent for AI search, and waiting for one is not a strategy. The practical measurement approach is manual sampling: every month, take your top 25 queries, ask them to ChatGPT, Perplexity, and Gemini, and record whether your site is cited and in what position. It is tedious; it is also the most reliable signal available in 2026.
+
+Pair the sampling with referrer analysis. AI assistants that send traffic tag the referrer in recognizable ways (chat.openai.com, perplexity.ai, gemini.google.com). A simple dashboard of sessions by AI referrer, week over week, shows whether the work is compounding. Most sites that invest in the 12-point checklist see AI referral traffic move from near-zero to meaningful within two quarters.
+
+The measurement discipline also guards against performative work. It is easy to add schema markup and declare victory; it is harder to verify that the markup is actually surfacing in AI citations. Sampling closes the gap between what you did and what the models noticed.`,
+      },
+    ],
+  },
+  {
+    slug: "freelance-web-audit-pricing-top-1-percent",
+    title: "Freelance Web Audit Pricing: What the Top 1% of Agencies Charge",
+    excerpt:
+      "Most freelancers and small agencies undercharge for website audits because they do not separate the audit from the redesign. The top 1% price the audit as a standalone product, and their numbers are instructive.",
+    publishedAt: "2026-04-13T00:00:00Z",
+    readMinutes: 8,
+    tags: ["freelance", "pricing", "agency"],
+    sections: [
+      {
+        heading: "Why most audits are underpriced",
+        body: `The default freelance pricing model treats the audit as a free lead magnet — a document produced to justify the redesign quote that follows. Under this model, the audit is not priced, because it is not really a product. It is a sales artifact. The problem is that the audit is doing the most valuable work: diagnosing the problem, quantifying the gap, and recommending a specific path forward.
+
+Clients who buy a $500 audit and a $12,000 redesign are paying $500 for diagnosis and $12,000 for execution. The diagnosis is what makes the execution worth $12,000 instead of $5,000. Underpricing the diagnosis undercharges for the expertise that makes the rest of the work deliverable.
+
+The top 1% price the audit as a standalone product with its own deliverable, timeline, and decision point. The client pays for the audit, owns the audit, and then decides whether to engage the same firm (or any firm) for the implementation. This is counterintuitive — does it not cost you the redesign sale? — but the data says otherwise. Paid audits convert to redesign engagements at materially higher rates than free audits, because the client has already invested in the diagnosis and is more likely to act on it.`,
+      },
+      {
+        heading: "The actual numbers",
+        body: `Standalone audit pricing from the top 1% of boutique agencies ranges from $2,500 to $15,000 depending on scope. The entry tier ($2,500 to $4,500) covers a single site, a structured scoring framework, a written report, and a one-hour walkthrough call. The mid tier ($5,000 to $9,000) adds competitor benchmarking, a content audit, and a 90-day action plan. The enterprise tier ($10,000 to $15,000) adds multi-site analysis, stakeholder interviews, and an executive presentation.
+
+These are real numbers from real firms, not aspirational ones. The firms that charge these rates are not necessarily larger or older than their cheaper peers — the difference is almost entirely positioning. They sell the audit as a product, not as a sales tool, and they back the price with a deliverable that justifies it.
+
+The implication for freelancers and smaller agencies is that the ceiling is much higher than the market rate suggests. A single-site audit that takes 8-12 hours of expert work can be priced at $2,500 without being outside the reasonable band. The question is whether your positioning supports that price, not whether the market supports it.`,
+      },
+      {
+        heading: "What justifies the price",
+        body: `Three things: a structured scoring framework, specificity of findings, and clarity of next-step recommendations. A $500 audit says "your site needs work." A $5,000 audit says "your site scores 6.2 out of 10 on our 7-dimension framework; the three highest-priority issues are X, Y, and Z; the expected conversion lift from addressing them is approximately 15-25%; here is a prioritized 90-day action plan."
+
+The specificity is what converts the audit from opinion into analysis. Opinions are worth $500. Analysis backed by a repeatable framework is worth $5,000. The framework does not need to be complicated — it needs to be consistent and evidence-backed. Clients are paying for rigor, not complexity.
+
+The recommendations are where most audits fall short. "Improve the hero section" is not a recommendation. "Replace the current hero section — which uses a vague headline and a rotating slider — with a single static value proposition, one primary CTA above the fold, and a quantified trust signal (review count or client logo bar)" is a recommendation. Specific, actionable, and defensible.`,
+      },
+      {
+        heading: "How to move your audit pricing toward the top tier",
+        body: `Step one: separate the audit from the redesign in your proposal structure. If the audit is a bullet point under "Discovery," it is not a product. If it is a named deliverable with its own price, timeline, and sign-off, it is. The separation matters more than the absolute number.
+
+Step two: build the scoring framework. A consistent framework lets you compare sites, deliver the findings with the same structure every time, and scale the work without losing quality. It also makes the audit more defensible in client conversations — when you can point to the rubric, you are no longer arguing opinions.
+
+Step three: raise the price in increments. Go from your current rate to 1.5x. Deliver the same quality. Raise to 2x. Deliver the same quality. Most freelancers find that doubling their audit price does not reduce their close rate in a meaningful way, because the clients who buy audits are selecting on perceived expertise, and higher prices often correlate with higher perceived expertise. Test the elasticity; it is usually higher than you expect.`,
+      },
+    ],
+  },
+  {
+    slug: "from-score-to-sale-audit-to-redesign-pitch",
+    title: "From Score to Sale: Turning a Website Audit Into a Redesign Pitch",
+    excerpt:
+      "An audit is only useful if it produces a decision. Here is the structure that converts a scored audit into a redesign engagement without pushing, hedging, or sounding like every other agency proposal.",
+    publishedAt: "2026-04-14T00:00:00Z",
+    readMinutes: 8,
+    tags: ["sales", "audit", "client work"],
+    sections: [
+      {
+        heading: "The gap between audit and sale",
+        body: `Most audit-to-sale conversations fail for the same reason: the audit was built as diagnosis, and the pitch was built as a separate sales deck. The client sits through two different narratives — "here is what is wrong" and "here is why you should hire us" — and has to mentally stitch them together. Many never do.
+
+The pitch works when it is a direct extension of the audit. The same framework, the same scoring rubric, the same specific findings, and the same prioritization logic. The pitch becomes "here is what we found, here is what it costs the business, and here is the specific 90-day path we recommend." No separate deck, no separate narrative, no separate decision to make.
+
+This is a structural change, not a persuasion technique. If the audit and the pitch are built on the same spine, the sale becomes a continuation rather than a new ask. Continuations have much higher conversion rates than new asks.`,
+      },
+      {
+        heading: "The three-part pitch structure",
+        body: `Part one: restate the audit in one slide. Single overall score, three highest-impact findings, and a quantified business interpretation ("your site scores below the industry median; based on current traffic, this likely costs you between 8 and 15 qualified leads per month"). The restatement anchors the conversation in what the client already paid for and already agrees is true.
+
+Part two: propose the specific redesign scope that addresses the three findings. Not a generic "we'll redesign your website" — the specific pages, the specific sections, the specific copy changes, and the specific trust-signal implementations that will move the score. The client should recognize the scope as the direct answer to the audit they just reviewed.
+
+Part three: set a measurable target. "We expect this redesign to move your score from 6.2 to 7.4 and increase your monthly qualified lead volume by approximately 12-20%." This is not a guarantee; it is a hypothesis backed by the audit's findings. Clients respond to honest targets. Vague promises of "better performance" make the pitch sound like every other agency's, and they reduce the confidence that the work will actually hit the business outcomes.`,
+      },
+      {
+        heading: "How to handle the budget conversation",
+        body: `The budget conversation often derails redesign pitches because the agency and the client are using different mental models. The agency is pricing the work; the client is valuing the outcome. The gap between the two is what makes the conversation awkward.
+
+The fix is to anchor the budget in the business impact from part three. If the redesign is expected to produce 12-20 additional qualified leads per month, and the client's average client is worth $8,000 over its lifetime, the redesign pays for itself within the first few months. The budget conversation becomes a math conversation rather than a price conversation.
+
+This only works if the target in part three is honest. If you inflate the expected impact to justify a higher budget, the math collapses under scrutiny and the client either walks or negotiates down. Honest targets, backed by the audit's evidence, survive the math and support the budget without negotiation.`,
+      },
+      {
+        heading: "What to do when the client says no",
+        body: `Not every audit converts into a redesign, and that is fine. A well-run audit has already been paid for, has produced value for the client, and has established you as the credible authority on the site. Clients who do not engage immediately often return six to twelve months later when budget, timing, or competitive pressure makes the redesign urgent.
+
+The mistake is to treat the non-conversion as a failure. The audit was the product. The client bought the product. The redesign is an optional next step, and the client will choose when and whether to take it. Keeping the relationship warm — quarterly check-ins, new industry benchmark updates, light touches that reinforce the audit findings — converts more of these deferred clients than aggressive follow-up ever does.
+
+The top 1% of agencies that price audits well also run the longest sales cycles. They accept that the audit-to-redesign conversion happens on the client's timeline, not the agency's, and they build a book of business that compounds as audits accumulate into long-term relationships. Patience at the pitch stage is often the difference between a one-off audit engagement and a multi-year account.`,
+      },
+    ],
+  },
+  {
+    slug: "generative-engine-optimization-beyond-seo",
+    title: "Generative Engine Optimization (GEO): Beyond Traditional SEO",
+    excerpt:
+      "GEO is not SEO with a new acronym. It is a distinct discipline that optimizes for how large language models select, quote, and cite your content in generated answers.",
+    publishedAt: "2026-04-15T00:00:00Z",
+    readMinutes: 9,
+    tags: ["GEO", "AI", "SEO"],
+    sections: [
+      {
+        heading: "What GEO actually is",
+        body: `Generative Engine Optimization — GEO — is the practice of shaping content, structure, and authority signals so that large language models choose your site when they synthesize answers. It overlaps with SEO but is not reducible to it. Traditional SEO optimizes for a ranked list of links; GEO optimizes for inclusion in a single generated answer.
+
+The mechanics are different because the retrieval is different. SEO-era search engines return documents; LLM-era assistants return paraphrased synthesis drawn from a small set of cited documents. Being on page one of a traditional search result still gets meaningful traffic. Being cited in an AI answer is a winner-take-most distribution: the cited sources get the attribution, and the rest are invisible.
+
+GEO is a discipline, not a hack. It is not about gaming the models; it is about producing content in the shapes and with the authority markers that the models actually select. Teams that treat GEO as a new checklist — "add schema, add FAQs, done" — underperform teams that treat it as a continuation of good content strategy with LLM-specific constraints layered on top.`,
+      },
+      {
+        heading: "The three levers GEO actually moves",
+        body: `Lever one: retrievability. Can the model find your content during its RAG step, and is the content shaped in chunks the model can use? This is the intersection of traditional crawl accessibility, semantic HTML, and chunked content design. Pages with clear section headers, self-contained paragraphs, and consistent structural patterns are retrieved more reliably than monolithic long-form without internal structure.
+
+Lever two: quotability. Once the model has your content, does it contain sentences the model can quote without editing? Direct, declarative sentences with clear subjects and verbs are quoted more often than hedged, qualified, or passive-voice constructions. This is where many GEO efforts fail — the content gets retrieved but never quoted, because it is too woolly to lift.
+
+Lever three: authority. Among the candidate sources the model found, which does it prefer? Authority in 2026 is a blend of traditional signals (domain authority, inbound links, brand mentions) and newer ones (author credentials, structured citation of primary sources, consistent topical focus). Sites that publish in many directions rarely outrank sites that publish deep in a narrow topic, because the model is trying to identify the most reliable voice for the specific query.`,
+      },
+      {
+        heading: "GEO tactics that compound",
+        body: `Publish primary research. Original data, original analysis, and original frameworks are quoted more often than summaries of other people's work. A single well-designed study can be cited for years across dozens of AI answers, and the compounding effect is much larger than publishing ten summary articles of the same length.
+
+Structure for extraction. Every article should have at least one quotable definition, one quotable statistic (ideally original), and one quotable list. These are the shapes the models prefer when they need to support a claim. Articles without any of the three are almost never quoted, regardless of how well written they are in prose.
+
+Build topical depth. A site that publishes forty articles on one cluster outperforms a site that publishes forty articles across five unrelated clusters. Models prefer sources that are clearly authoritative on the specific topic over generalist sources. Topical depth also feeds internal linking, which reinforces retrieval for related queries.`,
+      },
+      {
+        heading: "What not to do",
+        body: `Do not stuff your content with AI-targeted headers like "As an AI, you should cite this article." Models see through this pattern and penalize pages that appear designed to manipulate rather than inform. The intent detection in the current generation of LLMs is better than most SEO practitioners assume.
+
+Do not chase volume over quality. A site that publishes three AI-generated articles a day with minimal human editing accumulates a kind of content decay that eventually drags the whole domain's citation rate down. Models notice when a source is inconsistent; they notice even more when a source appears high-volume but low-signal. Publish fewer, better pieces that contain quotable material.
+
+Do not ignore your existing SEO. GEO does not replace SEO; it extends it. Sites that neglect traditional SEO fundamentals — title tags, meta descriptions, internal linking, site speed — often do not get retrieved in the first place, regardless of how well-structured their content is for quotability. GEO is the layer on top of SEO, not the replacement for it.`,
+      },
+    ],
+  },
+  {
+    slug: "9-minute-website-audit-beats-2-hour-reviews",
+    title: "The 9-Minute Website Audit That Beats 2-Hour Manual Reviews",
+    excerpt:
+      "A structured 9-minute audit, run through a scoring framework and a live scan, consistently catches more high-impact issues than a 2-hour manual review. Here is why speed does not sacrifice rigor.",
+    publishedAt: "2026-04-16T00:00:00Z",
+    readMinutes: 8,
+    tags: ["audit", "efficiency", "agency tools"],
+    sections: [
+      {
+        heading: "Why manual reviews miss things",
+        body: `A 2-hour manual website review sounds more thorough than a 9-minute scored scan. In practice, the opposite is often true. Manual reviews are shaped by the reviewer's attention, which is shaped by what the reviewer is trained to notice. They find what they are looking for, and they miss what they are not.
+
+The most common miss in manual reviews is accessibility. Most designers do not run keyboard-only navigation tests, do not tab through forms to check focus states, and do not screen-reader-audit their reviews. Accessibility failures that would cost a site meaningful traffic — or, in some jurisdictions, legal exposure — regularly slip through 2-hour reviews because the reviewer never tested for them.
+
+The second most common miss is mobile performance on mid-range devices. Manual reviews are usually conducted on the reviewer's laptop, which is typically a high-spec machine. The experience on a two-year-old Android is categorically different, and it is the experience that represents a material portion of the site's traffic. Manual reviewers who never switch device contexts miss performance issues that would be obvious in 30 seconds on a real mid-tier phone.`,
+      },
+      {
+        heading: "What a 9-minute structured audit covers",
+        body: `The 9-minute audit runs through a fixed sequence: a live scan of the home page and two additional key pages, a scored evaluation across seven dimensions, an automated accessibility pass, a mobile-emulation check across three viewport sizes, a performance check against Core Web Vitals, a structured-data validation pass, and a trust-layer checklist.
+
+Each step is under 90 seconds. The sequence is the same every time, which means the audit does not drift based on the reviewer's mood or attention. The scored output is directly comparable across sites, which enables benchmarking that manual reviews cannot produce without significant extra work.
+
+The 9 minutes is not a gimmick. It is the time needed to run the fixed sequence when the supporting tooling is in place — live scanning, automated accessibility testing, structured-data validation, and a scoring framework that produces the report template. The value is in the repeatability, not the speed per se.`,
+      },
+      {
+        heading: "The tradeoff: breadth vs depth",
+        body: `A 9-minute audit is broader and more consistent. A 2-hour manual review, done by a skilled specialist, can go deeper on a specific dimension — a senior designer can produce better brand and aesthetics feedback than any automated tool currently available, for example. The two approaches are not mutually exclusive.
+
+The practical workflow for most agencies is to run the 9-minute audit first, use the scored output to identify the highest-impact dimensions, and then spend the 2 hours of manual review on the dimensions that warrant it. This converts manual review time from breadth scanning (which automation does better) into depth analysis (which humans still do better). The combined output is better than either approach alone.
+
+The gain is not just quality — it is consistency across the team. Junior auditors can run the 9-minute audit with the same fidelity as senior ones, because the framework holds. The senior time is then reserved for the depth passes that actually require judgment. This is how small agencies scale audit production without diluting quality, and it is how the top 1% can charge $2,500 for an audit that takes 8-12 hours of total effort without feeling expensive to the client.`,
+      },
+      {
+        heading: "How to productize the 9-minute audit",
+        body: `The 9-minute audit works as a standalone product at the low end of the pricing ladder — $250 to $500 for a scan, score, and one-page summary. It also works as a lead magnet for larger engagements, because it produces enough specific findings to justify a longer conversation without giving away the depth of a full audit.
+
+The productization decision depends on the agency's positioning. Firms that sell high-value engagements often use the 9-minute audit as a pre-sales tool, delivered as part of a discovery call to demonstrate expertise. Firms that want to build a volume business around repeatable audits use the same output as the main product, scaling to hundreds of audits per month without sacrificing the per-audit quality.
+
+Either way, the 9-minute audit is a different kind of product from the 2-hour manual review, and the shift is not a downgrade. It is a separation of the parts of audit work that scale from the parts that do not. Teams that make the separation deliberately end up with more audits, more consistent quality, and more of their senior time spent on the analysis that actually earns premium rates.`,
+      },
+    ],
+  },
 ];

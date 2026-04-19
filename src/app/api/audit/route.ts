@@ -7,7 +7,34 @@ import { ensurePreviewCachedForObservation } from "@/lib/utils/preview-warm";
 import { getCachedReport, cacheReport, touchRecentScanFromReport } from "@/lib/utils/scan-cache";
 import { getOptionalWorkspaceSessionFromRequest } from "@/lib/auth/session";
 import { getProductRepository } from "@/lib/product/repository";
+import {
+  DEFAULT_SCAN_COST_CENTS,
+  REVENUE_PER_SCAN_CENTS,
+  recordScan,
+  type ScanPlanSource,
+} from "@/lib/billing/scan-cost";
 import type { ContentClassification, FetchErrorReason, SiteObservation } from "@/lib/types/audit";
+import type { WorkspaceRecord } from "@/lib/types/product";
+
+/**
+ * Derive the plan the scan should be attributed to for admin reporting.
+ * A workspace with an active paid plan maps to its plan ID; otherwise free.
+ */
+function resolveScanPlanSource(workspace: WorkspaceRecord | null | undefined): ScanPlanSource {
+  if (!workspace) return "free";
+  const entitlements = workspace.entitlements ?? [];
+  if (entitlements.includes("privacy-pro")) return "privacy-pro";
+  if (workspace.billingPlan === "pro") return "pro-50";
+  if ((workspace.tokenBalance ?? 0) > 0 || (workspace.creditBalance ?? 0) > 0) {
+    return "pay-per-scan";
+  }
+  return "free";
+}
+
+/** Revenue we book for this scan. Free scans attribute 0; paid attribute $1. */
+function attributeScanRevenueCents(plan: ScanPlanSource): number {
+  return plan === "free" ? 0 : REVENUE_PER_SCAN_CENTS;
+}
 
 function userFacingFetchError(reason?: FetchErrorReason, httpStatus?: number): string {
   switch (reason) {
@@ -111,6 +138,18 @@ export async function POST(request: Request) {
       const repository = getProductRepository(session);
       const workspace = await repository.ensureWorkspace(session, request);
       const lead = await repository.createLeadFromUrl(workspace.id, normalizedUrl, session);
+
+      const planSource = resolveScanPlanSource(workspace);
+      void recordScan({
+        workspaceId: workspace.id,
+        userId: session.userId,
+        url: lead.normalizedUrl,
+        score: lead.currentScore,
+        providerCostCents: DEFAULT_SCAN_COST_CENTS,
+        revenueCents: attributeScanRevenueCents(planSource),
+        planSource,
+        status: "complete",
+      });
 
       return NextResponse.json({
         id: lead.id,

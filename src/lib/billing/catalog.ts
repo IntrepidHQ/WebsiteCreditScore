@@ -10,7 +10,10 @@ export type BillingPlanId = BillingPlan;
 export type BillingAddOnId =
   | "extra-50-tokens"
   | "seo-benchmark"
-  | "max-stealth";
+  | "max-stealth"
+  | "scan-1x"
+  | "pro-50-bundle"
+  | "privacy-pro-50";
 export type BillingItemId = BillingPlanId | BillingAddOnId;
 
 export interface TokenActionDefinition {
@@ -133,6 +136,32 @@ export const BILLING_ADD_ONS: BillingAddOnDefinition[] = [
     description: "Unlock the build prompt flow and keep sensitive scans out of the public feed.",
     detail: "Best when you want private work and a cleaner handoff to AI builders.",
     entitlements: ["max-stealth"],
+  },
+  {
+    id: "scan-1x",
+    label: "Single scan ($1)",
+    priceCents: 100,
+    description: "Pay as you go — one live audit, saved to your workspace.",
+    detail: "Best for trying the full report workflow on a single URL.",
+    tokenAmount: 1,
+  },
+  {
+    id: "pro-50-bundle",
+    label: "Pro 50 bundle ($50)",
+    priceCents: 5000,
+    description: "50 live scans for $50. Credits never expire while the workspace is active.",
+    detail: "Best for weekly audits across a portfolio of client sites.",
+    tokenAmount: 50,
+  },
+  {
+    id: "privacy-pro-50",
+    label: "Privacy Pro 50 bundle ($50)",
+    priceCents: 5000,
+    description:
+      "50 scans with full redaction on all admin surfaces — name, email, and scanned URLs are masked.",
+    detail: "Same capacity as Pro 50, with added privacy guarantees for sensitive client work.",
+    tokenAmount: 50,
+    entitlements: ["privacy-pro"],
   },
 ] as const;
 

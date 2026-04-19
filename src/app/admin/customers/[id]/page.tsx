@@ -9,7 +9,7 @@ import {
   getAdminCustomer,
   getAdminScansForCustomer,
   planLabel,
-} from "@/lib/admin/mock-data";
+} from "@/lib/admin/data-source";
 
 export const dynamic = "force-dynamic";
 
@@ -28,11 +28,13 @@ export default async function AdminCustomerPage({
   params: Promise<{ id: string }>;
 }) {
   const { id } = await params;
-  const customer = getAdminCustomer(id);
+  const [customer, scans] = await Promise.all([
+    getAdminCustomer(id),
+    getAdminScansForCustomer(id),
+  ]);
   if (!customer) {
     notFound();
   }
-  const scans = getAdminScansForCustomer(id);
 
   const margin = customer.lifetimeRevenueCents - customer.lifetimeCostCents;
   const scansDisplay = customer.scansIncluded

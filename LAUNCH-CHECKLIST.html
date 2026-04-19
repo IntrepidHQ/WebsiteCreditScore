@@ -1,0 +1,492 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Launch Checklist — WebsiteCreditScore.com</title>
+  <style>
+    :root {
+      --fg: #0b0c10;
+      --fg-muted: #525968;
+      --fg-subtle: #8891a8;
+      --bg: #f8f9fb;
+      --bg-alt: #ffffff;
+      --accent: #2742d6;
+      --warn-bg: #fff5d1;
+      --warn-border: #d9a900;
+      --success: #1d7a3a;
+      --danger: #b71c1c;
+      --border: #dfe2ea;
+      --radius: 8px;
+    }
+    * { box-sizing: border-box; }
+    html, body { margin: 0; padding: 0; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+      color: var(--fg);
+      background: var(--bg);
+      line-height: 1.55;
+    }
+    header {
+      position: sticky;
+      top: 0;
+      background: var(--bg-alt);
+      border-bottom: 1px solid var(--border);
+      padding: 16px 24px;
+      z-index: 10;
+    }
+    header h1 {
+      margin: 0 0 6px 0;
+      font-size: 20px;
+      letter-spacing: -0.01em;
+    }
+    header .sub {
+      color: var(--fg-muted);
+      font-size: 13px;
+    }
+    .progress-row {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-top: 12px;
+    }
+    progress {
+      flex: 1;
+      height: 10px;
+      appearance: none;
+      -webkit-appearance: none;
+      border: none;
+      border-radius: 999px;
+      overflow: hidden;
+      background: #e7ebf3;
+    }
+    progress::-webkit-progress-bar {
+      background: #e7ebf3;
+      border-radius: 999px;
+    }
+    progress::-webkit-progress-value {
+      background: var(--accent);
+      border-radius: 999px;
+    }
+    progress::-moz-progress-bar {
+      background: var(--accent);
+      border-radius: 999px;
+    }
+    #progress-label {
+      font-size: 13px;
+      color: var(--fg-muted);
+      min-width: 60px;
+      text-align: right;
+      font-variant-numeric: tabular-nums;
+    }
+    main {
+      max-width: 880px;
+      margin: 0 auto;
+      padding: 32px 24px 96px;
+    }
+    .intro {
+      background: var(--warn-bg);
+      border: 1px solid var(--warn-border);
+      padding: 14px 16px;
+      border-radius: var(--radius);
+      margin-bottom: 28px;
+      font-size: 14px;
+    }
+    .intro strong { color: var(--fg); }
+    section {
+      background: var(--bg-alt);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 20px 24px;
+      margin-bottom: 20px;
+    }
+    section h2 {
+      margin: 0 0 4px 0;
+      font-size: 17px;
+      letter-spacing: -0.01em;
+    }
+    section .section-sub {
+      color: var(--fg-muted);
+      font-size: 13px;
+      margin-bottom: 12px;
+    }
+    ul.checklist {
+      list-style: none;
+      padding: 0;
+      margin: 0;
+    }
+    ul.checklist > li {
+      padding: 8px 0;
+      border-top: 1px dashed var(--border);
+    }
+    ul.checklist > li:first-child {
+      border-top: none;
+    }
+    ul.checklist label {
+      display: flex;
+      gap: 10px;
+      align-items: flex-start;
+      cursor: pointer;
+      font-size: 14px;
+    }
+    ul.checklist input[type="checkbox"] {
+      margin-top: 3px;
+      flex-shrink: 0;
+      width: 16px;
+      height: 16px;
+    }
+    ul.checklist label span.title {
+      color: var(--fg);
+    }
+    ul.checklist input[type="checkbox"]:checked + span.title {
+      color: var(--fg-subtle);
+      text-decoration: line-through;
+    }
+    ul.checklist .detail {
+      margin: 6px 0 0 26px;
+      color: var(--fg-muted);
+      font-size: 13px;
+    }
+    pre {
+      background: #f1f3f8;
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      padding: 10px 12px;
+      margin: 8px 0 0 26px;
+      font-size: 12.5px;
+      overflow-x: auto;
+      color: #1a2740;
+    }
+    table {
+      border-collapse: collapse;
+      width: 100%;
+      font-size: 13px;
+      margin: 8px 0 0 26px;
+      max-width: calc(100% - 26px);
+    }
+    th, td {
+      border: 1px solid var(--border);
+      padding: 6px 10px;
+      text-align: left;
+      vertical-align: top;
+    }
+    th {
+      background: #f1f3f8;
+      font-weight: 600;
+    }
+    .pill {
+      display: inline-block;
+      font-size: 11px;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      padding: 2px 8px;
+      border-radius: 999px;
+      background: #e7ebf3;
+      color: var(--fg-muted);
+      margin-left: 6px;
+    }
+    .pill.critical { background: #fde2e2; color: var(--danger); }
+    .pill.optional { background: #e4f4ea; color: var(--success); }
+    footer {
+      text-align: center;
+      color: var(--fg-subtle);
+      font-size: 12px;
+      margin-top: 32px;
+    }
+    .actions {
+      display: flex;
+      gap: 8px;
+      margin-top: 12px;
+    }
+    button {
+      appearance: none;
+      border: 1px solid var(--border);
+      background: var(--bg-alt);
+      color: var(--fg);
+      padding: 6px 12px;
+      font-size: 12px;
+      border-radius: 6px;
+      cursor: pointer;
+    }
+    button:hover { border-color: var(--fg-muted); }
+    @media print {
+      header { position: static; }
+      body { background: #fff; }
+      section { break-inside: avoid; box-shadow: none; }
+      .actions, button { display: none; }
+      pre { white-space: pre-wrap; }
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>Launch Checklist — WebsiteCreditScore.com</h1>
+    <div class="sub">Everything you need to do by hand before production launch. Progress is saved to this browser.</div>
+    <div class="progress-row">
+      <progress id="progress" value="0" max="1"></progress>
+      <span id="progress-label">0 / 0</span>
+    </div>
+    <div class="actions">
+      <button type="button" id="reset-btn">Reset progress</button>
+      <button type="button" onclick="window.print()">Print</button>
+    </div>
+  </header>
+
+  <main>
+    <div class="intro">
+      <strong>How to use this file.</strong> Tick boxes as you complete each task — progress persists in
+      <code>localStorage</code> on this browser. This document is self-contained; no internet required.
+      &ldquo;Legal placeholders&rdquo; items are drafted in the app (<code>/privacy</code>, <code>/terms</code>,
+      <code>/cookies</code>) but marked <em>REVIEW WITH COUNSEL</em> — do not launch without qualified legal review.
+    </div>
+
+    <section>
+      <h2>1. Accounts to create</h2>
+      <div class="section-sub">Sign up for each of these. Use the same billing address across providers to simplify reconciliation.</div>
+      <ul class="checklist">
+        <li><label><input type="checkbox" data-key="acct.supabase" /><span class="title">Supabase (auth + database + storage)</span></label><div class="detail">Create a project. Note the project ref from the URL — you'll need it for OAuth callback URLs.</div></li>
+        <li><label><input type="checkbox" data-key="acct.stripe" /><span class="title">Stripe (payments)</span></label><div class="detail">Complete the account activation form (legal name, address, tax info). Enable both test and live mode.</div></li>
+        <li><label><input type="checkbox" data-key="acct.google-cloud" /><span class="title">Google Cloud Console (for Google OAuth)</span></label><div class="detail">Create a project, enable Google+ API / Identity API, create an OAuth 2.0 client.</div></li>
+        <li><label><input type="checkbox" data-key="acct.resend" /><span class="title">Resend (transactional email)</span></label></li>
+        <li><label><input type="checkbox" data-key="acct.vercel" /><span class="title">Vercel (hosting)</span></label></li>
+        <li><label><input type="checkbox" data-key="acct.registrar" /><span class="title">Domain registrar (if not already set up)</span></label></li>
+        <li><label><input type="checkbox" data-key="acct.anthropic" /><span class="title">Anthropic (LLM enrichment)</span></label></li>
+        <li><label><input type="checkbox" data-key="acct.firecrawl" /><span class="title">Firecrawl (HTML observation)</span></label></li>
+        <li><label><input type="checkbox" data-key="acct.browserless" /><span class="title">Browserless (screenshots)</span></label></li>
+        <li><label><input type="checkbox" data-key="acct.pagespeed" /><span class="title">Google PageSpeed Insights API key</span></label><div class="detail">Create an API key in Google Cloud Console with PageSpeed Insights API enabled. Raises anonymous rate limits.</div></li>
+        <li><label><input type="checkbox" data-key="acct.social.x" /><span class="title">Social handle: X (Twitter)</span></label></li>
+        <li><label><input type="checkbox" data-key="acct.social.linkedin" /><span class="title">Social handle: LinkedIn company page</span></label></li>
+        <li><label><input type="checkbox" data-key="acct.social.tiktok" /><span class="title">Social handle: TikTok</span></label></li>
+        <li><label><input type="checkbox" data-key="acct.social.youtube" /><span class="title">Social handle: YouTube</span></label></li>
+        <li><label><input type="checkbox" data-key="acct.social.reddit" /><span class="title">Social handle: Reddit</span></label></li>
+      </ul>
+    </section>
+
+    <section>
+      <h2>2. Credentials to paste into Vercel</h2>
+      <div class="section-sub">Set these as Production environment variables in the Vercel project. Redeploy after changes.</div>
+      <ul class="checklist">
+        <li><label><input type="checkbox" data-key="env.supabase.url" /><span class="title">NEXT_PUBLIC_SUPABASE_URL</span><span class="pill critical">Required</span></label><pre>NEXT_PUBLIC_SUPABASE_URL=https://YOUR_PROJECT_REF.supabase.co</pre></li>
+        <li><label><input type="checkbox" data-key="env.supabase.anon" /><span class="title">NEXT_PUBLIC_SUPABASE_PUBLISHABLE_DEFAULT_KEY (or ANON_KEY)</span><span class="pill critical">Required</span></label><pre>NEXT_PUBLIC_SUPABASE_PUBLISHABLE_DEFAULT_KEY=eyJhbGciOi...</pre></li>
+        <li><label><input type="checkbox" data-key="env.supabase.service" /><span class="title">SUPABASE_SERVICE_ROLE_KEY</span><span class="pill critical">Required</span></label><pre>SUPABASE_SERVICE_ROLE_KEY=eyJhbGciOi... (SECRET — server only)</pre></li>
+        <li><label><input type="checkbox" data-key="env.site" /><span class="title">NEXT_PUBLIC_SITE_URL</span><span class="pill critical">Required</span></label><pre>NEXT_PUBLIC_SITE_URL=https://websitecreditscore.com</pre></li>
+        <li><label><input type="checkbox" data-key="env.stripe.secret" /><span class="title">STRIPE_SECRET_KEY</span><span class="pill critical">Required</span></label><pre>STRIPE_SECRET_KEY=sk_live_...</pre></li>
+        <li><label><input type="checkbox" data-key="env.stripe.webhook" /><span class="title">STRIPE_WEBHOOK_SECRET</span><span class="pill critical">Required</span></label><pre>STRIPE_WEBHOOK_SECRET=whsec_...</pre></li>
+        <li><label><input type="checkbox" data-key="env.stripe.publishable" /><span class="title">NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY</span><span class="pill critical">Required</span></label><pre>NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY=pk_live_...</pre></li>
+        <li><label><input type="checkbox" data-key="env.anthropic" /><span class="title">ANTHROPIC_API_KEY</span></label><pre>ANTHROPIC_API_KEY=sk-ant-...</pre></li>
+        <li><label><input type="checkbox" data-key="env.firecrawl" /><span class="title">FIRECRAWL_API_KEY</span></label><pre>FIRECRAWL_API_KEY=fc-...</pre></li>
+        <li><label><input type="checkbox" data-key="env.browserless" /><span class="title">BROWSERLESS_API (or BROWSERLESS_TOKEN)</span></label><pre>BROWSERLESS_API=...</pre></li>
+        <li><label><input type="checkbox" data-key="env.pagespeed" /><span class="title">GOOGLE_PAGESPEED_API_KEY</span></label><pre>GOOGLE_PAGESPEED_API_KEY=AIza...</pre></li>
+        <li><label><input type="checkbox" data-key="env.resend" /><span class="title">RESEND_API_KEY</span></label><pre>RESEND_API_KEY=re_...</pre></li>
+        <li><label><input type="checkbox" data-key="env.admin" /><span class="title">ADMIN_EMAILS</span></label><pre>ADMIN_EMAILS=founder@websitecreditscore.com,ops@websitecreditscore.com</pre></li>
+      </ul>
+    </section>
+
+    <section>
+      <h2>3. Domain + DNS</h2>
+      <div class="section-sub">Point the root domain at Vercel and verify email sender identity with Resend.</div>
+      <ul class="checklist">
+        <li><label><input type="checkbox" data-key="dns.vercel" /><span class="title">Add A / AAAA (or CNAME for www) records pointing at Vercel</span></label><div class="detail">Vercel Dashboard → Project → Settings → Domains. Follow the exact records Vercel shows for your registrar.</div></li>
+        <li><label><input type="checkbox" data-key="dns.verify" /><span class="title">Verify the domain in Vercel (status turns green)</span></label></li>
+        <li><label><input type="checkbox" data-key="dns.resend.spf" /><span class="title">Add Resend SPF record</span></label><pre>TXT @ "v=spf1 include:_spf.resend.com ~all"</pre></li>
+        <li><label><input type="checkbox" data-key="dns.resend.dkim" /><span class="title">Add Resend DKIM record (value from Resend dashboard)</span></label></li>
+        <li><label><input type="checkbox" data-key="dns.resend.verify" /><span class="title">Verify sender domain in Resend</span></label></li>
+      </ul>
+    </section>
+
+    <section>
+      <h2>4. Stripe products to create</h2>
+      <div class="section-sub">Create these products in the Stripe dashboard in <strong>live</strong> mode. Duplicate in test mode for staging. Prices in USD, one-time.</div>
+      <table>
+        <thead>
+          <tr><th>Product name</th><th>Price</th><th>Metadata</th></tr>
+        </thead>
+        <tbody>
+          <tr><td>Single scan</td><td>$1.00</td><td><code>{ "credits": "1", "sku": "scan-1x" }</code></td></tr>
+          <tr><td>Pro 50 bundle</td><td>$50.00</td><td><code>{ "credits": "50", "sku": "pro-50-bundle" }</code></td></tr>
+          <tr><td>Privacy Pro 50 bundle</td><td>$50.00</td><td><code>{ "credits": "50", "entitlements": "privacy-pro", "sku": "privacy-pro-50" }</code></td></tr>
+        </tbody>
+      </table>
+      <ul class="checklist" style="margin-top: 16px;">
+        <li><label><input type="checkbox" data-key="stripe.product.scan1x" /><span class="title">Create &ldquo;Single scan&rdquo; product</span></label></li>
+        <li><label><input type="checkbox" data-key="stripe.product.pro50" /><span class="title">Create &ldquo;Pro 50 bundle&rdquo; product</span></label></li>
+        <li><label><input type="checkbox" data-key="stripe.product.privacypro" /><span class="title">Create &ldquo;Privacy Pro 50 bundle&rdquo; product</span></label></li>
+        <li><label><input type="checkbox" data-key="stripe.tax" /><span class="title">Configure Stripe Tax (if required for your jurisdiction)</span></label></li>
+      </ul>
+    </section>
+
+    <section>
+      <h2>5. Supabase migrations</h2>
+      <div class="section-sub">Run these SQL files in order in the Supabase SQL Editor. Each is idempotent with <code>if not exists</code> guards where possible.</div>
+      <ul class="checklist">
+        <li><label><input type="checkbox" data-key="sql.001" /><span class="title">001_storage_bucket.sql</span></label></li>
+        <li><label><input type="checkbox" data-key="sql.init" /><span class="title">20260330232000_init_schema.sql</span></label></li>
+        <li><label><input type="checkbox" data-key="sql.saved-reports" /><span class="title">20260404140000_saved_reports_lead_per_workspace.sql</span></label></li>
+        <li><label><input type="checkbox" data-key="sql.rls-recursion" /><span class="title">20260405180000_fix_workspaces_rls_recursion.sql</span></label></li>
+        <li><label><input type="checkbox" data-key="sql.dataroom" /><span class="title">20260409120000_dataroom_bucket.sql</span></label></li>
+        <li><label><input type="checkbox" data-key="sql.public-scans" /><span class="title">20260410120000_public_recent_scans.sql</span></label></li>
+        <li><label><input type="checkbox" data-key="sql.ai-cache" /><span class="title">20260412130000_ai_response_cache.sql</span></label></li>
+        <li><label><input type="checkbox" data-key="sql.scans" /><span class="title">20260418120000_scans.sql (new — powers /admin)</span></label></li>
+        <li><label><input type="checkbox" data-key="sql.webhook-log" /><span class="title">20260418120500_stripe_webhook_log.sql (new — webhook dedupe)</span></label></li>
+      </ul>
+    </section>
+
+    <section>
+      <h2>6. OAuth redirect URIs</h2>
+      <div class="section-sub">Register each URL exactly as shown. Mismatch here is the #1 cause of &ldquo;callback failed&rdquo; errors.</div>
+      <ul class="checklist">
+        <li><label><input type="checkbox" data-key="oauth.google" /><span class="title">Google Cloud Console → OAuth client → Authorized redirect URIs</span></label><pre>https://YOUR_SUPABASE_PROJECT_REF.supabase.co/auth/v1/callback</pre></li>
+        <li><label><input type="checkbox" data-key="oauth.supabase.site" /><span class="title">Supabase → Authentication → URL Configuration → Site URL</span></label><pre>https://websitecreditscore.com</pre></li>
+        <li><label><input type="checkbox" data-key="oauth.supabase.redirects" /><span class="title">Supabase → Authentication → URL Configuration → Redirect URLs</span></label><pre>https://websitecreditscore.com/auth/callback
+https://www.websitecreditscore.com/auth/callback
+http://localhost:3000/auth/callback</pre></li>
+        <li><label><input type="checkbox" data-key="oauth.supabase.provider" /><span class="title">Supabase → Authentication → Providers → Google (enable + paste client ID/secret)</span></label></li>
+      </ul>
+    </section>
+
+    <section>
+      <h2>7. Stripe webhook</h2>
+      <div class="section-sub">Register the webhook endpoint and subscribe to the events the fulfillment handler expects.</div>
+      <ul class="checklist">
+        <li><label><input type="checkbox" data-key="webhook.endpoint" /><span class="title">Register webhook endpoint in Stripe Dashboard</span></label><pre>https://websitecreditscore.com/api/stripe/webhooks</pre></li>
+        <li><label><input type="checkbox" data-key="webhook.events" /><span class="title">Subscribe to these events</span></label><pre>checkout.session.completed
+checkout.session.async_payment_succeeded
+invoice.payment_succeeded</pre></li>
+        <li><label><input type="checkbox" data-key="webhook.secret" /><span class="title">Copy the signing secret into STRIPE_WEBHOOK_SECRET on Vercel</span></label></li>
+        <li><label><input type="checkbox" data-key="webhook.test" /><span class="title">Verify with <code>stripe trigger checkout.session.completed</code></span></label><div class="detail">Confirm a row appears in <code>public.stripe_webhook_log</code> with <code>processed_ok = true</code>.</div></li>
+      </ul>
+    </section>
+
+    <section>
+      <h2>8. Legal placeholders</h2>
+      <div class="section-sub">Fill every <code>{{PLACEHOLDER}}</code> in the draft pages. <strong>Review with counsel before launch</strong> and remove the DRAFT banners.</div>
+      <table>
+        <thead>
+          <tr><th>Placeholder</th><th>Where it lives</th></tr>
+        </thead>
+        <tbody>
+          <tr><td><code>COMPANY_LEGAL_NAME</code></td><td>/privacy, /terms, /cookies</td></tr>
+          <tr><td><code>REGISTERED_ADDRESS</code></td><td>/privacy</td></tr>
+          <tr><td><code>PRIVACY_EMAIL</code></td><td>/privacy, /cookies</td></tr>
+          <tr><td><code>SUPPORT_EMAIL</code></td><td>/privacy, /terms</td></tr>
+          <tr><td><code>JURISDICTION</code></td><td>/terms</td></tr>
+          <tr><td><code>RETENTION_DAYS</code></td><td>/privacy</td></tr>
+          <tr><td><code>REFUND_WINDOW_DAYS</code></td><td>/terms</td></tr>
+          <tr><td><code>LIABILITY_CAP_USD</code></td><td>/terms</td></tr>
+          <tr><td><code>DPO_CONTACT</code></td><td>/privacy</td></tr>
+          <tr><td><code>LAST_UPDATED_DATE</code></td><td>/privacy, /terms, /cookies</td></tr>
+        </tbody>
+      </table>
+      <ul class="checklist" style="margin-top: 16px;">
+        <li><label><input type="checkbox" data-key="legal.counsel" /><span class="title">Qualified counsel has reviewed Privacy, Terms, and Cookies pages</span></label></li>
+        <li><label><input type="checkbox" data-key="legal.placeholders" /><span class="title">Every placeholder has been replaced with a real value</span></label></li>
+        <li><label><input type="checkbox" data-key="legal.banners" /><span class="title">The &ldquo;DRAFT — REVIEW WITH COUNSEL&rdquo; banners have been removed</span></label></li>
+      </ul>
+    </section>
+
+    <section>
+      <h2>9. Analytics <span class="pill optional">Optional</span></h2>
+      <ul class="checklist">
+        <li><label><input type="checkbox" data-key="analytics.vercel" /><span class="title">Enable Vercel Analytics (free tier auto-enabled; Pro unlocks Web Vitals detail)</span></label></li>
+        <li><label><input type="checkbox" data-key="analytics.posthog" /><span class="title">(Optional) Set up PostHog or GA4 for product analytics</span></label></li>
+      </ul>
+    </section>
+
+    <section>
+      <h2>10. Pre-launch smoke test</h2>
+      <div class="section-sub">Run this sequence against production before announcing. Use a test Stripe card (<code>4242 4242 4242 4242</code>) in test mode, then repeat with a real card in live mode.</div>
+      <ul class="checklist">
+        <li><label><input type="checkbox" data-key="smoke.home" /><span class="title">Open <code>/</code> — page renders, hero CTA is visible above the fold</span></label></li>
+        <li><label><input type="checkbox" data-key="smoke.scan" /><span class="title">Submit <code>example.com</code> — report renders, score appears</span></label></li>
+        <li><label><input type="checkbox" data-key="smoke.google-oauth" /><span class="title">Sign in with Google — redirected to <code>/app</code>, no <code>?error=</code> query</span></label></li>
+        <li><label><input type="checkbox" data-key="smoke.stripe-test" /><span class="title">Buy Pro 50 bundle in Stripe test mode</span></label></li>
+        <li><label><input type="checkbox" data-key="smoke.credit-grant" /><span class="title">Verify credits were granted in the workspace UI</span></label></li>
+        <li><label><input type="checkbox" data-key="smoke.scan-credits" /><span class="title">Run a new scan — credit count decrements</span></label></li>
+        <li><label><input type="checkbox" data-key="smoke.admin" /><span class="title">Visit <code>/admin</code> with ADMIN_EMAILS set to your email — dashboard renders with real numbers</span></label></li>
+        <li><label><input type="checkbox" data-key="smoke.scans-row" /><span class="title">Verify a <code>scans</code> row appears in Supabase SQL editor after the live scan</span></label></li>
+        <li><label><input type="checkbox" data-key="smoke.webhook-replay" /><span class="title">Replay a webhook with <code>stripe trigger</code> — <code>stripe_webhook_log</code> dedupes (processed_ok stays true, no duplicate credit grant)</span></label></li>
+        <li><label><input type="checkbox" data-key="smoke.footer-legal" /><span class="title">Footer legal links (<code>/privacy</code>, <code>/terms</code>, <code>/cookies</code>) all resolve</span></label></li>
+      </ul>
+    </section>
+
+    <section>
+      <h2>11. Social handle claims</h2>
+      <div class="section-sub">Reserve these handles even if you're not actively posting yet — prevents impersonation and keeps the option open.</div>
+      <ul class="checklist">
+        <li><label><input type="checkbox" data-key="handle.x" /><span class="title">X (Twitter): @websitecredit or similar</span></label></li>
+        <li><label><input type="checkbox" data-key="handle.linkedin" /><span class="title">LinkedIn company page</span></label></li>
+        <li><label><input type="checkbox" data-key="handle.tiktok" /><span class="title">TikTok</span></label></li>
+        <li><label><input type="checkbox" data-key="handle.youtube" /><span class="title">YouTube channel</span></label></li>
+        <li><label><input type="checkbox" data-key="handle.reddit" /><span class="title">Reddit (user account to comment from; subreddit optional)</span></label></li>
+        <li><label><input type="checkbox" data-key="handle.producthunt" /><span class="title">Product Hunt maker profile (for eventual launch)</span></label></li>
+        <li><label><input type="checkbox" data-key="handle.github" /><span class="title">GitHub organization (if open-sourcing any components)</span></label></li>
+      </ul>
+    </section>
+
+    <footer>
+      WebsiteCreditScore.com — self-contained launch checklist. Progress persists per browser in <code>localStorage.websiteCreditLaunchChecklist</code>.
+    </footer>
+  </main>
+
+  <script>
+    (function () {
+      var STORAGE_KEY = "websiteCreditLaunchChecklist";
+      var boxes = document.querySelectorAll('input[type="checkbox"][data-key]');
+      var progressEl = document.getElementById("progress");
+      var labelEl = document.getElementById("progress-label");
+      var resetBtn = document.getElementById("reset-btn");
+
+      function loadState() {
+        try {
+          var raw = localStorage.getItem(STORAGE_KEY);
+          return raw ? JSON.parse(raw) : {};
+        } catch (_) {
+          return {};
+        }
+      }
+
+      function saveState(state) {
+        try {
+          localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+        } catch (_) {
+          // quota full or storage disabled — fail silently
+        }
+      }
+
+      function updateProgress() {
+        var total = boxes.length;
+        var done = 0;
+        boxes.forEach(function (box) {
+          if (box.checked) done++;
+        });
+        progressEl.max = total;
+        progressEl.value = done;
+        labelEl.textContent = done + " / " + total + " (" + Math.round((done / total) * 100) + "%)";
+      }
+
+      var state = loadState();
+      boxes.forEach(function (box) {
+        var key = box.getAttribute("data-key");
+        if (state[key]) {
+          box.checked = true;
+        }
+        box.addEventListener("change", function () {
+          var current = loadState();
+          current[key] = box.checked;
+          saveState(current);
+          updateProgress();
+        });
+      });
+
+      resetBtn.addEventListener("click", function () {
+        if (!confirm("Reset all checklist progress?")) return;
+        localStorage.removeItem(STORAGE_KEY);
+        boxes.forEach(function (box) { box.checked = false; });
+        updateProgress();
+      });
+
+      updateProgress();
+    })();
+  </script>
+</body>
+</html>

@@ -39,6 +39,32 @@ A Next.js App Router product that turns a single URL into a cinematic redesign a
 - Mock API at `POST /api/audit`
 - Deterministic report generation for any URL across seeded industry presets
 - Supabase-ready payload schema in `supabase/schema.sql`
+- **Admin dashboard** at `/admin` — operational snapshot of paying customers, unit economics, and per-customer scan history (see [`docs/ADMIN.md`](docs/ADMIN.md))
+- Per-scan cost + revenue ledger (`scans` table) with a live Supabase query layer that falls back to deterministic mock data when Supabase env is unset
+
+## Documentation
+
+- [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md) — system design, data flow, operational tenets.
+- [`docs/ADMIN.md`](docs/ADMIN.md) — admin dashboard, privacy redaction policy, common ops tasks.
+- [`docs/BILLING.md`](docs/BILLING.md) — SKUs, cost model, Stripe setup, webhook dedupe.
+- [`docs/SEO.md`](docs/SEO.md) — keyword taxonomy, editorial calendar, on-page checklist.
+- [`docs/SOCIAL.md`](docs/SOCIAL.md) — channel playbooks and repurposing flow.
+- [`CONTRIBUTING.md`](CONTRIBUTING.md) — how to contribute.
+- [`SECURITY.md`](SECURITY.md) — responsible disclosure policy.
+- [`CHANGELOG.md`](CHANGELOG.md) — notable changes.
+- [`LAUNCH-CHECKLIST.html`](LAUNCH-CHECKLIST.html) — open in any browser; self-contained launch to-do list with progress persisted to `localStorage`.
+
+## Admin dashboard
+
+`/admin` renders an ops snapshot (paying customers, 30-day revenue/cost/margin, per-customer scan history). Access is gated behind an email allowlist.
+
+Set `ADMIN_EMAILS` to a comma-separated list of admin email addresses:
+
+```bash
+ADMIN_EMAILS=founder@websitecreditscore.com,ops@websitecreditscore.com
+```
+
+The dashboard reads live data when Supabase is configured and falls back to a deterministic mock seed otherwise, so preview deploys and unconfigured local dev still render cleanly. See [`docs/ADMIN.md`](docs/ADMIN.md) for the full behavior.
 
 ## Run Locally
 
@@ -100,11 +126,17 @@ Google OAuth in this app uses `redirectTo` = `{origin}/auth/callback?next=...` (
 
 ### 3. Database migrations (same Supabase project)
 
-In Supabase → **SQL Editor**, run the migration files in order:
+In Supabase → **SQL Editor**, run the migration files **in order** (filename prefix = ordering):
 
-1. `supabase/migrations/20260330232000_init_schema.sql` — tables + RLS (required).
-2. If you still hit unique-constraint issues on `saved_reports.lead_id` across workspaces, run `supabase/migrations/20260404140000_saved_reports_lead_per_workspace.sql`.
-3. If Supabase returns **`42P17` / `infinite recursion detected in policy for relation "workspaces"`**, run `supabase/migrations/20260405180000_fix_workspaces_rls_recursion.sql` (fixes RLS between `workspaces` and `leads`).
+1. `supabase/migrations/001_storage_bucket.sql` — storage bucket.
+2. `supabase/migrations/20260330232000_init_schema.sql` — tables + RLS (required).
+3. `supabase/migrations/20260404140000_saved_reports_lead_per_workspace.sql` — fix unique constraint on `saved_reports.lead_id` across workspaces.
+4. `supabase/migrations/20260405180000_fix_workspaces_rls_recursion.sql` — fix `42P17 / infinite recursion detected in policy for relation "workspaces"`.
+5. `supabase/migrations/20260409120000_dataroom_bucket.sql` — dataroom storage bucket.
+6. `supabase/migrations/20260410120000_public_recent_scans.sql` — public recent-scans view.
+7. `supabase/migrations/20260412130000_ai_response_cache.sql` — LLM prompt cache.
+8. `supabase/migrations/20260418120000_scans.sql` — per-scan cost/revenue ledger (powers `/admin`).
+9. `supabase/migrations/20260418120500_stripe_webhook_log.sql` — Stripe webhook event ledger + dedupe.
 
 Without (1), workspace load fails and you may be redirected to `/app/login?error=db-not-ready` or `workspace-unavailable`.
 
