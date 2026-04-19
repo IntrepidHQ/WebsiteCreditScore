@@ -87,7 +87,12 @@ export function ProposalActions({ report }: { report: AuditReport }) {
                     Open brief
                   </Link>
                 </Button>
-                <Button onClick={() => setContactModalOpen(true)}>Book Strategy Call</Button>
+                <Button
+                  onClick={() => setContactModalOpen(true)}
+                  title="Opens a short form — we reply with a calendar link within one business day"
+                >
+                  Request 15-min call
+                </Button>
                 <Button onClick={copyLink} variant="secondary">
                   <Share2 className="size-4" />
                   Copy review link

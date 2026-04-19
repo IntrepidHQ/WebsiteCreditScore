@@ -42,6 +42,8 @@ type ScanLoadingOverlayProps = {
    * `route` — audit page loading shell: one climb 0→10, hold (no loop).
    */
   mode?: "landing" | "route";
+  /** Landing only: renders a Cancel button that calls this handler. */
+  onCancel?: () => void;
 };
 
 /**
@@ -52,6 +54,7 @@ export function ScanLoadingOverlay({
   scanDataReady = false,
   onDialReachedTen,
   mode = "landing",
+  onCancel,
 }: ScanLoadingOverlayProps) {
   const { reduceMotion } = useMotionSettings();
   const barRefs = useRef<Array<HTMLDivElement | null>>([]);
@@ -300,6 +303,17 @@ export function ScanLoadingOverlay({
             This usually takes around 20 seconds
           </p>
         </div>
+        {onCancel && mode === "landing" ? (
+          <div className="mt-5 flex justify-center">
+            <button
+              className="text-[11px] font-semibold uppercase tracking-[0.14em] text-muted underline decoration-dotted underline-offset-4 transition hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/60 focus-visible:ring-offset-2 focus-visible:ring-offset-background"
+              onClick={onCancel}
+              type="button"
+            >
+              Cancel scan
+            </button>
+          </div>
+        ) : null}
       </div>
     </div>
   );

@@ -186,6 +186,27 @@ export function buildObservedCategoryScores(
   mobileExperience += observation.missingAltRatio === 0 ? 0.2 : observation.missingAltRatio > 0.5 ? -0.3 : 0;
   mobileExperience += observation.hasLang ? 0.2 : 0;
 
+  // Real mobile perf signals when PageSpeed data was merged in (see build-report.ts).
+  // These outweigh the HTML-derived signals because a viewport tag on a 6-second-LCP
+  // page should not score the same as a snappy one.
+  if (typeof observation.lcp === "number") {
+    if (observation.lcp <= 2500) mobileExperience += 0.8;
+    else if (observation.lcp <= 4000) mobileExperience += 0.2;
+    else if (observation.lcp <= 6000) mobileExperience -= 0.8;
+    else mobileExperience -= 1.5;
+  }
+  if (typeof observation.cls === "number") {
+    if (observation.cls <= 0.1) mobileExperience += 0.4;
+    else if (observation.cls <= 0.25) mobileExperience -= 0.3;
+    else mobileExperience -= 1.0;
+  }
+  if (typeof observation.performanceScore === "number") {
+    // PageSpeed score is 0–1; bend toward or away from the running total.
+    if (observation.performanceScore >= 0.9) mobileExperience += 0.5;
+    else if (observation.performanceScore >= 0.7) mobileExperience += 0.2;
+    else if (observation.performanceScore < 0.4) mobileExperience -= 0.6;
+  }
+
   // ── SEO READINESS (base 3.5) ──
   let seoReadiness = 3.5;
   seoReadiness += observation.pageTitle ? 1.0 : -1.0;
@@ -253,10 +274,27 @@ export function buildObservedCategoryScores(
         observation.primaryCtas.length
           ? `The next step currently leans on ${observation.primaryCtas.slice(0, 2).join(" and ")}.`
           : "The page needs a clearer next-step path before traffic can convert efficiently.",
-      "mobile-experience":
-        observation.hasViewport
+      "mobile-experience": (() => {
+        const lcpText =
+          typeof observation.lcp === "number"
+            ? `Mobile LCP lands at ${(observation.lcp / 1000).toFixed(1)}s`
+            : null;
+        const clsText =
+          typeof observation.cls === "number"
+            ? `CLS is ${observation.cls.toFixed(2)}`
+            : null;
+        const perfText = [lcpText, clsText].filter(Boolean).join(" and ");
+        if (perfText) {
+          return `${perfText}. That ${
+            (observation.lcp ?? 0) <= 2500 && (observation.cls ?? 0) <= 0.1
+              ? "lands in the fast range — content sequence is the main lever left."
+              : "pulls the mobile score down — visitors feel the wait before the content lands."
+          }`;
+        }
+        return observation.hasViewport
           ? "The page is set up to respond to smaller screens, but the content sequence still determines how usable it feels."
-          : "The page does not expose a responsive viewport signal, which usually translates into a weaker mobile first impression.",
+          : "The page does not expose a responsive viewport signal, which usually translates into a weaker mobile first impression.";
+      })(),
       "seo-readiness":
         observation.metaDescription
           ? "Core search signals are present, but the page still needs stronger structure and supporting page depth."
@@ -296,9 +334,20 @@ export function buildObservedCategoryScores(
       ),
       "mobile-experience": buildScoreDetails(
         categoryLabels[key],
-        [observation.hasViewport ? "Viewport meta tag is present." : "Viewport meta tag was not detected."],
-        "Prioritize shorter sections, stronger spacing, and one clear mobile CTA path.",
-        "A 9+ mobile score means the first message, proof, and next step still land cleanly on small screens.",
+        [
+          (() => {
+            const parts: string[] = [];
+            if (observation.hasViewport) parts.push("viewport meta tag is present");
+            else parts.push("viewport meta tag is missing");
+            if (typeof observation.lcp === "number") parts.push(`LCP ${(observation.lcp / 1000).toFixed(1)}s`);
+            if (typeof observation.cls === "number") parts.push(`CLS ${observation.cls.toFixed(2)}`);
+            if (typeof observation.performanceScore === "number")
+              parts.push(`PageSpeed ${Math.round(observation.performanceScore * 100)}`);
+            return parts.join(", ");
+          })(),
+        ],
+        "Prioritize shorter sections, stronger spacing, faster hero media, and one clear mobile CTA path.",
+        "A 9+ mobile score means the first message, proof, and next step still land cleanly on small screens, typically with LCP under 2.5s and CLS under 0.1.",
         getCriterionForProfileCategory(profile, key)?.whyItMatters,
       ),
       "seo-readiness": buildScoreDetails(
@@ -651,6 +700,62 @@ export function buildObservedFindings(
         ],
         screenshots: [previewImage],
         tags: ["conversion", "forms", "critical"],
+      }),
+    );
+  }
+
+  // Measured mobile performance — only when PageSpeed merged data in.
+  if (typeof observation.lcp === "number" && observation.lcp > 4000) {
+    const seconds = (observation.lcp / 1000).toFixed(1);
+    findings.push(
+      createFinding({
+        id: "issue-lcp",
+        title: `Mobile hero loads in ${seconds}s (LCP)`,
+        summary: `Google PageSpeed measured a Largest Contentful Paint of ${seconds}s on mobile. Above 2.5s the hero feels slow; above 4s visitors start bouncing before the page finishes.`,
+        severity: observation.lcp > 6000 ? "high" : "medium",
+        category: "mobile-experience",
+        section: "costing-leads",
+        businessImpact:
+          "Mobile visitors abandon slow-loading pages. LCP over 4s typically correlates with a 20–40% drop in conversion versus a sub-2.5s experience.",
+        recommendation:
+          "Compress and preload the hero image, defer non-critical JS, and serve responsive image sizes. A CDN and lightweight font stack usually get LCP under 2.5s.",
+        confidenceLevel: "detected",
+        evidence: [
+          createEvidence("issue-lcp-1", "Measured LCP", `${seconds}s on mobile`, "technical"),
+          typeof observation.performanceScore === "number"
+            ? createEvidence(
+                "issue-lcp-2",
+                "PageSpeed score",
+                `${Math.round(observation.performanceScore * 100)}/100`,
+                "technical",
+              )
+            : null,
+        ].filter(Boolean) as Evidence[],
+        screenshots: [previewImage],
+        tags: ["mobile", "performance", "lcp"],
+      }),
+    );
+  }
+
+  if (typeof observation.cls === "number" && observation.cls > 0.25) {
+    findings.push(
+      createFinding({
+        id: "issue-cls",
+        title: `Layout shift is visible (CLS ${observation.cls.toFixed(2)})`,
+        summary: `Cumulative Layout Shift measured at ${observation.cls.toFixed(2)}. Anything above 0.25 means the page visibly jumps as it loads — buttons move, text reflows, and taps miss.`,
+        severity: "medium",
+        category: "mobile-experience",
+        section: "costing-leads",
+        businessImpact:
+          "Visible layout shift breaks trust immediately on mobile. Visitors misclick, lose their place, and form the impression that the site is unfinished.",
+        recommendation:
+          "Reserve explicit width and height on images and embeds, preload web fonts, and avoid inserting content above existing content after first paint.",
+        confidenceLevel: "detected",
+        evidence: [
+          createEvidence("issue-cls-1", "Measured CLS", observation.cls.toFixed(2), "technical"),
+        ],
+        screenshots: [previewImage],
+        tags: ["mobile", "performance", "cls"],
       }),
     );
   }
@@ -1087,37 +1192,73 @@ export function buildObservedExecutiveSummary(
   observation: SiteObservation,
   overallScore: number,
   mode: "live-observed" | "fallback-estimated" | "sample-based",
+  categoryScores?: AuditCategoryScore[],
 ) {
-  const opening =
-    observation.heroHeading || observation.pageTitle
-      ? `${title} already communicates "${observation.heroHeading || observation.pageTitle},"`
-      : `${title} already has real business substance,`;
-  const specifics = uniqueTexts(
-    [
-      observation.aboutSnippet,
-      ...observation.verifiedFacts
-        .filter((fact) => fact.type !== "about")
-        .map((fact) => `${fact.label}: ${fact.value}`),
-      observation.primaryCtas.length
-        ? `current CTA language includes ${observation.primaryCtas.slice(0, 2).join(" and ")}`
-        : "",
-    ],
-    2,
+  const headline = observation.heroHeading || observation.pageTitle;
+  const opening = headline
+    ? `${title} opens with "${truncateObservationText(headline, 140)}."`
+    : `${title} currently has no clear top-of-page message for the audit to anchor on.`;
+
+  // Pull real gaps instead of templated framing.
+  const measuredGaps: string[] = [];
+  if (!observation.heroHeading) measuredGaps.push("no H1");
+  if (observation.primaryCtas.length === 0) measuredGaps.push("no clear CTA");
+  else if (observation.primaryCtas.length >= 5)
+    measuredGaps.push(`${observation.primaryCtas.length} competing CTAs`);
+  if (!observation.hasViewport) measuredGaps.push("no mobile viewport tag");
+  if (observation.templateSignals.length) measuredGaps.push("template placeholder copy");
+  if (typeof observation.lcp === "number" && observation.lcp > 4000)
+    measuredGaps.push(`mobile LCP ${(observation.lcp / 1000).toFixed(1)}s`);
+  if (typeof observation.cls === "number" && observation.cls > 0.25)
+    measuredGaps.push(`CLS ${observation.cls.toFixed(2)}`);
+  if (observation.verifiedFacts.filter((f) => f.type !== "about").length === 0)
+    measuredGaps.push("no verified contact info");
+  if (!observation.metaDescription) measuredGaps.push("no meta description");
+  if (observation.missingAltRatio > 0.4)
+    measuredGaps.push(`${Math.round(observation.missingAltRatio * 100)}% images missing alt text`);
+
+  const strengths: string[] = [];
+  if (observation.trustSignals.length >= 3) strengths.push("real trust material on the page");
+  const verifiedContacts = observation.verifiedFacts.filter(
+    (f) => f.type === "phone" || f.type === "email" || f.type === "address",
   );
+  if (verifiedContacts.length >= 2)
+    strengths.push(
+      `${verifiedContacts.length} verified contact detail${verifiedContacts.length > 1 ? "s" : ""}`,
+    );
+  if (observation.hasSchema) strengths.push("structured data in place");
+  if (observation.securitySignals.length >= 3) strengths.push("deliberate security headers");
+  if (typeof observation.lcp === "number" && observation.lcp <= 2500)
+    strengths.push("fast mobile load");
+
+  // Use score context to pick the weakest category by name, so the summary
+  // feels custom rather than generic.
+  const weakestCategory = categoryScores?.slice().sort((a, b) => a.score - b.score)[0];
+  const weakestLine = weakestCategory
+    ? ` ${weakestCategory.label} is the lowest-scoring area right now at ${weakestCategory.score.toFixed(1)}/10.`
+    : "";
+
+  const gapLine = measuredGaps.length
+    ? ` Measured gaps: ${measuredGaps.slice(0, 4).join(", ")}.`
+    : "";
+  const strengthLine = strengths.length
+    ? ` Working in the site's favor: ${strengths.slice(0, 3).join(", ")}.`
+    : "";
+
   const scoreFrame =
     overallScore >= 8
-      ? "The opportunity now is refinement, not rescue."
+      ? "At this score the work is refinement — tightening hierarchy and trust, not rebuilding fundamentals."
       : overallScore >= 6
-        ? "The main opportunity is to make that value easier to trust and easier to act on."
-        : "Right now the site is likely making visitors work too hard before they feel confident enough to reach out.";
+        ? "At this score the core is usable, but conversion and trust clarity are the biggest unlocks."
+        : "At this score the page is making visitors work too hard before they feel confident enough to reach out.";
   const confidenceFrame =
     mode === "live-observed"
-      ? "This summary is based on directly observed page signals."
+      ? "Based on directly observed signals from the scanned page."
       : mode === "sample-based"
-        ? "This summary blends observed signals with known sample profile data."
-        : "This summary is estimated from heuristic fallbacks because live fetch signals were limited.";
+        ? "Blends observed signals with known sample profile data."
+        : "Estimated from heuristic fallbacks because the live fetch returned limited signals.";
 
-  return `${opening} but the site can still do a better job of turning that substance into a confident first impression. ${specifics.join(" ")} ${scoreFrame} ${confidenceFrame}`.trim();
+  return `${opening}${gapLine}${strengthLine}${weakestLine} ${scoreFrame} ${confidenceFrame}`.trim();
 }
 
 export function getTenOutOfTenNotes() {

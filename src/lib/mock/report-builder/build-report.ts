@@ -1,4 +1,5 @@
 import type {
+  AuditCategoryScore,
   AuditReport,
   ClientProfile,
   ReportProfileType,
@@ -49,6 +50,43 @@ import {
   createCatalog,
   getPreviewSet,
 } from "./report-sections";
+
+// Build the "your site" card note from observed signals so competitor cards
+// compare against a specific, believable line rather than profile boilerplate.
+function buildCurrentSiteCompetitorNote(
+  observation: SiteObservation,
+  categoryScores: AuditCategoryScore[],
+  profile: ReportProfileType,
+): string {
+  if (observation.aboutSnippet?.trim()) {
+    const snippet = observation.aboutSnippet.trim().slice(0, 160);
+    return snippet.endsWith(".") ? snippet : `${snippet}…`;
+  }
+
+  // Find the lowest-scoring category and name it concretely.
+  const weakest = categoryScores
+    .slice()
+    .sort((a, b) => a.score - b.score)[0];
+
+  const gapLine =
+    weakest && weakest.score < 5
+      ? `${weakest.label} is the weakest category here (${weakest.score.toFixed(1)}/10).`
+      : weakest
+        ? `${weakest.label} leads the opportunity list for this site.`
+        : "";
+
+  const observedLine = observation.heroHeading
+    ? `Opens with "${observation.heroHeading.slice(0, 100)}."`
+    : observation.pageTitle
+      ? `Page title "${observation.pageTitle.slice(0, 80)}."`
+      : profile === "healthcare"
+        ? "Provider detail is present, but the presentation still reads templated."
+        : profile === "local-service"
+          ? "Local signals are present, but the page still asks visitors to work too hard."
+          : "The offer is visible, but the package and proof need to be easier to scan.";
+
+  return [observedLine, gapLine].filter(Boolean).join(" ").trim();
+}
 
 const slugifyIndustryLabel = (input: string) => {
   const slug = input
@@ -251,8 +289,8 @@ function buildAuditReport(
   const benchmarkReferences = nicheReferences ?? designBenchmarkReferences;
   const competitorReferences = benchmarkReferences;
   const findings = buildObservedFindings(profile, title, observation, categoryScores, livePreviewSet.current.desktop);
-  const opportunities = buildOpportunities(profile, livePreviewSet);
-  const rebuildPhases = buildRebuildPhases(profile);
+  const opportunities = buildOpportunities(profile, livePreviewSet, categoryScores, observation);
+  const rebuildPhases = buildRebuildPhases(profile, categoryScores, observation);
   const pricingBundle = createCatalog();
   const defaultPricingSummary = calculatePricingSummary(
     pricingBundle,
@@ -265,13 +303,7 @@ function buildAuditReport(
       previewImage: currentPreviewImage,
       note:
         sample?.summary ??
-        (observation.aboutSnippet
-          ? observation.aboutSnippet
-          : profile === "healthcare"
-            ? "Useful provider detail is present, but the presentation still feels templated."
-            : profile === "local-service"
-              ? "Real local signals are present, but the page still asks visitors to work too hard."
-              : "The offer is visible, but the package and proof can be much easier to scan."),
+        buildCurrentSiteCompetitorNote(observation, categoryScores, profile),
     },
     categoryScores,
     overallScore,
@@ -305,7 +337,7 @@ function buildAuditReport(
     normalizedUrl,
     executiveSummary:
       sample?.executiveSummary ??
-      buildObservedExecutiveSummary(title, observation, overallScore, provenanceMode),
+      buildObservedExecutiveSummary(title, observation, overallScore, provenanceMode, categoryScores),
     overallScore,
     categoryScores,
     findings,

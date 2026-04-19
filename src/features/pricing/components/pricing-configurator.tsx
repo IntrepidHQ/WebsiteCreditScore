@@ -317,7 +317,7 @@ export function PricingConfigurator({ report }: { report: AuditReport }) {
 
       <div className="space-y-3">
         <Button className="w-full" onClick={() => setContactModalOpen(true)}>
-          Book Strategy Call
+          Request 15-min call
         </Button>
       </div>
     </>
