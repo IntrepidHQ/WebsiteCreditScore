@@ -100,6 +100,12 @@ const stubReport: AuditReport = {
     body: "",
   },
   proposalOffer: null,
+  researchTrace: {
+    steps: [],
+    extractedElements: { ctaLabels: [], trustSignals: [] },
+    missingSignals: [],
+    analysisMode: "fallback-estimated",
+  },
   socialProof: [],
   provenance: {
     mode: "fallback-estimated",

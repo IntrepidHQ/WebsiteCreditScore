@@ -636,6 +636,27 @@ export interface AuditPreviewSet {
   desktopLabel: string;
 }
 
+export interface ResearchTraceStep {
+  pass: number;
+  label: string;
+  what: string;
+  found: string;
+  status: "complete" | "partial";
+}
+
+export interface ResearchTrace {
+  steps: ResearchTraceStep[];
+  extractedElements: {
+    heroText?: string;
+    metaDescription?: string;
+    pageTitle?: string;
+    ctaLabels: string[];
+    trustSignals: string[];
+  };
+  missingSignals: string[];
+  analysisMode: ReportProvenance;
+}
+
 export interface AuditReport {
   id: string;
   title: string;
@@ -659,6 +680,7 @@ export interface AuditReport {
   siteObservation: SiteObservation;
   outreachEmail: OutreachEmailTemplate;
   proposalOffer?: ProposalOffer | null;
+  researchTrace: ResearchTrace;
   socialProof: Array<{
     id: string;
     name: string;

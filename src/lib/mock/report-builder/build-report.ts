@@ -4,6 +4,7 @@ import type {
   ClientProfile,
   ReportProfileType,
   ReportProvenance,
+  ResearchTrace,
   SiteNiche,
   SiteObservation,
 } from "@/lib/types/audit";
@@ -154,6 +155,117 @@ function applyAIAnalysis(report: AuditReport, ai: AISiteAnalysis): AuditReport {
       ...report.provenance,
       narrativeSource: "claude",
     },
+  };
+}
+
+function buildResearchTrace(observation: SiteObservation, provenanceMode: ReportProvenance): ResearchTrace {
+  const phoneCount = observation.verifiedFacts.filter((f) => f.type === "phone").length;
+  const emailCount = observation.verifiedFacts.filter((f) => f.type === "email").length;
+
+  const structureParts: string[] = [];
+  if (observation.pageTitle) structureParts.push(`page title detected`);
+  structureParts.push(`${observation.headingCount} heading${observation.headingCount !== 1 ? "s" : ""}`);
+  structureParts.push(`${observation.internalLinkCount} internal link${observation.internalLinkCount !== 1 ? "s" : ""}`);
+  if (observation.formCount > 0) structureParts.push(`${observation.formCount} form${observation.formCount !== 1 ? "s" : ""}`);
+  if (observation.hasViewport) structureParts.push("viewport meta present");
+
+  const messagingParts: string[] = [];
+  if (observation.heroHeading) messagingParts.push(`hero: "${observation.heroHeading.slice(0, 80)}"`);
+  if (observation.metaDescription) messagingParts.push("meta description found");
+  if (observation.aboutSnippet) messagingParts.push("about section detected");
+
+  const trustParts: string[] = [];
+  if (phoneCount > 0) trustParts.push(`${phoneCount} phone number${phoneCount !== 1 ? "s" : ""} found`);
+  if (emailCount > 0) trustParts.push(`${emailCount} email address${emailCount !== 1 ? "es" : ""} found`);
+  if (observation.trustSignals.length > 0) trustParts.push(`${observation.trustSignals.length} trust signal${observation.trustSignals.length !== 1 ? "s" : ""} detected`);
+  if (observation.hasSchema) trustParts.push("structured data present");
+
+  const conversionParts: string[] = [];
+  if (observation.primaryCtas.length > 0) conversionParts.push(`${observation.primaryCtas.length} CTA button${observation.primaryCtas.length !== 1 ? "s" : ""} found`);
+  if (observation.formCount > 0) conversionParts.push(`${observation.formCount} form${observation.formCount !== 1 ? "s" : ""} detected`);
+
+  const technicalParts: string[] = [];
+  if (observation.hasCanonical) technicalParts.push("canonical URL");
+  if (observation.hasLang) technicalParts.push("HTML lang");
+  if (observation.seoSignals.length > 0) technicalParts.push(`${observation.seoSignals.length} SEO signal${observation.seoSignals.length !== 1 ? "s" : ""}`);
+  if (observation.securitySignals.length > 0) technicalParts.push(`${observation.securitySignals.length} security indicator${observation.securitySignals.length !== 1 ? "s" : ""}`);
+
+  const steps: ResearchTrace["steps"] = [
+    {
+      pass: 1,
+      label: "Homepage structure",
+      what: "Page title, heading hierarchy, internal links, forms, viewport meta tag",
+      found: structureParts.length > 0 ? structureParts.join(" · ") : "Minimal structure detected",
+      status: observation.fetchSucceeded ? "complete" : "partial",
+    },
+    {
+      pass: 2,
+      label: "Messaging and positioning",
+      what: "Hero headline, meta description, about section, value proposition clarity",
+      found: messagingParts.length > 0 ? messagingParts.join(" · ") : "No clear messaging detected",
+      status: messagingParts.length >= 2 ? "complete" : "partial",
+    },
+    {
+      pass: 3,
+      label: "Trust and credibility signals",
+      what: "Testimonials, contact info, trust badges, schema markup, social proof",
+      found: trustParts.length > 0 ? trustParts.join(" · ") : "No trust signals detected",
+      status: trustParts.length >= 2 ? "complete" : "partial",
+    },
+    {
+      pass: 4,
+      label: "Conversion flow",
+      what: "CTA placement and labels, forms, lead capture mechanisms, friction points",
+      found: conversionParts.length > 0 ? conversionParts.join(" · ") : "No clear conversion path detected",
+      status: conversionParts.length > 0 ? "complete" : "partial",
+    },
+    {
+      pass: 5,
+      label: "Technical, SEO, and security",
+      what: "Canonical tag, HTML lang attribute, structured data, security headers, SEO signals",
+      found: technicalParts.length > 0 ? technicalParts.join(" · ") : "Technical signals limited",
+      status: "complete",
+    },
+  ];
+
+  if (observation.performanceScore !== undefined) {
+    const perfScore = Math.round(observation.performanceScore * 100);
+    const perfParts = [`performance score ${perfScore}/100`];
+    if (observation.lcp) perfParts.push(`LCP ${(observation.lcp / 1000).toFixed(1)}s`);
+    if (observation.cls !== undefined) perfParts.push(`CLS ${observation.cls.toFixed(2)}`);
+    if (observation.fcp) perfParts.push(`FCP ${(observation.fcp / 1000).toFixed(1)}s`);
+    steps.push({
+      pass: 6,
+      label: "Performance (mobile)",
+      what: "PageSpeed score, Core Web Vitals, Largest Contentful Paint, layout shift",
+      found: perfParts.join(" · "),
+      status: "complete",
+    });
+  }
+
+  const missingSignals: string[] = [];
+  if (observation.trustSignals.length === 0) missingSignals.push("No testimonials or social proof found");
+  if (observation.primaryCtas.length === 0) missingSignals.push("No CTA buttons detected");
+  if (!observation.metaDescription || observation.metaDescription.length < 50) missingSignals.push("Meta description missing or too short");
+  if (phoneCount === 0) missingSignals.push("No phone number detected");
+  if (emailCount === 0) missingSignals.push("No email address detected");
+  if (observation.formCount === 0) missingSignals.push("No contact or lead form detected");
+  if (!observation.hasCanonical) missingSignals.push("Missing canonical URL tag");
+  if (!observation.hasSchema) missingSignals.push("No structured data markup found");
+  if (!observation.hasLang) missingSignals.push("Missing HTML lang attribute");
+  if (observation.missingAltRatio > 0.3) missingSignals.push(`${Math.round(observation.missingAltRatio * 100)}% of images missing alt text`);
+
+  return {
+    steps,
+    extractedElements: {
+      heroText: observation.heroHeading || undefined,
+      metaDescription: observation.metaDescription || undefined,
+      pageTitle: observation.pageTitle || undefined,
+      ctaLabels: observation.primaryCtas.slice(0, 5),
+      trustSignals: observation.trustSignals.slice(0, 4),
+    },
+    missingSignals,
+    analysisMode: provenanceMode,
   };
 }
 
@@ -365,6 +477,7 @@ function buildAuditReport(
       body: "",
     },
     proposalOffer: createDefaultProposalOffer(defaultPricingSummary.total),
+    researchTrace: buildResearchTrace(observation, provenanceMode),
     socialProof,
     provenance: {
       mode: provenanceMode,
