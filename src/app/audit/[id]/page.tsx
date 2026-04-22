@@ -153,9 +153,44 @@ export default async function AuditPage({
     notFound();
   }
 
+  const domain = report.normalizedUrl.replace(/^https?:\/\//, "").replace(/\/$/, "");
+  const score = Number(report.overallScore ?? 0).toFixed(1);
+  const canonicalUrl = `https://websitecreditscore.com/audit/${id}`;
+
+  const jsonLd = {
+    "@context": "https://schema.org",
+    "@type": "Review",
+    name: `${report.title || domain} — Website Quality Score ${score}/10`,
+    description: report.executiveSummary?.slice(0, 280) ?? `Website quality audit for ${domain}.`,
+    url: canonicalUrl,
+    author: {
+      "@type": "Organization",
+      name: "WebsiteCreditScore",
+      url: "https://websitecreditscore.com",
+    },
+    itemReviewed: {
+      "@type": "WebSite",
+      name: report.title || domain,
+      url: report.normalizedUrl,
+    },
+    reviewRating: {
+      "@type": "Rating",
+      ratingValue: score,
+      bestRating: "10",
+      worstRating: "0",
+    },
+    datePublished: new Date().toISOString().split("T")[0],
+  };
+
   return (
-    <WorkspaceThemeFrame>
-      <AuditReportContent isAuthenticated={isAuthenticated} report={report} />
-    </WorkspaceThemeFrame>
+    <>
+      <script
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+        type="application/ld+json"
+      />
+      <WorkspaceThemeFrame>
+        <AuditReportContent isAuthenticated={isAuthenticated} report={report} />
+      </WorkspaceThemeFrame>
+    </>
   );
 }

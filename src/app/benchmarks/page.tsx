@@ -26,22 +26,16 @@ const benchmarkProfiles: Array<{
   id: BenchmarkVertical;
   label: string;
 }> = [
-  {
-    id: "service-providers",
-    label: "Home & service",
-  },
-  {
-    id: "private-healthcare",
-    label: "Private care",
-  },
-  {
-    id: "product-saas",
-    label: "Product & SaaS",
-  },
-  {
-    id: "fintech",
-    label: "Fintech",
-  },
+  { id: "service-providers", label: "Home & service" },
+  { id: "private-healthcare", label: "Private care" },
+  { id: "product-saas", label: "Product & SaaS" },
+  { id: "fintech", label: "Fintech" },
+  { id: "legal", label: "Law firms" },
+  { id: "real-estate", label: "Real estate" },
+  { id: "fitness", label: "Fitness & studios" },
+  { id: "beauty-wellness", label: "Beauty & wellness" },
+  { id: "construction-trades", label: "Construction & trades" },
+  { id: "restaurant-hospitality", label: "Restaurants" },
 ];
 
 export default function BenchmarksPage() {

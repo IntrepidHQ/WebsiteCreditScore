@@ -107,7 +107,13 @@ export type BenchmarkVertical =
   | "service-providers"
   | "private-healthcare"
   | "product-saas"
-  | "fintech";
+  | "fintech"
+  | "legal"
+  | "real-estate"
+  | "fitness"
+  | "beauty-wellness"
+  | "construction-trades"
+  | "restaurant-hospitality";
 export type BenchmarkTier = "flagship" | "reference" | "specialist";
 export type BenchmarkFocusArea = "woodworking";
 export type DesignElementKey =

@@ -587,6 +587,10 @@ export function getPublicScanHistoryCards() {
   return getSampleAuditCards();
 }
 
+export function getSampleAuditIds(): string[] {
+  return sampleAudits.map((sample) => sample.id);
+}
+
 export function buildAuditReportById(id: string) {
   const sample = sampleAudits.find((entry) => entry.id === id);
 

@@ -1,5 +1,6 @@
 import type { MetadataRoute } from "next";
 import { TREND_ARTICLES } from "@/lib/content/trends";
+import { getSampleAuditIds } from "@/lib/mock/report-builder";
 
 export default function sitemap(): MetadataRoute.Sitemap {
   const base = "https://websitecreditscore.com";
@@ -22,6 +23,8 @@ export default function sitemap(): MetadataRoute.Sitemap {
     { path: "/cookies", priority: 0.3, frequency: "yearly" },
   ];
 
+  const sampleAuditIds = getSampleAuditIds();
+
   return [
     ...staticRoutes.map(({ path, priority, frequency }) => ({
       url: `${base}${path}`,
@@ -34,6 +37,12 @@ export default function sitemap(): MetadataRoute.Sitemap {
       lastModified: new Date(article.publishedAt),
       changeFrequency: "monthly" as const,
       priority: 0.7,
+    })),
+    ...sampleAuditIds.map((id) => ({
+      url: `${base}/audit/${id}`,
+      lastModified: new Date(),
+      changeFrequency: "monthly" as const,
+      priority: 0.75,
     })),
   ];
 }
