@@ -190,7 +190,7 @@ export function ResearchTraceSection({ report }: { report: AuditReport }) {
           {/* 1 · Analysis passes ──────────────────────────────────────── */}
           <Card>
             <CardHeader className="px-5 pb-2 pt-5">
-              <CardTitle className="text-sm font-semibold">Analysis passes</CardTitle>
+              <CardTitle className="text-lg font-semibold">Analysis passes</CardTitle>
             </CardHeader>
             <CardContent className="p-0">
               <Accordion collapsible type="single">
@@ -240,7 +240,7 @@ export function ResearchTraceSection({ report }: { report: AuditReport }) {
               <CardHeader className="px-5 pb-3 pt-5">
                 <div className="flex items-center gap-2">
                   <FileSearch className="size-4 text-accent" />
-                  <CardTitle className="text-base font-semibold">Extracted from site</CardTitle>
+                  <CardTitle className="text-lg font-semibold">Extracted from site</CardTitle>
                 </div>
               </CardHeader>
               <CardContent className="space-y-4 px-5 pb-5">
@@ -289,7 +289,7 @@ export function ResearchTraceSection({ report }: { report: AuditReport }) {
               <CardHeader className="px-5 pb-3 pt-5">
                 <div className="flex items-center gap-2">
                   <XCircle className="size-4 text-danger" />
-                  <CardTitle className="text-base font-semibold">Missing signals</CardTitle>
+                  <CardTitle className="text-lg font-semibold">Missing signals</CardTitle>
                 </div>
               </CardHeader>
               <CardContent className="px-5 pb-5">
@@ -336,7 +336,7 @@ export function ResearchTraceSection({ report }: { report: AuditReport }) {
                 <div className="flex flex-wrap items-center justify-between gap-2">
                   <div className="flex items-center gap-2">
                     <Activity className="size-4 text-accent" />
-                    <CardTitle className="text-sm font-semibold">Raw signals detected</CardTitle>
+                    <CardTitle className="text-lg font-semibold">Raw signals detected</CardTitle>
                   </div>
                   <p className="text-xs text-muted">{totalSignals} total</p>
                 </div>
@@ -385,7 +385,7 @@ export function ResearchTraceSection({ report }: { report: AuditReport }) {
                 <div className="flex flex-wrap items-center justify-between gap-2">
                   <div className="flex items-center gap-2">
                     <Gauge className="size-4 text-accent" />
-                    <CardTitle className="text-sm font-semibold">Performance — Google PageSpeed (mobile)</CardTitle>
+                    <CardTitle className="text-lg font-semibold">Performance — Google PageSpeed (mobile)</CardTitle>
                   </div>
                   <Badge variant={perfScore >= 90 ? "success" : perfScore >= 50 ? "warning" : "danger"}>
                     {perfScore} / 100
@@ -445,7 +445,7 @@ export function ResearchTraceSection({ report }: { report: AuditReport }) {
                 <div className="flex flex-wrap items-center justify-between gap-2">
                   <div className="flex items-center gap-2">
                     <Star className="size-4 text-accent" />
-                    <CardTitle className="text-sm font-semibold">Benchmark references</CardTitle>
+                    <CardTitle className="text-lg font-semibold">Benchmark references</CardTitle>
                   </div>
                   <Badge variant="neutral">{selectionLabel}</Badge>
                 </div>
@@ -538,7 +538,7 @@ export function ResearchTraceSection({ report }: { report: AuditReport }) {
             <CardHeader className="px-5 pb-3 pt-5">
               <div className="flex items-center gap-2">
                 <BarChart3 className="size-4 text-accent" />
-                <CardTitle className="text-sm font-semibold">Score derivation</CardTitle>
+                <CardTitle className="text-lg font-semibold">Score derivation</CardTitle>
               </div>
               <p className="mt-1 text-xs leading-5 text-muted">
                 How each of the seven category scores was calculated from observed page signals.
