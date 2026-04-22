@@ -243,17 +243,17 @@ function buildResearchTrace(observation: SiteObservation, provenanceMode: Report
     });
   }
 
-  const missingSignals: string[] = [];
-  if (observation.trustSignals.length === 0) missingSignals.push("No testimonials or social proof found");
-  if (observation.primaryCtas.length === 0) missingSignals.push("No CTA buttons detected");
-  if (!observation.metaDescription || observation.metaDescription.length < 50) missingSignals.push("Meta description missing or too short");
-  if (phoneCount === 0) missingSignals.push("No phone number detected");
-  if (emailCount === 0) missingSignals.push("No email address detected");
-  if (observation.formCount === 0) missingSignals.push("No contact or lead form detected");
-  if (!observation.hasCanonical) missingSignals.push("Missing canonical URL tag");
-  if (!observation.hasSchema) missingSignals.push("No structured data markup found");
-  if (!observation.hasLang) missingSignals.push("Missing HTML lang attribute");
-  if (observation.missingAltRatio > 0.3) missingSignals.push(`${Math.round(observation.missingAltRatio * 100)}% of images missing alt text`);
+  const missingSignals: ResearchTrace["missingSignals"] = [];
+  if (observation.trustSignals.length === 0) missingSignals.push({ label: "No testimonials or social proof found", severity: "critical" });
+  if (observation.primaryCtas.length === 0) missingSignals.push({ label: "No CTA buttons detected", severity: "critical" });
+  if (!observation.metaDescription || observation.metaDescription.length < 50) missingSignals.push({ label: "Meta description missing or too short", severity: "critical" });
+  if (phoneCount === 0) missingSignals.push({ label: "No phone number detected", severity: "standard" });
+  if (emailCount === 0) missingSignals.push({ label: "No email address detected", severity: "standard" });
+  if (observation.formCount === 0) missingSignals.push({ label: "No contact or lead form detected", severity: "standard" });
+  if (!observation.hasCanonical) missingSignals.push({ label: "Missing canonical URL tag", severity: "standard" });
+  if (!observation.hasSchema) missingSignals.push({ label: "No structured data markup found", severity: "standard" });
+  if (!observation.hasLang) missingSignals.push({ label: "Missing HTML lang attribute", severity: "standard" });
+  if (observation.missingAltRatio > 0.3) missingSignals.push({ label: `${Math.round(observation.missingAltRatio * 100)}% of images missing alt text`, severity: "standard" });
 
   return {
     steps,

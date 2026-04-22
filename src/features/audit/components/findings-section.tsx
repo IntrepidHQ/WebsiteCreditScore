@@ -151,6 +151,15 @@ export function FindingsSection({
                 <CardContent className="pt-4 sm:pt-4">
                   <div className="hidden space-y-5 md:block">
                     <p className="text-[1.08rem] leading-[1.95rem] text-muted">{finding.summary}</p>
+                    {finding.evidence.length > 0 && finding.evidence[0] && (
+                      <div className="flex items-start gap-2.5 rounded-[calc(var(--theme-radius)-4px)] border border-border/50 bg-background-alt/40 px-3.5 py-3">
+                        <div className="mt-2 size-1.5 shrink-0 rounded-full bg-accent" />
+                        <p className="text-sm leading-7 text-muted">
+                          <span className="font-semibold text-foreground">{finding.evidence[0].label}: </span>
+                          {finding.evidence[0].detail}
+                        </p>
+                      </div>
+                    )}
                     <div className="rounded-[calc(var(--theme-radius)-2px)] border border-border/70 bg-background-alt/70 p-4">
                       <p className="text-xs font-semibold uppercase tracking-[0.12em] text-muted">
                         Business impact

@@ -1,6 +1,6 @@
 "use client";
 
-import { Check, FileSearch, Minus, ScanLine, XCircle } from "lucide-react";
+import { AlertTriangle, Check, FileSearch, Minus, ScanLine, XCircle } from "lucide-react";
 
 import {
   Accordion,
@@ -13,9 +13,33 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import type { AuditReport } from "@/lib/types/audit";
 import { cn } from "@/lib/utils/cn";
 
+function FoundChips({ text }: { text: string }) {
+  const parts = text.split(" · ").filter(Boolean);
+
+  if (parts.length === 1) {
+    return <p className="mt-1 text-sm font-medium leading-6 text-foreground">{text}</p>;
+  }
+
+  return (
+    <div className="mt-1.5 flex flex-wrap gap-1.5">
+      {parts.map((part, i) => (
+        <span
+          className="rounded-full border border-border/60 bg-background-alt/60 px-2.5 py-0.5 text-xs font-medium text-foreground"
+          key={i}
+        >
+          {part}
+        </span>
+      ))}
+    </div>
+  );
+}
+
 export function ResearchTraceSection({ report }: { report: AuditReport }) {
   const { researchTrace, provenance } = report;
   const isEstimated = provenance.mode !== "live-observed";
+
+  const criticalSignals = researchTrace.missingSignals.filter((s) => s.severity === "critical");
+  const standardSignals = researchTrace.missingSignals.filter((s) => s.severity === "standard");
 
   return (
     <section className="presentation-section" id="research-trace">
@@ -89,7 +113,7 @@ export function ResearchTraceSection({ report }: { report: AuditReport }) {
                           <p className="text-[10px] font-semibold uppercase tracking-[0.14em] text-muted">
                             Found
                           </p>
-                          <p className="mt-1 text-sm font-medium leading-6 text-foreground">{step.found}</p>
+                          <FoundChips text={step.found} />
                         </div>
                       </div>
                     </AccordionContent>
@@ -108,29 +132,24 @@ export function ResearchTraceSection({ report }: { report: AuditReport }) {
                 </div>
               </CardHeader>
               <CardContent className="space-y-4 px-5 pb-5">
-                {researchTrace.extractedElements.heroText ? (
-                  <div>
-                    <p className="text-[10px] font-semibold uppercase tracking-[0.14em] text-muted">
-                      Hero text
-                    </p>
-                    <p className="mt-1 line-clamp-2 text-sm font-medium text-foreground">
+                <div>
+                  <p className="text-[10px] font-semibold uppercase tracking-[0.14em] text-muted">
+                    Hero text
+                  </p>
+                  {researchTrace.extractedElements.heroText ? (
+                    <p className="mt-1.5 rounded-lg border border-border/50 bg-background-alt/50 px-3 py-2 text-sm font-medium italic leading-6 text-foreground">
                       &ldquo;{researchTrace.extractedElements.heroText}&rdquo;
                     </p>
-                  </div>
-                ) : (
-                  <div>
-                    <p className="text-[10px] font-semibold uppercase tracking-[0.14em] text-muted">
-                      Hero text
-                    </p>
+                  ) : (
                     <p className="mt-1 text-sm text-muted">Not detected</p>
-                  </div>
-                )}
+                  )}
+                </div>
 
-                {researchTrace.extractedElements.ctaLabels.length > 0 ? (
-                  <div>
-                    <p className="text-[10px] font-semibold uppercase tracking-[0.14em] text-muted">
-                      CTAs found
-                    </p>
+                <div>
+                  <p className="text-[10px] font-semibold uppercase tracking-[0.14em] text-muted">
+                    CTAs found
+                  </p>
+                  {researchTrace.extractedElements.ctaLabels.length > 0 ? (
                     <div className="mt-1.5 flex flex-wrap gap-1.5">
                       {researchTrace.extractedElements.ctaLabels.map((cta, i) => (
                         <span
@@ -141,22 +160,17 @@ export function ResearchTraceSection({ report }: { report: AuditReport }) {
                         </span>
                       ))}
                     </div>
-                  </div>
-                ) : (
-                  <div>
-                    <p className="text-[10px] font-semibold uppercase tracking-[0.14em] text-muted">
-                      CTAs found
-                    </p>
+                  ) : (
                     <p className="mt-1 text-sm text-muted">None detected</p>
-                  </div>
-                )}
+                  )}
+                </div>
 
                 {researchTrace.extractedElements.trustSignals.length > 0 && (
                   <div>
                     <p className="text-[10px] font-semibold uppercase tracking-[0.14em] text-muted">
                       Trust signals
                     </p>
-                    <ul className="mt-1 space-y-0.5">
+                    <ul className="mt-1.5 space-y-1">
                       {researchTrace.extractedElements.trustSignals.map((signal, i) => (
                         <li className="line-clamp-1 text-xs text-muted" key={i}>
                           {signal}
@@ -179,14 +193,31 @@ export function ResearchTraceSection({ report }: { report: AuditReport }) {
                 {researchTrace.missingSignals.length === 0 ? (
                   <p className="text-sm text-muted">No critical signals missing.</p>
                 ) : (
-                  <ul className="space-y-2">
-                    {researchTrace.missingSignals.map((signal, i) => (
-                      <li className="flex items-start gap-2" key={i}>
-                        <XCircle className="mt-0.5 size-3.5 shrink-0 text-danger" />
-                        <p className="text-sm leading-6 text-muted">{signal}</p>
-                      </li>
-                    ))}
-                  </ul>
+                  <div className="space-y-3">
+                    {criticalSignals.length > 0 && (
+                      <ul className="space-y-2">
+                        {criticalSignals.map((signal, i) => (
+                          <li className="flex items-start gap-2" key={i}>
+                            <XCircle className="mt-0.5 size-3.5 shrink-0 text-danger" />
+                            <p className="text-sm font-medium leading-6 text-foreground">{signal.label}</p>
+                          </li>
+                        ))}
+                      </ul>
+                    )}
+                    {criticalSignals.length > 0 && standardSignals.length > 0 && (
+                      <div className="border-t border-border/40" />
+                    )}
+                    {standardSignals.length > 0 && (
+                      <ul className="space-y-2">
+                        {standardSignals.map((signal, i) => (
+                          <li className="flex items-start gap-2" key={i}>
+                            <AlertTriangle className="mt-0.5 size-3.5 shrink-0 text-warning/70" />
+                            <p className="text-sm leading-6 text-muted">{signal.label}</p>
+                          </li>
+                        ))}
+                      </ul>
+                    )}
+                  </div>
                 )}
               </CardContent>
             </Card>

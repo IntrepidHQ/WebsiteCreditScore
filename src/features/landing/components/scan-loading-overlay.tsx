@@ -10,23 +10,28 @@ import { getDialMetrics } from "@/lib/utils/score-visuals";
 
 const SCAN_STEPS = [
   "Crawling the live site",
-  "Analyzing trust signals",
-  "Scoring UX and conversion",
+  "Analyzing trust and messaging signals",
+  "Scoring UX and conversion flow",
+  "Evaluating SEO and accessibility",
   "Building your report",
 ] as const;
 
 function getScanStepIndex(score: number): number {
-  if (score < 3.5) return 0;
-  if (score < 7.0) return 1;
-  if (score < 8.7) return 2;
-  return 3;
+  if (score < 2.5) return 0;
+  if (score < 5.0) return 1;
+  if (score < 7.0) return 2;
+  if (score < 8.7) return 3;
+  return 4;
 }
 
 const skeletonCategories = [
-  { label: "Visual design", key: "vd" },
-  { label: "UX / conversion", key: "ux" },
-  { label: "Mobile experience", key: "mb" },
-  { label: "Trust / credibility", key: "tr" },
+  { label: "Visual design",      key: "visual-design",      color: "#7ca2ff" },
+  { label: "UX / conversion",    key: "ux-conversion",      color: "#f7b21b" },
+  { label: "Mobile experience",  key: "mobile-experience",  color: "#4fd7a3" },
+  { label: "SEO readiness",      key: "seo-readiness",      color: "#ff9a6a" },
+  { label: "Accessibility",      key: "accessibility",      color: "#b98dff" },
+  { label: "Trust / credibility",key: "trust-credibility",  color: "#61d7ff" },
+  { label: "Security posture",   key: "security-posture",   color: "#ff7ca8" },
 ] as const;
 
 type ScanLoadingOverlayProps = {
@@ -268,24 +273,29 @@ export function ScanLoadingOverlay({
           </div>
         </div>
 
-        <div className="mt-6 space-y-3 sm:mt-9 sm:space-y-3.5">
+        <div className="mt-6 space-y-2.5 sm:mt-9">
           {skeletonCategories.map((row, index) => (
-            <div className="space-y-1.5 sm:space-y-2" key={row.key}>
-              <div className="flex items-center justify-between text-[11px] font-semibold uppercase tracking-[0.14em] text-muted">
-                <span>{row.label}</span>
-                <span className="text-foreground/70">…</span>
+            <div className="space-y-1.5" key={row.key}>
+              <div className="flex items-center justify-between text-[10px] font-semibold uppercase tracking-[0.14em]">
+                <span className="text-muted">{row.label}</span>
+                <span className="tabular-nums" style={{ color: row.color, opacity: 0.7 }}>—</span>
               </div>
-              <div className="h-2.5 overflow-hidden rounded-full bg-background/40">
+              <div className="h-2 overflow-hidden rounded-full bg-background/40">
                 <div
                   className={cn("h-full min-w-0 overflow-hidden rounded-full", !reduceMotion && "will-change-[width]")}
                   ref={(node) => {
                     barRefs.current[index] = node;
                   }}
                   style={{
-                    width: `${Math.min(100, Math.max(6, (displayScore / 10) * 100))}%`,
+                    width: `${Math.min(100, Math.max(4, (displayScore / 10) * 100))}%`,
                   }}
                 >
-                  <div className="h-full w-full rounded-full bg-[linear-gradient(90deg,rgba(247,178,27,0.95),rgba(247,178,27,0.42),rgba(247,178,27,0.18))]" />
+                  <div
+                    className="h-full w-full rounded-full"
+                    style={{
+                      background: `linear-gradient(90deg, ${row.color}, ${row.color}55)`,
+                    }}
+                  />
                 </div>
               </div>
             </div>

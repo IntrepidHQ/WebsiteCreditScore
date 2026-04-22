@@ -644,6 +644,11 @@ export interface ResearchTraceStep {
   status: "complete" | "partial";
 }
 
+export interface ResearchMissingSignal {
+  label: string;
+  severity: "critical" | "standard";
+}
+
 export interface ResearchTrace {
   steps: ResearchTraceStep[];
   extractedElements: {
@@ -653,7 +658,7 @@ export interface ResearchTrace {
     ctaLabels: string[];
     trustSignals: string[];
   };
-  missingSignals: string[];
+  missingSignals: ResearchMissingSignal[];
   analysisMode: ReportProvenance;
 }
 

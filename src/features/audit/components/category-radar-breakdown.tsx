@@ -262,40 +262,50 @@ export function CategoryRadarBreakdown({
 
               return (
                 <article
-                  className="rounded-[16px] border border-border/70 bg-panel/60 px-4 py-3.5"
+                  className="overflow-hidden rounded-[16px] border border-border/70 bg-panel/60"
                   key={score.key}
                 >
-                  <div className="flex items-start justify-between gap-3">
-                    <div className="min-w-0">
-                      <div className="flex items-center gap-3">
-                        <span
-                          className="inline-flex size-9 shrink-0 items-center justify-center rounded-full border"
-                          style={{
-                            backgroundColor: `${color}1f`,
-                            borderColor: `${color}55`,
-                            color,
-                          }}
-                        >
-                          <Icon className="size-4" />
-                        </span>
+                  <div className="h-[3px]" style={{ backgroundColor: color }} />
+                  <div className="px-4 py-3.5">
+                    <div className="flex items-start justify-between gap-3">
+                      <div className="min-w-0">
+                        <div className="flex items-center gap-3">
+                          <span
+                            className="inline-flex size-9 shrink-0 items-center justify-center rounded-full border"
+                            style={{
+                              backgroundColor: `${color}1f`,
+                              borderColor: `${color}55`,
+                              color,
+                            }}
+                          >
+                            <Icon className="size-4" />
+                          </span>
+                        </div>
+                        <h3 className="mt-3 text-[1.02rem] font-semibold leading-6 text-foreground">
+                          {score.label}
+                        </h3>
+                        <p className="mt-2 text-sm leading-6 text-muted">{score.summary}</p>
                       </div>
-                      <h3 className="mt-3 text-[1.02rem] font-semibold leading-6 text-foreground">
-                        {score.label}
-                      </h3>
-                      <p className="mt-2 text-sm leading-6 text-muted">{score.summary}</p>
+                      <p
+                        className="shrink-0 font-display text-[2rem] leading-none tracking-[-0.05em]"
+                        style={{ color }}
+                      >
+                        {score.score.toFixed(1)}
+                      </p>
                     </div>
-                    <p
-                      className="shrink-0 font-display text-[2rem] leading-none tracking-[-0.05em]"
-                      style={{ color }}
-                    >
-                      {score.score.toFixed(1)}
-                    </p>
-                  </div>
-                  <div className="mt-3 flex flex-wrap items-center justify-between gap-2">
-                    <Badge variant={tone}>{getScoreBandLabel(score.score)}</Badge>
-                    <p className="text-[11px] font-semibold uppercase tracking-[0.12em] text-muted">
-                      {score.score.toFixed(1)} / 10
-                    </p>
+                    <div className="mt-3 space-y-2">
+                      <Badge variant={tone}>{getScoreBandLabel(score.score)}</Badge>
+                      <div className="h-1.5 overflow-hidden rounded-full bg-background/40">
+                        <div
+                          className="h-full rounded-full transition-all duration-700"
+                          style={{
+                            width: `${score.score * 10}%`,
+                            backgroundColor: color,
+                            opacity: 0.65,
+                          }}
+                        />
+                      </div>
+                    </div>
                   </div>
                 </article>
               );
