@@ -240,7 +240,7 @@ export function ResearchTraceSection({ report }: { report: AuditReport }) {
               <CardHeader className="px-5 pb-3 pt-5">
                 <div className="flex items-center gap-2">
                   <FileSearch className="size-4 text-accent" />
-                  <CardTitle className="text-sm font-semibold">Extracted from site</CardTitle>
+                  <CardTitle className="text-base font-semibold">Extracted from site</CardTitle>
                 </div>
               </CardHeader>
               <CardContent className="space-y-4 px-5 pb-5">
@@ -289,7 +289,7 @@ export function ResearchTraceSection({ report }: { report: AuditReport }) {
               <CardHeader className="px-5 pb-3 pt-5">
                 <div className="flex items-center gap-2">
                   <XCircle className="size-4 text-danger" />
-                  <CardTitle className="text-sm font-semibold">Missing signals</CardTitle>
+                  <CardTitle className="text-base font-semibold">Missing signals</CardTitle>
                 </div>
               </CardHeader>
               <CardContent className="px-5 pb-5">
