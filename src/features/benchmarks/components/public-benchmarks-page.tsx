@@ -299,41 +299,50 @@ export function PublicBenchmarksPage({
             title="High-bar examples: curated + public scans"
           />
           <div className="grid gap-5 sm:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4">
-            {featuredExamples.map((reference) => (
-              <article
-                className="overflow-hidden rounded-[24px] border border-border/60 bg-[linear-gradient(180deg,color-mix(in_srgb,var(--theme-panel)_90%,transparent),color-mix(in_srgb,var(--theme-background-alt)_96%,transparent))]"
+            {featuredExamples.map((reference, index) => (
+              <Link
+                className="group block"
+                href={`/audit/${reference.siteId}?url=${encodeURIComponent(reference.url)}&from=scan`}
                 key={reference.id}
               >
-                <PreviewImage
-                  alt={`${reference.name} benchmark preview`}
-                  className="aspect-[16/10]"
-                  fallbackLabel="Reference image"
-                  loadingLabel="Loading benchmark preview"
-                  src={reference.previewImage}
-                />
-                <div className="space-y-4 p-5">
-                  <div className="flex flex-wrap items-center gap-2">
-                    <Badge variant="accent">{reference.tier}</Badge>
-                    {reference.measuredScore != null ? (
-                      <Badge className="tabular-nums" variant="neutral">
-                        Scored {reference.measuredScore.toFixed(1)}
-                      </Badge>
-                    ) : null}
-                    <Badge variant="neutral">{reference.sourceLabel}</Badge>
+                <article className="h-full overflow-hidden rounded-[24px] border border-border/60 bg-[linear-gradient(180deg,color-mix(in_srgb,var(--theme-panel)_90%,transparent),color-mix(in_srgb,var(--theme-background-alt)_96%,transparent))] transition-[border-color,box-shadow] duration-200 group-hover:border-accent/40 group-hover:shadow-[0_0_0_1px_color-mix(in_srgb,var(--theme-accent)_18%,transparent)]">
+                  <PreviewImage
+                    alt={`${reference.name} benchmark preview`}
+                    className="aspect-[16/10]"
+                    fallbackLabel="Reference image"
+                    fallbackSrc={reference.mobilePreviewImage}
+                    loadingLabel="Loading preview"
+                    priority={index === 0}
+                    src={reference.previewImage}
+                  />
+                  <div className="space-y-4 p-5">
+                    <div className="flex flex-wrap items-center gap-2">
+                      <Badge variant="accent">{reference.tier}</Badge>
+                      {reference.measuredScore != null ? (
+                        <Badge className="tabular-nums" variant="neutral">
+                          Scored {reference.measuredScore.toFixed(1)}
+                        </Badge>
+                      ) : null}
+                      <Badge variant="neutral">{reference.sourceLabel}</Badge>
+                    </div>
+                    <h3 className="font-display text-[clamp(2.2rem,1.8rem+0.5vw,3rem)] leading-[0.95] tracking-[-0.04em] text-foreground">
+                      {reference.name}
+                    </h3>
+                    <p className="text-sm leading-6 text-muted">{reference.note}</p>
+                    <div className="space-y-2">
+                      {reference.whatWorks.slice(0, 2).map((item) => (
+                        <p className="text-sm leading-6 text-foreground" key={item}>
+                          {item}
+                        </p>
+                      ))}
+                    </div>
+                    <div className="flex items-center gap-1.5 text-xs font-semibold text-accent opacity-0 transition-opacity duration-150 group-hover:opacity-100">
+                      View audit report
+                      <ArrowRight className="size-3" />
+                    </div>
                   </div>
-                  <h3 className="font-display text-[clamp(2.2rem,1.8rem+0.5vw,3rem)] leading-[0.95] tracking-[-0.04em] text-foreground">
-                    {reference.name}
-                  </h3>
-                  <p className="text-sm leading-6 text-muted">{reference.note}</p>
-                  <div className="space-y-2">
-                    {reference.whatWorks.slice(0, 2).map((item) => (
-                      <p className="text-sm leading-6 text-foreground" key={item}>
-                        {item}
-                      </p>
-                    ))}
-                  </div>
-                </div>
-              </article>
+                </article>
+              </Link>
             ))}
           </div>
         </div>

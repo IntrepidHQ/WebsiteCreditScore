@@ -1,5 +1,6 @@
 "use client";
-import { BarChart3, Layers3, Monitor, Smartphone, Sparkles } from "lucide-react";
+import Link from "next/link";
+import { ArrowUpRight, BarChart3, Layers3, Monitor, Smartphone, Sparkles } from "lucide-react";
 
 import { PreviewImage } from "@/components/common/preview-image";
 import { Badge } from "@/components/ui/badge";
@@ -103,16 +104,31 @@ export function BenchmarkSiteCard({
           <Badge variant="accent">Why this is still a benchmark</Badge>
         </div>
         <CardTitle className="font-display text-[clamp(2.8rem,2.1rem+1vw,4rem)] leading-[0.92]">
-          <a
+          <Link
             className="transition hover:text-accent"
+            href={`/audit/${reference.siteId}?url=${encodeURIComponent(reference.url)}&from=scan`}
+          >
+            {reference.name}
+          </Link>
+        </CardTitle>
+        <p className="text-[1.08rem] leading-[1.95rem] text-muted">{reference.note}</p>
+        <div className="flex items-center gap-3 pt-1">
+          <Link
+            className="inline-flex items-center gap-1.5 rounded-full border border-accent/30 bg-accent/10 px-3 py-1 text-xs font-semibold text-accent transition hover:bg-accent/20"
+            href={`/audit/${reference.siteId}?url=${encodeURIComponent(reference.url)}&from=scan`}
+          >
+            View audit report
+            <ArrowUpRight className="size-3" />
+          </Link>
+          <a
+            className="text-xs text-muted transition hover:text-foreground"
             href={reference.url}
             rel="noreferrer"
             target="_blank"
           >
-            {reference.name}
+            Visit site ↗
           </a>
-        </CardTitle>
-        <p className="text-[1.08rem] leading-[1.95rem] text-muted">{reference.note}</p>
+        </div>
       </CardHeader>
 
       <CardContent className="space-y-5">

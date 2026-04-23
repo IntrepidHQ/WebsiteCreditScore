@@ -1,9 +1,11 @@
 "use client";
 
 import { useState } from "react";
+import Link from "next/link";
 import {
   Activity,
   AlertTriangle,
+  ArrowUpRight,
   BarChart3,
   Check,
   FileSearch,
@@ -22,6 +24,7 @@ import {
 } from "@/components/ui/accordion";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { PreviewImage } from "@/components/common/preview-image";
 import { scoreCategoryIcons, scoreCategoryPalette } from "@/components/common/score-category-meta";
 import type { AuditReport } from "@/lib/types/audit";
 import { cn } from "@/lib/utils/cn";
@@ -456,13 +459,25 @@ export function ResearchTraceSection({ report }: { report: AuditReport }) {
               <CardContent className="px-5 pb-5">
                 <div className="grid gap-3 sm:grid-cols-2">
                   {benchmarkReferences.map((ref) => (
-                    <div
-                      className="space-y-3 rounded-xl border border-border/60 bg-background-alt/40 p-4"
+                    <Link
+                      className="group block"
+                      href={`/audit/${ref.siteId}?url=${encodeURIComponent(ref.url)}&from=scan`}
                       key={ref.id}
                     >
+                    <div
+                      className="h-full space-y-3 overflow-hidden rounded-xl border border-border/60 bg-background-alt/40 transition-[border-color] duration-150 group-hover:border-accent/40"
+                    >
+                      <PreviewImage
+                        alt={`${ref.name} screenshot`}
+                        className="aspect-[16/8]"
+                        fallbackSrc={ref.mobilePreviewImage}
+                        loadingLabel="Loading preview"
+                        src={ref.previewImage}
+                      />
+                      <div className="space-y-3 p-4 pt-2">
                       <div className="flex items-start justify-between gap-2">
                         <div className="min-w-0">
-                          <p className="truncate text-sm font-semibold text-foreground">{ref.name}</p>
+                          <p className="truncate text-sm font-semibold text-foreground group-hover:text-accent transition-colors">{ref.name}</p>
                           <p className="truncate text-xs text-muted">{ref.url}</p>
                         </div>
                         <div className="flex shrink-0 flex-col items-end gap-1.5">
@@ -526,7 +541,14 @@ export function ResearchTraceSection({ report }: { report: AuditReport }) {
                           </div>
                         </div>
                       )}
+
+                      <div className="flex items-center gap-1 text-[10px] font-semibold uppercase tracking-[0.1em] text-accent opacity-0 transition-opacity group-hover:opacity-100">
+                        View audit
+                        <ArrowUpRight className="size-3" />
+                      </div>
+                      </div>
                     </div>
+                    </Link>
                   ))}
                 </div>
               </CardContent>
