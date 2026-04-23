@@ -4,6 +4,7 @@ import {
   BookOpenText,
   Code2,
   Globe2,
+  Layers,
   Rocket,
   Sparkles,
   TrendingUp,
@@ -52,6 +53,7 @@ const docLinks = [
   { href: "#start", label: "Start here" },
   { href: "#score", label: "The score" },
   { href: "#benchmarks", label: "Benchmarks" },
+  { href: "#research-trace", label: "Research trace" },
   { href: "#animation", label: "Animation" },
   { href: "#seo", label: "SEO" },
   { href: "#max", label: "MAX workflow" },
@@ -174,7 +176,10 @@ export function DocsPage() {
               </CardHeader>
               <CardContent className="space-y-3 pt-0">
                 <p className="text-base leading-8 text-muted">
-                  The benchmark library scans a broader pool, then only features the strongest measured examples. This keeps the references grounded in what good actually looks like.
+                  The benchmark library covers 10 industry verticals — home services, healthcare, SaaS, fintech, legal, real estate, fitness, beauty and wellness, construction, and restaurants. Each vertical has a dedicated scoring rubric, curated flagship examples, and fast-lift recommendations specific to that business type.
+                </p>
+                <p className="text-base leading-8 text-muted">
+                  A 7.5 for a law firm and a 7.5 for a restaurant are measured against different peer sets. Context is the point.
                 </p>
                 <Button asChild variant="secondary">
                   <Link href="/benchmarks">
@@ -182,6 +187,49 @@ export function DocsPage() {
                     <ArrowRight className="size-4" />
                   </Link>
                 </Button>
+              </CardContent>
+            </Card>
+          </section>
+
+          <section className="grid gap-4 lg:grid-cols-[minmax(0,1.05fr)_minmax(0,0.95fr)]" id="research-trace">
+            <Card>
+              <CardHeader className="space-y-3">
+                <div className="inline-flex size-10 items-center justify-center rounded-full border border-accent/20 bg-accent/10 text-accent">
+                  <Layers className="size-4" />
+                </div>
+                <Badge variant="accent">Research trace</Badge>
+                <CardTitle className="font-display text-[2.6rem]">The audit process, made visible</CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-3 pt-0">
+                <p className="text-base leading-8 text-muted">
+                  Every audit includes a research trace — a visible record of what the scanner extracted, what it looked for and did not find, and how the benchmark references were selected. It converts the score from an assertion into an inspectable process.
+                </p>
+                <p className="text-base leading-8 text-muted">
+                  Clients who can see the extraction log, the missing-signal manifest, and the Core Web Vitals evidence arrive at findings already convinced the tool read their site accurately. The trace is what separates a credible audit from a plausible-sounding one.
+                </p>
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardHeader className="space-y-3">
+                <CardTitle className="font-display text-[2rem]">What the trace shows</CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-2 pt-0">
+                {[
+                  { label: "Extraction log", detail: "Hero text, meta description, CTAs, trust signals, and heading hierarchy pulled from the live page." },
+                  { label: "Missing signals", detail: "What the audit looked for and did not find — classified by severity (critical vs. standard)." },
+                  { label: "Core Web Vitals", detail: "LCP, CLS, FCP, and TBT from Google PageSpeed Insights, rated against published thresholds." },
+                  { label: "Benchmark selection", detail: "Which reference sites were chosen, their tier, and their measured scores." },
+                  { label: "Score derivation", detail: "How each category score was calculated from observed signals, before weighting and aggregation." },
+                ].map((item) => (
+                  <div
+                    className="rounded-[10px] border border-border/70 bg-background-alt/60 px-4 py-3"
+                    key={item.label}
+                  >
+                    <p className="text-sm font-semibold text-foreground">{item.label}</p>
+                    <p className="mt-0.5 text-sm leading-6 text-muted">{item.detail}</p>
+                  </div>
+                ))}
               </CardContent>
             </Card>
           </section>
