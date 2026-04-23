@@ -980,4 +980,214 @@ export const benchmarkRubrics: Record<BenchmarkVertical, BenchmarkRubric> = {
       },
     ],
   },
+  dental: {
+    id: "rubric-dental",
+    vertical: "dental",
+    title: "Dental Practices",
+    summary:
+      "A 10/10 dental site removes patient anxiety before the appointment, makes new-patient booking frictionless, and demonstrates clinical credibility without clinical coldness.",
+    fastLifts: [
+      "Put new-patient booking and insurance acceptance in the first screen — don't make patients hunt.",
+      "Surface dentist credentials, patient reviews, and before/after work before the contact ask.",
+      "Write for anxious patients: reassurance language, sedation options, and gentle tone convert more than technical copy.",
+    ],
+    criteria: [
+      {
+        id: "dental-visual",
+        category: "visual-design",
+        title: "Warm, clinical-but-not-cold presentation",
+        description:
+          "Design should feel professional and reassuring — bright, clean, and approachable without sterile or corporate coldness.",
+        whyItMatters: "Dental anxiety is real; a welcoming visual tone reduces hesitation before the first call.",
+        signals: [
+          "Clean hierarchy with approachable imagery",
+          "Warm but professional color palette",
+          "Team and office photography over stock imagery",
+        ],
+      },
+      {
+        id: "dental-conversion",
+        category: "ux-conversion",
+        title: "New-patient booking speed",
+        description:
+          "Online booking, appointment requests, and new-patient forms should be reachable within one step from the homepage.",
+        whyItMatters: "New-patient acquisition depends on reducing the friction between search and first appointment.",
+        signals: [
+          "Book or request appointment prominently in the header",
+          "Insurance accepted listed clearly",
+          "Short distance from landing to scheduling",
+        ],
+      },
+      {
+        id: "dental-mobile",
+        category: "mobile-experience",
+        title: "Mobile appointment usability",
+        description:
+          "Phone booking, online scheduling, and directions should be instantly reachable on mobile without zooming or hunting.",
+        whyItMatters: "Most local dental searches happen on mobile — a poor mobile CTA loses the call.",
+        signals: [
+          "Tap-to-call prominent above the fold",
+          "Mobile-friendly booking form or widget",
+          "Location and hours accessible without scrolling",
+        ],
+      },
+      {
+        id: "dental-seo",
+        category: "seo-readiness",
+        title: "Local and service-specific discoverability",
+        description:
+          "Pages should target local dental intent by service type (implants, Invisalign, emergency) and neighborhood.",
+        whyItMatters: "High-value dental services have strong local search demand — missing them loses high-LTV patients.",
+        signals: [
+          "Service-specific landing pages",
+          "Local business schema with reviews",
+          "Google Business integration supported",
+        ],
+      },
+      {
+        id: "dental-accessibility",
+        category: "accessibility",
+        title: "Patient-friendly navigation",
+        description:
+          "Booking widgets, patient forms, and service descriptions should be usable for all visitors including those with accessibility needs.",
+        whyItMatters: "Patients researching dental care include a wide age range — poor accessibility loses older demographics.",
+        signals: [
+          "Readable type sizes throughout",
+          "Keyboard-accessible booking widgets",
+          "Sufficient contrast for clinical content",
+        ],
+      },
+      {
+        id: "dental-trust",
+        category: "trust-credibility",
+        title: "Clinician credibility and patient proof",
+        description:
+          "Dentist credentials, board certifications, before/after cases, and patient testimonials should appear before the booking ask.",
+        whyItMatters: "Patients choosing a new dentist weigh clinical credibility heavily — trust must be earned before contact.",
+        signals: [
+          "Dentist bios with credentials and training",
+          "Before/after gallery or case examples",
+          "Patient reviews and rating aggregation",
+        ],
+      },
+      {
+        id: "dental-security",
+        category: "security-posture",
+        title: "Patient data surface security",
+        description:
+          "Patient intake forms, online payment, and appointment portals should demonstrate current security practices.",
+        whyItMatters: "Healthcare-adjacent sites handle sensitive data — visible security signals build warranted confidence.",
+        signals: [
+          "HTTPS and current infrastructure",
+          "HIPAA-aware language on patient forms",
+          "Reputable booking or portal platform",
+        ],
+      },
+    ],
+  },
+  "retail-ecommerce": {
+    id: "rubric-retail-ecommerce",
+    vertical: "retail-ecommerce",
+    title: "Retail and E-Commerce",
+    summary:
+      "A 10/10 retail site removes hesitation before the add-to-cart, makes product discovery fast and satisfying, and reduces return and abandonment risk through upfront clarity.",
+    fastLifts: [
+      "Surface shipping cost, delivery time, and return policy before checkout — removing these unknowns cuts abandonment.",
+      "Let product photography and social proof do the selling: high-quality images and review counts close more than copy.",
+      "Make the path from discovery to purchase as short as possible — fewer clicks, clear size/variant selection, and a fast checkout.",
+    ],
+    criteria: [
+      {
+        id: "retail-visual",
+        category: "visual-design",
+        title: "Product-first visual hierarchy",
+        description:
+          "Product imagery, pricing, and key differentiators should dominate the visual hierarchy — everything else supports conversion.",
+        whyItMatters: "Shoppers evaluate product quality visually first; a weak presentation raises doubt before the cart.",
+        signals: [
+          "High-quality product photography",
+          "Price and availability clearly visible",
+          "Visual consistency across product listings",
+        ],
+      },
+      {
+        id: "retail-conversion",
+        category: "ux-conversion",
+        title: "Add-to-cart and checkout speed",
+        description:
+          "The path from product discovery to purchase completion should be short, confident, and free of surprise friction.",
+        whyItMatters: "Cart abandonment correlates directly with unexpected costs, confusing checkout steps, and slow load times.",
+        signals: [
+          "Shipping cost and delivery estimate shown early",
+          "Guest checkout available",
+          "Return and refund policy visible before checkout",
+        ],
+      },
+      {
+        id: "retail-mobile",
+        category: "mobile-experience",
+        title: "Mobile shopping experience",
+        description:
+          "Product browsing, size and variant selection, and checkout should feel effortless on a phone.",
+        whyItMatters: "More than half of e-commerce traffic is mobile — a degraded mobile experience loses the majority of shoppers.",
+        signals: [
+          "Touch-optimized product galleries",
+          "Easy size and variant selection",
+          "Mobile-friendly checkout with Apple/Google Pay",
+        ],
+      },
+      {
+        id: "retail-seo",
+        category: "seo-readiness",
+        title: "Product and category discoverability",
+        description:
+          "Product pages, category pages, and collection pages should be crawlable, properly titled, and structured for shopping intent.",
+        whyItMatters: "Organic product search is high-intent and free — missing it concedes ground to paid channels.",
+        signals: [
+          "Product schema with price, availability, and reviews",
+          "Unique, keyword-relevant product titles",
+          "Breadcrumb navigation and category structure",
+        ],
+      },
+      {
+        id: "retail-accessibility",
+        category: "accessibility",
+        title: "Inclusive shopping usability",
+        description:
+          "Product filters, variant selectors, and checkout flows should be usable for all shoppers including keyboard and screen-reader users.",
+        whyItMatters: "Accessible e-commerce serves a wider audience and avoids legal risk under ADA and WCAG guidelines.",
+        signals: [
+          "Keyboard-accessible product filtering",
+          "Screen-reader-compatible variant controls",
+          "Sufficient color contrast on CTAs and pricing",
+        ],
+      },
+      {
+        id: "retail-trust",
+        category: "trust-credibility",
+        title: "Social proof and purchase confidence",
+        description:
+          "Customer reviews, ratings, UGC, and brand credibility signals should appear close to the purchase decision.",
+        whyItMatters: "Online shoppers can't touch the product — peer review and trust signals substitute for physical reassurance.",
+        signals: [
+          "Product ratings and review counts visible",
+          "UGC or real customer photos",
+          "Clear brand story and return policy",
+        ],
+      },
+      {
+        id: "retail-security",
+        category: "security-posture",
+        title: "Payment and data security",
+        description:
+          "Checkout surfaces should display recognized payment security signals and handle customer data with visible care.",
+        whyItMatters: "Payment trust is table-stakes — any doubt at checkout kills the conversion.",
+        signals: [
+          "HTTPS and current TLS throughout",
+          "Recognized payment badges at checkout",
+          "Clear privacy and data handling policy",
+        ],
+      },
+    ],
+  },
 };

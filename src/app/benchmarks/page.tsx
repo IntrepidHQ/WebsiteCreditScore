@@ -3,7 +3,6 @@ import type { Metadata } from "next";
 import { PublicBenchmarksPage } from "@/features/benchmarks/components/public-benchmarks-page";
 import {
   buildBenchmarkReferencesForVertical,
-  getBenchmarkDesignNotes,
   getBenchmarkRubric,
 } from "@/lib/benchmarks/library";
 import { mergeReferenceShowcase } from "@/lib/benchmarks/public-reference-showcase";
@@ -36,6 +35,8 @@ const benchmarkProfiles: Array<{
   { id: "beauty-wellness", label: "Beauty & wellness" },
   { id: "construction-trades", label: "Construction & trades" },
   { id: "restaurant-hospitality", label: "Restaurants" },
+  { id: "dental", label: "Dental practices" },
+  { id: "retail-ecommerce", label: "Retail & e-commerce" },
 ];
 
 export default function BenchmarksPage() {
@@ -63,7 +64,6 @@ export default function BenchmarksPage() {
           )
           .filter(Boolean),
       )}
-      featuredNotes={getBenchmarkDesignNotes("service-providers").slice(0, 3)}
       targetBreakdown={buildBenchmarkTargetCategoryScores(
         featuredAuditReport.categoryScores,
       )}

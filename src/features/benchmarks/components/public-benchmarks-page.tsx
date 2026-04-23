@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { ArrowRight, Compass, LineChart, Scale, ShieldCheck } from "lucide-react";
+import { ArrowRight, Compass, LineChart, Scale } from "lucide-react";
 
 import { PreviewImage } from "@/components/common/preview-image";
 import { ScoreBreakdownBars } from "@/components/common/score-breakdown-bars";
@@ -10,11 +10,11 @@ import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { FlipRubricCard } from "@/features/benchmarks/components/flip-rubric-card";
 import type {
   AuditCategoryScore,
   BenchmarkReference,
   BenchmarkRubric,
-  DesignPatternNote,
 } from "@/lib/types/audit";
 
 const comparisonRows = [
@@ -72,7 +72,6 @@ export function PublicBenchmarksPage({
   featuredAudit,
   featuredAuditBreakdown,
   targetBreakdown,
-  featuredNotes,
   featuredExamples,
 }: {
   verticals: Array<{
@@ -88,7 +87,6 @@ export function PublicBenchmarksPage({
   };
   featuredAuditBreakdown: AuditCategoryScore[];
   targetBreakdown: AuditCategoryScore[];
-  featuredNotes: DesignPatternNote[];
   featuredExamples: BenchmarkReference[];
 }) {
   return (
@@ -183,25 +181,7 @@ export function PublicBenchmarksPage({
           />
           <div className="grid gap-5 xl:grid-cols-3">
             {verticals.map((vertical) => (
-              <Card className="h-full rounded-[24px] border-border/60 bg-[linear-gradient(180deg,color-mix(in_srgb,var(--theme-panel)_88%,transparent),color-mix(in_srgb,var(--theme-background-alt)_96%,transparent))]" key={vertical.id}>
-                <CardHeader className="space-y-4">
-                  <Badge variant="accent">{vertical.label}</Badge>
-                  <CardTitle className="text-[clamp(2.5rem,2rem+0.7vw,3.5rem)]">
-                    {vertical.rubric.title}
-                  </CardTitle>
-                  <p className="text-base leading-7 text-muted">{vertical.rubric.summary}</p>
-                </CardHeader>
-                <CardContent className="space-y-3 pt-0">
-                  {vertical.rubric.fastLifts.map((item) => (
-                    <div
-                      className="rounded-[18px] border border-border/50 bg-background/30 px-4 py-3 text-sm leading-6 text-foreground"
-                      key={item}
-                    >
-                      {item}
-                    </div>
-                  ))}
-                </CardContent>
-              </Card>
+              <FlipRubricCard key={vertical.id} label={vertical.label} rubric={vertical.rubric} />
             ))}
           </div>
         </div>
@@ -252,41 +232,6 @@ export function PublicBenchmarksPage({
                 ))}
               </div>
             </div>
-          </div>
-        </div>
-      </section>
-
-      <section className="presentation-section py-8">
-        <div className="mx-auto w-full max-w-7xl space-y-8 px-4 sm:px-6 xl:px-8">
-          <SectionHeading
-            description="The benchmark needs memorable principles, not just categories. These are the reusable judgments the strongest examples make obvious."
-            eyebrow="Principles"
-            title="Rules the strongest pages keep obeying"
-          />
-          <div className="grid gap-5 xl:grid-cols-3">
-            {featuredNotes.map((note) => (
-              <Card className="h-full rounded-[24px] border-border/60 bg-panel/45" key={note.id}>
-                <CardHeader className="space-y-4">
-                  <div className="flex items-center gap-2 text-accent">
-                    <ShieldCheck className="size-4" />
-                    <span className="text-[11px] font-semibold uppercase tracking-[0.22em]">
-                      {note.source}
-                    </span>
-                  </div>
-                  <CardTitle className="text-[clamp(2.4rem,2rem+0.7vw,3.2rem)]">
-                    {note.title}
-                  </CardTitle>
-                  <p className="text-base leading-7 text-muted">{note.summary}</p>
-                </CardHeader>
-                <CardContent className="space-y-2 pt-0">
-                  {note.takeaways.map((takeaway) => (
-                    <p className="text-sm leading-6 text-foreground" key={takeaway}>
-                      {takeaway}
-                    </p>
-                  ))}
-                </CardContent>
-              </Card>
-            ))}
           </div>
         </div>
       </section>

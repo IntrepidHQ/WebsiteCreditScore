@@ -113,7 +113,9 @@ export type BenchmarkVertical =
   | "fitness"
   | "beauty-wellness"
   | "construction-trades"
-  | "restaurant-hospitality";
+  | "restaurant-hospitality"
+  | "dental"
+  | "retail-ecommerce";
 export type BenchmarkTier = "flagship" | "reference" | "specialist";
 export type BenchmarkFocusArea = "woodworking";
 export type DesignElementKey =

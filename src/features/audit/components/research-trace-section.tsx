@@ -203,7 +203,7 @@ export function ResearchTraceSection({ report }: { report: AuditReport }) {
                     key={step.pass}
                     value={`pass-${step.pass}`}
                   >
-                    <AccordionTrigger className="px-5 py-4 hover:no-underline">
+                    <AccordionTrigger className="px-3 py-4 hover:no-underline">
                       <div className="flex items-center gap-3 text-left">
                         <div
                           className={cn(
@@ -219,7 +219,7 @@ export function ResearchTraceSection({ report }: { report: AuditReport }) {
                         </div>
                       </div>
                     </AccordionTrigger>
-                    <AccordionContent className="px-5 pb-5">
+                    <AccordionContent className="px-3 pb-4">
                       <div className="space-y-3 pl-9">
                         <div>
                           <p className="text-[10px] font-semibold uppercase tracking-[0.14em] text-muted">Analyzed</p>
@@ -577,7 +577,7 @@ export function ResearchTraceSection({ report }: { report: AuditReport }) {
                       key={cat.key}
                       value={cat.key}
                     >
-                      <AccordionTrigger className="px-5 py-4 hover:no-underline">
+                      <AccordionTrigger className="px-3 py-4 hover:no-underline">
                         <div className="flex w-full items-center gap-3 text-left">
                           <span
                             className="inline-flex size-8 shrink-0 items-center justify-center rounded-full border"
@@ -603,7 +603,7 @@ export function ResearchTraceSection({ report }: { report: AuditReport }) {
                           </p>
                         </div>
                       </AccordionTrigger>
-                      <AccordionContent className="px-5 pb-5">
+                      <AccordionContent className="px-3 pb-4">
                         <div className="space-y-4 pl-11">
                           <p className="text-sm leading-6 text-muted">{cat.summary}</p>
 

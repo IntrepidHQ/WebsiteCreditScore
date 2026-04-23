@@ -479,9 +479,12 @@ a {
 
 @media (min-width: 1024px) {
   .full-bleed-rail {
-    width: auto;
+    /* Extend rail flush to the viewport right edge, bleeding past the section's right padding. */
+    --right-bleed: calc(2rem + max(0px, 50vw - 40rem));
+    width: calc(100% + var(--right-bleed));
     max-width: none;
     margin-left: 0;
+    margin-right: calc(-1 * var(--right-bleed));
   }
 }
 

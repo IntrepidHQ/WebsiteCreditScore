@@ -265,7 +265,6 @@ export function CategoryRadarBreakdown({
                   className="overflow-hidden rounded-[16px] border border-border/70 bg-panel/60"
                   key={score.key}
                 >
-                  <div className="h-[3px]" style={{ backgroundColor: color }} />
                   <div className="px-4 py-3.5">
                     <div className="flex items-start justify-between gap-3">
                       <div className="min-w-0">

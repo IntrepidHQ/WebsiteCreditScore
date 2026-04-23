@@ -4,18 +4,12 @@ import { useEffect, useRef, useState } from "react";
 
 import gsap from "gsap";
 
+import { scoreCategoryPalette } from "@/components/common/score-category-meta";
 import { Badge } from "@/components/ui/badge";
 import { useMotionSettings } from "@/hooks/use-motion-settings";
 import { cn } from "@/lib/utils/cn";
-import { getScoreTone, scoreBarFillPercent } from "@/lib/utils/scores";
+import { scoreBarFillPercent } from "@/lib/utils/scores";
 import type { AuditCategoryScore } from "@/lib/types/audit";
-
-const toneFills = {
-  success: "linear-gradient(90deg, rgba(61,213,152,0.9), rgba(61,213,152,0.45))",
-  accent: "linear-gradient(90deg, rgba(247,178,27,0.9), rgba(247,178,27,0.48))",
-  warning: "linear-gradient(90deg, rgba(255,207,102,0.9), rgba(255,207,102,0.42))",
-  danger: "linear-gradient(90deg, rgba(255,139,139,0.92), rgba(255,139,139,0.45))",
-} as const;
 
 type BreakdownItem = Pick<AuditCategoryScore, "key" | "label" | "score" | "weight">;
 
@@ -127,7 +121,7 @@ export function ScoreBreakdownBars({
   return (
     <div className={cn(dense ? "space-y-1" : "space-y-2", className)} ref={containerRef}>
       {items.map((item, index) => {
-        const tone = getScoreTone(item.score);
+        const categoryColor = scoreCategoryPalette[item.key];
         const target = targetMap.get(item.key);
         const pct = scoreBarFillPercent(item.score);
 
@@ -216,7 +210,7 @@ export function ScoreBreakdownBars({
                 >
                   <div
                     className="h-full w-full rounded-full shadow-[inset_0_1px_0_rgba(255,255,255,0.12)]"
-                    style={{ backgroundImage: toneFills[tone] }}
+                    style={{ backgroundImage: `linear-gradient(90deg, ${categoryColor}e6, ${categoryColor}70)` }}
                   />
                 </div>
               </div>

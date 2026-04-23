@@ -101,7 +101,7 @@ export function FindingsSection({
   return (
     <section
       ref={sectionRef}
-      className="presentation-section"
+      className="presentation-section overflow-x-clip"
       id={section === "what-working" ? "findings" : undefined}
     >
       <div className="mx-auto grid w-full max-w-7xl gap-8 px-4 sm:px-6 lg:grid-cols-[22rem_minmax(0,1fr)] lg:px-8">
@@ -222,13 +222,13 @@ export function FindingsSection({
                   <div className="md:hidden">
                     <Accordion collapsible defaultValue="overview" type="single">
                       <AccordionItem className="border-border/60" value="overview">
-                        <AccordionTrigger className="text-sm font-semibold">Overview</AccordionTrigger>
+                        <AccordionTrigger className="text-base font-semibold">Overview</AccordionTrigger>
                         <AccordionContent>
                           <p className="text-[1.02rem] leading-[1.9rem] text-muted">{finding.summary}</p>
                         </AccordionContent>
                       </AccordionItem>
                       <AccordionItem className="border-border/60" value="actions">
-                        <AccordionTrigger className="text-sm font-semibold">Actions</AccordionTrigger>
+                        <AccordionTrigger className="text-base font-semibold">Actions</AccordionTrigger>
                         <AccordionContent className="space-y-3">
                           <div className="rounded-[calc(var(--theme-radius)-2px)] border border-border/70 bg-background-alt/70 p-4">
                             <p className="text-xs font-semibold uppercase tracking-[0.12em] text-muted">
@@ -249,7 +249,7 @@ export function FindingsSection({
                         </AccordionContent>
                       </AccordionItem>
                       <AccordionItem className="border-border/60" value="evidence">
-                        <AccordionTrigger className="text-sm font-semibold">Evidence</AccordionTrigger>
+                        <AccordionTrigger className="text-base font-semibold">Evidence</AccordionTrigger>
                         <AccordionContent>
                           <div className="space-y-4">
                             <div className="space-y-2">
