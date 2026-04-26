@@ -1,163 +1,46 @@
-import { Suspense } from "react";
 import type { Metadata } from "next";
-import { Analytics } from "@vercel/analytics/next";
-import {
-  DM_Sans,
-  Instrument_Serif,
-  Inter,
-  JetBrains_Mono,
-  Manrope,
-  Playfair_Display,
-  Space_Grotesk,
-} from "next/font/google";
-
-import { ContactModal } from "@/components/common/contact-modal";
-import { RouteScrollReset } from "@/components/common/route-scroll-reset";
-import { SiteFooter } from "@/components/common/site-footer";
-import { SiteHeader } from "@/components/common/site-header";
-import { ThemeStyleProvider } from "@/components/common/theme-style-provider";
-import { SiteAmbientBackdrop } from "@/components/theme/site-ambient-backdrop";
-import { getOptionalWorkspaceSession } from "@/lib/auth/session";
-
+import { Geist, Geist_Mono } from "next/font/google";
+import { Analytics } from "@vercel/analytics/react";
 import "./globals.css";
 
-export const dynamic = "force-dynamic";
-
-const manrope = Manrope({
-  variable: "--font-manrope",
+const geistSans = Geist({
+  variable: "--font-geist-sans",
   subsets: ["latin"],
-  display: "swap",
 });
 
-const spaceGrotesk = Space_Grotesk({
-  variable: "--font-space-grotesk",
+const geistMono = Geist_Mono({
+  variable: "--font-geist-mono",
   subsets: ["latin"],
-  display: "swap",
 });
-
-const instrumentSerif = Instrument_Serif({
-  variable: "--font-instrument-serif",
-  subsets: ["latin"],
-  weight: "400",
-  display: "swap",
-});
-
-const inter = Inter({
-  variable: "--font-inter",
-  subsets: ["latin"],
-  display: "swap",
-});
-
-const playfairDisplay = Playfair_Display({
-  variable: "--font-playfair-display",
-  subsets: ["latin"],
-  display: "swap",
-});
-
-const dmSans = DM_Sans({
-  variable: "--font-dm-sans",
-  subsets: ["latin"],
-  display: "swap",
-});
-
-const jetbrainsMono = JetBrains_Mono({
-  variable: "--font-jetbrains-mono",
-  subsets: ["latin"],
-  display: "swap",
-});
-
-const fontVariableClassName = [
-  manrope.variable,
-  spaceGrotesk.variable,
-  instrumentSerif.variable,
-  inter.variable,
-  playfairDisplay.variable,
-  dmSans.variable,
-  jetbrainsMono.variable,
-].join(" ");
 
 export const metadata: Metadata = {
-  title: {
-    default: "WebsiteCreditScore.com — Score Any Website in Seconds",
-    template: "%s | WebsiteCreditScore",
-  },
+  title: "WebsiteCreditScore — AI-Powered Website Trust Reports",
   description:
-    "Get a weighted website audit score, competitive benchmarks, and a redesign brief in seconds. Built for web designers, agencies, and business owners who want sites that earn trust.",
-  metadataBase: new URL("https://websitecreditscore.com"),
-  keywords: [
-    "website audit",
-    "website score",
-    "web design benchmarks",
-    "website redesign brief",
-    "site audit tool",
-    "conversion optimization",
-    "website trust signals",
-    "web design agency tools",
-  ],
+    "Get a deep credibility report for any website. Powered by Claude AI with live web research. Graded A+ to F across 8 dimensions. $1 per scan.",
   openGraph: {
+    title: "WebsiteCreditScore",
+    description: "AI-powered credibility reports for any website. $1 per scan.",
+    siteName: "WebsiteCreditScore",
     type: "website",
-    siteName: "WebsiteCreditScore.com",
-    title: "WebsiteCreditScore.com — Score Any Website in Seconds",
-    description:
-      "Weighted audit score, competitive benchmarks, and a redesign brief. Know exactly what to fix before you rebuild.",
-    url: "https://websitecreditscore.com",
   },
   twitter: {
     card: "summary_large_image",
-    title: "WebsiteCreditScore.com — Score Any Website in Seconds",
-    description:
-      "Weighted audit score, competitive benchmarks, and a redesign brief. Know exactly what to fix before you rebuild.",
-  },
-  alternates: {
-    canonical: "https://websitecreditscore.com",
-  },
-  robots: {
-    index: true,
-    follow: true,
-  },
-  icons: {
-    icon: [
-      { url: "/favicon.svg", type: "image/svg+xml" },
-      { url: "/favicon-32x32.png", sizes: "32x32", type: "image/png" },
-    ],
-    apple: [{ url: "/apple-touch-icon.png", sizes: "180x180" }],
+    title: "WebsiteCreditScore",
+    description: "AI-powered credibility reports for any website. $1 per scan.",
   },
 };
 
-export default async function RootLayout({
+export default function RootLayout({
   children,
-}: Readonly<{
+}: {
   children: React.ReactNode;
-}>) {
-  const session = await getOptionalWorkspaceSession();
-  const isAuthenticated = Boolean(session);
-  const accountHint = session?.name?.trim() || session?.email?.split("@")[0] || null;
-
+}) {
   return (
-    <html
-      className={fontVariableClassName}
-      data-scroll-behavior="smooth"
-      lang="en"
-      suppressHydrationWarning
-    >
-      <body className="min-h-screen overflow-x-clip bg-background text-foreground antialiased">
-        <ThemeStyleProvider>
-          {/* overflow-x must not clip the main column or sticky header will not stick to the viewport */}
-          <div className="relative isolate min-h-screen">
-            <SiteAmbientBackdrop />
-            <div className="relative z-10 flex min-h-screen flex-col">
-              <Suspense fallback={null}>
-                <SiteHeader accountHint={accountHint} isAuthenticated={isAuthenticated} />
-              </Suspense>
-              <Suspense fallback={null}>
-                <RouteScrollReset />
-              </Suspense>
-              {children}
-              <SiteFooter isAuthenticated={isAuthenticated} />
-            </div>
-            <ContactModal />
-          </div>
-        </ThemeStyleProvider>
+    <html lang="en" className="dark">
+      <body
+        className={`${geistSans.variable} ${geistMono.variable} font-sans antialiased min-h-screen bg-[#0A0A0B] text-white`}
+      >
+        {children}
         <Analytics />
       </body>
     </html>

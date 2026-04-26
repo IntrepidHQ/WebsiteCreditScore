@@ -1,0 +1,113 @@
+import "server-only";
+import { createClient } from "@/lib/supabase/server";
+import type { WCSReport } from "@/lib/schema";
+
+export type ScanStatus = "pending" | "streaming" | "done" | "error";
+
+export interface Scan {
+  id: string;
+  domain: string;
+  status: ScanStatus;
+  paid: boolean;
+  stripe_session_id: string | null;
+  result: WCSReport | null;
+  source_count: number | null;
+  cost_cents: number | null;
+  created_at: string;
+  ip_hash: string | null;
+  user_agent: string | null;
+}
+
+export async function getScan(id: string): Promise<Scan | null> {
+  const supabase = await createClient();
+  const { data, error } = await supabase
+    .from("scans")
+    .select("*")
+    .eq("id", id)
+    .single();
+  if (error) return null;
+  return data as Scan;
+}
+
+export async function createScan(opts: {
+  domain: string;
+  stripeSessionId: string;
+  ipHash?: string;
+  userAgent?: string;
+}): Promise<Scan> {
+  const supabase = await createClient();
+  const { data, error } = await supabase
+    .from("scans")
+    .insert({
+      domain: opts.domain,
+      status: "pending",
+      paid: false,
+      stripe_session_id: opts.stripeSessionId,
+      ip_hash: opts.ipHash,
+      user_agent: opts.userAgent,
+    })
+    .select()
+    .single();
+  if (error) throw new Error(`Failed to create scan: ${error.message}`);
+  return data as Scan;
+}
+
+export async function markScanPaid(stripeSessionId: string): Promise<void> {
+  const supabase = await createClient();
+  const { error } = await supabase
+    .from("scans")
+    .update({ paid: true })
+    .eq("stripe_session_id", stripeSessionId);
+  if (error) throw new Error(`Failed to mark scan paid: ${error.message}`);
+}
+
+export async function updateScanStatus(id: string, status: ScanStatus): Promise<void> {
+  const supabase = await createClient();
+  const { error } = await supabase
+    .from("scans")
+    .update({ status })
+    .eq("id", id);
+  if (error) throw new Error(`Failed to update scan status: ${error.message}`);
+}
+
+export async function saveScanResult(
+  id: string,
+  result: WCSReport,
+  opts: { sourceCount: number; costCents: number }
+): Promise<void> {
+  const supabase = await createClient();
+  const { error } = await supabase
+    .from("scans")
+    .update({
+      status: "done",
+      result,
+      source_count: opts.sourceCount,
+      cost_cents: opts.costCents,
+    })
+    .eq("id", id);
+  if (error) throw new Error(`Failed to save scan result: ${error.message}`);
+}
+
+export async function saveScanError(id: string, message: string): Promise<void> {
+  const supabase = await createClient();
+  await supabase
+    .from("scans")
+    .update({ status: "error", result: { error: message } as unknown as WCSReport })
+    .eq("id", id);
+}
+
+/** Check for a cached result for this domain (last 7 days). */
+export async function getCachedResult(domain: string): Promise<WCSReport | null> {
+  const supabase = await createClient();
+  const cutoff = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString();
+  const { data } = await supabase
+    .from("scans")
+    .select("result")
+    .eq("domain", domain)
+    .eq("status", "done")
+    .gt("created_at", cutoff)
+    .order("created_at", { ascending: false })
+    .limit(1)
+    .single();
+  return data?.result ?? null;
+}
