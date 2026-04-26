@@ -1,16 +1,16 @@
 @import "tailwindcss";
 
 :root {
-  --theme-background: #071018;
-  --theme-background-alt: #0b1621;
-  --theme-panel: #101d2b;
-  --theme-elevated: #152434;
-  --theme-border: #223247;
-  --theme-foreground: #f4f7fb;
-  --theme-muted: #98a6ba;
+  --theme-background: #0e0e07;
+  --theme-background-alt: #161510;
+  --theme-panel: #1c1b0e;
+  --theme-elevated: #232212;
+  --theme-border: #363220;
+  --theme-foreground: #ede8d4;
+  --theme-muted: #968e6a;
   --theme-accent: #f7b21b;
-  --theme-accent-soft: #3c2a08;
-  --theme-accent-foreground: #08111b;
+  --theme-accent-soft: #261e07;
+  --theme-accent-foreground: #0e0e07;
   --theme-panel-foreground: #f4f7fb;
   --theme-elevated-foreground: #f4f7fb;
   --theme-glow: #f7b21b;
@@ -64,24 +64,24 @@
 /* shadcn/ui HSL compatibility — components reference hsl(var(--background)) etc. */
 @layer base {
   :root {
-    --background: 210 55% 6%;
-    --foreground: 214 65% 97%;
-    --card: 210 47% 12%;
-    --card-foreground: 214 65% 97%;
-    --popover: 210 47% 12%;
-    --popover-foreground: 214 65% 97%;
+    --background: 65 30% 5%;
+    --foreground: 48 52% 87%;
+    --card: 62 28% 9%;
+    --card-foreground: 48 52% 87%;
+    --popover: 62 28% 9%;
+    --popover-foreground: 48 52% 87%;
     --primary: 41 93% 54%;
-    --primary-foreground: 210 55% 6%;
-    --secondary: 210 47% 12%;
-    --secondary-foreground: 214 65% 97%;
-    --muted: 210 47% 12%;
-    --muted-foreground: 214 22% 67%;
-    --accent: 210 47% 16%;
-    --accent-foreground: 214 65% 97%;
+    --primary-foreground: 65 30% 5%;
+    --secondary: 62 28% 9%;
+    --secondary-foreground: 48 52% 87%;
+    --muted: 62 28% 9%;
+    --muted-foreground: 44 18% 51%;
+    --accent: 62 28% 13%;
+    --accent-foreground: 48 52% 87%;
     --destructive: 350 84% 60%;
     --destructive-foreground: 0 0% 98%;
-    --border: 210 36% 21%;
-    --input: 210 36% 21%;
+    --border: 55 28% 17%;
+    --input: 55 28% 17%;
     --ring: 41 93% 54%;
   }
 

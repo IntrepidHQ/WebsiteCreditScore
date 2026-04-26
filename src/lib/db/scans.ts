@@ -117,6 +117,38 @@ export async function saveScanError(id: string, message: string): Promise<void> 
     .eq("id", id);
 }
 
+/** Fetch the most recent completed public scans for the homepage feed. */
+export async function getRecentScans(limit = 6): Promise<Array<{
+  id: string;
+  domain: string;
+  grade: string;
+  score: number;
+  headline: string;
+  created_at: string;
+}>> {
+  const supabase = await createClient();
+  const { data } = await supabase
+    .from("scans")
+    .select("id, domain, result, created_at")
+    .eq("status", "done")
+    .eq("paid", true)
+    .order("created_at", { ascending: false })
+    .limit(limit);
+
+  if (!data) return [];
+
+  return data
+    .filter((row) => row.result?.overall)
+    .map((row) => ({
+      id: row.id,
+      domain: row.domain,
+      grade: row.result.overall.grade,
+      score: row.result.overall.score,
+      headline: row.result.overall.headline,
+      created_at: row.created_at,
+    }));
+}
+
 /** Check for a cached result for this domain (last 7 days). */
 export async function getCachedResult(domain: string): Promise<WCSReport | null> {
   const supabase = await createClient();

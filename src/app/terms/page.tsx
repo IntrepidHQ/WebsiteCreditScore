@@ -1,146 +1,164 @@
 import type { Metadata } from "next";
-
-/**
- * DRAFT terms of service. Structural skeleton; every `{{PLACEHOLDER}}` must
- * be replaced before launch. Review with counsel.
- *
- * Placeholders:
- *   COMPANY_LEGAL_NAME, JURISDICTION, REFUND_WINDOW_DAYS, LIABILITY_CAP_USD,
- *   SUPPORT_EMAIL.
- */
+import { ScrollToTop } from "@/components/ScrollToTop";
 
 export const metadata: Metadata = {
-  title: "Terms of Service (Draft) | WebsiteCreditScore.com",
-  description:
-    "Draft terms of service for WebsiteCreditScore.com. Covers use of the service, credits, billing, and liability.",
+  title: "Terms of Service — WebsiteCreditScore",
+  description: "Terms of service for WebsiteCreditScore.com — pay-per-scan website intelligence.",
 };
 
 export default function TermsPage() {
   return (
-    <main className="mx-auto w-full max-w-3xl px-4 py-16 sm:px-6 lg:px-8">
-      <div
-        role="alert"
-        className="mb-8 rounded-lg border border-warning/40 bg-warning/10 p-4 text-sm text-foreground"
+    <main className="min-h-screen" style={{ backgroundColor: "var(--theme-background)" }}>
+      <ScrollToTop />
+      <nav
+        className="px-6 py-4 flex items-center justify-between"
+        style={{ borderBottom: "1px solid var(--theme-border)" }}
       >
-        <strong className="font-semibold">DRAFT — REVIEW WITH COUNSEL BEFORE LAUNCH.</strong> This
-        document is a structural placeholder. Replace every <code>{"{{PLACEHOLDER}}"}</code> value,
-        have qualified counsel review, and remove this banner before publishing.
-      </div>
+        <a href="/" className="text-sm font-semibold tracking-tight hover:opacity-80 transition-opacity" style={{ color: "var(--theme-foreground)" }}>
+          WebsiteCreditScore
+        </a>
+        <a href="/" className="text-xs hover:opacity-80 transition-opacity" style={{ color: "var(--theme-muted)" }}>
+          ← Back to home
+        </a>
+      </nav>
 
-      <article className="prose prose-neutral max-w-none">
-        <h1>Terms of Service</h1>
-        <p>
-          <em>Last updated: {"{{LAST_UPDATED_DATE}}"}</em>
+      <article className="max-w-2xl mx-auto px-6 py-16 space-y-10">
+        <div className="space-y-2">
+          <h1 className="font-display" style={{ fontSize: "clamp(2rem,4vw,2.8rem)", color: "var(--theme-foreground)" }}>
+            Terms of Service
+          </h1>
+          <p className="text-sm" style={{ color: "var(--theme-muted)" }}>Last updated: April 26, 2026</p>
+        </div>
+
+        <p className="text-sm leading-relaxed" style={{ color: "var(--theme-muted)" }}>
+          These Terms govern your use of WebsiteCreditScore.com (the &ldquo;Service&rdquo;). By purchasing a scan or using the Service, you agree to these Terms. If you don&rsquo;t agree, don&rsquo;t use the Service.
         </p>
 
-        <h2>1. Acceptance</h2>
-        <p>
-          By creating an account or using the service, you agree to these Terms. If you do not
-          agree, do not use the service. If you are using the service on behalf of an organization,
-          you represent that you have authority to bind that organization.
-        </p>
-
-        <h2>2. The service</h2>
-        <p>
-          WebsiteCreditScore.com (&ldquo;the service&rdquo;) provides automated website auditing,
-          scoring, and related workflows. The service is operated by {"{{COMPANY_LEGAL_NAME}}"}.
-          We may change, add, or remove features at any time.
-        </p>
-
-        <h2>3. Accounts</h2>
-        <p>
-          You are responsible for keeping your account credentials secure and for activity taken
-          under your account. Notify us immediately at {"{{SUPPORT_EMAIL}}"} if you suspect
-          unauthorized access.
-        </p>
-
-        <h2>4. Acceptable use</h2>
-        <p>You agree not to:</p>
-        <ul>
-          <li>
-            Scan websites that you do not own and do not have explicit permission to scan.
-          </li>
-          <li>Use the service to harass, defame, or harm others.</li>
-          <li>Attempt to reverse-engineer, scrape, or bypass rate limits.</li>
-          <li>Resell the service without a written agreement.</li>
-          <li>Use the service to violate applicable law.</li>
-        </ul>
-
-        <h2>5. Credits and billing</h2>
-        <p>
-          Paid plans grant credits that you consume as you use the service. Credits are a balance
-          meter — not cryptocurrency, not a stored-value product. Once a credit is consumed, it is
-          non-refundable. Unused credits may be refunded within{" "}
-          {"{{REFUND_WINDOW_DAYS}}"} days of purchase at our discretion.
-        </p>
-        <p>
-          Payments are processed by Stripe. By providing payment information, you authorize us to
-          charge the applicable amount for the plan or add-on you selected.
-        </p>
-
-        <h2>6. Intellectual property</h2>
-        <p>
-          You retain ownership of any content you submit (e.g. URLs you scan). We own the service
-          itself, including the scoring engine, the rubric, generated prompts, and aggregated
-          insights derived from multiple customers in anonymized form. You may use reports we
-          produce for your own site (or sites you have permission to audit) for any lawful
-          purpose, including client work.
-        </p>
-
-        <h2>7. AI output</h2>
-        <p>
-          Portions of the service use large language models to generate summaries and
-          recommendations. AI output may contain inaccuracies. You are responsible for reviewing
-          any AI-generated content before relying on it.
-        </p>
-
-        <h2>8. Warranty disclaimer</h2>
-        <p>
-          THE SERVICE IS PROVIDED &ldquo;AS IS&rdquo; AND &ldquo;AS AVAILABLE,&rdquo; WITHOUT
-          WARRANTIES OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING WARRANTIES OF MERCHANTABILITY,
-          FITNESS FOR A PARTICULAR PURPOSE, AND NON-INFRINGEMENT. WE DO NOT WARRANT THAT THE
-          SERVICE WILL BE UNINTERRUPTED, ERROR-FREE, OR THAT THE SCORING WILL BE ACCURATE FOR
-          YOUR SPECIFIC CIRCUMSTANCES.
-        </p>
-
-        <h2>9. Limitation of liability</h2>
-        <p>
-          TO THE MAXIMUM EXTENT PERMITTED BY LAW, OUR TOTAL LIABILITY FOR ANY CLAIM ARISING OUT
-          OF OR RELATING TO THE SERVICE IS LIMITED TO THE GREATER OF (A) THE AMOUNT YOU PAID US
-          IN THE 12 MONTHS PRECEDING THE CLAIM, OR (B) {"{{LIABILITY_CAP_USD}}"} USD. WE ARE NOT
-          LIABLE FOR INDIRECT, INCIDENTAL, SPECIAL, CONSEQUENTIAL, OR PUNITIVE DAMAGES.
-        </p>
-
-        <h2>10. Indemnity</h2>
-        <p>
-          You agree to indemnify and hold us harmless from claims arising out of your use of the
-          service in violation of these Terms or applicable law, including claims from owners of
-          sites you scanned without permission.
-        </p>
-
-        <h2>11. Termination</h2>
-        <p>
-          You may cancel your account at any time. We may suspend or terminate your account for
-          violations of these Terms. Unused credits at termination are forfeited unless required
-          by law.
-        </p>
-
-        <h2>12. Governing law</h2>
-        <p>
-          These Terms are governed by the laws of {"{{JURISDICTION}}"}, without regard to
-          conflicts-of-laws principles. Any dispute will be resolved in the courts of{" "}
-          {"{{JURISDICTION}}"}.
-        </p>
-
-        <h2>13. Changes</h2>
-        <p>
-          We may update these Terms. Material changes will be noted on this page with a new
-          &ldquo;last updated&rdquo; date. Continued use after changes means you accept them.
-        </p>
-
-        <h2>14. Contact</h2>
-        <p>Questions: {"{{SUPPORT_EMAIL}}"}.</p>
+        {[
+          {
+            title: "1. The Service",
+            content: (
+              <p className="text-sm leading-relaxed" style={{ color: "var(--theme-muted)" }}>
+                WebsiteCreditScore.com provides AI-powered website auditing and scoring. We run live web searches against publicly accessible information about a domain and generate a scored report across ten dimensions. Reports are informational only — not financial, legal, or investment advice.
+              </p>
+            ),
+          },
+          {
+            title: "2. No account required",
+            content: (
+              <p className="text-sm leading-relaxed" style={{ color: "var(--theme-muted)" }}>
+                The Service is available without registration. You purchase scans on a pay-per-scan basis. Bundle credits are tied to your order and accessed via your purchase confirmation.
+              </p>
+            ),
+          },
+          {
+            title: "3. Payment and credits",
+            content: (
+              <div className="space-y-3 text-sm leading-relaxed" style={{ color: "var(--theme-muted)" }}>
+                <p>Payments are processed by Stripe. By completing checkout, you authorize us to charge the amount shown for your selected scan tier.</p>
+                <p>Each scan consumes one credit at the purchased tier. Credits are non-refundable once consumed. Bundle credits do not expire.</p>
+                <p>If the AI fails to produce a valid report for any reason (server error, timeout, parsing failure), you will be automatically refunded the cost of that scan within 5 business days via Stripe.</p>
+              </div>
+            ),
+          },
+          {
+            title: "4. Acceptable use",
+            content: (
+              <div className="text-sm leading-relaxed" style={{ color: "var(--theme-muted)" }}>
+                <p className="mb-2">You agree not to:</p>
+                <ul className="space-y-1.5 list-disc list-inside">
+                  <li>Use the Service to harass, defame, or harm individuals or organizations.</li>
+                  <li>Attempt to reverse-engineer the scoring rubric or AI prompts for commercial resale.</li>
+                  <li>Resell scan reports as your own original research without attribution.</li>
+                  <li>Use automated tools to submit bulk scan requests in a way that degrades service for others.</li>
+                  <li>Use the Service in violation of any applicable law.</li>
+                </ul>
+              </div>
+            ),
+          },
+          {
+            title: "5. AI output disclaimer",
+            content: (
+              <p className="text-sm leading-relaxed" style={{ color: "var(--theme-muted)" }}>
+                Reports are generated by large language models using live web search results. AI-generated content may contain inaccuracies, outdated information, or errors. You are responsible for reviewing any report before making decisions based on it. We make no warranty that scores are accurate for your specific circumstances.
+              </p>
+            ),
+          },
+          {
+            title: "6. Intellectual property",
+            content: (
+              <p className="text-sm leading-relaxed" style={{ color: "var(--theme-muted)" }}>
+                You retain no claim over the Service, scoring engine, rubric, or AI-generated methodology. Reports we produce for you may be used for your own business purposes, including sharing with clients or colleagues. The shareable report URL is public — anyone with the link can view the report.
+              </p>
+            ),
+          },
+          {
+            title: "7. Limitation of liability",
+            content: (
+              <p className="text-sm leading-relaxed" style={{ color: "var(--theme-muted)" }}>
+                TO THE MAXIMUM EXTENT PERMITTED BY LAW, OUR TOTAL LIABILITY FOR ANY CLAIM ARISING OUT OF YOUR USE OF THE SERVICE IS LIMITED TO THE AMOUNT YOU PAID FOR THE SPECIFIC SCAN(S) GIVING RISE TO THE CLAIM. WE ARE NOT LIABLE FOR INDIRECT, INCIDENTAL, SPECIAL, OR CONSEQUENTIAL DAMAGES.
+              </p>
+            ),
+          },
+          {
+            title: "8. Warranty disclaimer",
+            content: (
+              <p className="text-sm leading-relaxed" style={{ color: "var(--theme-muted)" }}>
+                THE SERVICE IS PROVIDED &ldquo;AS IS&rdquo; WITHOUT WARRANTIES OF ANY KIND. WE DO NOT WARRANT UNINTERRUPTED ACCESS, ERROR-FREE OPERATION, OR FITNESS FOR ANY PARTICULAR PURPOSE.
+              </p>
+            ),
+          },
+          {
+            title: "9. Termination",
+            content: (
+              <p className="text-sm leading-relaxed" style={{ color: "var(--theme-muted)" }}>
+                We may suspend or terminate access to the Service for violations of these Terms. Unused bundle credits are forfeited upon termination for cause. We reserve the right to discontinue the Service with reasonable notice.
+              </p>
+            ),
+          },
+          {
+            title: "10. Governing law",
+            content: (
+              <p className="text-sm leading-relaxed" style={{ color: "var(--theme-muted)" }}>
+                These Terms are governed by the laws of the State of Delaware, without regard to conflicts-of-laws principles.
+              </p>
+            ),
+          },
+          {
+            title: "11. Changes",
+            content: (
+              <p className="text-sm leading-relaxed" style={{ color: "var(--theme-muted)" }}>
+                We may update these Terms at any time. Material changes will be noted here with a new date. Continued use after changes means you accept the updated Terms.
+              </p>
+            ),
+          },
+          {
+            title: "12. Contact",
+            content: (
+              <p className="text-sm leading-relaxed" style={{ color: "var(--theme-muted)" }}>
+                Questions:{" "}
+                <a href="mailto:hello@websitecreditscore.com" className="underline underline-offset-2 hover:opacity-80" style={{ color: "var(--theme-accent)" }}>
+                  hello@websitecreditscore.com
+                </a>
+              </p>
+            ),
+          },
+        ].map(({ title, content }) => (
+          <section key={title} className="space-y-3">
+            <h2 className="text-base font-semibold" style={{ color: "var(--theme-foreground)" }}>{title}</h2>
+            <div style={{ borderTop: "1px solid var(--theme-border)" }} className="pt-3">
+              {content}
+            </div>
+          </section>
+        ))}
       </article>
+
+      <footer
+        className="px-6 py-6 text-center text-xs"
+        style={{ borderTop: "1px solid var(--theme-border)", color: "color-mix(in srgb, var(--theme-muted) 55%, transparent)" }}
+      >
+        WebsiteCreditScore · <a href="mailto:hello@websitecreditscore.com" className="underline underline-offset-2 hover:opacity-80">hello@websitecreditscore.com</a>
+      </footer>
     </main>
   );
 }

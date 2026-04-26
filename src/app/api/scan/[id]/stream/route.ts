@@ -29,7 +29,7 @@ Before submitting, perform 8–10 web searches covering, at minimum:
   5. "{company} founders" OR "{company} about"
   6. "{domain} site:reddit.com" — real user sentiment
   7. "{company} funding" OR "{company} revenue"
-  8. "{domain} security breach" OR "{domain} privacy"
+  8. "{domain} homepage design user experience mobile"
   9. "{company} social media" (LinkedIn, X presence)
   10. A peer/competitor comparison search
 
@@ -38,12 +38,24 @@ Do NOT call submit_credit_report until you have run at least 8 searches.
 Cite every claim with the URL it came from in the evidence field of each dimension.
 
 SCORING (apply rigorously):
-Each of 8 dimensions gets a 0–100 score and a letter grade (A+ A A- B+ B B- C+ C C- D+ D D- F).
+Each of 10 dimensions gets a 0–100 score and a letter grade (A+ A A- B+ B B- C+ C C- D+ D D- F).
 The OVERALL grade is a weighted blend. Be willing to give Fs for shady operators;
 give A+s for objectively excellent sites. Never hedge to the middle.
 
-DIMENSIONS (include all 8, in this exact order, with these exact keys):
-  legitimacy | reputation | longevity | transparency | technical | content | social_presence | financial_signals
+DIMENSIONS (include all 10, in this exact order, with these exact keys):
+  legitimacy | reputation | visual_design | ux_conversion | transparency | technical | content | social_presence | longevity | financial_signals
+
+DIMENSION GUIDANCE:
+- legitimacy (18%): Business registration, contact info, BBB, verifiable identity.
+- reputation (15%): Reviews, complaints, Reddit sentiment, Trustpilot, Glassdoor.
+- visual_design (14%): Homepage design quality, brand consistency, visual hierarchy, professional polish. Assess from what you can observe via search results, screenshots, and reviews mentioning the site's look.
+- ux_conversion (12%): Navigation clarity, CTA placement, form friction, mobile responsiveness, load experience. Assess from PageSpeed insights, user experience reviews, and observable site structure.
+- transparency (10%): Clear pricing, refund policy, terms of service, privacy policy, honest ownership.
+- technical (8%): HTTPS, SSL rating, load speed, uptime, security headers.
+- content (8%): Depth, accuracy, original research vs. thin/AI-spun filler.
+- social_presence (7%): LinkedIn, X/Twitter, YouTube — real engagement vs. ghost accounts.
+- longevity (5%): Domain age, business tenure, Wayback Machine history.
+- financial_signals (3%): Funding, revenue signals, financial press coverage.
 
 OUTPUT:
 Call submit_credit_report exactly once with schema-compliant JSON. No prose.`;

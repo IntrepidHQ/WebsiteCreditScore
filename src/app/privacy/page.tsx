@@ -1,179 +1,167 @@
 import type { Metadata } from "next";
-
-/**
- * DRAFT privacy policy. This is a structural skeleton seeded with placeholders
- * a founder + counsel can fill in before launch. Every `{{PLACEHOLDER}}` must
- * be replaced with a real value — do NOT remove the review banner until counsel
- * has signed off.
- *
- * Placeholders to fill before launch:
- *   COMPANY_LEGAL_NAME, REGISTERED_ADDRESS, PRIVACY_EMAIL, SUPPORT_EMAIL,
- *   JURISDICTION, RETENTION_DAYS, DPO_CONTACT.
- */
+import { ScrollToTop } from "@/components/ScrollToTop";
 
 export const metadata: Metadata = {
-  title: "Privacy Policy (Draft) | WebsiteCreditScore.com",
-  description:
-    "Draft privacy policy for WebsiteCreditScore.com. Describes what we collect, how we use it, and the subprocessors that power the service.",
+  title: "Privacy Policy — WebsiteCreditScore",
+  description: "How WebsiteCreditScore.com collects, uses, and protects your data.",
 };
 
 export default function PrivacyPage() {
   return (
-    <main className="mx-auto w-full max-w-3xl px-4 py-16 sm:px-6 lg:px-8">
-      <div
-        role="alert"
-        className="mb-8 rounded-lg border border-warning/40 bg-warning/10 p-4 text-sm text-foreground"
+    <main className="min-h-screen" style={{ backgroundColor: "var(--theme-background)" }}>
+      <ScrollToTop />
+      <nav
+        className="px-6 py-4 flex items-center justify-between"
+        style={{ borderBottom: "1px solid var(--theme-border)" }}
       >
-        <strong className="font-semibold">DRAFT — REVIEW WITH COUNSEL BEFORE LAUNCH.</strong> This
-        document is a structural placeholder. Replace every <code>{"{{PLACEHOLDER}}"}</code> value,
-        have qualified counsel review, and remove this banner before publishing.
-      </div>
+        <a href="/" className="text-sm font-semibold tracking-tight hover:opacity-80 transition-opacity" style={{ color: "var(--theme-foreground)" }}>
+          WebsiteCreditScore
+        </a>
+        <a href="/" className="text-xs hover:opacity-80 transition-opacity" style={{ color: "var(--theme-muted)" }}>
+          ← Back to home
+        </a>
+      </nav>
 
-      <article className="prose prose-neutral max-w-none">
-        <h1>Privacy Policy</h1>
-        <p>
-          <em>Last updated: {"{{LAST_UPDATED_DATE}}"}</em>
+      <article className="max-w-2xl mx-auto px-6 py-16 space-y-10">
+        <div className="space-y-2">
+          <h1 className="font-display" style={{ fontSize: "clamp(2rem,4vw,2.8rem)", color: "var(--theme-foreground)" }}>
+            Privacy Policy
+          </h1>
+          <p className="text-sm" style={{ color: "var(--theme-muted)" }}>Last updated: April 26, 2026</p>
+        </div>
+
+        <p className="text-sm leading-relaxed" style={{ color: "var(--theme-muted)" }}>
+          WebsiteCreditScore.com (&ldquo;we,&rdquo; &ldquo;us,&rdquo; &ldquo;our&rdquo;) operates a pay-per-scan website intelligence service. This policy explains what data we collect, how we use it, and your rights. Questions? Email{" "}
+          <a href="mailto:hello@websitecreditscore.com" className="underline underline-offset-2 hover:opacity-80" style={{ color: "var(--theme-accent)" }}>
+            hello@websitecreditscore.com
+          </a>.
         </p>
 
-        <h2>Who we are</h2>
-        <p>
-          This site is operated by {"{{COMPANY_LEGAL_NAME}}"} (&ldquo;we,&rdquo; &ldquo;us,&rdquo;
-          or &ldquo;our&rdquo;), registered at {"{{REGISTERED_ADDRESS}}"}. For privacy inquiries,
-          contact {"{{PRIVACY_EMAIL}}"}.
-        </p>
-
-        <h2>Data we collect</h2>
-        <h3>Account data</h3>
-        <ul>
-          <li>Email address and name (obtained via Google OAuth when you sign in).</li>
-          <li>
-            Workspace metadata (name, billing plan, entitlements, credit balance) that you or we
-            generate as you use the service.
-          </li>
-        </ul>
-
-        <h3>Scan data</h3>
-        <ul>
-          <li>URLs you submit for scanning.</li>
-          <li>Screenshots and rendered HTML snapshots of those URLs.</li>
-          <li>Performance metrics from Google PageSpeed Insights.</li>
-          <li>Generated scoring reports and AI-written recommendations.</li>
-        </ul>
-
-        <h3>Billing data</h3>
-        <ul>
-          <li>Stripe customer ID and checkout session references.</li>
-          <li>
-            Payment method details are handled entirely by Stripe. We do not store full card numbers
-            or CVVs on our systems.
-          </li>
-        </ul>
-
-        <h3>Analytics</h3>
-        <ul>
-          <li>
-            Aggregate, anonymized traffic analytics via Vercel Analytics. No cross-site tracking.
-          </li>
-        </ul>
-
-        <h2>How we use your data</h2>
-        <ul>
-          <li>To deliver the scan results you requested.</li>
-          <li>To operate your account and billing.</li>
-          <li>To improve the scoring system (using anonymized aggregate data only).</li>
-          <li>To communicate about your account when necessary (e.g. billing issues).</li>
-        </ul>
-
-        <h2>Lawful bases (where GDPR / UK GDPR applies)</h2>
-        <ul>
-          <li>
-            <strong>Contract:</strong> data necessary to deliver the service you signed up for.
-          </li>
-          <li>
-            <strong>Legitimate interest:</strong> security, fraud prevention, improving the
-            scoring engine using aggregate anonymized inputs.
-          </li>
-          <li>
-            <strong>Consent:</strong> any optional marketing communications.
-          </li>
-        </ul>
-
-        <h2>Retention</h2>
-        <p>
-          Account records are retained while your account is active and for{" "}
-          {"{{RETENTION_DAYS}}"} days after deletion for audit and legal purposes. Scan reports are
-          retained for the life of the workspace unless you delete them earlier. Stripe retains
-          billing data per its own policies.
-        </p>
-
-        <h2>Subprocessors</h2>
-        <p>
-          We use the following subprocessors. Each has its own privacy commitments, linked where
-          available.
-        </p>
-        <ul>
-          <li>
-            <strong>Supabase</strong> — authentication, database, storage.
-          </li>
-          <li>
-            <strong>Stripe</strong> — payments.
-          </li>
-          <li>
-            <strong>Vercel</strong> — hosting, analytics.
-          </li>
-          <li>
-            <strong>Anthropic</strong> — AI-generated recommendations and enrichment.
-          </li>
-          <li>
-            <strong>Firecrawl</strong> — HTML content retrieval for scans.
-          </li>
-          <li>
-            <strong>Browserless</strong> — headless browser screenshots.
-          </li>
-          <li>
-            <strong>Google PageSpeed Insights</strong> — performance metrics.
-          </li>
-          <li>
-            <strong>Resend</strong> — transactional email (where applicable).
-          </li>
-        </ul>
-
-        <h2>Your rights</h2>
-        <p>
-          Depending on your jurisdiction, you may have the right to access, correct, delete,
-          export, or restrict processing of your data. To exercise any of these rights, email{" "}
-          {"{{PRIVACY_EMAIL}}"} from the email address on your account.
-        </p>
-        <p>
-          If you are in the EEA or UK, our data protection contact is{" "}
-          {"{{DPO_CONTACT}}"}.
-        </p>
-
-        <h2>International transfers</h2>
-        <p>
-          Our subprocessors may process data in countries outside your own. Where data is
-          transferred out of the EEA or UK, we rely on the recipient's own SCCs, adequacy
-          determinations, or equivalent safeguards.
-        </p>
-
-        <h2>Children</h2>
-        <p>
-          The service is not intended for children under 16. If you believe a child has signed up,
-          email {"{{PRIVACY_EMAIL}}"} and we will delete the account.
-        </p>
-
-        <h2>Changes to this policy</h2>
-        <p>
-          We will post any material changes here and update the &ldquo;last updated&rdquo; date.
-          Continued use after changes means you accept the updated policy.
-        </p>
-
-        <h2>Contact</h2>
-        <p>
-          Questions: {"{{PRIVACY_EMAIL}}"}. Support: {"{{SUPPORT_EMAIL}}"}. Registered address:{" "}
-          {"{{REGISTERED_ADDRESS}}"}.
-        </p>
+        {[
+          {
+            title: "1. What we collect",
+            content: (
+              <div className="space-y-4 text-sm leading-relaxed" style={{ color: "var(--theme-muted)" }}>
+                <div>
+                  <p className="font-semibold mb-1" style={{ color: "var(--theme-foreground)" }}>Scan data</p>
+                  <p>When you submit a domain for scanning, we store the domain name, the generated report, the number of sources analyzed, and the cost in cents. We do not collect any personal information about the person who owns the domain being scanned.</p>
+                </div>
+                <div>
+                  <p className="font-semibold mb-1" style={{ color: "var(--theme-foreground)" }}>Payment data</p>
+                  <p>Payments are processed by Stripe. We receive a Stripe session ID and payment confirmation. We never see, store, or touch your card number, CVV, or full billing address — Stripe handles all of that under their PCI-DSS compliance program.</p>
+                </div>
+                <div>
+                  <p className="font-semibold mb-1" style={{ color: "var(--theme-foreground)" }}>Technical data</p>
+                  <p>We store a hashed (non-reversible) version of your IP address and your browser&rsquo;s user agent string with each scan request. This is used solely for fraud prevention and abuse detection.</p>
+                </div>
+                <div>
+                  <p className="font-semibold mb-1" style={{ color: "var(--theme-foreground)" }}>Analytics</p>
+                  <p>We use Vercel Analytics for aggregate, anonymized traffic data. No cookies are set for tracking. No cross-site tracking.</p>
+                </div>
+              </div>
+            ),
+          },
+          {
+            title: "2. What we don't collect",
+            content: (
+              <ul className="space-y-1.5 text-sm leading-relaxed list-disc list-inside" style={{ color: "var(--theme-muted)" }}>
+                <li>No account is required — we collect no email or name from you.</li>
+                <li>No cookies beyond what Stripe needs for checkout.</li>
+                <li>No marketing pixels or retargeting tags.</li>
+                <li>No sale of your data to any third party, ever.</li>
+              </ul>
+            ),
+          },
+          {
+            title: "3. How we use your data",
+            content: (
+              <ul className="space-y-1.5 text-sm leading-relaxed list-disc list-inside" style={{ color: "var(--theme-muted)" }}>
+                <li>To deliver the scan report you paid for.</li>
+                <li>To display the recent scans feed on the homepage (domain, grade, headline — no personal info).</li>
+                <li>To detect and prevent fraudulent or abusive use of the service.</li>
+                <li>To improve our scoring methodology using anonymized, aggregated data.</li>
+              </ul>
+            ),
+          },
+          {
+            title: "4. Subprocessors",
+            content: (
+              <div className="space-y-2 text-sm" style={{ color: "var(--theme-muted)" }}>
+                {[
+                  ["Supabase", "Scan result storage and database"],
+                  ["Stripe", "Payment processing"],
+                  ["Vercel", "Hosting and analytics"],
+                  ["Anthropic", "AI-powered report generation"],
+                  ["Firecrawl / Tavily", "Live web search during scans"],
+                ].map(([name, desc]) => (
+                  <div key={name} className="flex gap-3">
+                    <span className="font-semibold shrink-0" style={{ color: "var(--theme-foreground)", minWidth: "120px" }}>{name}</span>
+                    <span>{desc}</span>
+                  </div>
+                ))}
+              </div>
+            ),
+          },
+          {
+            title: "5. Data retention",
+            content: (
+              <p className="text-sm leading-relaxed" style={{ color: "var(--theme-muted)" }}>
+                Scan reports are retained indefinitely so that shareable report URLs remain valid. Hashed IP addresses are retained for 90 days. If you want a scan report deleted, email us with the report URL and we will remove it within 5 business days.
+              </p>
+            ),
+          },
+          {
+            title: "6. International transfers",
+            content: (
+              <p className="text-sm leading-relaxed" style={{ color: "var(--theme-muted)" }}>
+                Our infrastructure is based in the United States. Subprocessors may store data in other countries. We rely on standard contractual clauses and equivalent safeguards where applicable.
+              </p>
+            ),
+          },
+          {
+            title: "7. Your rights",
+            content: (
+              <p className="text-sm leading-relaxed" style={{ color: "var(--theme-muted)" }}>
+                You may request access to, correction of, or deletion of any data we hold that is associated with your scan. Since we don&rsquo;t collect accounts or emails, the easiest way to identify your data is to send us the report URL. Email{" "}
+                <a href="mailto:hello@websitecreditscore.com" className="underline underline-offset-2 hover:opacity-80" style={{ color: "var(--theme-accent)" }}>
+                  hello@websitecreditscore.com
+                </a>
+                {" "}and we will respond within 30 days.
+              </p>
+            ),
+          },
+          {
+            title: "8. Children",
+            content: (
+              <p className="text-sm leading-relaxed" style={{ color: "var(--theme-muted)" }}>
+                This service is not intended for children under 16. We do not knowingly collect data from anyone under 16. If you believe a minor has submitted a scan, please contact us and we will delete it.
+              </p>
+            ),
+          },
+          {
+            title: "9. Changes to this policy",
+            content: (
+              <p className="text-sm leading-relaxed" style={{ color: "var(--theme-muted)" }}>
+                We will post any material changes here and update the &ldquo;last updated&rdquo; date. Continued use of the service after changes means you accept the updated policy.
+              </p>
+            ),
+          },
+        ].map(({ title, content }) => (
+          <section key={title} className="space-y-3">
+            <h2 className="text-base font-semibold" style={{ color: "var(--theme-foreground)" }}>{title}</h2>
+            <div style={{ borderTop: "1px solid var(--theme-border)" }} className="pt-3">
+              {content}
+            </div>
+          </section>
+        ))}
       </article>
+
+      <footer
+        className="px-6 py-6 text-center text-xs"
+        style={{ borderTop: "1px solid var(--theme-border)", color: "color-mix(in srgb, var(--theme-muted) 55%, transparent)" }}
+      >
+        WebsiteCreditScore · <a href="mailto:hello@websitecreditscore.com" className="underline underline-offset-2 hover:opacity-80">hello@websitecreditscore.com</a>
+      </footer>
     </main>
   );
 }

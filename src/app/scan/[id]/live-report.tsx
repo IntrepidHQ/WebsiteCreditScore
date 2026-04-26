@@ -101,7 +101,7 @@ function ReportSkeleton({ searches }: { searches: string[] }) {
         </div>
       </div>
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
-        {Array.from({ length: 8 }).map((_, i) => (
+        {Array.from({ length: 10 }).map((_, i) => (
           <Skeleton key={i} className="h-20 rounded-xl" />
         ))}
       </div>
@@ -227,7 +227,7 @@ export function ReportContent({ report }: { report: WCSReport }) {
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
         {/* Radar chart */}
         <div className="rounded-xl border border-white/5 bg-[#111114] p-6">
-          <h2 className="text-sm font-medium text-zinc-400 mb-4">8 Dimensions</h2>
+          <h2 className="text-sm font-medium text-zinc-400 mb-4">10 Dimensions</h2>
           <ResponsiveContainer width="100%" height={260}>
             <RadarChart data={radarData}>
               <PolarGrid stroke="rgba(255,255,255,0.05)" />

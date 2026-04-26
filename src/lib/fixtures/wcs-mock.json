@@ -1,12 +1,12 @@
 {
-  "domain": "stripe.com",
-  "company_name": "Stripe, Inc.",
-  "scanned_at": "2026-04-25T12:00:00Z",
+  "domain": "apple.com",
+  "company_name": "Apple Inc.",
+  "scanned_at": "2026-04-26T12:00:00Z",
   "overall": {
     "score": 96,
     "grade": "A",
-    "headline": "Best-in-class operator, trust justified",
-    "one_liner": "Stripe is a category-defining financial infrastructure company with exceptional regulatory standing, transparent leadership, and a decade of consistent operational excellence."
+    "headline": "Category-defining restraint and earned trust",
+    "one_liner": "Apple sets the global benchmark for visual design and UX, backs it with exceptional technical infrastructure, and carries 48 years of verified corporate history — the only credibility gap is self-imposed opacity around repairability and ecosystem lock-in."
   },
   "dimensions": [
     {
@@ -15,245 +15,194 @@
       "score": 99,
       "grade": "A+",
       "weight": 0.18,
-      "verdict": "Delaware C-Corp incorporated 2010, fully licensed as a Payment Service Provider in 40+ countries, registered with FinCEN as a Money Services Business. No material regulatory actions on record.",
+      "verdict": "Delaware C-Corp incorporated 1977, publicly traded on NASDAQ (AAPL) since 1980, registered in 170+ countries. Physical Apple Store presence globally. All contact channels verified and staffed.",
       "evidence": [
-        {
-          "claim": "Stripe is registered with FinCEN as a Money Services Business",
-          "url": "https://www.fincen.gov/msb-registrant-search",
-          "title": "FinCEN MSB Registrant Search"
-        },
-        {
-          "claim": "Stripe holds EU Payment Institution license via Stripe Payments Europe",
-          "url": "https://stripe.com/legal/licenses",
-          "title": "Stripe Licenses"
-        }
+        { "claim": "Apple is publicly traded on NASDAQ under ticker AAPL", "url": "https://investor.apple.com/stock-information/default.aspx", "title": "Apple Investor Relations" },
+        { "claim": "Apple has 519 retail stores in 25 countries as of 2024", "url": "https://www.apple.com/retail/", "title": "Apple Retail Stores" }
       ]
     },
     {
       "key": "reputation",
       "label": "Online Reputation",
-      "score": 88,
-      "grade": "B+",
-      "weight": 0.18,
-      "verdict": "Overwhelmingly positive developer reputation. G2 and Capterra show 4.6–4.7 stars across tens of thousands of reviews. The primary recurring complaint is support response time for complex disputes, not fraud or product failure.",
+      "score": 91,
+      "grade": "A",
+      "weight": 0.15,
+      "verdict": "Consumer brand sentiment is overwhelmingly positive. Hardware NPS scores among the highest in consumer electronics. Primary criticism centers on pricing and right-to-repair policies, not product quality or fraud.",
       "evidence": [
-        {
-          "claim": "Stripe rated 4.6/5 from 9,200+ reviews on G2",
-          "url": "https://www.g2.com/products/stripe/reviews",
-          "title": "Stripe Reviews on G2"
-        },
-        {
-          "claim": "Trustpilot shows mixed reviews — high satisfaction from SaaS founders, frustration from e-commerce dispute handling",
-          "url": "https://www.trustpilot.com/review/stripe.com",
-          "title": "Stripe on Trustpilot"
-        }
+        { "claim": "Apple iPhone rated 4.8/5 across major consumer electronics review platforms", "url": "https://www.techradar.com/best/best-phones", "title": "TechRadar Best Phones 2024" },
+        { "claim": "Apple ranked #1 in customer satisfaction for smartphones by JD Power 2023", "url": "https://www.jdpower.com/business/press-releases/2023-us-smartphone-study", "title": "JD Power 2023 Smartphone Study" }
       ]
     },
     {
-      "key": "longevity",
-      "label": "Domain & Company Longevity",
-      "score": 97,
+      "key": "visual_design",
+      "label": "Visual Design",
+      "score": 99,
       "grade": "A+",
-      "weight": 0.10,
-      "verdict": "Domain registered 2009, company incorporated 2010. stripe.com has been continuously active for 15+ years with no ownership transfers or suspicious registration gaps.",
+      "weight": 0.14,
+      "verdict": "Apple.com is the most-cited benchmark for product website design globally. Minimal visual noise, product photography sets industry standard, typography is impeccable, and brand consistency across every touchpoint is total.",
       "evidence": [
-        {
-          "claim": "stripe.com was registered in 2009 according to WHOIS records",
-          "url": "https://lookup.icann.org/lookup?name=stripe.com",
-          "title": "ICANN Lookup: stripe.com"
-        }
+        { "claim": "Apple.com consistently ranked in 'best designed websites' lists across design publications", "url": "https://www.awwwards.com/inspiration/apple", "title": "Awwwards: Apple Design" },
+        { "claim": "Apple's design language influenced an entire generation of product websites", "url": "https://design.apple.com/", "title": "Apple Design" }
+      ]
+    },
+    {
+      "key": "ux_conversion",
+      "label": "UX / Conversion",
+      "score": 95,
+      "grade": "A",
+      "weight": 0.12,
+      "verdict": "Navigation is intuitive and conversion-optimized. Apple Pay reduces checkout friction to near-zero. Mobile experience mirrors desktop in quality. Page load times under 2s globally. Minor deduction for complexity of customization flows on high-end products.",
+      "evidence": [
+        { "claim": "Apple.com scores 92/100 on Google PageSpeed Insights mobile", "url": "https://pagespeed.web.dev/report?url=https%3A%2F%2Fapple.com", "title": "PageSpeed: apple.com" },
+        { "claim": "Apple Pay reduces checkout abandonment by 30-50% vs. form-based checkout", "url": "https://developer.apple.com/apple-pay/", "title": "Apple Pay for Developers" }
       ]
     },
     {
       "key": "transparency",
       "label": "Transparency & Disclosure",
-      "score": 95,
-      "grade": "A",
-      "weight": 0.12,
-      "verdict": "Founders (Patrick and John Collison) are fully public with extensive press coverage. Privacy policy, terms of service, and fee schedule are clearly published. Annual Stripe Sessions conference is publicly streamed.",
+      "score": 78,
+      "grade": "B+",
+      "weight": 0.10,
+      "verdict": "Pricing is clear and published. Privacy policy is detailed and consumer-friendly. However, right-to-repair restrictions and App Store commission opacity have drawn regulatory scrutiny in EU and US. Refund policies are strict but visible.",
       "evidence": [
-        {
-          "claim": "Patrick Collison publicly listed as CEO with verified LinkedIn and public interviews",
-          "url": "https://www.linkedin.com/in/patrickcollison/",
-          "title": "Patrick Collison on LinkedIn"
-        },
-        {
-          "claim": "Stripe's pricing page is publicly accessible with no hidden fees",
-          "url": "https://stripe.com/pricing",
-          "title": "Stripe Pricing"
-        }
+        { "claim": "Apple faced EU antitrust investigation over App Store commissions in 2024", "url": "https://ec.europa.eu/commission/presscorner/detail/en/ip_24_1161", "title": "EU Commission: Apple DMA Investigation" },
+        { "claim": "Apple's repair program has expanded but still limits third-party repair access", "url": "https://www.apple.com/legal/repairs/", "title": "Apple Repair Legal" }
       ]
     },
     {
       "key": "technical",
       "label": "Technical Health",
-      "score": 98,
+      "score": 99,
       "grade": "A+",
-      "weight": 0.10,
-      "verdict": "A+ SSL (A+ on SSL Labs), HSTS with preload, CSP headers, SOC 2 Type II and PCI DSS Level 1 certified. Stripe's status page shows 99.99% API uptime over the past 12 months.",
+      "weight": 0.08,
+      "verdict": "A+ SSL Labs rating, HSTS with preload, Fastly CDN for global sub-100ms delivery, 99.99% uptime across all Apple services. SOC 2 Type II certified across all major product lines.",
       "evidence": [
-        {
-          "claim": "Stripe scores A+ on SSL Labs",
-          "url": "https://www.ssllabs.com/ssltest/analyze.html?d=stripe.com",
-          "title": "SSL Labs Report: stripe.com"
-        },
-        {
-          "claim": "Stripe Status page shows historical 99.99% uptime",
-          "url": "https://status.stripe.com",
-          "title": "Stripe Status"
-        }
+        { "claim": "apple.com scores A+ on SSL Labs with HSTS preload enabled", "url": "https://www.ssllabs.com/ssltest/analyze.html?d=apple.com", "title": "SSL Labs: apple.com" },
+        { "claim": "Apple System Status page shows 99.99%+ uptime for all major services", "url": "https://www.apple.com/support/systemstatus/", "title": "Apple System Status" }
       ]
     },
     {
       "key": "content",
       "label": "Content Quality",
-      "score": 96,
+      "score": 95,
       "grade": "A",
-      "weight": 0.10,
-      "verdict": "Documentation is industry-leading — frequently cited as the benchmark for developer docs. No thin content, no AI-generated filler. The Stripe blog covers economics, product, and engineering at a high editorial standard.",
+      "weight": 0.08,
+      "verdict": "Product pages are benchmarks of editorial restraint — every word earns its place. Support documentation is comprehensive and accurate. The Newsroom publishes press releases with full financial disclosures. Zero thin or AI-generated filler content detected.",
       "evidence": [
-        {
-          "claim": "Stripe's API documentation is consistently ranked best-in-class by developers",
-          "url": "https://stripe.com/docs",
-          "title": "Stripe Docs"
-        }
+        { "claim": "Apple's product pages are consistently cited as examples of high-conversion copywriting", "url": "https://copyhackers.com/2016/12/apple-copy/", "title": "Copy Hackers: Apple" },
+        { "claim": "Apple's developer documentation is ranked among the best technical docs in the industry", "url": "https://developer.apple.com/documentation/", "title": "Apple Developer Documentation" }
       ]
     },
     {
       "key": "social_presence",
       "label": "Social & Press Presence",
-      "score": 97,
+      "score": 98,
       "grade": "A+",
-      "weight": 0.10,
-      "verdict": "Verified Twitter/X (350k followers), active LinkedIn company page (500k+ followers), covered by every major tech publication. Founders have significant personal press coverage in WSJ, FT, and Bloomberg.",
+      "weight": 0.07,
+      "verdict": "Verified accounts on every major platform with tens of millions of followers. Covered by every major financial and technology publication. WWDC streamed live annually with 25M+ viewers. Tim Cook maintains active public LinkedIn and X profile.",
       "evidence": [
-        {
-          "claim": "Stripe has 350k followers on X (Twitter) with active posting",
-          "url": "https://x.com/stripe",
-          "title": "Stripe on X"
-        },
-        {
-          "claim": "WSJ profile of Patrick Collison: 'The Collisons Built Stripe Into a $50B+ Giant'",
-          "url": "https://www.wsj.com/articles/stripe-collison-brothers",
-          "title": "WSJ: Stripe Profile"
-        }
+        { "claim": "Apple has 35M+ followers on X (Twitter) with verified account", "url": "https://x.com/apple", "title": "Apple on X" },
+        { "claim": "Tim Cook has 15M+ followers and posts regularly on LinkedIn", "url": "https://www.linkedin.com/in/timcook/", "title": "Tim Cook on LinkedIn" }
+      ]
+    },
+    {
+      "key": "longevity",
+      "label": "Domain & Company Longevity",
+      "score": 99,
+      "grade": "A+",
+      "weight": 0.05,
+      "verdict": "Apple Inc. founded 1976 by Steve Jobs, Steve Wozniak, and Ronald Wayne. apple.com registered 1987 — one of the oldest continuously active commercial domains. Wayback Machine archives dating to 1996. 48 years of uninterrupted operation.",
+      "evidence": [
+        { "claim": "Apple Computer incorporated in California on April 1, 1976", "url": "https://en.wikipedia.org/wiki/Apple_Inc.", "title": "Apple Inc. — Wikipedia" },
+        { "claim": "apple.com in Wayback Machine since October 1996", "url": "https://web.archive.org/web/1996*/apple.com", "title": "Wayback Machine: apple.com" }
       ]
     },
     {
       "key": "financial_signals",
       "label": "Financial Signals",
-      "score": 93,
-      "grade": "A",
-      "weight": 0.12,
-      "verdict": "Last public valuation $50B (2023 secondary). Profitable since 2023. Processed $1T+ in payments in 2023. No public filing required as private company, but financial signals via press reporting are exceptionally strong.",
+      "score": 99,
+      "grade": "A+",
+      "weight": 0.03,
+      "verdict": "Most profitable technology company in history. $394B revenue in FY2024. $3.3T market cap as of Q1 2026. Quarterly earnings publicly disclosed. Warren Buffett's Berkshire Hathaway largest single shareholder. Zero financial distress signals of any kind.",
       "evidence": [
-        {
-          "claim": "Stripe raised at $50B valuation in March 2023 with tender offer",
-          "url": "https://techcrunch.com/2023/03/15/stripe-50-billion-valuation/",
-          "title": "TechCrunch: Stripe $50B"
-        },
-        {
-          "claim": "Stripe processed over $1 trillion in payments in 2023",
-          "url": "https://stripe.com/newsroom/news/stripe-2023-revenue",
-          "title": "Stripe Newsroom 2023"
-        }
+        { "claim": "Apple reported $394.3B in total revenue for fiscal year 2024", "url": "https://investor.apple.com/sec-filings/annual-reports/default.aspx", "title": "Apple Annual Report FY2024" },
+        { "claim": "Apple's market cap exceeded $3.3T in early 2026", "url": "https://companiesmarketcap.com/apple/marketcap/", "title": "Apple Market Cap History" }
       ]
     }
   ],
   "red_flags": [
     {
-      "title": "Dispute Resolution Complaints",
-      "detail": "A recurring theme in reviews is slow or unfavorable dispute resolution for merchants, particularly small businesses facing chargebacks. This is industry-wide but Stripe is not immune.",
+      "title": "Right-to-Repair Restrictions",
+      "detail": "Apple's repair lock-in has drawn regulatory attention in the US, EU, and Australia. Independent repair shops cannot access certain diagnostic tools, limiting consumer choice.",
       "severity": "low",
-      "url": "https://www.trustpilot.com/review/stripe.com"
+      "url": "https://ec.europa.eu/commission/presscorner/detail/en/ip_24_1161"
+    },
+    {
+      "title": "App Store Monopoly Investigations",
+      "detail": "EU Digital Markets Act proceedings and US DOJ antitrust case ongoing as of 2026. These are regulatory/legal risks, not product or fraud risks.",
+      "severity": "low",
+      "url": "https://www.justice.gov/opa/pr/justice-department-sues-apple-monopolizing-smartphone-markets"
     }
   ],
   "green_flags": [
     {
-      "title": "PCI DSS Level 1 Certified",
-      "detail": "Stripe holds the highest level of PCI compliance certification, independently audited annually.",
-      "url": "https://stripe.com/guides/pci-compliance"
+      "title": "48 Years of Continuous Operation",
+      "detail": "Founded 1976, apple.com active since 1987 — one of the oldest continuously operating commercial technology companies.",
+      "url": "https://www.apple.com/about/"
     },
     {
-      "title": "Fully Named, Public Founders",
-      "detail": "Both co-founders (Patrick and John Collison) are highly visible, with extensive public records, interviews, and verified social profiles.",
-      "url": "https://stripe.com/about"
+      "title": "$3.3T Market Capitalization",
+      "detail": "Most valuable publicly traded company in the world as of 2026. Maximum possible financial stability signal.",
+      "url": "https://investor.apple.com/stock-information/default.aspx"
     },
     {
-      "title": "15+ Years of Continuous Operation",
-      "detail": "Domain and company active since 2009/2010 with no ownership changes.",
-      "url": "https://lookup.icann.org/lookup?name=stripe.com"
+      "title": "Industry-Defining Visual Design",
+      "detail": "Apple.com is the most cited benchmark for product website design. Every pixel is intentional.",
+      "url": "https://design.apple.com/"
     },
     {
-      "title": "SOC 2 Type II Certified",
-      "detail": "Independently audited security controls with annual renewal.",
-      "url": "https://stripe.com/docs/security"
+      "title": "Best-in-Class Privacy Policy",
+      "detail": "Apple's privacy policy is among the most comprehensive and consumer-friendly of any major tech company.",
+      "url": "https://www.apple.com/legal/privacy/"
+    },
+    {
+      "title": "A+ Technical Infrastructure",
+      "detail": "SSL Labs A+, HSTS preload, SOC 2 Type II, 99.99% uptime — enterprise-grade across every dimension.",
+      "url": "https://www.apple.com/support/systemstatus/"
     }
   ],
   "timeline": [
-    {
-      "year": 2009,
-      "event": "Domain stripe.com registered; Patrick and John Collison begin building"
-    },
-    {
-      "year": 2010,
-      "event": "Stripe incorporated in Delaware; admitted to Y Combinator S10"
-    },
-    {
-      "year": 2011,
-      "event": "Public beta launch; initial funding from Peter Thiel, Elon Musk, and others"
-    },
-    {
-      "year": 2016,
-      "event": "Stripe Atlas launched — company formation product for global founders"
-    },
-    {
-      "year": 2019,
-      "event": "Stripe Capital launched; valuation reaches $35B"
-    },
-    {
-      "year": 2021,
-      "event": "Series H at $95B valuation — one of the highest private valuations in history"
-    },
-    {
-      "year": 2023,
-      "event": "Repriced at $50B via secondary; becomes profitable; processes $1T+ annually"
-    },
-    {
-      "year": 2025,
-      "event": "IPO filed; continued international expansion"
-    }
+    { "year": 1976, "event": "Apple Computer founded by Jobs, Wozniak, and Wayne in Cupertino, CA" },
+    { "year": 1980, "event": "Apple goes public on NASDAQ — one of the largest IPOs in history at the time" },
+    { "year": 1987, "event": "apple.com domain registered" },
+    { "year": 1997, "event": "Steve Jobs returns; Apple nearly bankrupt, begins turnaround" },
+    { "year": 2001, "event": "iPod launches, iTunes launched — beginning of Apple's hardware ecosystem" },
+    { "year": 2007, "event": "iPhone announced — redefines the smartphone category" },
+    { "year": 2011, "event": "Tim Cook becomes CEO following Steve Jobs' passing" },
+    { "year": 2018, "event": "Apple becomes first company to reach $1T market cap" },
+    { "year": 2024, "event": "Revenue $394B; Apple Intelligence AI features launched across product line" }
   ],
   "peers": [
-    {
-      "domain": "braintreepayments.com",
-      "comparison": "Braintree (owned by PayPal) competes on enterprise deals but has significantly weaker developer experience and documentation compared to Stripe."
-    },
-    {
-      "domain": "adyen.com",
-      "comparison": "Adyen targets large enterprises exclusively and has superior omnichannel capabilities; Stripe is more accessible to startups and mid-market."
-    },
-    {
-      "domain": "square.com",
-      "comparison": "Square focuses on in-person payments and SMB POS; Stripe dominates online and recurring billing use cases."
-    }
+    { "domain": "samsung.com", "comparison": "Samsung's site is technically solid but visually busier than Apple. Product storytelling is weaker and the UX requires more clicks to reach purchase." },
+    { "domain": "google.com", "comparison": "Google.com prioritizes search and services over product presentation. Consumer hardware pages are well-designed but lack Apple's cinematic product photography." },
+    { "domain": "microsoft.com", "comparison": "Microsoft's site has improved dramatically under Satya Nadella's tenure but remains enterprise-focused vs. Apple's consumer-first clarity." }
   ],
   "sources": [
-    { "url": "https://stripe.com/about", "title": "About Stripe", "domain": "stripe.com" },
-    { "url": "https://stripe.com/legal/licenses", "title": "Stripe Licenses", "domain": "stripe.com" },
-    { "url": "https://stripe.com/pricing", "title": "Stripe Pricing", "domain": "stripe.com" },
-    { "url": "https://stripe.com/docs/security", "title": "Stripe Security", "domain": "stripe.com" },
-    { "url": "https://status.stripe.com", "title": "Stripe Status", "domain": "status.stripe.com" },
-    { "url": "https://www.g2.com/products/stripe/reviews", "title": "Stripe Reviews — G2", "domain": "g2.com" },
-    { "url": "https://www.trustpilot.com/review/stripe.com", "title": "Stripe Reviews — Trustpilot", "domain": "trustpilot.com" },
-    { "url": "https://www.linkedin.com/company/stripe", "title": "Stripe on LinkedIn", "domain": "linkedin.com" },
-    { "url": "https://x.com/stripe", "title": "Stripe on X", "domain": "x.com" },
-    { "url": "https://techcrunch.com/2023/03/15/stripe-50-billion-valuation/", "title": "Stripe Raises at $50B — TechCrunch", "domain": "techcrunch.com" },
-    { "url": "https://www.bloomberg.com/news/articles/stripe-ipo", "title": "Stripe IPO Coverage — Bloomberg", "domain": "bloomberg.com" },
-    { "url": "https://lookup.icann.org/lookup?name=stripe.com", "title": "WHOIS: stripe.com — ICANN", "domain": "icann.org" },
-    { "url": "https://www.ssllabs.com/ssltest/analyze.html?d=stripe.com", "title": "SSL Labs: stripe.com", "domain": "ssllabs.com" },
-    { "url": "https://stripe.com/guides/pci-compliance", "title": "Stripe PCI Compliance Guide", "domain": "stripe.com" },
-    { "url": "https://www.fincen.gov/msb-registrant-search", "title": "FinCEN MSB Registry", "domain": "fincen.gov" }
+    { "url": "https://investor.apple.com/stock-information/default.aspx", "title": "Apple Investor Relations", "domain": "apple.com" },
+    { "url": "https://www.apple.com/retail/", "title": "Apple Retail Stores", "domain": "apple.com" },
+    { "url": "https://design.apple.com/", "title": "Apple Design", "domain": "apple.com" },
+    { "url": "https://www.apple.com/legal/privacy/", "title": "Apple Privacy Policy", "domain": "apple.com" },
+    { "url": "https://www.apple.com/support/systemstatus/", "title": "Apple System Status", "domain": "apple.com" },
+    { "url": "https://www.ssllabs.com/ssltest/analyze.html?d=apple.com", "title": "SSL Labs: apple.com", "domain": "ssllabs.com" },
+    { "url": "https://www.jdpower.com/business/press-releases/2023-us-smartphone-study", "title": "JD Power 2023 Smartphone Study", "domain": "jdpower.com" },
+    { "url": "https://ec.europa.eu/commission/presscorner/detail/en/ip_24_1161", "title": "EU Commission: Apple DMA Investigation", "domain": "ec.europa.eu" },
+    { "url": "https://x.com/apple", "title": "Apple on X", "domain": "x.com" },
+    { "url": "https://www.linkedin.com/company/apple/", "title": "Apple on LinkedIn", "domain": "linkedin.com" },
+    { "url": "https://companiesmarketcap.com/apple/marketcap/", "title": "Apple Market Cap History", "domain": "companiesmarketcap.com" },
+    { "url": "https://web.archive.org/web/1996*/apple.com", "title": "Wayback Machine: apple.com", "domain": "web.archive.org" },
+    { "url": "https://pagespeed.web.dev/report?url=https%3A%2F%2Fapple.com", "title": "PageSpeed: apple.com", "domain": "pagespeed.web.dev" },
+    { "url": "https://developer.apple.com/documentation/", "title": "Apple Developer Documentation", "domain": "developer.apple.com" },
+    { "url": "https://www.justice.gov/opa/pr/justice-department-sues-apple-monopolizing-smartphone-markets", "title": "DOJ: Apple Antitrust Case", "domain": "justice.gov" }
   ],
-  "summary": "Stripe, Inc. stands as one of the most credible and well-established payment infrastructure providers in the world, earning an overall grade of A (96/100) in this analysis. Founded in 2010 by brothers Patrick and John Collison, both of whom maintain high public profiles, Stripe has grown from a Y Combinator startup into a company processing over $1 trillion in annual payments across 40+ countries.\n\nFrom a legitimacy standpoint, Stripe earns a perfect A+ (99/100). The company is a registered Money Services Business with FinCEN, holds EU Payment Institution licensing through Stripe Payments Europe, and maintains PCI DSS Level 1 certification — the highest level available. No material regulatory enforcement actions appear in any jurisdiction's public records.\n\nTechnical health is equally impressive, with an A+ (98/100). SSL Labs rates stripe.com at A+, HSTS preload is enabled, and the public status page documents 99.99% API uptime over the trailing 12 months. SOC 2 Type II certification is independently audited on an annual basis.\n\nReputation (B+, 88/100) is the only dimension below A-minus, and for a predictable structural reason: Stripe serves millions of merchants, a non-trivial portion of whom lose payment disputes to buyers. Trustpilot reflects this with a bimodal distribution — enthusiastic five-star reviews from SaaS founders and one-star reviews from e-commerce merchants who lost chargeback disputes. This is a category-level dynamic, not a Stripe-specific failure mode.\n\nTransparency is exceptional (A, 95/100). Pricing, terms of service, privacy policies, and licensing information are all clearly published and easily findable. The founders are among the most publicly documented CEOs in the technology sector, with decades of interviews, public statements, and verified profiles.\n\nFinancially, Stripe's signals are as strong as a private company can show without public filings (A, 93/100). The 2023 secondary pricing at $50 billion, announced profitability, and $1 trillion in payments processed annually provide high-confidence financial visibility.\n\nIn summary: there is no credible basis for concern about Stripe's legitimacy, financial stability, or operational trustworthiness. The one-star reviews on Trustpilot reflect the inherent tensions of payment dispute processes, not fraud or malfeasance. For any business evaluating Stripe as a payment processor, the credibility signal here is as strong as this analyst has seen."
+  "summary": "Apple Inc. earns an overall grade of A (96/100) in this WebsiteCreditScore analysis — the maximum score credibly achievable by a publicly traded consumer technology company, with the only meaningful deductions coming from regulatory exposure around App Store practices and right-to-repair restrictions.\n\nApple's legitimacy and longevity scores are effectively perfect (both 99/100, A+). The company was incorporated in 1976, has been publicly traded since 1980, and apple.com has been continuously active since 1987 — placing it among the oldest commercial domains on the internet. With 519 retail stores across 25 countries, a $3.3 trillion market capitalization, and $394 billion in FY2024 revenue, Apple represents the absolute ceiling of financial and operational credibility.\n\nThe visual design (99/100, A+) and UX/conversion (95/100, A) scores reflect Apple's position as the most emulated product website in the world. Apple.com is used as a teaching example in design schools and cited in virtually every 'best designed websites' roundup. The checkout experience, powered by Apple Pay, sets the industry benchmark for friction reduction.\n\nTechnical health is A+ (99/100). SSL Labs grades apple.com at A+, HSTS preload is active, and global delivery is handled by Fastly CDN with sub-100ms response times in major markets. The Apple System Status page documents 99.99%+ uptime across all major consumer services.\n\nThe transparency score (78/100, B+) is the only genuine concern. Apple's privacy policy is exemplary, but the company's restrictions on third-party repair access and the App Store's commission structure have drawn regulatory action from the EU under the Digital Markets Act and from the US Department of Justice in an ongoing antitrust case. These are competitive and regulatory issues, not fraud or consumer deception — but they represent real opacity in areas where Apple could choose to be more open.\n\nIn summary: Apple.com is a reference-grade website in virtually every category we evaluate. Any business owner looking at what 'exceptional' looks like should study apple.com. The regulatory concerns are real but non-existential for a company of this scale."
 }

@@ -7,11 +7,13 @@ export type Grade = (typeof GRADES)[number];
 export const DIMENSION_KEYS = [
   "legitimacy",
   "reputation",
-  "longevity",
+  "visual_design",
+  "ux_conversion",
   "transparency",
   "technical",
   "content",
   "social_presence",
+  "longevity",
   "financial_signals",
 ] as const;
 export type DimensionKey = (typeof DIMENSION_KEYS)[number];
@@ -19,23 +21,40 @@ export type DimensionKey = (typeof DIMENSION_KEYS)[number];
 export const DIMENSION_LABELS: Record<DimensionKey, string> = {
   legitimacy: "Business Legitimacy",
   reputation: "Online Reputation",
-  longevity: "Domain & Company Longevity",
+  visual_design: "Visual Design",
+  ux_conversion: "UX / Conversion",
   transparency: "Transparency & Disclosure",
   technical: "Technical Health",
   content: "Content Quality",
   social_presence: "Social & Press Presence",
+  longevity: "Domain & Company Longevity",
   financial_signals: "Financial Signals",
 };
 
 export const DIMENSION_WEIGHTS: Record<DimensionKey, number> = {
   legitimacy: 0.18,
-  reputation: 0.18,
-  longevity: 0.10,
-  transparency: 0.12,
-  technical: 0.10,
-  content: 0.10,
-  social_presence: 0.10,
-  financial_signals: 0.12,
+  reputation: 0.15,
+  visual_design: 0.14,
+  ux_conversion: 0.12,
+  transparency: 0.10,
+  technical: 0.08,
+  content: 0.08,
+  social_presence: 0.07,
+  longevity: 0.05,
+  financial_signals: 0.03,
+};
+
+export const DIMENSION_COLORS: Record<DimensionKey, string> = {
+  legitimacy: "#4ade80",
+  reputation: "#60a5fa",
+  visual_design: "#818cf8",
+  ux_conversion: "#f7b21b",
+  transparency: "#34d399",
+  technical: "#fb923c",
+  content: "#f472b6",
+  social_presence: "#38bdf8",
+  longevity: "#a78bfa",
+  financial_signals: "#facc15",
 };
 
 // ── Zod schema ─────────────────────────────────────────────────────────────
@@ -92,7 +111,7 @@ export const WCSReportSchema = z.object({
     headline: z.string(),
     one_liner: z.string(),
   }),
-  dimensions: z.array(DimensionSchema).length(8),
+  dimensions: z.array(DimensionSchema).length(10),
   red_flags: z.array(RedFlagSchema),
   green_flags: z.array(FlagSchema),
   timeline: z.array(TimelineItemSchema).optional(),
@@ -127,13 +146,13 @@ export const WCS_REPORT_JSON_SCHEMA = {
     },
     dimensions: {
       type: "array",
-      minItems: 8,
-      maxItems: 8,
+      minItems: 10,
+      maxItems: 10,
       items: {
         type: "object",
         required: ["key", "label", "score", "grade", "weight", "verdict", "evidence"],
         properties: {
-          key: { type: "string", enum: DIMENSION_KEYS },
+          key: { type: "string", enum: [...DIMENSION_KEYS] },
           label: { type: "string" },
           score: { type: "integer", minimum: 0, maximum: 100 },
           grade: { type: "string", enum: GRADES },
@@ -228,6 +247,13 @@ export function gradeColor(grade: Grade): string {
   if (grade === "C-") return "#fbbf24";
   if (grade === "D+" || grade === "D" || grade === "D-") return "#fb923c";
   return "#f87171"; // F
+}
+
+export function gradeLabel(grade: Grade): string {
+  if (grade === "A+" || grade === "A") return "EXCELLENT";
+  if (grade === "A-" || grade === "B+" || grade === "B") return "GREAT";
+  if (grade === "B-" || grade === "C+" || grade === "C" || grade === "C-") return "AVERAGE";
+  return "BELOW AVERAGE";
 }
 
 export function scoreToGrade(score: number): Grade {
