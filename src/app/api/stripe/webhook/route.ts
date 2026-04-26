@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { markScanPaid } from "@/lib/db/scans";
+import { upsertPaidScan } from "@/lib/db/scans";
 
 export const runtime = "nodejs";
 
@@ -35,11 +35,19 @@ export async function POST(req: NextRequest) {
 
   if (event.type === "checkout.session.completed") {
     const session = event.data.object;
-    try {
-      await markScanPaid(session.id);
-    } catch (err) {
-      console.error("[stripe/webhook] failed to mark scan paid:", err);
-      // Return 200 so Stripe doesn't retry — webhook was received correctly
+    const { domain, scan_id } = session.metadata ?? {};
+
+    if (domain && scan_id) {
+      try {
+        await upsertPaidScan({
+          id: scan_id,
+          domain,
+          stripeSessionId: session.id,
+        });
+      } catch (err) {
+        console.error("[stripe/webhook] failed to upsert scan:", err);
+        // Return 200 so Stripe doesn't retry — webhook was received correctly
+      }
     }
   }
 

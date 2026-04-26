@@ -1,22 +1,29 @@
 import type { Metadata } from "next";
-import { Geist, Geist_Mono } from "next/font/google";
+import { Manrope, Instrument_Serif } from "next/font/google";
 import { Analytics } from "@vercel/analytics/react";
 import "./globals.css";
 
-const geistSans = Geist({
-  variable: "--font-geist-sans",
+const manrope = Manrope({
+  variable: "--font-manrope",
   subsets: ["latin"],
+  display: "swap",
 });
 
-const geistMono = Geist_Mono({
-  variable: "--font-geist-mono",
+const instrumentSerif = Instrument_Serif({
+  variable: "--font-instrument-serif",
   subsets: ["latin"],
+  weight: "400",
+  display: "swap",
 });
 
 export const metadata: Metadata = {
-  title: "WebsiteCreditScore — AI-Powered Website Trust Reports",
+  title: {
+    default: "WebsiteCreditScore — AI-Powered Website Trust Reports",
+    template: "%s | WebsiteCreditScore",
+  },
   description:
     "Get a deep credibility report for any website. Powered by Claude AI with live web research. Graded A+ to F across 8 dimensions. $1 per scan.",
+  metadataBase: new URL("https://websitecreditscore.com"),
   openGraph: {
     title: "WebsiteCreditScore",
     description: "AI-powered credibility reports for any website. $1 per scan.",
@@ -28,6 +35,7 @@ export const metadata: Metadata = {
     title: "WebsiteCreditScore",
     description: "AI-powered credibility reports for any website. $1 per scan.",
   },
+  robots: { index: true, follow: true },
 };
 
 export default function RootLayout({
@@ -36,10 +44,8 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="en" className="dark">
-      <body
-        className={`${geistSans.variable} ${geistMono.variable} font-sans antialiased min-h-screen bg-[#0A0A0B] text-white`}
-      >
+    <html lang="en" className={`${manrope.variable} ${instrumentSerif.variable}`}>
+      <body className="min-h-screen antialiased">
         {children}
         <Analytics />
       </body>

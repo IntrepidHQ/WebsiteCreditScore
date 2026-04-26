@@ -61,6 +61,27 @@ export async function markScanPaid(stripeSessionId: string): Promise<void> {
   if (error) throw new Error(`Failed to mark scan paid: ${error.message}`);
 }
 
+export async function upsertPaidScan(opts: {
+  id: string;
+  domain: string;
+  stripeSessionId: string;
+}): Promise<void> {
+  const supabase = await createClient();
+  const { error } = await supabase
+    .from("scans")
+    .upsert(
+      {
+        id: opts.id,
+        domain: opts.domain,
+        status: "pending" as ScanStatus,
+        paid: true,
+        stripe_session_id: opts.stripeSessionId,
+      },
+      { onConflict: "id" }
+    );
+  if (error) throw new Error(`Failed to upsert scan: ${error.message}`);
+}
+
 export async function updateScanStatus(id: string, status: ScanStatus): Promise<void> {
   const supabase = await createClient();
   const { error } = await supabase
