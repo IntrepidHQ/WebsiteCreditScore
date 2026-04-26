@@ -299,9 +299,9 @@ export default function LandingPage() {
               className="text-base leading-relaxed max-w-md"
               style={{ color: "var(--theme-muted)" }}
             >
-              Deep AI research across 8 dimensions — legitimacy, reputation, financial
-              signals, technical health, and more. Graded A+ to F with cited evidence.
-              Results in ~90 seconds.
+              Deep AI research across legitimacy, reputation, visual design, UX quality,
+              technical health, financial signals, and more. Graded A+ to F with cited
+              evidence. Results in ~90 seconds.
             </p>
 
             <ScanForm />
@@ -403,25 +403,25 @@ export default function LandingPage() {
             className="font-display text-3xl mb-2 text-center"
             style={{ color: "var(--theme-foreground)" }}
           >
-            Eight dimensions. One verdict.
+            Every angle. One verdict.
           </h2>
           <p
             className="text-sm text-center mb-10"
             style={{ color: "var(--theme-muted)" }}
           >
-            Each dimension is weighted and scored 0–100 based on live evidence — not guesswork.
+            Trust signals, visual quality, UX, and financial health — all scored 0–100 from live evidence.
           </p>
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
             {[
-              { key: "Legitimacy", weight: "25%" },
-              { key: "Reputation", weight: "20%" },
-              { key: "Longevity", weight: "12%" },
-              { key: "Transparency", weight: "12%" },
-              { key: "Technical", weight: "10%" },
-              { key: "Content", weight: "8%" },
-              { key: "Social", weight: "8%" },
-              { key: "Financial", weight: "5%" },
-            ].map(({ key, weight }) => (
+              { key: "Legitimacy", weight: "25%", color: "#3dd598" },
+              { key: "Reputation", weight: "20%", color: "#38bdf8" },
+              { key: "Visual Design", weight: "UI/UX", color: "#a78bfa" },
+              { key: "UX / Conversion", weight: "UI/UX", color: "#f472b6" },
+              { key: "Transparency", weight: "12%", color: "#f7b21b" },
+              { key: "Technical Health", weight: "10%", color: "#34d399" },
+              { key: "Social Presence", weight: "8%", color: "#60a5fa" },
+              { key: "Financial Signals", weight: "5%", color: "#fb923c" },
+            ].map(({ key, weight, color }) => (
               <div
                 key={key}
                 className="rounded-xl p-4 text-center space-y-1"
@@ -435,13 +435,16 @@ export default function LandingPage() {
                 </p>
                 <p
                   className="font-mono text-xs font-semibold"
-                  style={{ color: "var(--theme-accent)" }}
+                  style={{ color }}
                 >
                   {weight}
                 </p>
               </div>
             ))}
           </div>
+          <p className="text-xs text-center mt-5" style={{ color: "color-mix(in srgb, var(--theme-muted) 55%, transparent)" }}>
+            Visual design and UX evaluation included · <a href="/docs" className="underline underline-offset-2 hover:opacity-80">Full methodology →</a>
+          </p>
         </div>
       </section>
 
