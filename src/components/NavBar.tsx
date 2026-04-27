@@ -1,6 +1,7 @@
 "use client";
 import { useState } from "react";
 import { Menu, X } from "lucide-react";
+import { buildStrategyCallCalendlyUrl } from "@/lib/strategy-call";
 
 const NAV_LINKS = [
   { href: "/benchmarks", label: "Benchmarks" },
@@ -28,10 +29,23 @@ export function NavBar() {
         </a>
 
         {/* Desktop links */}
-        <div className="hidden sm:flex items-center gap-5 text-xs" style={{ color: "var(--theme-muted)" }}>
-          {NAV_LINKS.map((l) => (
-            <a key={l.href} href={l.href} className="hover:opacity-80 transition-opacity">{l.label}</a>
-          ))}
+        <div className="hidden sm:flex items-center gap-4 text-xs">
+          <div className="flex items-center gap-5" style={{ color: "var(--theme-muted)" }}>
+            {NAV_LINKS.map((l) => (
+              <a key={l.href} href={l.href} className="hover:opacity-80 transition-opacity">
+                {l.label}
+              </a>
+            ))}
+          </div>
+          <a
+            href={buildStrategyCallCalendlyUrl({ medium: "navbar" })}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="shrink-0 rounded-xl px-4 py-2 font-bold transition-opacity hover:opacity-90"
+            style={{ backgroundColor: "var(--theme-accent)", color: "var(--theme-accent-foreground)" }}
+          >
+            Strategy Call
+          </a>
         </div>
 
         {/* Mobile hamburger */}
@@ -67,6 +81,16 @@ export function NavBar() {
                 {l.label}
               </a>
             ))}
+            <a
+              href={buildStrategyCallCalendlyUrl({ medium: "navbar" })}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="flex items-center py-3 text-sm font-bold hover:opacity-90 transition-opacity"
+              style={{ color: "var(--theme-accent-foreground)", backgroundColor: "var(--theme-accent)", borderRadius: "12px", marginTop: "0.5rem", justifyContent: "center" }}
+              onClick={() => setOpen(false)}
+            >
+              Strategy Call
+            </a>
             <a
               href="/"
               className="flex items-center py-3 text-sm font-medium hover:opacity-80 transition-opacity"
