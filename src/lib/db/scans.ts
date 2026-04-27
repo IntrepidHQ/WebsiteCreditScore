@@ -1,4 +1,5 @@
 import "server-only";
+import { randomUUID } from "crypto";
 import { createClient } from "@/lib/supabase/server";
 import type { WCSReport } from "@/lib/schema";
 
@@ -27,6 +28,21 @@ export async function getScan(id: string): Promise<Scan | null> {
     .single();
   if (error) return null;
   return data as Scan;
+}
+
+/** Dev / limited-time: create a paid scan row without Stripe (guard with env on the API route). */
+export async function createFreeBypassScan(domain: string): Promise<{ id: string }> {
+  const supabase = await createClient();
+  const id = randomUUID();
+  const { error } = await supabase.from("scans").insert({
+    id,
+    domain,
+    status: "pending" as ScanStatus,
+    paid: true,
+    stripe_session_id: `free_scan_${id.replace(/-/g, "").slice(0, 12)}`,
+  });
+  if (error) throw new Error(`Failed to create scan: ${error.message}`);
+  return { id };
 }
 
 export async function createScan(opts: {
@@ -158,6 +174,7 @@ export async function getCachedResult(domain: string): Promise<WCSReport | null>
     .select("result")
     .eq("domain", domain)
     .eq("status", "done")
+    .eq("paid", true)
     .gt("created_at", cutoff)
     .order("created_at", { ascending: false })
     .limit(1)

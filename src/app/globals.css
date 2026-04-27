@@ -98,6 +98,24 @@ html {
   scroll-behavior: smooth;
 }
 
+@keyframes research-marquee {
+  from { transform: translateX(0); }
+  to { transform: translateX(-50%); }
+}
+
+.research-marquee-track {
+  display: flex;
+  width: max-content;
+  gap: 3.25rem;
+  animation: research-marquee 42s linear infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .research-marquee-track {
+    animation: none;
+  }
+}
+
 @keyframes scan-bar-shimmer {
   0% { background-position: 0% 50%; }
   100% { background-position: 200% 50%; }
@@ -140,6 +158,15 @@ html {
   letter-spacing: -0.03em;
   line-height: 0.98;
   text-wrap: balance;
+}
+
+/* Numeric scores and grades — Instrument Serif */
+.font-score {
+  font-family: var(--theme-font-display-stack) !important;
+  font-weight: 400 !important;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: -0.02em;
+  line-height: 1;
 }
 
 p, li, figcaption {

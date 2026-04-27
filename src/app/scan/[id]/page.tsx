@@ -1,6 +1,10 @@
+import type { ReactNode } from "react";
 import { getScan } from "@/lib/db/scans";
 import { LiveReport } from "./live-report";
 import type { WCSReport } from "@/lib/schema";
+import { NavBar } from "@/components/NavBar";
+import { SiteFooter } from "@/components/SiteFooter";
+import { ScrollToTop } from "@/components/ScrollToTop";
 
 interface Props {
   params: Promise<{ id: string }>;
@@ -12,19 +16,32 @@ export default async function ScanPage({ params }: Props) {
   const { id } = await params;
   const scan = await getScan(id);
 
+  const shell = (inner: ReactNode) => (
+    <main className="flex min-h-screen flex-col" style={{ backgroundColor: "var(--theme-background)" }}>
+      <ScrollToTop />
+      <NavBar />
+      <div className="flex flex-1 flex-col">{inner}</div>
+      <SiteFooter />
+    </main>
+  );
+
   // Scan not found yet — webhook may still be in flight after Stripe redirect
   if (!scan) {
-    return (
-      <div className="min-h-screen flex items-center justify-center p-6">
+    return shell(
+      <div className="flex flex-1 items-center justify-center p-6">
         <div className="text-center max-w-sm space-y-3">
           <div
             className="w-12 h-12 rounded-full border flex items-center justify-center mx-auto"
             style={{ borderColor: "#f7b21b44", backgroundColor: "#f7b21b11" }}
           >
-            <span style={{ color: "#f7b21b" }} className="text-xl">⏳</span>
+            <span style={{ color: "#f7b21b" }} className="text-xl">
+              ⏳
+            </span>
           </div>
-          <h1 className="font-semibold">Verifying Payment</h1>
-          <p className="text-sm" style={{ color: "var(--theme-muted, #98a6ba)" }}>
+          <h1 className="font-semibold" style={{ color: "var(--theme-foreground)" }}>
+            Verifying Payment
+          </h1>
+          <p className="text-sm" style={{ color: "var(--theme-muted)" }}>
             Your payment is being confirmed. This page will refresh automatically.
           </p>
           <script
@@ -38,19 +55,22 @@ export default async function ScanPage({ params }: Props) {
   }
 
   if (!scan.paid) {
-    return (
-      <div className="min-h-screen flex items-center justify-center p-6">
+    return shell(
+      <div className="flex flex-1 items-center justify-center p-6">
         <div className="text-center max-w-sm space-y-3">
           <div
             className="w-12 h-12 rounded-full border flex items-center justify-center mx-auto"
             style={{ borderColor: "#f7b21b44", backgroundColor: "#f7b21b11" }}
           >
-            <span style={{ color: "#f7b21b" }} className="text-xl">⏳</span>
+            <span style={{ color: "#f7b21b" }} className="text-xl">
+              ⏳
+            </span>
           </div>
-          <h1 className="font-semibold">Payment Pending</h1>
-          <p className="text-sm" style={{ color: "var(--theme-muted, #98a6ba)" }}>
-            Your payment is being confirmed. This page will automatically
-            refresh once payment is complete.
+          <h1 className="font-semibold" style={{ color: "var(--theme-foreground)" }}>
+            Payment Pending
+          </h1>
+          <p className="text-sm" style={{ color: "var(--theme-muted)" }}>
+            Your payment is being confirmed. This page will automatically refresh once payment is complete.
           </p>
           <script
             dangerouslySetInnerHTML={{
@@ -62,12 +82,14 @@ export default async function ScanPage({ params }: Props) {
     );
   }
 
-  return (
-    <LiveReport
-      scanId={id}
-      domain={scan.domain}
-      initialStatus={scan.status}
-      initialResult={scan.result as WCSReport | null}
-    />
+  return shell(
+    <div className="mx-auto w-full flex-1 px-4 sm:px-6">
+      <LiveReport
+        scanId={id}
+        domain={scan.domain}
+        initialStatus={scan.status}
+        initialResult={scan.result as WCSReport | null}
+      />
+    </div>
   );
 }

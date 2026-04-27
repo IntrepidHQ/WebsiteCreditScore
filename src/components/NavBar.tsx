@@ -18,8 +18,13 @@ export function NavBar() {
         className="px-6 py-4 flex items-center justify-between sticky top-0 z-50 backdrop-blur-sm"
         style={{ borderBottom: "1px solid var(--theme-border)", backgroundColor: "color-mix(in srgb, var(--theme-background) 85%, transparent)" }}
       >
-        <a href="/" className="font-semibold tracking-tight text-sm hover:opacity-80 transition-opacity" style={{ color: "var(--theme-foreground)" }}>
-          WebsiteCreditScore.com
+        <a
+          href="/"
+          className="font-display tracking-tight hover:opacity-80 transition-opacity leading-none"
+          style={{ color: "var(--theme-foreground)", fontSize: "clamp(1.6rem, 2.6vw, 2rem)" }}
+        >
+          WebsiteCreditScore
+          <span style={{ color: "var(--theme-accent)" }}>.com</span>
         </a>
 
         {/* Desktop links */}

@@ -1,7 +1,24 @@
 import type { Metadata } from "next";
+import {
+  Home,
+  Stethoscope,
+  Monitor,
+  CreditCard,
+  Scale,
+  Building2,
+  Dumbbell,
+  Sparkles,
+  HardHat,
+  UtensilsCrossed,
+  Smile,
+  ShoppingBag,
+  type LucideIcon,
+} from "lucide-react";
 import { getBenchmarkRubric } from "@/lib/benchmarks/library";
 import type { BenchmarkVertical } from "@/lib/types/audit";
 import { ScrollToTop } from "@/components/ScrollToTop";
+import { NavBar } from "@/components/NavBar";
+import { SiteFooter } from "@/components/SiteFooter";
 
 export const metadata: Metadata = {
   title: "Website Benchmark Standards — WebsiteCreditScore",
@@ -16,19 +33,19 @@ export const metadata: Metadata = {
 
 // ── Data ─────────────────────────────────────────────────────────────────────
 
-const verticals: Array<{ id: BenchmarkVertical; label: string; icon: string; color: string }> = [
-  { id: "service-providers",      label: "Home & Service",       icon: "🏠", color: "#60a5fa" },
-  { id: "private-healthcare",     label: "Private Care",         icon: "🏥", color: "#4ade80" },
-  { id: "product-saas",           label: "Product & SaaS",       icon: "🖥️", color: "#818cf8" },
-  { id: "fintech",                label: "Fintech",              icon: "💳", color: "#f7b21b" },
-  { id: "legal",                  label: "Law Firms",            icon: "⚖️", color: "#34d399" },
-  { id: "real-estate",            label: "Real Estate",          icon: "🏡", color: "#fb923c" },
-  { id: "fitness",                label: "Fitness & Studios",    icon: "🏋️", color: "#f472b6" },
-  { id: "beauty-wellness",        label: "Beauty & Wellness",    icon: "💆", color: "#38bdf8" },
-  { id: "construction-trades",    label: "Construction & Trades",icon: "🔨", color: "#a78bfa" },
-  { id: "restaurant-hospitality", label: "Restaurants",          icon: "🍽️", color: "#facc15" },
-  { id: "dental",                 label: "Dental Practices",     icon: "🦷", color: "#4ade80" },
-  { id: "retail-ecommerce",       label: "Retail & E-commerce",  icon: "🛍️", color: "#f7b21b" },
+const verticals: Array<{ id: BenchmarkVertical; label: string; icon: LucideIcon; color: string }> = [
+  { id: "service-providers",      label: "Home & Service",        icon: Home,           color: "#60a5fa" },
+  { id: "private-healthcare",     label: "Private Care",          icon: Stethoscope,    color: "#4ade80" },
+  { id: "product-saas",           label: "Product & SaaS",        icon: Monitor,        color: "#818cf8" },
+  { id: "fintech",                label: "Fintech",               icon: CreditCard,     color: "#f7b21b" },
+  { id: "legal",                  label: "Law Firms",           icon: Scale,          color: "#34d399" },
+  { id: "real-estate",            label: "Real Estate",           icon: Building2,      color: "#fb923c" },
+  { id: "fitness",                label: "Fitness & Studios",     icon: Dumbbell,       color: "#f472b6" },
+  { id: "beauty-wellness",        label: "Beauty & Wellness",     icon: Sparkles,       color: "#38bdf8" },
+  { id: "construction-trades",    label: "Construction & Trades", icon: HardHat,        color: "#a78bfa" },
+  { id: "restaurant-hospitality", label: "Restaurants",           icon: UtensilsCrossed, color: "#facc15" },
+  { id: "dental",                 label: "Dental Practices",      icon: Smile,          color: "#4ade80" },
+  { id: "retail-ecommerce",       label: "Retail & E-commerce",   icon: ShoppingBag,    color: "#f7b21b" },
 ];
 
 const scoreTiers = [
@@ -71,53 +88,176 @@ const GRADE_THRESHOLDS: Array<{ score: number; grade: string; color: string }> =
 
 function ScoreSpectrumBar() {
   const markers = [
-    { score: 0,   grade: "F",   color: "#f87171" },
-    { score: 35,  grade: "D",   color: "#f87171" },
-    { score: 55,  grade: "C",   color: "#fb923c" },
-    { score: 65,  grade: "B",   color: "#f7b21b" },
-    { score: 75,  grade: "B+",  color: "#f7b21b" },
-    { score: 80,  grade: "A−",  color: "#86efac" },
-    { score: 88,  grade: "A",   color: "#4ade80" },
-    { score: 95,  grade: "A+",  color: "#4ade80" },
-    { score: 100, grade: "",    color: "#4ade80" },
+    { score: 35, grade: "D" },
+    { score: 55, grade: "C" },
+    { score: 65, grade: "B" },
+    { score: 75, grade: "B+" },
+    { score: 80, grade: "A−" },
+    { score: 88, grade: "A" },
+    { score: 95, grade: "A+" },
   ];
 
   return (
-    <div className="w-full space-y-2">
-      <svg width="100%" height="48" viewBox="0 0 800 48" preserveAspectRatio="none">
-        <defs>
-          <linearGradient id="spectrum" x1="0" y1="0" x2="1" y2="0">
-            <stop offset="0%"   stopColor="#f87171" />
-            <stop offset="35%"  stopColor="#fb923c" />
-            <stop offset="65%"  stopColor="#f7b21b" />
-            <stop offset="88%"  stopColor="#86efac" />
-            <stop offset="100%" stopColor="#4ade80" />
-          </linearGradient>
-        </defs>
-        <rect x="0" y="8" width="800" height="20" rx="10" fill="url(#spectrum)" opacity="0.85" />
-        {markers.map(({ score, grade }) => score > 0 && score < 100 ? (
-          <g key={score}>
-            <line
-              x1={score * 8} y1="6"
-              x2={score * 8} y2="30"
-              stroke="rgba(0,0,0,0.3)" strokeWidth="1"
-            />
-            <text
-              x={score * 8}
-              y="44"
-              textAnchor="middle"
-              fontSize="9"
-              fill="rgba(150,142,106,0.8)"
-              fontFamily="monospace"
-            >{grade}</text>
-          </g>
-        ) : null)}
-      </svg>
-      <div className="flex justify-between text-xs font-mono" style={{ color: "var(--theme-muted)" }}>
+    <div className="w-full space-y-3">
+      <div className="w-full overflow-x-auto overscroll-x-contain pb-1 sm:overflow-visible">
+        <div className="relative mx-auto min-w-[280px] max-w-full sm:min-w-0">
+          <div
+            className="h-3 w-full rounded-full sm:h-3.5"
+            style={{
+              background:
+                "linear-gradient(90deg, #f87171 0%, #fb923c 30%, #f7b21b 56%, #86efac 80%, #4ade80 100%)",
+              opacity: 0.92,
+            }}
+          />
+          <div className="relative mt-2 min-h-[2.25rem]">
+            {markers.map(({ score, grade }) => (
+              <div
+                key={score}
+                className="absolute top-0 flex -translate-x-1/2 flex-col items-center"
+                style={{ left: `${score}%` }}
+              >
+                <div
+                  className="h-4 w-px"
+                  style={{ backgroundColor: "color-mix(in srgb, var(--theme-foreground) 28%, transparent)" }}
+                  aria-hidden
+                />
+                <span
+                  className="font-score mt-1 text-[10px] tracking-tight sm:text-[11px] whitespace-nowrap"
+                  style={{ color: "var(--theme-muted)" }}
+                >
+                  {grade}
+                </span>
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+      <div className="flex justify-between text-xs font-score" style={{ color: "var(--theme-muted)" }}>
         <span>0</span>
         <span>50</span>
         <span>100</span>
       </div>
+    </div>
+  );
+}
+
+/** Flat geometric hero art per vertical — no photography, no skeuomorphic icons */
+function IndustryFlatHero({ id, color }: { id: BenchmarkVertical; color: string }) {
+  const art = (() => {
+    switch (id) {
+      case "service-providers":
+        return (
+          <>
+            <rect x="8" y="42" width="62" height="36" rx="8" fill={color} opacity="0.38" />
+            <rect x="24" y="22" width="30" height="14" rx="4" fill={color} opacity="0.22" />
+          </>
+        );
+      case "private-healthcare":
+        return (
+          <>
+            <rect x="16" y="18" width="48" height="58" rx="12" fill={color} opacity="0.28" />
+            <circle cx="54" cy="36" r="14" fill={color} opacity="0.45" />
+          </>
+        );
+      case "product-saas":
+        return (
+          <>
+            <rect x="12" y="26" width="64" height="44" rx="8" fill={color} opacity="0.32" />
+            <rect x="22" y="16" width="44" height="10" rx="3" fill={color} opacity="0.2" />
+          </>
+        );
+      case "fintech":
+        return (
+          <>
+            <rect x="14" y="34" width="60" height="38" rx="9" fill={color} opacity="0.34" />
+            <rect x="26" y="20" width="36" height="10" rx="3" fill={color} opacity="0.5" />
+          </>
+        );
+      case "legal":
+        return (
+          <>
+            <path d="M48 16 L68 72 L28 72 Z" fill={color} opacity="0.35" />
+            <rect x="30" y="52" width="36" height="10" rx="2" fill={color} opacity="0.25" />
+          </>
+        );
+      case "real-estate":
+        return (
+          <>
+            <path d="M20 52 L48 24 L76 52 Z" fill={color} opacity="0.4" />
+            <rect x="38" y="46" width="20" height="22" rx="2" fill={color} opacity="0.28" />
+          </>
+        );
+      case "fitness":
+        return (
+          <>
+            <rect x="18" y="20" width="52" height="52" rx="14" fill={color} opacity="0.22" />
+            <rect x="30" y="32" width="28" height="28" rx="6" fill={color} opacity="0.42" />
+          </>
+        );
+      case "beauty-wellness":
+        return (
+          <>
+            <circle cx="40" cy="40" r="26" fill={color} opacity="0.3" />
+            <circle cx="58" cy="32" r="12" fill={color} opacity="0.45" />
+          </>
+        );
+      case "construction-trades":
+        return (
+          <>
+            <rect x="10" y="48" width="68" height="14" rx="3" fill={color} opacity="0.4" />
+            <rect x="22" y="22" width="16" height="30" rx="2" fill={color} opacity="0.32" />
+            <rect x="50" y="30" width="16" height="22" rx="2" fill={color} opacity="0.32" />
+          </>
+        );
+      case "restaurant-hospitality":
+        return (
+          <>
+            <ellipse cx="44" cy="44" rx="34" ry="22" fill={color} opacity="0.28" />
+            <rect x="28" y="30" width="36" height="8" rx="2" fill={color} opacity="0.45" />
+          </>
+        );
+      case "dental":
+        return (
+          <>
+            <path
+              d="M30 22 Q44 12 58 22 Q66 40 58 58 Q44 68 30 58 Q22 40 30 22 Z"
+              fill={color}
+              opacity="0.34"
+            />
+            <rect x="34" y="36" width="20" height="10" rx="3" fill={color} opacity="0.25" />
+          </>
+        );
+      case "retail-ecommerce":
+        return (
+          <>
+            <rect x="14" y="26" width="56" height="42" rx="10" fill={color} opacity="0.3" />
+            <path d="M26 26 L44 14 L62 26 Z" fill={color} opacity="0.38" />
+          </>
+        );
+    }
+  })();
+
+  return (
+    <div
+      className="relative mb-3 h-28 w-full overflow-hidden rounded-xl"
+      style={{
+        backgroundColor: "var(--theme-elevated)",
+        border: "1px solid color-mix(in srgb, var(--theme-border) 85%, transparent)",
+      }}
+    >
+      <div
+        className="absolute inset-0"
+        style={{
+          background: `linear-gradient(145deg, color-mix(in srgb, ${color} 38%, transparent) 0%, transparent 58%), linear-gradient(300deg, color-mix(in srgb, ${color} 22%, transparent), transparent 62%)`,
+        }}
+      />
+      <svg
+        className="absolute -right-3 -bottom-10 h-40 w-44"
+        viewBox="0 0 96 96"
+        aria-hidden
+      >
+        {art}
+      </svg>
     </div>
   );
 }
@@ -143,8 +283,8 @@ function ProgressRing({ score, color, size = 80 }: { score: number; color: strin
         strokeLinecap="round"
         style={{ filter: `drop-shadow(0 0 4px ${color}66)` }}
       />
-      <text x={cx} y={cy - 3} textAnchor="middle" fontSize={size * 0.22} fontWeight="bold" fontFamily="monospace" fill={color}>{grade}</text>
-      <text x={cx} y={cy + size * 0.16} textAnchor="middle" fontSize={size * 0.12} fill="rgba(150,142,106,0.7)" fontFamily="monospace">{score}</text>
+      <text x={cx} y={cy - 3} textAnchor="middle" fontSize={size * 0.22} fontWeight="400" fontFamily="'Instrument Serif', Georgia, serif" fill={color}>{grade}</text>
+      <text x={cx} y={cy + size * 0.16} textAnchor="middle" fontSize={size * 0.12} fill="rgba(150,142,106,0.7)" fontFamily="'Instrument Serif', Georgia, serif">{score}</text>
     </svg>
   );
 }
@@ -165,7 +305,7 @@ function DimensionWeightBar({ dim }: { dim: typeof dimensions[number] }) {
           }}
         />
       </div>
-      <span className="text-xs font-mono font-bold w-8 text-right shrink-0" style={{ color: dim.color }}>
+      <span className="text-xs font-score font-bold w-8 text-right shrink-0" style={{ color: dim.color }}>
         {dim.weight}%
       </span>
     </div>
@@ -211,7 +351,7 @@ function SampleRadarChart() {
       {/* Center grade */}
       <circle cx={cx} cy={cy} r={20} fill="#000" />
       <circle cx={cx} cy={cy} r={20} fill="none" stroke="rgba(247,178,27,0.25)" strokeWidth={1} />
-      <text x={cx} y={cy + 5} textAnchor="middle" fontSize={13} fontWeight="bold" fontFamily="monospace" fill="#f7b21b">
+      <text x={cx} y={cy + 5} textAnchor="middle" fontSize={14} fontWeight="400" fontFamily="'Instrument Serif', Georgia, serif" fill="#f7b21b">
         {GRADE_THRESHOLDS.find((t) => avgScore >= t.score)?.grade}
       </text>
     </svg>
@@ -270,21 +410,9 @@ function GradeDistributionChart() {
 
 export default function BenchmarksPage() {
   return (
-    <main className="min-h-screen" style={{ backgroundColor: "var(--theme-background)" }}>
+    <main className="flex min-h-screen flex-col" style={{ backgroundColor: "var(--theme-background)" }}>
       <ScrollToTop />
-
-      {/* Nav */}
-      <nav
-        className="px-6 py-4 flex items-center justify-between"
-        style={{ borderBottom: "1px solid var(--theme-border)" }}
-      >
-        <a href="/" className="text-sm font-semibold tracking-tight hover:opacity-80 transition-opacity" style={{ color: "var(--theme-foreground)" }}>
-          WebsiteCreditScore
-        </a>
-        <a href="/" className="text-xs hover:opacity-80 transition-opacity" style={{ color: "var(--theme-muted)" }}>
-          ← Run a scan
-        </a>
-      </nav>
+      <NavBar />
 
       {/* Hero */}
       <section className="px-6 py-16" style={{ borderBottom: "1px solid var(--theme-border)" }}>
@@ -299,7 +427,7 @@ export default function BenchmarksPage() {
               </div>
               <h1
                 className="font-display leading-tight"
-                style={{ fontSize: "clamp(2.2rem,5vw,3.5rem)", color: "var(--theme-foreground)" }}
+                style={{ fontSize: "clamp(2.85rem, 5.5vw, 4.25rem)", color: "var(--theme-foreground)" }}
               >
                 What makes a website
                 <br />
@@ -335,7 +463,7 @@ export default function BenchmarksPage() {
                       <div key={d.key} className="flex items-center gap-2">
                         <div className="w-1.5 h-1.5 rounded-full shrink-0" style={{ backgroundColor: d.color }} />
                         <span style={{ color: "var(--theme-muted)" }}>{d.label}</span>
-                        <span className="font-mono ml-auto" style={{ color: d.color }}>{DEMO_SCORES[i]}</span>
+                        <span className="font-score ml-auto" style={{ color: d.color }}>{DEMO_SCORES[i]}</span>
                       </div>
                     ))}
                     <p className="text-xs pt-1" style={{ color: "color-mix(in srgb, var(--theme-muted) 50%, transparent)" }}>
@@ -366,7 +494,7 @@ export default function BenchmarksPage() {
       >
         <div className="max-w-5xl mx-auto">
           <div className="mb-8">
-            <h2 className="font-display mb-1" style={{ fontSize: "clamp(1.5rem,3vw,2rem)", color: "var(--theme-foreground)" }}>
+            <h2 className="font-display mb-1" style={{ fontSize: "clamp(2rem, 3.5vw, 2.75rem)", color: "var(--theme-foreground)" }}>
               Score tiers
             </h2>
             <p className="text-sm" style={{ color: "var(--theme-muted)" }}>
@@ -413,7 +541,7 @@ export default function BenchmarksPage() {
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-start">
             {/* Left: weight bars */}
             <div>
-              <h2 className="font-display mb-1" style={{ fontSize: "clamp(1.5rem,3vw,2rem)", color: "var(--theme-foreground)" }}>
+              <h2 className="font-display mb-1" style={{ fontSize: "clamp(2rem, 3.5vw, 2.75rem)", color: "var(--theme-foreground)" }}>
                 The 10 scoring dimensions
               </h2>
               <p className="text-sm mb-8" style={{ color: "var(--theme-muted)" }}>
@@ -442,7 +570,7 @@ export default function BenchmarksPage() {
                     <div className="flex items-center justify-between gap-2 mb-1">
                       <p className="text-xs font-semibold" style={{ color: "var(--theme-foreground)" }}>{dim.label}</p>
                       <span
-                        className="text-xs font-mono font-bold shrink-0 px-1.5 py-0.5 rounded"
+                        className="text-xs font-score font-bold shrink-0 px-1.5 py-0.5 rounded"
                         style={{ color: dim.color, backgroundColor: `${dim.color}15` }}
                       >
                         {dim.weight}%
@@ -463,7 +591,7 @@ export default function BenchmarksPage() {
         style={{ borderBottom: "1px solid var(--theme-border)", backgroundColor: "var(--theme-background-alt)" }}
       >
         <div className="max-w-5xl mx-auto">
-          <h2 className="font-display mb-1" style={{ fontSize: "clamp(1.5rem,3vw,2rem)", color: "var(--theme-foreground)" }}>
+          <h2 className="font-display mb-1" style={{ fontSize: "clamp(2rem, 3.5vw, 2.75rem)", color: "var(--theme-foreground)" }}>
             Industry-specific standards
           </h2>
           <p className="text-sm mb-10" style={{ color: "var(--theme-muted)" }}>
@@ -472,20 +600,26 @@ export default function BenchmarksPage() {
 
           {/* Visual vertical grid */}
           <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3 mb-10">
-            {verticals.map(({ id, label, icon, color }) => {
+            {verticals.map(({ id, label, icon: Icon, color }) => {
               const rubric = getBenchmarkRubric(id);
               const liftCount = rubric?.fastLifts?.length ?? 0;
               return (
                 <div
                   key={id}
-                  className="rounded-2xl p-4 flex flex-col gap-3"
+                  className="rounded-2xl p-3 sm:p-4 flex flex-col gap-2 sm:gap-3"
                   style={{ border: `1px solid ${color}25`, backgroundColor: `color-mix(in srgb, var(--theme-panel) 90%, ${color}08)` }}
                 >
-                  <div className="flex items-start justify-between">
-                    <span className="text-2xl">{icon}</span>
+                  <IndustryFlatHero id={id} color={color} />
+                  <div className="flex items-start justify-between gap-2">
+                    <div
+                      className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl"
+                      style={{ backgroundColor: `${color}18`, border: `1px solid ${color}28` }}
+                    >
+                      <Icon className="h-5 w-5" style={{ color }} strokeWidth={1.75} aria-hidden />
+                    </div>
                     {liftCount > 0 && (
                       <span
-                        className="text-xs font-bold px-1.5 py-0.5 rounded-full"
+                        className="text-xs font-bold px-1.5 py-0.5 rounded-full shrink-0"
                         style={{ backgroundColor: `${color}20`, color }}
                       >
                         {liftCount} lifts
@@ -513,7 +647,7 @@ export default function BenchmarksPage() {
             Rubric details by industry
           </h3>
           <div className="space-y-3">
-            {verticals.map(({ id, label, icon, color }) => {
+            {verticals.map(({ id, label, icon: Icon, color }) => {
               const rubric = getBenchmarkRubric(id);
               if (!rubric) return null;
               return (
@@ -528,10 +662,10 @@ export default function BenchmarksPage() {
                   >
                     <div className="flex items-center gap-3">
                       <span
-                        className="w-8 h-8 rounded-lg flex items-center justify-center text-base shrink-0"
-                        style={{ backgroundColor: `${color}18` }}
+                        className="w-8 h-8 rounded-lg flex items-center justify-center shrink-0"
+                        style={{ backgroundColor: `${color}18`, border: `1px solid ${color}25` }}
                       >
-                        {icon}
+                        <Icon className="h-4 w-4" style={{ color }} strokeWidth={1.75} aria-hidden />
                       </span>
                       <div>
                         <p className="text-sm font-semibold" style={{ color: "var(--theme-foreground)" }}>{label}</p>
@@ -599,7 +733,7 @@ export default function BenchmarksPage() {
       {/* CTA */}
       <section className="px-6 py-16 text-center" style={{ borderTop: "1px solid var(--theme-border)" }}>
         <div className="max-w-xl mx-auto space-y-6">
-          <h2 className="font-display" style={{ fontSize: "clamp(1.8rem,3.5vw,2.5rem)", color: "var(--theme-foreground)" }}>
+          <h2 className="font-display" style={{ fontSize: "clamp(2.25rem, 4vw, 3.25rem)", color: "var(--theme-foreground)" }}>
             See how any site scores
           </h2>
           <p className="text-sm" style={{ color: "var(--theme-muted)" }}>
@@ -615,19 +749,7 @@ export default function BenchmarksPage() {
         </div>
       </section>
 
-      <footer
-        className="px-6 py-6 text-center text-xs"
-        style={{ borderTop: "1px solid var(--theme-border)", color: "color-mix(in srgb, var(--theme-muted) 60%, transparent)" }}
-      >
-        <div className="flex flex-wrap items-center justify-center gap-4 mb-2">
-          <a href="/pricing" className="hover:opacity-80 transition-opacity">Pricing</a>
-          <a href="/blog" className="hover:opacity-80 transition-opacity">Blog</a>
-          <a href="/docs" className="hover:opacity-80 transition-opacity">Docs</a>
-          <a href="/privacy" className="hover:opacity-80 transition-opacity">Privacy</a>
-          <a href="/terms" className="hover:opacity-80 transition-opacity">Terms</a>
-        </div>
-        WebsiteCreditScore · Not financial advice · Reports reflect AI research at time of scan
-      </footer>
+      <SiteFooter />
     </main>
   );
 }

@@ -1,8 +1,15 @@
+import Link from "next/link";
 import { getRecentScans } from "@/lib/db/scans";
-import { ScanForm } from "@/components/ScanForm";
+import { ScanForm, type TierMode } from "@/components/ScanForm";
+import { WalletBadge } from "@/components/WalletBadge";
 import { QuantumWeb } from "@/components/QuantumWeb";
 import { NavBar } from "@/components/NavBar";
+import { SiteFooter } from "@/components/SiteFooter";
+import { ResearchSourcesMarquee } from "@/components/ResearchSourcesMarquee";
+import { HeroVisualShowcase } from "@/components/HeroVisualShowcase";
 import { ScrollToTop } from "@/components/ScrollToTop";
+import { RESEARCH_SOURCES_PER_SCAN } from "@/lib/research-sources";
+import { getBlogIconForSlug } from "@/lib/blog/icons";
 import {
   Building2, Star, Palette, MousePointer2,
   Eye, Zap, FileText, Share2, Clock, TrendingUp,
@@ -23,6 +30,19 @@ const ANGLES = [
   { key: "financial",       label: "Financial Signals",        score: 99, grade: "A+", color: "#facc15",  icon: TrendingUp,    desc: "$394B revenue, $3.3T market cap. Most profitable tech company." },
 ];
 
+const ANGLE_BLOG_SLUG: Record<string, string> = {
+  legitimacy: "business-legitimacy",
+  reputation: "online-reputation",
+  visual_design: "visual-design",
+  ux_conversion: "ux-conversion",
+  transparency: "transparency",
+  technical: "technical-health",
+  content: "content-quality",
+  social_presence: "social-presence",
+  longevity: "longevity",
+  financial: "financial-signals",
+};
+
 function gradeLabel(grade: string): string {
   if (grade === "A+" || grade === "A") return "EXCELLENT";
   if (grade === "A-" || grade === "B+" || grade === "B") return "GREAT";
@@ -37,65 +57,123 @@ function gradeToColor(grade: string): string {
   return "#f87171";
 }
 
-// ── SVG Radar chart (static, Apple data) ──────────────────────────────────
+// ── SVG Radar chart — stained-glass per-dimension slices ──────────────────
 function RadarChart() {
-  const size = 220;
+  const size = 360;
   const cx = size / 2;
   const cy = size / 2;
-  const maxR = 88;
-  const scores = ANGLES.map((a) => a.score / 100);
-  const N = scores.length;
+  const maxR = 128;
+  const N = ANGLES.length;
 
-  function pt(i: number, r: number) {
+  const pt = (i: number, r: number) => {
     const angle = (i / N) * 2 * Math.PI - Math.PI / 2;
-    return {
-      x: cx + r * Math.cos(angle),
-      y: cy + r * Math.sin(angle),
-    };
-  }
+    return { x: cx + r * Math.cos(angle), y: cy + r * Math.sin(angle) };
+  };
 
   const gridLevels = [0.25, 0.5, 0.75, 1];
-  const scorePath = scores.map((s, i) => {
-    const { x, y } = pt(i, s * maxR);
-    return `${i === 0 ? "M" : "L"}${x.toFixed(1)},${y.toFixed(1)}`;
-  }).join(" ") + " Z";
+  const avgScore = ANGLES.reduce((sum, a) => sum + a.score, 0) / (N * 10);
 
   return (
-    <svg width={size} height={size} viewBox={`0 0 ${size} ${size}`} className="mx-auto">
+    <svg width="100%" height="100%" viewBox={`0 0 ${size} ${size}`} className="block max-w-full" preserveAspectRatio="xMidYMid meet">
+      <defs>
+        {ANGLES.map((a, i) => {
+          const next = ANGLES[(i + 1) % N];
+          return (
+            <linearGradient key={`grad-${i}`} id={`slice-grad-${i}`} x1="0" y1="0" x2="1" y2="1">
+              <stop offset="0%" stopColor={a.color} stopOpacity="0.42" />
+              <stop offset="100%" stopColor={next.color} stopOpacity="0.22" />
+            </linearGradient>
+          );
+        })}
+        <radialGradient id="radar-glow" cx="50%" cy="50%" r="55%">
+          <stop offset="0%" stopColor="rgba(247,178,27,0.20)" />
+          <stop offset="80%" stopColor="rgba(247,178,27,0)" />
+        </radialGradient>
+      </defs>
+
+      <circle cx={cx} cy={cy} r={maxR + 8} fill="url(#radar-glow)" />
+
       {/* Grid rings */}
       {gridLevels.map((level) => {
         const ringPts = Array.from({ length: N }, (_, i) => pt(i, level * maxR));
         const d = ringPts.map((p, i) => `${i === 0 ? "M" : "L"}${p.x.toFixed(1)},${p.y.toFixed(1)}`).join(" ") + " Z";
         return <path key={level} d={d} fill="none" stroke="rgba(247,178,27,0.08)" strokeWidth={1} />;
       })}
+
       {/* Spokes */}
       {Array.from({ length: N }, (_, i) => {
         const outer = pt(i, maxR);
-        return <line key={i} x1={cx} y1={cy} x2={outer.x.toFixed(1)} y2={outer.y.toFixed(1)} stroke="rgba(247,178,27,0.06)" strokeWidth={1} />;
+        return <line key={`spoke-${i}`} x1={cx} y1={cy} x2={outer.x.toFixed(1)} y2={outer.y.toFixed(1)} stroke="rgba(247,178,27,0.07)" strokeWidth={1} />;
       })}
-      {/* Score polygon */}
-      <path d={scorePath} fill="rgba(247,178,27,0.12)" stroke="rgba(247,178,27,0.5)" strokeWidth={1.5} />
-      {/* Dimension dots */}
+
+      {/* Per-dimension triangular slices, each colored by its dimension */}
+      {ANGLES.map((a, i) => {
+        const next = ANGLES[(i + 1) % N];
+        const s1 = a.score / 100;
+        const s2 = next.score / 100;
+        const p1 = pt(i, s1 * maxR);
+        const p2 = pt((i + 1) % N, s2 * maxR);
+        const d = `M${cx},${cy} L${p1.x.toFixed(1)},${p1.y.toFixed(1)} L${p2.x.toFixed(1)},${p2.y.toFixed(1)} Z`;
+        return (
+          <path
+            key={`slice-${i}`}
+            d={d}
+            fill={`url(#slice-grad-${i})`}
+            stroke={a.color}
+            strokeOpacity={0.55}
+            strokeWidth={1.1}
+            strokeLinejoin="round"
+          />
+        );
+      })}
+
+      {/* Score chips at each vertex */}
       {ANGLES.map((a, i) => {
         const s = a.score / 100;
         const { x, y } = pt(i, s * maxR);
+        const chipR = 14;
         return (
-          <circle key={a.key} cx={x.toFixed(1)} cy={y.toFixed(1)} r={4} fill={a.color} fillOpacity={0.9} />
+          <g key={`chip-${i}`}>
+            <circle cx={x} cy={y} r={chipR} fill="rgba(14,14,7,0.92)" stroke={a.color} strokeWidth={1.4} />
+            <text
+              x={x}
+              y={y + 3.5}
+              textAnchor="middle"
+              fontSize={10}
+              fontWeight="600"
+              fontFamily="'Instrument Serif', Georgia, serif"
+              fill={a.color}
+            >
+              {(a.score / 10).toFixed(1)}
+            </text>
+          </g>
         );
       })}
-      {/* Grade in center */}
-      <circle cx={cx} cy={cy} r={22} fill="#000" />
-      <circle cx={cx} cy={cy} r={22} fill="none" stroke="rgba(247,178,27,0.3)" strokeWidth={1} />
+
+      {/* Center grade pill */}
+      <circle cx={cx} cy={cy} r={32} fill="rgba(14,14,7,0.96)" />
+      <circle cx={cx} cy={cy} r={32} fill="none" stroke="rgba(247,178,27,0.35)" strokeWidth={1} />
       <text
         x={cx}
-        y={cy + 6}
+        y={cy - 1}
         textAnchor="middle"
-        fontSize={16}
-        fontWeight="bold"
-        fontFamily="monospace"
+        fontSize={22}
+        fontWeight="400"
+        fontFamily="'Instrument Serif', Georgia, serif"
         fill="#f7b21b"
       >
-        A
+        {avgScore.toFixed(1)}
+      </text>
+      <text
+        x={cx}
+        y={cy + 13}
+        textAnchor="middle"
+        fontSize={7}
+        letterSpacing={1.5}
+        fontFamily="ui-monospace, monospace"
+        fill="rgba(150,142,106,0.8)"
+      >
+        AVG
       </text>
     </svg>
   );
@@ -106,11 +184,9 @@ function AngleCard({ angle }: { angle: typeof ANGLES[number] }) {
   const Icon = angle.icon;
   const lbl = gradeLabel(angle.grade);
   const lblColor = gradeToColor(angle.grade);
-  return (
-    <div
-      className="rounded-2xl p-5 flex flex-col gap-3 relative overflow-hidden"
-      style={{ border: "1px solid var(--theme-border)", backgroundColor: "var(--theme-panel)" }}
-    >
+  const blogSlug = ANGLE_BLOG_SLUG[angle.key];
+  const inner = (
+    <>
       <div className="flex items-start justify-between">
         <div
           className="w-10 h-10 rounded-xl flex items-center justify-center shrink-0"
@@ -119,8 +195,8 @@ function AngleCard({ angle }: { angle: typeof ANGLES[number] }) {
           <Icon className="w-5 h-5" style={{ color: angle.color }} />
         </div>
         <span
-          className="font-mono text-3xl font-bold leading-none"
-          style={{ color: angle.color }}
+          className="font-score leading-none"
+          style={{ color: angle.color, fontSize: "2.6rem" }}
         >
           {(angle.score / 10).toFixed(1)}
         </span>
@@ -140,114 +216,34 @@ function AngleCard({ angle }: { angle: typeof ANGLES[number] }) {
         >
           {lbl}
         </span>
-        <span className="text-xs font-mono" style={{ color: "var(--theme-muted)" }}>
+        <span className="text-xs font-score" style={{ color: "var(--theme-muted)" }}>
           {angle.score / 10} / 10
         </span>
       </div>
-    </div>
+    </>
   );
-}
-
-// ── Hero preview card (Apple.com) ─────────────────────────────────────────
-function HeroPreviewCard() {
-  const topTwo = ANGLES.slice(2, 4); // Visual Design + UX/Conversion
+  const shellClass =
+    "rounded-2xl p-5 flex flex-col gap-3 relative overflow-hidden transition-opacity hover:opacity-92";
+  const shellStyle = {
+    border: "1px solid var(--theme-border)",
+    backgroundColor: "var(--theme-panel)",
+  } as const;
+  if (blogSlug) {
+    return (
+      <Link href={`/blog/${blogSlug}`} className={`${shellClass} h-full`} style={shellStyle}>
+        {inner}
+        <span className="text-[10px] font-medium mt-auto pt-2" style={{ color: "var(--theme-accent)" }}>
+          Read dimension guide →
+        </span>
+      </Link>
+    );
+  }
   return (
-    <div
-      className="rounded-2xl overflow-hidden w-full max-w-lg"
-      style={{ border: "1px solid var(--theme-border)", backgroundColor: "var(--theme-panel)", boxShadow: "0 32px 80px rgba(0,0,0,0.4)" }}
-    >
-      {/* Browser bar */}
-      <div className="px-4 py-2.5 flex items-center gap-2" style={{ backgroundColor: "var(--theme-elevated)", borderBottom: "1px solid var(--theme-border)" }}>
-        <div className="flex gap-1.5">
-          <div className="w-2.5 h-2.5 rounded-full bg-red-500/60" />
-          <div className="w-2.5 h-2.5 rounded-full bg-yellow-400/60" />
-          <div className="w-2.5 h-2.5 rounded-full bg-green-500/60" />
-        </div>
-        <div className="flex-1 mx-3 rounded-md px-3 py-1 text-xs font-mono" style={{ backgroundColor: "var(--theme-panel)", color: "var(--theme-muted)" }}>
-          apple.com
-        </div>
-      </div>
-
-      {/* Site preview placeholder — stylized Apple.com impression */}
-      <div
-        className="relative h-44 flex flex-col items-center justify-center gap-2 overflow-hidden"
-        style={{ backgroundColor: "#f5f5f7" }}
-      >
-        <div className="text-[#1d1d1f] text-2xl font-bold tracking-tight">iPhone</div>
-        <div className="text-[#6e6e73] text-xs">Meet the latest iPhone lineup.</div>
-        <div className="flex gap-2 mt-1">
-          <div className="px-3 py-1 rounded-full text-xs font-medium" style={{ backgroundColor: "#0071e3", color: "#fff" }}>Learn more</div>
-          <div className="px-3 py-1 rounded-full text-xs font-medium border border-[#0071e3] text-[#0071e3]">Shop iPhone</div>
-        </div>
-        {/* Subtle overlay */}
-        <div className="absolute bottom-0 left-0 right-0 h-8" style={{ background: "linear-gradient(transparent, rgba(28,27,14,0.15))" }} />
-      </div>
-
-      {/* Score section */}
-      <div className="px-5 py-4" style={{ borderTop: "1px solid var(--theme-border)" }}>
-        <div className="flex items-start justify-between mb-4">
-          <div>
-            <p className="text-xs uppercase tracking-widest mb-1" style={{ color: "var(--theme-muted)" }}>
-              LIVE PROOF
-            </p>
-            <p className="font-display text-2xl" style={{ color: "var(--theme-foreground)" }}>Apple</p>
-            <p className="text-xs mt-0.5" style={{ color: "var(--theme-muted)" }}>
-              Category-defining restraint — the homepage feels like a product gallery with editorial confidence.
-            </p>
-          </div>
-          <div className="text-right shrink-0 ml-4">
-            <span
-              className="text-xs font-bold px-2 py-1 rounded-full"
-              style={{ backgroundColor: "#4ade8020", color: "#4ade80", border: "1px solid #4ade8040" }}
-            >
-              EXCELLENT
-            </span>
-            <div className="mt-2">
-              <div className="text-2xl font-mono font-bold" style={{ color: "#4ade80" }}>9.6</div>
-              <div className="text-xs" style={{ color: "var(--theme-muted)" }}>/10</div>
-            </div>
-          </div>
-        </div>
-
-        {/* Top 2 dimension bars */}
-        <div className="space-y-3">
-          {topTwo.map((dim) => (
-            <div key={dim.key}>
-              <div className="flex items-center justify-between mb-1">
-                <span className="text-xs font-medium" style={{ color: "var(--theme-foreground)" }}>
-                  {dim.label}
-                </span>
-                <span className="text-xs font-mono font-semibold" style={{ color: dim.color }}>
-                  {(dim.score / 10).toFixed(1)}/10
-                </span>
-              </div>
-              <div className="h-1.5 rounded-full overflow-hidden" style={{ backgroundColor: "var(--theme-border)" }}>
-                <div
-                  className="h-full rounded-full"
-                  style={{ width: `${dim.score}%`, backgroundColor: dim.color, opacity: 0.8 }}
-                />
-              </div>
-            </div>
-          ))}
-        </div>
-      </div>
+    <div className={shellClass} style={shellStyle}>
+      {inner}
     </div>
   );
 }
-
-// ── Platform trust logos ──────────────────────────────────────────────────
-const SOURCES = [
-  { name: "Google Reviews", domain: "google.com" },
-  { name: "Trustpilot",     domain: "trustpilot.com" },
-  { name: "Reddit",         domain: "reddit.com" },
-  { name: "BBB",            domain: "bbb.org" },
-  { name: "LinkedIn",       domain: "linkedin.com" },
-  { name: "Glassdoor",      domain: "glassdoor.com" },
-  { name: "BuiltWith",      domain: "builtwith.com" },
-  { name: "SSL Labs",       domain: "ssllabs.com" },
-  { name: "Crunchbase",     domain: "crunchbase.com" },
-  { name: "Wayback Machine",domain: "archive.org" },
-];
 
 // ── Page ──────────────────────────────────────────────────────────────────
 type Tier = "quick" | "standard" | "deep";
@@ -258,14 +254,15 @@ function isValidTier(t: unknown): t is Tier {
 export default async function LandingPage({
   searchParams,
 }: {
-  searchParams: Promise<{ tier?: string }>;
+  searchParams: Promise<{ tier?: string; mode?: string }>;
 }) {
-  const { tier: rawTier } = await searchParams;
+  const { tier: rawTier, mode: rawMode } = await searchParams;
   const defaultTier: Tier = isValidTier(rawTier) ? rawTier : "quick";
+  const tierMode: TierMode = rawMode === "max" ? "max" : "standard";
   const recentScans = await getRecentScans(6).catch(() => []);
 
   return (
-    <main className="min-h-screen flex flex-col" style={{ backgroundColor: "var(--theme-background)" }}>
+    <main className="flex min-h-screen flex-col" style={{ backgroundColor: "var(--theme-background)" }}>
       <ScrollToTop />
       <NavBar />
 
@@ -294,11 +291,13 @@ export default async function LandingPage({
             </div>
 
             <h1
-              className="font-display leading-[0.94]"
-              style={{ fontSize: "clamp(3rem,7vw,5rem)", color: "var(--theme-foreground)" }}
+              className="font-display leading-[0.96]"
+              style={{ fontSize: "clamp(3rem, 6vw, 5rem)", color: "var(--theme-foreground)" }}
             >
-              Trust nothing.{" "}
-              <span style={{ color: "var(--theme-accent)" }}>Verify everything.</span>
+              <span className="block sm:inline">Trust nothing.</span>{" "}
+              <span style={{ color: "var(--theme-accent)" }}>
+                Verify everything.
+              </span>
             </h1>
 
             <p className="text-base leading-relaxed max-w-md" style={{ color: "var(--theme-muted)" }}>
@@ -306,44 +305,39 @@ export default async function LandingPage({
               and get a clearer plan for what to improve first. Ten angles. One verdict.
             </p>
 
-            <div className="space-y-3">
-              <ScanForm large showTierSelect defaultTier={defaultTier} />
-              <p className="text-xs" style={{ color: "color-mix(in srgb, var(--theme-muted) 55%, transparent)" }}>
-                Instant results · No account needed · Score, breakdown, and action brief
-              </p>
-            </div>
+            <WalletBadge />
 
-            {/* Source logos */}
-            <div className="pt-2">
-              <p className="text-xs uppercase tracking-widest mb-3" style={{ color: "color-mix(in srgb, var(--theme-muted) 50%, transparent)" }}>
-                Researches across
-              </p>
-              <div className="flex flex-wrap gap-2">
-                {SOURCES.map((src) => (
-                  <span
-                    key={src.name}
-                    className="inline-flex items-center gap-1.5 text-xs px-2.5 py-1 rounded-full"
-                    style={{ border: "1px solid var(--theme-border)", color: "var(--theme-muted)", backgroundColor: "color-mix(in srgb, var(--theme-panel) 40%, transparent)" }}
-                  >
-                    {/* eslint-disable-next-line @next/next/no-img-element */}
-                    <img
-                      src={`https://www.google.com/s2/favicons?domain=${src.domain}&sz=16`}
-                      alt=""
-                      width={12}
-                      height={12}
-                      className="rounded-sm opacity-80"
-                    />
-                    {src.name}
-                  </span>
-                ))}
-              </div>
-            </div>
+            <ScanForm showTierSelect defaultTier={defaultTier} tierMode={tierMode} />
+
           </div>
 
-          {/* Right — preview card */}
-          <div className="flex justify-center lg:justify-end">
-            <HeroPreviewCard />
+          {/* Right — hero visuals (3 switchable compositions) */}
+          <div className="flex justify-center lg:justify-end lg:pr-4">
+            <HeroVisualShowcase
+              exampleHref="/preview"
+              imageSrc="/apple-homepage-real.png"
+              hostname="apple.com"
+              topDimensions={ANGLES.slice(2, 4).map((a) => ({
+                key: a.key,
+                label: a.label,
+                score: a.score,
+                color: a.color,
+              }))}
+            />
           </div>
+        </div>
+
+        <div
+          className="relative z-10 mt-10 w-[100vw] left-1/2 -translate-x-1/2 max-w-[100vw]"
+          style={{ boxSizing: "border-box" }}
+        >
+          <ResearchSourcesMarquee
+            items={RESEARCH_SOURCES_PER_SCAN.map((s) => ({
+              name: s.name,
+              domain: s.domain,
+              href: s.href,
+            }))}
+          />
         </div>
       </section>
 
@@ -353,33 +347,56 @@ export default async function LandingPage({
         style={{ borderTop: "1px solid var(--theme-border)", backgroundColor: "var(--theme-background-alt)" }}
       >
         <div className="max-w-7xl mx-auto">
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-start mb-14">
-            <div>
-              <p className="text-xs uppercase tracking-widest mb-3" style={{ color: "var(--theme-accent)" }}>
-                Scoring methodology
-              </p>
-              <h2
-                className="font-display leading-tight"
-                style={{ fontSize: "clamp(2rem,4vw,3rem)", color: "var(--theme-foreground)" }}
-              >
-                The score rewards clarity, trust, and momentum — not just polish
-              </h2>
+          <div className="mb-12">
+            <p className="text-xs uppercase tracking-widest mb-4" style={{ color: "var(--theme-accent)" }}>
+              Scoring Benchmarks
+            </p>
+            <h2
+              className="font-display leading-[1.05]"
+              style={{ fontSize: "clamp(2.4rem, 5vw, 4.25rem)", color: "var(--theme-foreground)" }}
+            >
+              The score rewards clarity, trust, and momentum<span style={{ color: "var(--theme-muted)" }}> — not just polish</span>
+            </h2>
+          </div>
+
+          <div className="grid grid-cols-1 lg:grid-cols-[auto_1fr] gap-10 lg:gap-14 items-center mb-14">
+            <div className="flex justify-center lg:justify-start">
+              <RadarChart />
             </div>
-            <div className="flex flex-col justify-center gap-6">
-              <p className="text-sm leading-relaxed" style={{ color: "var(--theme-muted)" }}>
+            <div className="flex flex-col gap-6">
+              <p className="text-base leading-relaxed max-w-2xl" style={{ color: "var(--theme-muted)" }}>
                 A better-looking redesign is not the point. The point is to see where your current site is hiding value, weakening trust, or making ready buyers hesitate.
               </p>
-              <div className="flex items-center gap-4">
-                <RadarChart />
-                <div className="space-y-2">
-                  {ANGLES.slice(0, 5).map((a) => (
-                    <div key={a.key} className="flex items-center gap-2 text-xs">
-                      <div className="w-2 h-2 rounded-full shrink-0" style={{ backgroundColor: a.color }} />
-                      <span style={{ color: "var(--theme-muted)" }}>{a.label}</span>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-2">
+                {ANGLES.map((a) => {
+                  const slug = ANGLE_BLOG_SLUG[a.key]!;
+                  const DimIcon = getBlogIconForSlug(slug);
+                  const row = (
+                    <div className="flex items-center gap-2.5 text-sm py-1">
+                      <span
+                        className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg"
+                        style={{
+                          border: `1px solid color-mix(in srgb, ${a.color} 28%, var(--theme-border))`,
+                          backgroundColor: `color-mix(in srgb, ${a.color} 10%, var(--theme-panel))`,
+                        }}
+                      >
+                        <DimIcon className="h-3.5 w-3.5" style={{ color: a.color }} aria-hidden />
+                      </span>
+                      <span style={{ color: "var(--theme-foreground)" }}>{a.label}</span>
                     </div>
-                  ))}
-                  <p className="text-xs pt-1" style={{ color: "color-mix(in srgb, var(--theme-muted) 50%, transparent)" }}>+ 5 more angles</p>
-                </div>
+                  );
+                  return slug ? (
+                    <Link
+                      key={a.key}
+                      href={`/blog/${slug}`}
+                      className="block rounded-lg -mx-1 px-1 hover:opacity-85 transition-opacity"
+                    >
+                      {row}
+                    </Link>
+                  ) : (
+                    <div key={a.key}>{row}</div>
+                  );
+                })}
               </div>
             </div>
           </div>
@@ -401,7 +418,7 @@ export default async function LandingPage({
         <div className="max-w-5xl mx-auto">
           <h2
             className="font-display text-center mb-3"
-            style={{ fontSize: "clamp(2rem,4vw,2.8rem)", color: "var(--theme-foreground)" }}
+            style={{ fontSize: "clamp(3rem, 5.5vw, 4.25rem)", color: "var(--theme-foreground)" }}
           >
             What do I get for $1?
           </h2>
@@ -436,8 +453,8 @@ export default async function LandingPage({
               >
                 <span className="font-mono text-xs font-bold" style={{ color: "var(--theme-accent)" }}>{step}</span>
                 <h3
-                  className="font-display text-xl"
-                  style={{ color: "var(--theme-foreground)" }}
+                  className="font-display"
+                  style={{ color: "var(--theme-foreground)", fontSize: "clamp(1.85rem, 3.5vw, 2.35rem)", lineHeight: 1.12 }}
                 >
                   {title}
                 </h3>
@@ -446,19 +463,44 @@ export default async function LandingPage({
             ))}
           </div>
 
-          <div className="mt-10 rounded-2xl p-6" style={{ border: "1px solid rgba(247,178,27,0.2)", backgroundColor: "rgba(247,178,27,0.04)" }}>
-            <p className="text-xs uppercase tracking-widest mb-4 text-center" style={{ color: "var(--theme-accent)" }}>
+          <div className="mt-10 rounded-2xl p-6 sm:p-8" style={{ border: "1px solid rgba(247,178,27,0.2)", backgroundColor: "rgba(247,178,27,0.04)" }}>
+            <p className="text-xs uppercase tracking-widest mb-6 text-center font-semibold" style={{ color: "var(--theme-accent)" }}>
               Research sources per scan
             </p>
-            <div className="flex flex-wrap justify-center gap-3">
-              {["Google Reviews", "Trustpilot", "BBB", "Reddit", "LinkedIn", "X / Twitter", "Crunchbase", "SSL Labs", "PageSpeed", "Wayback Machine", "BuiltWith", "Glassdoor"].map((src) => (
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3">
+              {RESEARCH_SOURCES_PER_SCAN.map((src) => (
                 <div
-                  key={src}
-                  className="flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs"
-                  style={{ border: "1px solid var(--theme-border)", backgroundColor: "var(--theme-panel)", color: "var(--theme-muted)" }}
+                  key={src.name}
+                  className="rounded-xl p-4 flex flex-col gap-2 transition-opacity hover:opacity-95"
+                  style={{ border: "1px solid var(--theme-border)", backgroundColor: "var(--theme-panel)" }}
                 >
-                  <CheckCircle2 className="w-3 h-3" style={{ color: "var(--theme-accent)" }} />
-                  {src}
+                  <a
+                    href={src.href}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="flex items-center gap-3 min-h-[2.5rem] group"
+                  >
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                    <img
+                      src={`https://www.google.com/s2/favicons?domain=${src.domain}&sz=32`}
+                      alt=""
+                      width={28}
+                      height={28}
+                      className="rounded-lg shrink-0 ring-1 ring-white/10"
+                    />
+                    <span className="text-sm font-medium leading-snug group-hover:underline underline-offset-2" style={{ color: "var(--theme-foreground)" }}>
+                      {src.name}
+                    </span>
+                  </a>
+                  {src.blogSlug ? (
+                    <Link
+                      href={`/blog/${src.blogSlug}`}
+                      className="text-xs font-medium hover:opacity-85 transition-opacity inline-flex items-center gap-1"
+                      style={{ color: "var(--theme-accent)" }}
+                    >
+                      How we use this in scoring →
+                    </Link>
+                  ) : null}
                 </div>
               ))}
             </div>
@@ -466,22 +508,32 @@ export default async function LandingPage({
         </div>
       </section>
 
-      {/* Recent scans */}
-      {recentScans.length > 0 && (
-        <section
-          className="px-6 py-20"
-          style={{ borderTop: "1px solid var(--theme-border)", backgroundColor: "var(--theme-background-alt)" }}
-        >
-          <div className="max-w-5xl mx-auto">
-            <h2
-              className="font-display mb-2"
-              style={{ fontSize: "clamp(1.5rem,3vw,2rem)", color: "var(--theme-foreground)" }}
+      {/* Recent scans — fed from completed paid reports; duplicate domains reuse cached results within 7 days */}
+      <section
+        className="px-6 py-20"
+        style={{ borderTop: "1px solid var(--theme-border)", backgroundColor: "var(--theme-background-alt)" }}
+      >
+        <div className="max-w-5xl mx-auto">
+          <h2
+            className="font-display mb-2"
+            style={{ fontSize: "clamp(2.5rem, 4.5vw, 3.5rem)", color: "var(--theme-foreground)" }}
+          >
+            Recent scans
+          </h2>
+          <p className="text-sm mb-8 max-w-2xl" style={{ color: "var(--theme-muted)" }}>
+            Live reports from paid scans. Popular domains often load instantly from our cache instead of re-running
+            full research — same report quality, lower latency and cost.
+          </p>
+          {recentScans.length === 0 ? (
+            <div
+              className="rounded-xl p-8 text-center"
+              style={{ border: "1px dashed var(--theme-border)", backgroundColor: "var(--theme-panel)" }}
             >
-              Recent scans
-            </h2>
-            <p className="text-sm mb-8" style={{ color: "var(--theme-muted)" }}>
-              Live reports generated by the WebsiteCreditScore AI.
-            </p>
+              <p className="text-sm" style={{ color: "var(--theme-muted)" }}>
+                No public scans yet. Run one above — completed reports appear here automatically.
+              </p>
+            </div>
+          ) : (
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
               {recentScans.map((scan) => {
                 const color = scan.grade.startsWith("A") ? "#4ade80" : scan.grade.startsWith("B") ? "#60a5fa" : scan.grade.startsWith("C") ? "#facc15" : "#f87171";
@@ -492,9 +544,10 @@ export default async function LandingPage({
                     className="rounded-xl p-4 flex items-center gap-4 hover:opacity-80 transition-opacity"
                     style={{ border: "1px solid var(--theme-border)", backgroundColor: "var(--theme-panel)" }}
                   >
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
                     <img
                       src={`https://www.google.com/s2/favicons?domain=${scan.domain}&sz=48`}
-                      alt={scan.domain}
+                      alt=""
                       width={32}
                       height={32}
                       className="rounded-md"
@@ -508,16 +561,16 @@ export default async function LandingPage({
                       </p>
                     </div>
                     <div className="text-right shrink-0">
-                      <div className="font-mono text-lg font-bold" style={{ color }}>{scan.grade}</div>
-                      <div className="font-mono text-xs" style={{ color: "var(--theme-muted)" }}>{scan.score}</div>
+                      <div className="font-score leading-none" style={{ color, fontSize: "1.85rem" }}>{scan.grade}</div>
+                      <div className="font-score text-xs mt-1" style={{ color: "var(--theme-muted)" }}>{scan.score}</div>
                     </div>
                   </a>
                 );
               })}
             </div>
-          </div>
-        </section>
-      )}
+          )}
+        </div>
+      </section>
 
       {/* Blog preview */}
       <section className="px-6 py-20" style={{ borderTop: "1px solid var(--theme-border)" }}>
@@ -525,7 +578,7 @@ export default async function LandingPage({
           <div className="flex items-end justify-between mb-8">
             <h2
               className="font-display"
-              style={{ fontSize: "clamp(1.5rem,3vw,2rem)", color: "var(--theme-foreground)" }}
+              style={{ fontSize: "clamp(2.5rem, 4.5vw, 3.5rem)", color: "var(--theme-foreground)" }}
             >
               From the blog
             </h2>
@@ -564,7 +617,7 @@ export default async function LandingPage({
         <div className="max-w-2xl mx-auto space-y-6">
           <h2
             className="font-display"
-            style={{ fontSize: "clamp(2.5rem,5vw,3.5rem)", color: "var(--theme-foreground)" }}
+            style={{ fontSize: "clamp(3.5rem, 7vw, 5.5rem)", color: "var(--theme-foreground)" }}
           >
             See how any site{" "}
             <span style={{ color: "var(--theme-accent)" }}>really scores.</span>
@@ -573,7 +626,7 @@ export default async function LandingPage({
             Before you buy, partner, or hire — know what the AI finds. $1, no account required.
           </p>
           <div className="max-w-lg mx-auto">
-            <ScanForm large showTierSelect defaultTier={defaultTier} />
+            <ScanForm showTierSelect defaultTier={defaultTier} tierMode={tierMode} />
           </div>
           <div className="flex flex-wrap justify-center gap-6 text-xs" style={{ color: "color-mix(in srgb, var(--theme-muted) 60%, transparent)" }}>
             <span>$1 per report</span>
@@ -587,27 +640,7 @@ export default async function LandingPage({
         </div>
       </section>
 
-      <footer
-        className="px-6 py-8"
-        style={{ borderTop: "1px solid var(--theme-border)" }}
-      >
-        <div className="max-w-5xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-4">
-          <span className="text-sm font-semibold" style={{ color: "var(--theme-foreground)" }}>
-            WebsiteCreditScore.com
-          </span>
-          <div className="flex flex-wrap items-center justify-center gap-4 text-xs" style={{ color: "color-mix(in srgb, var(--theme-muted) 70%, transparent)" }}>
-            <a href="/pricing" className="hover:opacity-80 transition-opacity">Pricing</a>
-            <a href="/blog" className="hover:opacity-80 transition-opacity">Blog</a>
-            <a href="/benchmarks" className="hover:opacity-80 transition-opacity">Benchmarks</a>
-            <a href="/docs" className="hover:opacity-80 transition-opacity">Docs</a>
-            <a href="/privacy" className="hover:opacity-80 transition-opacity">Privacy</a>
-            <a href="/terms" className="hover:opacity-80 transition-opacity">Terms</a>
-          </div>
-          <p className="text-xs" style={{ color: "color-mix(in srgb, var(--theme-muted) 50%, transparent)" }}>
-            Not financial advice · AI research at time of scan
-          </p>
-        </div>
-      </footer>
+      <SiteFooter />
     </main>
   );
 }

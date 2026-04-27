@@ -286,9 +286,13 @@ export async function GET(
           return;
         }
 
-        // ── 7-day domain cache ─────────────────────────────────────
+        // ── 7-day domain cache (reuse prior paid scan; persist on this row) ──
         const cached = await getCachedResult(scan.domain);
         if (cached) {
+          await saveScanResult(id, cached, {
+            sourceCount: cached.sources?.length ?? 0,
+            costCents: 0,
+          });
           send(controller, { type: "cached", report: cached });
           return;
         }

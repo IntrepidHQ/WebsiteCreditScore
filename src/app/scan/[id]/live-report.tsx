@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import type { CSSProperties } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   RadarChart,
@@ -16,8 +17,33 @@ import {
   AlertTriangle,
   CheckCircle2,
   Search,
+  Calendar,
 } from "lucide-react";
 import { gradeColor, type WCSReport, type Grade } from "@/lib/schema";
+
+const CALENDLY_STRATEGY_BASE = "https://calendly.com/seekercray/30min";
+
+const buildStrategyCalendlyUrl = (domain: string) => {
+  const u = new URL(CALENDLY_STRATEGY_BASE);
+  u.searchParams.set("utm_source", "websitecreditscore");
+  u.searchParams.set("utm_medium", "scan_report");
+  u.searchParams.set("utm_content", domain);
+  return u.toString();
+};
+
+const buildStrategyPresentationUrl = (domain: string) => {
+  const u = new URL("https://strategypresentation.com/");
+  u.searchParams.set("utm_source", "websitecreditscore");
+  u.searchParams.set("utm_medium", "scan_report");
+  u.searchParams.set("utm_content", domain);
+  return u.toString();
+};
+
+const panelClass = "rounded-2xl border";
+const panelStyle: CSSProperties = {
+  borderColor: "var(--theme-border)",
+  backgroundColor: "var(--theme-panel)",
+};
 
 // ── Types ─────────────────────────────────────────────────────────────────
 interface Props {
@@ -48,23 +74,25 @@ function GradeBadge({
   const color = gradeColor(grade);
   return (
     <div
-      className={`flex flex-col items-center justify-center rounded-xl border bg-[#0A0A0B] ${
+      className={`flex flex-col items-center justify-center rounded-xl border ${
         size === "lg" ? "w-28 h-28" : "w-10 h-10"
       }`}
-      style={{ borderColor: `${color}33` }}
+      style={{ borderColor: `${color}44`, backgroundColor: "var(--theme-background)" }}
     >
       <span
-        className="font-mono font-bold leading-none"
+        className="font-score leading-none"
         style={{
           color,
-          fontSize: size === "lg" ? "2.5rem" : "1rem",
+          fontSize: size === "lg" ? "2.75rem" : "1.05rem",
           letterSpacing: "-0.02em",
         }}
       >
         {grade}
       </span>
       {size === "lg" && (
-        <span className="font-mono text-sm text-zinc-400 mt-1">{score}</span>
+        <span className="font-score mt-1 text-base" style={{ color: "var(--theme-muted)" }}>
+          {score}
+        </span>
       )}
     </div>
   );
@@ -74,7 +102,8 @@ function GradeBadge({
 function Skeleton({ className }: { className?: string }) {
   return (
     <div
-      className={`animate-pulse rounded-md bg-white/5 ${className ?? ""}`}
+      className={`animate-pulse rounded-md ${className ?? ""}`}
+      style={{ backgroundColor: "color-mix(in srgb, var(--theme-border) 55%, transparent)" }}
     />
   );
 }
@@ -82,7 +111,7 @@ function Skeleton({ className }: { className?: string }) {
 function ReportSkeleton({ searches }: { searches: string[] }) {
   return (
     <div className="space-y-6">
-      <div className="rounded-xl border border-white/5 bg-[#111114] p-6 flex gap-6">
+      <div className={`${panelClass} p-6 flex gap-6`} style={panelStyle}>
         <Skeleton className="w-28 h-28 rounded-xl flex-shrink-0" />
         <div className="flex-1 space-y-3">
           <Skeleton className="h-5 w-48" />
@@ -91,7 +120,7 @@ function ReportSkeleton({ searches }: { searches: string[] }) {
           {searches.length > 0 && (
             <div className="mt-3 space-y-1">
               {searches.slice(-3).map((q, i) => (
-                <p key={i} className="text-xs text-zinc-500 flex items-center gap-1.5">
+                <p key={i} className="flex items-center gap-1.5 text-xs" style={{ color: "var(--theme-muted)" }}>
                   <Search className="w-3 h-3 flex-shrink-0" />
                   Searching: &ldquo;{q}&rdquo;
                 </p>
@@ -115,29 +144,34 @@ function DimensionCard({ dim }: { dim: WCSReport["dimensions"][number] }) {
   const color = gradeColor(dim.grade as Grade);
 
   return (
-    <div className="rounded-xl border border-white/5 bg-[#111114] overflow-hidden">
+    <div className={`${panelClass} overflow-hidden`} style={panelStyle}>
       <button
         onClick={() => setOpen((o) => !o)}
-        className="w-full px-4 py-3 flex items-center gap-3 text-left hover:bg-white/[0.02] transition-colors"
+        className="flex w-full items-center gap-3 px-4 py-3 text-left transition-colors hover:[background-color:color-mix(in_srgb,var(--theme-accent)_7%,var(--theme-panel))]"
       >
         <div
-          className="w-10 h-10 rounded-lg flex-shrink-0 flex items-center justify-center text-sm font-mono font-bold"
-          style={{ background: `${color}15`, color }}
+          className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-lg font-mono text-sm font-bold"
+          style={{ background: `${color}18`, color }}
         >
           {dim.grade}
         </div>
-        <div className="flex-1 min-w-0">
-          <p className="text-sm font-medium text-white truncate">{dim.label}</p>
-          <div className="mt-1 h-1 rounded-full bg-white/5 overflow-hidden">
+        <div className="min-w-0 flex-1">
+          <p className="truncate text-sm font-medium" style={{ color: "var(--theme-foreground)" }}>
+            {dim.label}
+          </p>
+          <div className="mt-1 h-1 overflow-hidden rounded-full" style={{ backgroundColor: "var(--theme-border)" }}>
             <div
               className="h-full rounded-full transition-all duration-700"
               style={{ width: `${dim.score}%`, background: color }}
             />
           </div>
         </div>
-        <span className="font-mono text-sm text-zinc-500 flex-shrink-0">{dim.score}</span>
+        <span className="flex-shrink-0 font-score text-sm" style={{ color: "var(--theme-muted)" }}>
+          {dim.score}
+        </span>
         <ChevronDown
-          className={`w-4 h-4 text-zinc-600 flex-shrink-0 transition-transform ${open ? "rotate-180" : ""}`}
+          className={`h-4 w-4 flex-shrink-0 transition-transform ${open ? "rotate-180" : ""}`}
+          style={{ color: "var(--theme-muted)" }}
         />
       </button>
 
@@ -150,8 +184,10 @@ function DimensionCard({ dim }: { dim: WCSReport["dimensions"][number] }) {
             transition={{ duration: 0.2 }}
             className="overflow-hidden"
           >
-            <div className="px-4 pb-4 space-y-3 border-t border-white/5">
-              <p className="text-sm text-zinc-300 pt-3">{dim.verdict}</p>
+            <div className="space-y-3 border-t px-4 pb-4" style={{ borderColor: "var(--theme-border)" }}>
+              <p className="pt-3 text-sm leading-relaxed" style={{ color: "color-mix(in srgb, var(--theme-foreground) 88%, transparent)" }}>
+                {dim.verdict}
+              </p>
               {dim.evidence.length > 0 && (
                 <div className="space-y-1.5">
                   {dim.evidence.map((ev, i) => (
@@ -160,10 +196,11 @@ function DimensionCard({ dim }: { dim: WCSReport["dimensions"][number] }) {
                       href={ev.url}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="flex items-start gap-2 text-xs text-zinc-500 hover:text-zinc-300 transition-colors group"
+                      className="group flex items-start gap-2 text-xs transition-colors"
+                      style={{ color: "var(--theme-muted)" }}
                     >
-                      <ExternalLink className="w-3 h-3 mt-0.5 flex-shrink-0 group-hover:text-[#4ade80] transition-colors" />
-                      <span>{ev.claim}</span>
+                      <ExternalLink className="mt-0.5 h-3 w-3 flex-shrink-0 transition-colors group-hover:text-[#4ade80]" />
+                      <span className="group-hover:text-[var(--theme-foreground)]">{ev.claim}</span>
                     </a>
                   ))}
                 </div>
@@ -172,6 +209,102 @@ function DimensionCard({ dim }: { dim: WCSReport["dimensions"][number] }) {
           </motion.div>
         )}
       </AnimatePresence>
+    </div>
+  );
+}
+
+function StrategyPresentationUpsell({ domain }: { domain: string }) {
+  const calUrl = buildStrategyCalendlyUrl(domain);
+  const spUrl = buildStrategyPresentationUrl(domain);
+  return (
+    <div
+      className={`${panelClass} overflow-hidden`}
+      style={{
+        borderColor: "color-mix(in srgb, var(--theme-accent) 35%, var(--theme-border))",
+        background:
+          "linear-gradient(135deg, color-mix(in srgb, var(--theme-accent) 14%, var(--theme-panel)), var(--theme-panel))",
+      }}
+    >
+      <div className="space-y-4 p-6 sm:p-7">
+        <div className="flex flex-wrap items-start justify-between gap-4">
+          <div className="max-w-xl space-y-2">
+            <p className="text-[10px] font-bold uppercase tracking-[0.2em]" style={{ color: "var(--theme-accent)" }}>
+              Free strategy presentation · This week
+            </p>
+            <h3 className="font-display text-2xl sm:text-3xl" style={{ color: "var(--theme-foreground)", lineHeight: 1.12 }}>
+              Turn this scan for <span className="whitespace-nowrap">{domain}</span> into a decision-ready deck
+            </h3>
+            <p className="text-sm leading-relaxed" style={{ color: "var(--theme-muted)" }}>
+              Book a focused session — we use your WebsiteCreditScore report as the outline: priorities, proof, and what to ship first.
+              Remote by default; in-person available when it fits your business.
+            </p>
+          </div>
+          <div className="flex w-full flex-shrink-0 flex-col gap-2 sm:w-auto">
+            <a
+              href={calUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex items-center justify-center gap-2 rounded-xl px-5 py-3.5 text-sm font-bold transition-opacity hover:opacity-92"
+              style={{ backgroundColor: "var(--theme-accent)", color: "var(--theme-accent-foreground)" }}
+            >
+              <Calendar className="h-4 w-4" aria-hidden />
+              Book 30 minutes on Calendly →
+            </a>
+            <a
+              href={spUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex items-center justify-center rounded-xl border px-5 py-2.5 text-xs font-semibold transition-opacity hover:opacity-90"
+              style={{
+                borderColor: "var(--theme-border)",
+                color: "var(--theme-foreground)",
+                backgroundColor: "color-mix(in srgb, var(--theme-panel) 55%, transparent)",
+              }}
+            >
+              strategypresentation.com — see the offer →
+            </a>
+          </div>
+        </div>
+        <p className="text-xs leading-relaxed" style={{ color: "color-mix(in srgb, var(--theme-muted) 92%, transparent)" }}>
+          <strong style={{ color: "var(--theme-foreground)" }}>WebsiteCreditScore</strong> captures live trust signals;{" "}
+          <strong style={{ color: "var(--theme-foreground)" }}>Strategy Presentation</strong> translates them into a narrative your team can act on.
+        </p>
+      </div>
+    </div>
+  );
+}
+
+function StrategyPresentationReminder({ domain }: { domain: string }) {
+  const calUrl = buildStrategyCalendlyUrl(domain);
+  const spUrl = buildStrategyPresentationUrl(domain);
+  return (
+    <div
+      className={`${panelClass} flex flex-col items-stretch justify-between gap-3 p-4 sm:flex-row sm:items-center`}
+      style={panelStyle}
+    >
+      <p className="text-sm font-medium" style={{ color: "var(--theme-foreground)" }}>
+        Want a free strategy presentation built from this scan?
+      </p>
+      <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
+        <a
+          href={calUrl}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="inline-flex items-center justify-center rounded-lg px-4 py-2.5 text-center text-xs font-bold transition-opacity hover:opacity-90"
+          style={{ backgroundColor: "var(--theme-accent)", color: "var(--theme-accent-foreground)" }}
+        >
+          Book on Calendly →
+        </a>
+        <a
+          href={spUrl}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="text-center text-xs font-semibold underline-offset-2 hover:underline"
+          style={{ color: "var(--theme-muted)" }}
+        >
+          strategypresentation.com
+        </a>
+      </div>
     </div>
   );
 }
@@ -192,7 +325,8 @@ export function ReportContent({ report }: { report: WCSReport }) {
       <motion.div
         initial={{ opacity: 0, y: 12 }}
         animate={{ opacity: 1, y: 0 }}
-        className="rounded-xl border border-white/5 bg-[#111114] p-6 flex flex-col sm:flex-row items-start gap-6"
+        className={`${panelClass} flex flex-col items-start gap-6 p-6 sm:flex-row`}
+        style={panelStyle}
       >
         <motion.div
           initial={{ scale: 0.7, opacity: 0 }}
@@ -205,14 +339,22 @@ export function ReportContent({ report }: { report: WCSReport }) {
             size="lg"
           />
         </motion.div>
-        <div className="flex-1 min-w-0">
-          <p className="font-semibold text-white text-lg">{report.domain}</p>
+        <div className="min-w-0 flex-1">
+          <p className="text-lg font-semibold" style={{ color: "var(--theme-foreground)" }}>
+            {report.domain}
+          </p>
           {report.company_name && (
-            <p className="text-sm text-zinc-500">{report.company_name}</p>
+            <p className="text-sm" style={{ color: "var(--theme-muted)" }}>
+              {report.company_name}
+            </p>
           )}
-          <p className="text-base text-zinc-300 mt-2">{report.overall.headline}</p>
-          <p className="text-sm text-zinc-500 mt-1">{report.overall.one_liner}</p>
-          <p className="text-xs text-zinc-600 mt-3">
+          <p className="mt-2 text-base leading-relaxed" style={{ color: "color-mix(in srgb, var(--theme-foreground) 90%, transparent)" }}>
+            {report.overall.headline}
+          </p>
+          <p className="mt-1 text-sm" style={{ color: "var(--theme-muted)" }}>
+            {report.overall.one_liner}
+          </p>
+          <p className="mt-3 text-xs" style={{ color: "color-mix(in srgb, var(--theme-muted) 80%, transparent)" }}>
             {report.sources.length} sources ·{" "}
             {new Date(report.scanned_at).toLocaleDateString("en-US", {
               month: "long",
@@ -223,17 +365,21 @@ export function ReportContent({ report }: { report: WCSReport }) {
         </div>
       </motion.div>
 
+      <StrategyPresentationUpsell domain={report.domain} />
+
       {/* Radar + Flags */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
         {/* Radar chart */}
-        <div className="rounded-xl border border-white/5 bg-[#111114] p-6">
-          <h2 className="text-sm font-medium text-zinc-400 mb-4">10 Dimensions</h2>
+        <div className={`${panelClass} p-6`} style={panelStyle}>
+          <h2 className="mb-4 text-sm font-medium" style={{ color: "var(--theme-muted)" }}>
+            10 Dimensions
+          </h2>
           <ResponsiveContainer width="100%" height={260}>
             <RadarChart data={radarData}>
-              <PolarGrid stroke="rgba(255,255,255,0.05)" />
+              <PolarGrid stroke="color-mix(in srgb, var(--theme-border) 80%, transparent)" />
               <PolarAngleAxis
                 dataKey="subject"
-                tick={{ fill: "#71717a", fontSize: 11 }}
+                tick={{ fill: "var(--theme-muted)", fontSize: 11 }}
               />
               <Radar
                 name="Score"
@@ -245,10 +391,11 @@ export function ReportContent({ report }: { report: WCSReport }) {
               />
               <Tooltip
                 contentStyle={{
-                  background: "#111114",
-                  border: "1px solid rgba(255,255,255,0.08)",
+                  background: "var(--theme-panel)",
+                  border: "1px solid var(--theme-border)",
                   borderRadius: "8px",
                   fontSize: "12px",
+                  color: "var(--theme-foreground)",
                 }}
                 formatter={(value: number) => [`${value}/100`, "Score"]}
               />
@@ -260,7 +407,7 @@ export function ReportContent({ report }: { report: WCSReport }) {
         <div className="space-y-4">
           {/* Red flags */}
           {report.red_flags.length > 0 && (
-            <div className="rounded-xl border border-red-500/15 bg-[#111114] p-4">
+            <div className={`${panelClass} border-red-500/20 p-4`} style={panelStyle}>
               <h2 className="text-sm font-medium text-red-400 mb-3 flex items-center gap-2">
                 <AlertTriangle className="w-4 h-4" />
                 Red Flags ({report.red_flags.length})
@@ -282,9 +429,13 @@ export function ReportContent({ report }: { report: WCSReport }) {
                       >
                         {flag.severity}
                       </span>
-                      <p className="text-sm font-medium text-white">{flag.title}</p>
+                      <p className="text-sm font-medium" style={{ color: "var(--theme-foreground)" }}>
+                        {flag.title}
+                      </p>
                     </div>
-                    <p className="text-xs text-zinc-500 pl-10">{flag.detail}</p>
+                    <p className="pl-10 text-xs" style={{ color: "var(--theme-muted)" }}>
+                      {flag.detail}
+                    </p>
                   </div>
                 ))}
               </div>
@@ -293,7 +444,7 @@ export function ReportContent({ report }: { report: WCSReport }) {
 
           {/* Green flags */}
           {report.green_flags.length > 0 && (
-            <div className="rounded-xl border border-emerald-500/15 bg-[#111114] p-4">
+            <div className={`${panelClass} border-emerald-500/20 p-4`} style={panelStyle}>
               <h2 className="text-sm font-medium text-emerald-400 mb-3 flex items-center gap-2">
                 <CheckCircle2 className="w-4 h-4" />
                 Green Flags ({report.green_flags.length})
@@ -301,8 +452,12 @@ export function ReportContent({ report }: { report: WCSReport }) {
               <div className="space-y-2">
                 {report.green_flags.map((flag, i) => (
                   <div key={i} className="space-y-0.5">
-                    <p className="text-sm font-medium text-white">{flag.title}</p>
-                    <p className="text-xs text-zinc-500">{flag.detail}</p>
+                    <p className="text-sm font-medium" style={{ color: "var(--theme-foreground)" }}>
+                      {flag.title}
+                    </p>
+                    <p className="text-xs" style={{ color: "var(--theme-muted)" }}>
+                      {flag.detail}
+                    </p>
                   </div>
                 ))}
               </div>
@@ -313,7 +468,9 @@ export function ReportContent({ report }: { report: WCSReport }) {
 
       {/* Dimension detail cards */}
       <div>
-        <h2 className="text-sm font-medium text-zinc-400 mb-3">Dimension Breakdown</h2>
+        <h2 className="mb-3 text-sm font-medium" style={{ color: "var(--theme-muted)" }}>
+          Dimension Breakdown
+        </h2>
         <div className="space-y-2">
           {report.dimensions.map((dim) => (
             <DimensionCard key={dim.key} dim={dim} />
@@ -325,13 +482,19 @@ export function ReportContent({ report }: { report: WCSReport }) {
       {((report.timeline?.length ?? 0) > 0 || (report.peers?.length ?? 0) > 0) && (
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
           {report.timeline && report.timeline.length > 0 && (
-            <div className="rounded-xl border border-white/5 bg-[#111114] p-5">
-              <h2 className="text-sm font-medium text-zinc-400 mb-4">Company Timeline</h2>
+            <div className={`${panelClass} p-5`} style={panelStyle}>
+              <h2 className="mb-4 text-sm font-medium" style={{ color: "var(--theme-muted)" }}>
+                Company Timeline
+              </h2>
               <div className="space-y-3">
                 {report.timeline.map((item, i) => (
                   <div key={i} className="flex gap-3 text-sm">
-                    <span className="font-mono text-zinc-600 flex-shrink-0 w-10">{item.year}</span>
-                    <span className="text-zinc-300">{item.event}</span>
+                    <span className="w-10 flex-shrink-0 font-mono" style={{ color: "var(--theme-muted)" }}>
+                      {item.year}
+                    </span>
+                    <span style={{ color: "color-mix(in srgb, var(--theme-foreground) 88%, transparent)" }}>
+                      {item.event}
+                    </span>
                   </div>
                 ))}
               </div>
@@ -339,13 +502,19 @@ export function ReportContent({ report }: { report: WCSReport }) {
           )}
 
           {report.peers && report.peers.length > 0 && (
-            <div className="rounded-xl border border-white/5 bg-[#111114] p-5">
-              <h2 className="text-sm font-medium text-zinc-400 mb-4">Peer Comparison</h2>
+            <div className={`${panelClass} p-5`} style={panelStyle}>
+              <h2 className="mb-4 text-sm font-medium" style={{ color: "var(--theme-muted)" }}>
+                Peer Comparison
+              </h2>
               <div className="space-y-3">
                 {report.peers.map((peer, i) => (
                   <div key={i} className="space-y-0.5">
-                    <p className="text-sm font-mono text-white">{peer.domain}</p>
-                    <p className="text-xs text-zinc-500">{peer.comparison}</p>
+                    <p className="font-mono text-sm" style={{ color: "var(--theme-foreground)" }}>
+                      {peer.domain}
+                    </p>
+                    <p className="text-xs" style={{ color: "var(--theme-muted)" }}>
+                      {peer.comparison}
+                    </p>
                   </div>
                 ))}
               </div>
@@ -355,11 +524,17 @@ export function ReportContent({ report }: { report: WCSReport }) {
       )}
 
       {/* Executive summary */}
-      <div className="rounded-xl border border-white/5 bg-[#111114] p-6">
-        <h2 className="text-sm font-medium text-zinc-400 mb-4">Executive Summary</h2>
-        <div className="prose prose-sm prose-invert max-w-none">
+      <div className={`${panelClass} p-6`} style={panelStyle}>
+        <h2 className="mb-4 text-sm font-medium" style={{ color: "var(--theme-muted)" }}>
+          Executive Summary
+        </h2>
+        <div className="max-w-none">
           {report.summary.split("\n\n").map((para, i) => (
-            <p key={i} className="text-sm text-zinc-300 leading-relaxed mb-3 last:mb-0">
+            <p
+              key={i}
+              className="mb-3 text-sm leading-relaxed last:mb-0"
+              style={{ color: "color-mix(in srgb, var(--theme-foreground) 88%, transparent)" }}
+            >
               {para}
             </p>
           ))}
@@ -367,33 +542,38 @@ export function ReportContent({ report }: { report: WCSReport }) {
       </div>
 
       {/* Sources */}
-      <div className="rounded-xl border border-white/5 bg-[#111114] p-6">
-        <h2 className="text-sm font-medium text-zinc-400 mb-4">
+      <div className={`${panelClass} p-6`} style={panelStyle}>
+        <h2 className="mb-4 text-sm font-medium" style={{ color: "var(--theme-muted)" }}>
           Sources ({report.sources.length})
         </h2>
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+        <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
           {report.sources.map((source, i) => (
             <a
               key={i}
               href={source.url}
               target="_blank"
               rel="noopener noreferrer"
-              className="flex items-start gap-2 text-xs text-zinc-500 hover:text-zinc-300 transition-colors group p-2 rounded-lg hover:bg-white/[0.03]"
+              className="group flex items-start gap-2 rounded-lg p-2 text-xs transition-colors hover:[background-color:color-mix(in_srgb,var(--theme-accent)_7%,var(--theme-panel))]"
+              style={{ color: "var(--theme-muted)" }}
             >
-              <ExternalLink className="w-3 h-3 mt-0.5 flex-shrink-0 group-hover:text-[#4ade80] transition-colors" />
-              <span className="truncate">{source.title}</span>
+              <ExternalLink className="mt-0.5 h-3 w-3 flex-shrink-0 transition-colors group-hover:text-[#4ade80]" />
+              <span className="truncate group-hover:text-[var(--theme-foreground)]">{source.title}</span>
             </a>
           ))}
         </div>
       </div>
 
+      <StrategyPresentationReminder domain={report.domain} />
+
       {/* Share */}
-      <div className="text-center pb-8">
+      <div className="pb-8 text-center">
         <button
+          type="button"
           onClick={() => {
             void navigator.clipboard.writeText(window.location.href);
           }}
-          className="text-xs text-zinc-600 hover:text-zinc-400 transition-colors"
+          className="text-xs transition-colors hover:opacity-90"
+          style={{ color: "var(--theme-muted)" }}
         >
           Copy shareable link
         </button>
@@ -447,47 +627,50 @@ export function LiveReport({ scanId, domain, initialStatus, initialResult }: Pro
   }, [scanId, report]);
 
   return (
-    <div className="min-h-screen">
-      <nav className="border-b border-white/5 px-6 py-4 flex items-center justify-between">
-        <a href="/" className="font-mono text-sm font-semibold tracking-tight text-white hover:text-zinc-300 transition-colors">
-          WebsiteCreditScore
-        </a>
-        <span className="text-xs text-zinc-600 font-mono truncate max-w-xs">{domain}</span>
-      </nav>
-
-      <div className="max-w-4xl mx-auto px-4 py-8">
-        {error ? (
-          <div className="rounded-xl border border-red-500/20 bg-red-500/5 p-6 text-center space-y-2">
-            <p className="text-red-400 font-medium">Scan failed</p>
-            <p className="text-sm text-zinc-500">{error}</p>
-          </div>
-        ) : !report ? (
-          <div className="space-y-4">
-            <div className="flex items-center justify-between text-xs text-zinc-500">
-              <div className="flex items-center gap-2">
-                <span className="relative flex h-2 w-2">
-                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-[#4ade80] opacity-75" />
-                  <span className="relative inline-flex rounded-full h-2 w-2 bg-[#4ade80]" />
-                </span>
-                Researching {domain}…
-              </div>
-              {sourceCount > 0 && (
-                <span>{sourceCount} sources analyzed</span>
-              )}
-            </div>
-            <div className="h-0.5 bg-white/5 rounded-full overflow-hidden">
-              <motion.div
-                className="h-full bg-[#4ade80]/50 rounded-full"
-                animate={{ width: `${Math.min(searches.length * 10, 90)}%` }}
-                transition={{ duration: 0.5 }}
-              />
-            </div>
-            <ReportSkeleton searches={searches} />
-          </div>
-        ) : (
-          <ReportContent report={report} />
-        )}
+    <div className="w-full max-w-4xl mx-auto px-4 py-8">
+      <div className="mb-6 flex justify-end">
+        <span
+          className="max-w-[min(100%,20rem)] truncate text-right text-xs"
+          style={{ color: "var(--theme-muted)" }}
+          title={domain}
+        >
+          {domain}
+        </span>
       </div>
+      {error ? (
+        <div className="rounded-2xl border border-red-500/25 bg-red-500/5 p-6 text-center space-y-2">
+          <p className="font-medium text-red-400">Scan failed</p>
+          <p className="text-sm" style={{ color: "var(--theme-muted)" }}>
+            {error}
+          </p>
+        </div>
+      ) : !report ? (
+        <div className="space-y-4">
+          <div className="flex items-center justify-between text-xs" style={{ color: "var(--theme-muted)" }}>
+            <div className="flex items-center gap-2">
+              <span className="relative flex h-2 w-2">
+                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-[#4ade80] opacity-75" />
+                <span className="relative inline-flex rounded-full h-2 w-2 bg-[#4ade80]" />
+              </span>
+              Researching {domain}…
+            </div>
+            {sourceCount > 0 && (
+              <span>{sourceCount} sources analyzed</span>
+            )}
+          </div>
+          <div className="h-0.5 overflow-hidden rounded-full" style={{ backgroundColor: "var(--theme-border)" }}>
+            <motion.div
+              className="h-full rounded-full"
+              style={{ backgroundColor: "color-mix(in srgb, #4ade80 55%, var(--theme-accent) 20%)" }}
+              animate={{ width: `${Math.min(searches.length * 10, 90)}%` }}
+              transition={{ duration: 0.5 }}
+            />
+          </div>
+          <ReportSkeleton searches={searches} />
+        </div>
+      ) : (
+        <ReportContent report={report} />
+      )}
     </div>
   );
 }

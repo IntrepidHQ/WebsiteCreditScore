@@ -1,5 +1,7 @@
 import type { Metadata } from "next";
 import { ScrollToTop } from "@/components/ScrollToTop";
+import { NavBar } from "@/components/NavBar";
+import { SiteFooter } from "@/components/SiteFooter";
 
 export const metadata: Metadata = {
   title: "Terms of Service — WebsiteCreditScore",
@@ -8,21 +10,11 @@ export const metadata: Metadata = {
 
 export default function TermsPage() {
   return (
-    <main className="min-h-screen" style={{ backgroundColor: "var(--theme-background)" }}>
+    <main className="flex min-h-screen flex-col" style={{ backgroundColor: "var(--theme-background)" }}>
       <ScrollToTop />
-      <nav
-        className="px-6 py-4 flex items-center justify-between"
-        style={{ borderBottom: "1px solid var(--theme-border)" }}
-      >
-        <a href="/" className="text-sm font-semibold tracking-tight hover:opacity-80 transition-opacity" style={{ color: "var(--theme-foreground)" }}>
-          WebsiteCreditScore
-        </a>
-        <a href="/" className="text-xs hover:opacity-80 transition-opacity" style={{ color: "var(--theme-muted)" }}>
-          ← Back to home
-        </a>
-      </nav>
+      <NavBar />
 
-      <article className="max-w-2xl mx-auto px-6 py-16 space-y-10">
+      <article className="max-w-2xl mx-auto px-6 py-16 space-y-10 flex-1 w-full">
         <div className="space-y-2">
           <h1 className="font-display" style={{ fontSize: "clamp(2rem,4vw,2.8rem)", color: "var(--theme-foreground)" }}>
             Terms of Service
@@ -153,12 +145,7 @@ export default function TermsPage() {
         ))}
       </article>
 
-      <footer
-        className="px-6 py-6 text-center text-xs"
-        style={{ borderTop: "1px solid var(--theme-border)", color: "color-mix(in srgb, var(--theme-muted) 55%, transparent)" }}
-      >
-        WebsiteCreditScore · <a href="mailto:hello@websitecreditscore.com" className="underline underline-offset-2 hover:opacity-80">hello@websitecreditscore.com</a>
-      </footer>
+      <SiteFooter />
     </main>
   );
 }

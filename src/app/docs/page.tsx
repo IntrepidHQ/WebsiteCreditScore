@@ -1,4 +1,7 @@
 import type { Metadata } from "next";
+import { ScrollToTop } from "@/components/ScrollToTop";
+import { NavBar } from "@/components/NavBar";
+import { SiteFooter } from "@/components/SiteFooter";
 
 export const metadata: Metadata = {
   title: "How It Works — WebsiteCreditScore",
@@ -107,27 +110,9 @@ const faqItems = [
 
 export default function DocsPage() {
   return (
-    <main className="min-h-screen">
-      {/* Nav */}
-      <nav
-        className="px-6 py-4 flex items-center justify-between"
-        style={{ borderBottom: "1px solid var(--theme-border)" }}
-      >
-        <a
-          href="/"
-          className="text-sm font-semibold tracking-tight hover:opacity-80 transition-opacity"
-          style={{ color: "var(--theme-foreground)" }}
-        >
-          WebsiteCreditScore
-        </a>
-        <a
-          href="/"
-          className="text-xs hover:opacity-80 transition-opacity"
-          style={{ color: "var(--theme-muted)" }}
-        >
-          ← Run a scan
-        </a>
-      </nav>
+    <main className="flex min-h-screen flex-col" style={{ backgroundColor: "var(--theme-background)" }}>
+      <ScrollToTop />
+      <NavBar />
 
       {/* Hero */}
       <section className="px-6 py-16 text-center" style={{ borderBottom: "1px solid var(--theme-border)" }}>
@@ -332,20 +317,7 @@ export default function DocsPage() {
         </div>
       </section>
 
-      <footer
-        className="px-6 py-6 text-center text-xs"
-        style={{
-          borderTop: "1px solid var(--theme-border)",
-          color: "color-mix(in srgb, var(--theme-muted) 60%, transparent)",
-        }}
-      >
-        <div className="flex flex-wrap items-center justify-center gap-4 mb-2">
-          <a href="/privacy" className="hover:opacity-80 transition-opacity">Privacy</a>
-          <a href="/terms" className="hover:opacity-80 transition-opacity">Terms</a>
-          <a href="/benchmarks" className="hover:opacity-80 transition-opacity">Benchmarks</a>
-        </div>
-        WebsiteCreditScore · Not financial advice · Reports reflect AI research at time of scan
-      </footer>
+      <SiteFooter />
     </main>
   );
 }

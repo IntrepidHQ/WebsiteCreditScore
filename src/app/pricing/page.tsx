@@ -3,13 +3,40 @@
 import { useState } from "react";
 import { CheckCircle2 } from "lucide-react";
 import { ScrollToTop } from "@/components/ScrollToTop";
+import { NavBar } from "@/components/NavBar";
+import { SiteFooter } from "@/components/SiteFooter";
+import { BUNDLE_SIZE, type Tier, type TierMode } from "@/lib/pricing";
 
-type TierMode = "standard" | "max";
+async function startCheckout(tier: Tier, mode: TierMode, quantity: number) {
+  const res = await fetch("/api/checkout", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ tier, mode, quantity }),
+  });
+  if (!res.ok) {
+    const data = await res.json().catch(() => ({}));
+    throw new Error(data.error ?? "Checkout failed");
+  }
+  const { checkoutUrl } = await res.json();
+  if (typeof checkoutUrl === "string") {
+    window.location.href = checkoutUrl;
+  }
+}
+
+const tierTitle = (id: string, mode: TierMode): string => {
+  if (mode === "max") {
+    if (id === "quick") return "Trench";
+    if (id === "standard") return "Mantle";
+    return "Core";
+  }
+  if (id === "quick") return "Aerial Scan";
+  if (id === "standard") return "Surface Scan";
+  return "Deep Scan";
+};
 
 const TIERS = [
   {
     id: "quick",
-    name: "Quick Scan",
     color: "#60a5fa",
     badge: null,
     standard: { price: 1,  searches: 8,   bundlePrice: 8,  bundleSave: 2 },
@@ -26,7 +53,6 @@ const TIERS = [
   },
   {
     id: "standard",
-    name: "Scan",
     color: "#f7b21b",
     badge: "Most popular",
     standard: { price: 3,  searches: 14,  bundlePrice: 25, bundleSave: 5 },
@@ -46,7 +72,6 @@ const TIERS = [
   },
   {
     id: "deep",
-    name: "Deep Scan",
     color: "#4ade80",
     badge: "Most thorough",
     standard: { price: 6,  searches: 20,  bundlePrice: 50,  bundleSave: 10 },
@@ -71,7 +96,7 @@ const TIERS = [
 const faq = [
   {
     q: "What's the difference between scan depths?",
-    a: "Each tier runs more web searches, pulling from more sources and covering more ground. A Quick Scan answers 'is this real and credible?' A Deep Scan covers regulatory filings, press archives, legal history, and extended competitor context.",
+    a: "Each tier runs more web searches, pulling from more sources and covering more ground. An Aerial Scan answers “is this real and credible?” A Deep Scan covers regulatory filings, press archives, legal history, and extended competitor context.",
   },
   {
     q: "What is MAX mode?",
@@ -101,21 +126,25 @@ const faq = [
 
 export default function PricingPage() {
   const [mode, setMode] = useState<TierMode>("standard");
+  const [pendingId, setPendingId] = useState<string | null>(null);
+  const [error, setError] = useState<string | null>(null);
+
+  const buy = async (tier: Tier, quantity: number) => {
+    const id = `${tier}-${quantity}`;
+    setPendingId(id);
+    setError(null);
+    try {
+      await startCheckout(tier, mode, quantity);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Checkout failed");
+      setPendingId(null);
+    }
+  };
 
   return (
-    <main className="min-h-screen">
+    <main className="flex min-h-screen flex-col" style={{ backgroundColor: "var(--theme-background)" }}>
       <ScrollToTop />
-      <nav
-        className="px-6 py-4 flex items-center justify-between"
-        style={{ borderBottom: "1px solid var(--theme-border)" }}
-      >
-        <a href="/" className="text-sm font-semibold tracking-tight hover:opacity-80 transition-opacity" style={{ color: "var(--theme-foreground)" }}>
-          WebsiteCreditScore
-        </a>
-        <a href="/" className="text-xs hover:opacity-80 transition-opacity" style={{ color: "var(--theme-muted)" }}>
-          ← Run a scan
-        </a>
-      </nav>
+      <NavBar />
 
       {/* Hero */}
       <section className="px-6 py-16 text-center" style={{ borderBottom: "1px solid var(--theme-border)" }}>
@@ -197,7 +226,7 @@ export default function PricingPage() {
                 <div>
                   <div className="flex items-center gap-2 mb-1">
                     <p className="text-xs font-semibold uppercase tracking-wider" style={{ color: tier.color }}>
-                      {tier.name}
+                      {tierTitle(tier.id, mode)}
                     </p>
                     {mode === "max" && (
                       <span
@@ -209,7 +238,7 @@ export default function PricingPage() {
                     )}
                   </div>
                   <div className="flex items-baseline gap-1">
-                    <span className="text-4xl font-mono font-bold" style={{ color: "var(--theme-foreground)" }}>
+                    <span className="text-4xl font-score font-bold" style={{ color: "var(--theme-foreground)" }}>
                       ${data.price}
                     </span>
                     <span className="text-sm" style={{ color: "var(--theme-muted)" }}>/ report</span>
@@ -232,16 +261,18 @@ export default function PricingPage() {
                   ))}
                 </ul>
 
-                <a
-                  href={`/?tier=${tier.id}`}
-                  className="block text-center py-3 rounded-xl font-semibold text-sm transition-opacity hover:opacity-90"
+                <button
+                  type="button"
+                  onClick={() => buy(tier.id as Tier, 1)}
+                  disabled={pendingId !== null}
+                  className="block w-full text-center py-3 rounded-xl font-semibold text-sm transition-opacity hover:opacity-90 disabled:opacity-50 disabled:cursor-wait"
                   style={tier.badge
                     ? { backgroundColor: tier.color, color: "#0e0e07" }
                     : { border: `1px solid ${tier.color}`, color: tier.color, backgroundColor: `${tier.color}10` }
                   }
                 >
-                  Get a {tier.name} · ${data.price}
-                </a>
+                  {pendingId === `${tier.id}-1` ? "Redirecting…" : `Get ${tierTitle(tier.id, mode)} · $${data.price}`}
+                </button>
               </div>
             );
           })}
@@ -271,10 +302,10 @@ export default function PricingPage() {
                 >
                   <div>
                     <p className="text-xs font-semibold uppercase tracking-wider mb-1" style={{ color: tier.color }}>
-                      {tier.name}{mode === "max" ? " MAX" : ""} × 10
+                      {tierTitle(tier.id, mode)}{mode === "max" ? " MAX" : ""} × 10
                     </p>
                     <div className="flex items-baseline gap-2">
-                      <span className="text-3xl font-mono font-bold" style={{ color: "var(--theme-foreground)" }}>
+                      <span className="text-3xl font-score font-bold" style={{ color: "var(--theme-foreground)" }}>
                         ${data.bundlePrice}
                       </span>
                       <span
@@ -288,18 +319,24 @@ export default function PricingPage() {
                       ${(data.bundlePrice / 10).toFixed(2)} per scan
                     </p>
                   </div>
-                  <div
-                    className="text-center py-3 rounded-xl text-sm font-semibold"
-                    style={{ border: "1px solid var(--theme-border)", color: "var(--theme-muted)", cursor: "not-allowed" }}
+                  <button
+                    type="button"
+                    onClick={() => buy(tier.id as Tier, BUNDLE_SIZE)}
+                    disabled={pendingId !== null}
+                    className="block w-full text-center py-3 rounded-xl text-sm font-semibold transition-opacity hover:opacity-90 disabled:opacity-50 disabled:cursor-wait"
+                    style={{ border: `1px solid ${tier.color}`, color: tier.color, backgroundColor: `${tier.color}10` }}
                   >
-                    Coming soon
-                  </div>
+                    {pendingId === `${tier.id}-${BUNDLE_SIZE}` ? "Redirecting…" : `Buy 10-pack · $${data.bundlePrice}`}
+                  </button>
                 </div>
               );
             })}
           </div>
+          {error && (
+            <p className="text-xs text-center mt-4" style={{ color: "#f87171" }}>{error}</p>
+          )}
           <p className="text-xs text-center mt-6" style={{ color: "color-mix(in srgb, var(--theme-muted) 50%, transparent)" }}>
-            Bundle checkout launching shortly · <a href="mailto:hello@websitecreditscore.com" className="underline underline-offset-2 hover:opacity-80">Email us for early access</a>
+            Credits never expire · Lost cookies? <a href="/restore" className="underline underline-offset-2 hover:opacity-80">Restore credits</a>
           </p>
         </div>
       </section>
@@ -317,7 +354,7 @@ export default function PricingPage() {
                   <th className="px-5 py-3 text-left text-xs font-semibold" style={{ color: "var(--theme-muted)" }}>Feature</th>
                   {TIERS.map((t) => (
                     <th key={t.id} className="px-5 py-3 text-center text-xs font-semibold" style={{ color: t.color }}>
-                      {t.name}
+                      {tierTitle(t.id, mode)}
                     </th>
                   ))}
                 </tr>
@@ -386,18 +423,7 @@ export default function PricingPage() {
         </div>
       </section>
 
-      <footer
-        className="px-6 py-6 text-center text-xs"
-        style={{ borderTop: "1px solid var(--theme-border)", color: "color-mix(in srgb, var(--theme-muted) 55%, transparent)" }}
-      >
-        <div className="flex flex-wrap items-center justify-center gap-4 mb-2">
-          <a href="/privacy" className="hover:opacity-80 transition-opacity">Privacy</a>
-          <a href="/terms" className="hover:opacity-80 transition-opacity">Terms</a>
-          <a href="/benchmarks" className="hover:opacity-80 transition-opacity">Benchmarks</a>
-          <a href="/docs" className="hover:opacity-80 transition-opacity">Docs</a>
-        </div>
-        WebsiteCreditScore · Not financial advice · Reports reflect AI research at time of scan
-      </footer>
+      <SiteFooter />
     </main>
   );
 }

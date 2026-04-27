@@ -1,4 +1,7 @@
 import type { Metadata } from "next";
+import { ScrollToTop } from "@/components/ScrollToTop";
+import { NavBar } from "@/components/NavBar";
+import { SiteFooter } from "@/components/SiteFooter";
 
 /**
  * DRAFT cookies policy. Structural skeleton. Review with counsel and
@@ -16,7 +19,10 @@ export const metadata: Metadata = {
 
 export default function CookiesPage() {
   return (
-    <main className="mx-auto w-full max-w-3xl px-4 py-16 sm:px-6 lg:px-8">
+    <main className="flex min-h-screen flex-col" style={{ backgroundColor: "var(--theme-background)" }}>
+      <ScrollToTop />
+      <NavBar />
+      <div className="mx-auto w-full max-w-3xl flex-1 px-4 py-16 sm:px-6 lg:px-8">
       <div
         role="alert"
         className="mb-8 rounded-lg border border-warning/40 bg-warning/10 p-4 text-sm text-foreground"
@@ -119,6 +125,8 @@ export default function CookiesPage() {
         <h2>Contact</h2>
         <p>Questions: {"{{PRIVACY_EMAIL}}"}.</p>
       </article>
+      </div>
+      <SiteFooter />
     </main>
   );
 }
