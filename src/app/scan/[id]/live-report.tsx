@@ -20,24 +20,13 @@ import {
   Calendar,
 } from "lucide-react";
 import { gradeColor, type WCSReport, type Grade } from "@/lib/schema";
+import { buildStrategyCallCalendlyUrl, buildStrategyPresentationUrl } from "@/lib/strategy-call";
 
-const CALENDLY_STRATEGY_BASE = "https://calendly.com/seekercray/30min";
+const scanReportCalendlyUrl = (domain: string) =>
+  buildStrategyCallCalendlyUrl({ medium: "scan_report", content: domain });
 
-const buildStrategyCalendlyUrl = (domain: string) => {
-  const u = new URL(CALENDLY_STRATEGY_BASE);
-  u.searchParams.set("utm_source", "websitecreditscore");
-  u.searchParams.set("utm_medium", "scan_report");
-  u.searchParams.set("utm_content", domain);
-  return u.toString();
-};
-
-const buildStrategyPresentationUrl = (domain: string) => {
-  const u = new URL("https://strategypresentation.com/");
-  u.searchParams.set("utm_source", "websitecreditscore");
-  u.searchParams.set("utm_medium", "scan_report");
-  u.searchParams.set("utm_content", domain);
-  return u.toString();
-};
+const scanReportPresentationUrl = (domain: string) =>
+  buildStrategyPresentationUrl({ medium: "scan_report", content: domain });
 
 const panelClass = "rounded-2xl border";
 const panelStyle: CSSProperties = {
@@ -214,8 +203,8 @@ function DimensionCard({ dim }: { dim: WCSReport["dimensions"][number] }) {
 }
 
 function StrategyPresentationUpsell({ domain }: { domain: string }) {
-  const calUrl = buildStrategyCalendlyUrl(domain);
-  const spUrl = buildStrategyPresentationUrl(domain);
+  const calUrl = scanReportCalendlyUrl(domain);
+  const spUrl = scanReportPresentationUrl(domain);
   return (
     <div
       className={`${panelClass} overflow-hidden`}
@@ -235,8 +224,9 @@ function StrategyPresentationUpsell({ domain }: { domain: string }) {
               Turn this scan for <span className="whitespace-nowrap">{domain}</span> into a decision-ready deck
             </h3>
             <p className="text-sm leading-relaxed" style={{ color: "var(--theme-muted)" }}>
-              Book a focused session — we use your WebsiteCreditScore report as the outline: priorities, proof, and what to ship first.
-              Remote by default; in-person available when it fits your business.
+              Book a <strong style={{ color: "var(--theme-foreground)" }}>Strategy Call</strong> — that booking triggers your{" "}
+              <strong style={{ color: "var(--theme-foreground)" }}>Strategy Presentation</strong> build from this scan (priorities, proof, what to ship first).
+              Remote by default; in-person when it fits your business.
             </p>
           </div>
           <div className="flex w-full flex-shrink-0 flex-col gap-2 sm:w-auto">
@@ -248,7 +238,7 @@ function StrategyPresentationUpsell({ domain }: { domain: string }) {
               style={{ backgroundColor: "var(--theme-accent)", color: "var(--theme-accent-foreground)" }}
             >
               <Calendar className="h-4 w-4" aria-hidden />
-              Book 30 minutes on Calendly →
+              Strategy Call — book 30 min →
             </a>
             <a
               href={spUrl}
@@ -275,15 +265,15 @@ function StrategyPresentationUpsell({ domain }: { domain: string }) {
 }
 
 function StrategyPresentationReminder({ domain }: { domain: string }) {
-  const calUrl = buildStrategyCalendlyUrl(domain);
-  const spUrl = buildStrategyPresentationUrl(domain);
+  const calUrl = scanReportCalendlyUrl(domain);
+  const spUrl = scanReportPresentationUrl(domain);
   return (
     <div
       className={`${panelClass} flex flex-col items-stretch justify-between gap-3 p-4 sm:flex-row sm:items-center`}
       style={panelStyle}
     >
       <p className="text-sm font-medium" style={{ color: "var(--theme-foreground)" }}>
-        Want a free strategy presentation built from this scan?
+        Next step: <strong>Strategy Call</strong> → we produce your Strategy Presentation from this scan.
       </p>
       <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
         <a
@@ -293,7 +283,7 @@ function StrategyPresentationReminder({ domain }: { domain: string }) {
           className="inline-flex items-center justify-center rounded-lg px-4 py-2.5 text-center text-xs font-bold transition-opacity hover:opacity-90"
           style={{ backgroundColor: "var(--theme-accent)", color: "var(--theme-accent-foreground)" }}
         >
-          Book on Calendly →
+          Strategy Call →
         </a>
         <a
           href={spUrl}

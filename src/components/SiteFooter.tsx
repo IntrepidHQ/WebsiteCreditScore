@@ -1,3 +1,5 @@
+import { buildStrategyCallCalendlyUrl } from "@/lib/strategy-call";
+
 export function SiteFooter() {
   return (
     <footer
@@ -38,6 +40,15 @@ export function SiteFooter() {
           </a>
           <a href="/terms" className="hover:opacity-80 transition-opacity">
             Terms
+          </a>
+          <a
+            href={buildStrategyCallCalendlyUrl({ medium: "footer" })}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="hover:opacity-80 transition-opacity font-semibold"
+            style={{ color: "var(--theme-accent)" }}
+          >
+            Strategy Call
           </a>
         </div>
         <p
