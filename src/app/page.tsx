@@ -6,7 +6,6 @@ import { QuantumWeb } from "@/components/QuantumWeb";
 import { NavBar } from "@/components/NavBar";
 import { SiteFooter } from "@/components/SiteFooter";
 import { ResearchSourcesMarquee } from "@/components/ResearchSourcesMarquee";
-import { HeroVisualShowcase } from "@/components/HeroVisualShowcase";
 import { ScrollToTop } from "@/components/ScrollToTop";
 import { RESEARCH_SOURCES_PER_SCAN } from "@/lib/research-sources";
 import { getBlogIconForSlug } from "@/lib/blog/icons";
@@ -276,8 +275,7 @@ export default async function LandingPage({
           style={{ background: "radial-gradient(ellipse at top left, rgba(247,178,27,0.12), transparent 65%)", filter: "blur(60px)" }}
         />
 
-        <div className="relative z-10 max-w-7xl mx-auto px-6 py-16 lg:py-24 grid grid-cols-1 lg:grid-cols-2 gap-16 items-center">
-          {/* Left */}
+        <div className="relative z-10 mx-auto max-w-3xl px-6 py-16 lg:py-24">
           <div className="space-y-8">
             <div className="space-y-3">
               <div
@@ -325,21 +323,6 @@ export default async function LandingPage({
                 <strong style={{ color: "var(--theme-foreground)" }}>Strategy Presentation</strong> from the audit.
               </p>
             </div>
-          </div>
-
-          {/* Right — hero visuals (3 switchable compositions) */}
-          <div className="flex justify-center lg:justify-end lg:pr-4">
-            <HeroVisualShowcase
-              exampleHref="/preview"
-              imageSrc="/apple-homepage-real.png"
-              hostname="apple.com"
-              topDimensions={ANGLES.slice(2, 4).map((a) => ({
-                key: a.key,
-                label: a.label,
-                score: a.score,
-                color: a.color,
-              }))}
-            />
           </div>
         </div>
 

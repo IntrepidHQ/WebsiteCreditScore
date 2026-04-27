@@ -1,6 +1,7 @@
 "use client";
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
+import { isTemporaryFreeScanWindow } from "@/lib/free-scan-window";
 
 type Tier = "quick" | "standard" | "deep";
 export type TierMode = "standard" | "max";
@@ -57,6 +58,7 @@ const TIER_COPY: Record<
 const FREE_SCAN_CLIENT =
   typeof process !== "undefined" &&
   process.env.NEXT_PUBLIC_FREE_SCAN_MODE === "true";
+const TEMP_FREE_SCAN_ACTIVE = isTemporaryFreeScanWindow();
 
 function normalizeUrl(input: string): string {
   let url = input.trim();
@@ -113,7 +115,7 @@ export function ScanForm({
   const creditKey = `${tier}_${mode}`;
   const creditCount = walletBalances?.[creditKey] ?? 0;
   const hasCredit = creditCount > 0;
-  const useFreeFlow = !hasCredit && (FREE_SCAN_CLIENT || firstScanAvailable);
+  const useFreeFlow = !hasCredit && (TEMP_FREE_SCAN_ACTIVE || FREE_SCAN_CLIENT || firstScanAvailable);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -171,7 +173,9 @@ export function ScanForm({
       : "Scan →";
   const hintLine = hasCredit
     ? `${creditCount} ${copy.tabLabel} ${creditCount === 1 ? "credit" : "credits"} available`
-    : useFreeFlow
+    : TEMP_FREE_SCAN_ACTIVE
+      ? "Temporary test mode (24h): scans are free"
+      : useFreeFlow
       ? "First scan is free · No account required"
       : `Starts at $${TIER_COPY[mode].quick.price} per report · No account required`;
   const showFree = hasCredit || useFreeFlow;
@@ -241,6 +245,13 @@ export function ScanForm({
                 style={{ backgroundColor: "rgba(247,178,27,0.14)", color: "var(--theme-accent)", border: "1px solid rgba(247,178,27,0.35)" }}
               >
                 ★ {creditCount} {creditCount === 1 ? "credit" : "credits"}
+              </span>
+            ) : TEMP_FREE_SCAN_ACTIVE ? (
+              <span
+                className="inline-flex items-center gap-1.5 rounded-full px-2.5 py-1"
+                style={{ backgroundColor: "rgba(74,222,128,0.12)", color: "#86efac", border: "1px solid rgba(74,222,128,0.3)" }}
+              >
+                ★ Test mode free scan
               </span>
             ) : useFreeFlow ? (
               <span

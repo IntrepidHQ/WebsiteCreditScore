@@ -3,6 +3,7 @@ import { createFreeBypassScan } from "@/lib/db/scans";
 import { consumeWalletCredit, getWalletBalances } from "@/lib/db/wallets";
 import { readWalletIdFromRequest } from "@/lib/wallet-cookie";
 import { isTier, isTierMode, type Tier, type TierMode } from "@/lib/pricing";
+import { isTemporaryFreeScanWindow } from "@/lib/free-scan-window";
 
 const FIRST_SCAN_COOKIE = "wcs_first_scan_claimed";
 
@@ -74,7 +75,8 @@ export async function POST(req: NextRequest) {
   const envFree = isFreeScanModeEnabled();
   const firstScanFree = isFirstScanFreeEnabled();
   const cookieClaimed = req.cookies.get(FIRST_SCAN_COOKIE)?.value === "1";
-  const allowFree = envFree || (firstScanFree && !cookieClaimed);
+  const tempFreeWindow = isTemporaryFreeScanWindow();
+  const allowFree = tempFreeWindow || envFree || (firstScanFree && !cookieClaimed);
 
   if (!allowFree) {
     return NextResponse.json(
@@ -86,7 +88,7 @@ export async function POST(req: NextRequest) {
   try {
     const { id } = await createFreeBypassScan(domain);
     const res = NextResponse.json({ scanId: id, source: "first-free" });
-    if (!envFree) {
+    if (!tempFreeWindow && !envFree) {
       res.cookies.set(FIRST_SCAN_COOKIE, "1", {
         httpOnly: true,
         sameSite: "lax",
