@@ -19,7 +19,14 @@ import {
   Search,
   Calendar,
 } from "lucide-react";
-import { gradeColor, type WCSReport, type Grade } from "@/lib/schema";
+import {
+  DIMENSION_WEIGHTS,
+  gradeColor,
+  scoreToGrade,
+  type WCSReport,
+  type Grade,
+  type DimensionKey,
+} from "@/lib/schema";
 import { buildStrategyCallCalendlyUrl, buildStrategyPresentationUrl } from "@/lib/strategy-call";
 
 const scanReportCalendlyUrl = (domain: string) =>
@@ -33,6 +40,57 @@ const panelStyle: CSSProperties = {
   borderColor: "var(--theme-border)",
   backgroundColor: "var(--theme-panel)",
 };
+
+function clampScore(score: number): number {
+  return Math.max(0, Math.min(100, Math.round(score)));
+}
+
+function applyCorrectionPreview(report: WCSReport, correction: string): WCSReport {
+  const text = correction.toLowerCase();
+  const updates: Partial<Record<DimensionKey, number>> = {};
+
+  if (/(employee|employees|staff|headcount|team)/.test(text)) {
+    updates.legitimacy = (updates.legitimacy ?? 0) + 10;
+    updates.financial_signals = (updates.financial_signals ?? 0) + 8;
+  }
+  if (/(revenue|arr|mrr|\$|k\/y|per year|year)/.test(text)) {
+    updates.financial_signals = (updates.financial_signals ?? 0) + 14;
+    updates.legitimacy = (updates.legitimacy ?? 0) + 4;
+  }
+  if (/(wrong|incorrect|inaccurate|not true|false)/.test(text)) {
+    updates.transparency = (updates.transparency ?? 0) + 4;
+  }
+
+  const dimensions = report.dimensions.map((dim) => {
+    const delta = updates[dim.key as DimensionKey] ?? 0;
+    if (!delta) return dim;
+    const score = clampScore(dim.score + delta);
+    return {
+      ...dim,
+      score,
+      grade: scoreToGrade(score),
+      verdict: `${dim.verdict} (Temporary correction preview applied from your note.)`,
+    };
+  });
+
+  const weightedScore = dimensions.reduce((sum, dim) => {
+    const w = DIMENSION_WEIGHTS[dim.key as DimensionKey] ?? dim.weight ?? 0;
+    return sum + dim.score * w;
+  }, 0);
+  const overallScore = clampScore(weightedScore);
+
+  return {
+    ...report,
+    overall: {
+      score: overallScore,
+      grade: scoreToGrade(overallScore),
+      headline: "Temporary corrected preview",
+      one_liner:
+        "You applied a correction note. This preview updates score direction now; root-cause tracing still needed for a durable fix.",
+    },
+    dimensions,
+  };
+}
 
 // ── Types ─────────────────────────────────────────────────────────────────
 interface Props {
@@ -301,13 +359,26 @@ function StrategyPresentationReminder({ domain }: { domain: string }) {
 
 // ── Main report ───────────────────────────────────────────────────────────
 export function ReportContent({ report }: { report: WCSReport }) {
-  const radarData = report.dimensions.map((d) => ({
+  const [correctionInput, setCorrectionInput] = useState("");
+  const [appliedCorrection, setAppliedCorrection] = useState<string | null>(null);
+  const [previewReport, setPreviewReport] = useState<WCSReport | null>(null);
+
+  const viewReport = previewReport ?? report;
+
+  const radarData = viewReport.dimensions.map((d) => ({
     subject: d.label.split(" ")[0],
     score: d.score,
     fullMark: 100,
   }));
 
-  const overallColor = gradeColor(report.overall.grade as Grade);
+  const overallColor = gradeColor(viewReport.overall.grade as Grade);
+
+  const handleApplyCorrection = () => {
+    const text = correctionInput.trim();
+    if (!text) return;
+    setPreviewReport(applyCorrectionPreview(report, text));
+    setAppliedCorrection(text);
+  };
 
   return (
     <div className="space-y-6">
@@ -324,29 +395,29 @@ export function ReportContent({ report }: { report: WCSReport }) {
           transition={{ type: "spring", stiffness: 200, damping: 15, delay: 0.1 }}
         >
           <GradeBadge
-            grade={report.overall.grade as Grade}
-            score={report.overall.score}
+            grade={viewReport.overall.grade as Grade}
+            score={viewReport.overall.score}
             size="lg"
           />
         </motion.div>
         <div className="min-w-0 flex-1">
           <p className="text-lg font-semibold" style={{ color: "var(--theme-foreground)" }}>
-            {report.domain}
+            {viewReport.domain}
           </p>
-          {report.company_name && (
+          {viewReport.company_name && (
             <p className="text-sm" style={{ color: "var(--theme-muted)" }}>
-              {report.company_name}
+              {viewReport.company_name}
             </p>
           )}
           <p className="mt-2 text-base leading-relaxed" style={{ color: "color-mix(in srgb, var(--theme-foreground) 90%, transparent)" }}>
-            {report.overall.headline}
+            {viewReport.overall.headline}
           </p>
           <p className="mt-1 text-sm" style={{ color: "var(--theme-muted)" }}>
-            {report.overall.one_liner}
+            {viewReport.overall.one_liner}
           </p>
           <p className="mt-3 text-xs" style={{ color: "color-mix(in srgb, var(--theme-muted) 80%, transparent)" }}>
-            {report.sources.length} sources ·{" "}
-            {new Date(report.scanned_at).toLocaleDateString("en-US", {
+            {viewReport.sources.length} sources ·{" "}
+            {new Date(viewReport.scanned_at).toLocaleDateString("en-US", {
               month: "long",
               day: "numeric",
               year: "numeric",
@@ -355,7 +426,60 @@ export function ReportContent({ report }: { report: WCSReport }) {
         </div>
       </motion.div>
 
-      <StrategyPresentationUpsell domain={report.domain} />
+      <StrategyPresentationUpsell domain={viewReport.domain} />
+
+      <div className={`${panelClass} p-5`} style={panelStyle}>
+        <p className="text-sm font-semibold mb-2" style={{ color: "var(--theme-foreground)" }}>
+          Did Claude get something wrong?
+        </p>
+        <p className="text-xs mb-3 leading-relaxed" style={{ color: "var(--theme-muted)" }}>
+          Add corrections (example: &ldquo;Saunders has 8 employees and ~$800K last year, not 1 employee and $81K/y.&rdquo;).
+          This updates a temporary in-app preview so you can see the directional impact.
+          We still need to trace root cause before treating it as final truth.
+        </p>
+        <textarea
+          value={correctionInput}
+          onChange={(e) => setCorrectionInput(e.target.value)}
+          placeholder="Type factual corrections here..."
+          className="w-full rounded-xl border px-3 py-2.5 text-sm outline-none resize-y min-h-[88px]"
+          style={{
+            borderColor: "var(--theme-border)",
+            color: "var(--theme-foreground)",
+            backgroundColor: "var(--theme-background)",
+          }}
+          aria-label="Correction input"
+        />
+        <div className="mt-3 flex flex-wrap items-center gap-2">
+          <button
+            type="button"
+            onClick={handleApplyCorrection}
+            disabled={!correctionInput.trim()}
+            className="rounded-lg px-4 py-2 text-xs font-semibold disabled:opacity-40"
+            style={{ backgroundColor: "var(--theme-accent)", color: "var(--theme-accent-foreground)" }}
+          >
+            Apply temporary correction preview
+          </button>
+          {previewReport ? (
+            <button
+              type="button"
+              onClick={() => {
+                setPreviewReport(null);
+                setAppliedCorrection(null);
+                setCorrectionInput("");
+              }}
+              className="rounded-lg border px-4 py-2 text-xs font-semibold"
+              style={{ borderColor: "var(--theme-border)", color: "var(--theme-muted)" }}
+            >
+              Reset preview
+            </button>
+          ) : null}
+          {appliedCorrection ? (
+            <span className="text-xs" style={{ color: "var(--theme-muted)" }}>
+              Preview active from: &ldquo;{appliedCorrection.slice(0, 100)}{appliedCorrection.length > 100 ? "…" : ""}&rdquo;
+            </span>
+          ) : null}
+        </div>
+      </div>
 
       {/* Radar + Flags */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
@@ -396,14 +520,14 @@ export function ReportContent({ report }: { report: WCSReport }) {
         {/* Flags */}
         <div className="space-y-4">
           {/* Red flags */}
-          {report.red_flags.length > 0 && (
+          {viewReport.red_flags.length > 0 && (
             <div className={`${panelClass} border-red-500/20 p-4`} style={panelStyle}>
               <h2 className="text-sm font-medium text-red-400 mb-3 flex items-center gap-2">
                 <AlertTriangle className="w-4 h-4" />
-                Red Flags ({report.red_flags.length})
+                Red Flags ({viewReport.red_flags.length})
               </h2>
               <div className="space-y-2">
-                {report.red_flags.map((flag, i) => (
+                {viewReport.red_flags.map((flag, i) => (
                   <div key={i} className="space-y-0.5">
                     <div className="flex items-start gap-2">
                       <span
@@ -433,14 +557,14 @@ export function ReportContent({ report }: { report: WCSReport }) {
           )}
 
           {/* Green flags */}
-          {report.green_flags.length > 0 && (
+          {viewReport.green_flags.length > 0 && (
             <div className={`${panelClass} border-emerald-500/20 p-4`} style={panelStyle}>
               <h2 className="text-sm font-medium text-emerald-400 mb-3 flex items-center gap-2">
                 <CheckCircle2 className="w-4 h-4" />
-                Green Flags ({report.green_flags.length})
+                Green Flags ({viewReport.green_flags.length})
               </h2>
               <div className="space-y-2">
-                {report.green_flags.map((flag, i) => (
+                {viewReport.green_flags.map((flag, i) => (
                   <div key={i} className="space-y-0.5">
                     <p className="text-sm font-medium" style={{ color: "var(--theme-foreground)" }}>
                       {flag.title}
@@ -462,22 +586,22 @@ export function ReportContent({ report }: { report: WCSReport }) {
           Dimension Breakdown
         </h2>
         <div className="space-y-2">
-          {report.dimensions.map((dim) => (
+          {viewReport.dimensions.map((dim) => (
             <DimensionCard key={dim.key} dim={dim} />
           ))}
         </div>
       </div>
 
       {/* Timeline + Peers */}
-      {((report.timeline?.length ?? 0) > 0 || (report.peers?.length ?? 0) > 0) && (
+      {((viewReport.timeline?.length ?? 0) > 0 || (viewReport.peers?.length ?? 0) > 0) && (
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-          {report.timeline && report.timeline.length > 0 && (
+          {viewReport.timeline && viewReport.timeline.length > 0 && (
             <div className={`${panelClass} p-5`} style={panelStyle}>
               <h2 className="mb-4 text-sm font-medium" style={{ color: "var(--theme-muted)" }}>
                 Company Timeline
               </h2>
               <div className="space-y-3">
-                {report.timeline.map((item, i) => (
+                {viewReport.timeline.map((item, i) => (
                   <div key={i} className="flex gap-3 text-sm">
                     <span className="w-10 flex-shrink-0 font-mono" style={{ color: "var(--theme-muted)" }}>
                       {item.year}
@@ -491,13 +615,13 @@ export function ReportContent({ report }: { report: WCSReport }) {
             </div>
           )}
 
-          {report.peers && report.peers.length > 0 && (
+          {viewReport.peers && viewReport.peers.length > 0 && (
             <div className={`${panelClass} p-5`} style={panelStyle}>
               <h2 className="mb-4 text-sm font-medium" style={{ color: "var(--theme-muted)" }}>
                 Peer Comparison
               </h2>
               <div className="space-y-3">
-                {report.peers.map((peer, i) => (
+                {viewReport.peers.map((peer, i) => (
                   <div key={i} className="space-y-0.5">
                     <p className="font-mono text-sm" style={{ color: "var(--theme-foreground)" }}>
                       {peer.domain}
@@ -519,7 +643,7 @@ export function ReportContent({ report }: { report: WCSReport }) {
           Executive Summary
         </h2>
         <div className="max-w-none">
-          {report.summary.split("\n\n").map((para, i) => (
+          {viewReport.summary.split("\n\n").map((para, i) => (
             <p
               key={i}
               className="mb-3 text-sm leading-relaxed last:mb-0"
@@ -534,10 +658,10 @@ export function ReportContent({ report }: { report: WCSReport }) {
       {/* Sources */}
       <div className={`${panelClass} p-6`} style={panelStyle}>
         <h2 className="mb-4 text-sm font-medium" style={{ color: "var(--theme-muted)" }}>
-          Sources ({report.sources.length})
+          Sources ({viewReport.sources.length})
         </h2>
         <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
-          {report.sources.map((source, i) => (
+          {viewReport.sources.map((source, i) => (
             <a
               key={i}
               href={source.url}
@@ -553,7 +677,7 @@ export function ReportContent({ report }: { report: WCSReport }) {
         </div>
       </div>
 
-      <StrategyPresentationReminder domain={report.domain} />
+      <StrategyPresentationReminder domain={viewReport.domain} />
 
       {/* Share */}
       <div className="pb-8 text-center">
