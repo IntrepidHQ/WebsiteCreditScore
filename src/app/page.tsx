@@ -275,7 +275,7 @@ export default async function LandingPage({
           style={{ background: "radial-gradient(ellipse at top left, rgba(247,178,27,0.12), transparent 65%)", filter: "blur(60px)" }}
         />
 
-        <div className="relative z-10 mx-auto max-w-3xl px-6 py-16 lg:py-24">
+        <div className="relative z-10 mx-auto grid max-w-7xl grid-cols-1 items-center gap-14 px-6 py-16 lg:grid-cols-2 lg:gap-16 lg:py-24">
           <div className="space-y-8">
             <div className="space-y-3">
               <div
@@ -304,10 +304,6 @@ export default async function LandingPage({
               and get a clearer plan for what to improve first. Ten angles. One verdict.
             </p>
 
-            <WalletBadge />
-
-            <ScanForm showTierSelect defaultTier={defaultTier} tierMode={tierMode} />
-
             <div className="flex flex-col gap-2 sm:flex-row sm:flex-wrap sm:items-center">
               <a
                 href={buildStrategyCallCalendlyUrl({ medium: "hero", content: "landing_hero" })}
@@ -322,6 +318,13 @@ export default async function LandingPage({
                 Already scanned or prefer to talk first? A Strategy Call books your session and triggers your{" "}
                 <strong style={{ color: "var(--theme-foreground)" }}>Strategy Presentation</strong> from the audit.
               </p>
+            </div>
+          </div>
+
+          <div className="flex justify-center lg:justify-end">
+            <div className="w-full max-w-xl space-y-4">
+              <WalletBadge />
+              <ScanForm showTierSelect defaultTier={defaultTier} tierMode={tierMode} />
             </div>
           </div>
         </div>
