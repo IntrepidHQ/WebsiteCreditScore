@@ -21,18 +21,41 @@ export async function GET() {
       : { ok: false, detail: "MISSING" };
   }
 
-  // 2. Supabase connectivity — try a trivial query
+  // 2. Supabase SELECT
   try {
     const supabase = await createClient();
-    const { error } = await supabase
-      .from("scans")
-      .select("id")
-      .limit(1);
-    checks["supabase_query"] = error
+    const { error } = await supabase.from("scans").select("id").limit(1);
+    checks["supabase_select"] = error
       ? { ok: false, detail: error.message }
-      : { ok: true, detail: "connected" };
+      : { ok: true, detail: "ok" };
   } catch (err) {
-    checks["supabase_query"] = {
+    checks["supabase_select"] = {
+      ok: false,
+      detail: err instanceof Error ? err.message : String(err),
+    };
+  }
+
+  // 3. Supabase INSERT — same operation scan/start does
+  try {
+    const { randomUUID } = await import("crypto");
+    const testId = randomUUID();
+    const supabase = await createClient();
+    const { error } = await supabase.from("scans").insert({
+      id: testId,
+      domain: "health-check.internal",
+      status: "pending",
+      paid: true,
+      stripe_session_id: `health_${testId.slice(0, 12)}`,
+    });
+    if (error) {
+      checks["supabase_insert"] = { ok: false, detail: error.message };
+    } else {
+      // clean up
+      await supabase.from("scans").delete().eq("id", testId);
+      checks["supabase_insert"] = { ok: true, detail: "ok" };
+    }
+  } catch (err) {
+    checks["supabase_insert"] = {
       ok: false,
       detail: err instanceof Error ? err.message : String(err),
     };

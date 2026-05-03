@@ -98,9 +98,10 @@ export async function POST(req: NextRequest) {
     }
     return res;
   } catch (err) {
+    const detail = err instanceof Error ? err.message : String(err);
     console.error("[scan/start]", err);
     return NextResponse.json(
-      { error: "Failed to start scan" },
+      { error: "Failed to start scan", detail },
       { status: 500 }
     );
   }
