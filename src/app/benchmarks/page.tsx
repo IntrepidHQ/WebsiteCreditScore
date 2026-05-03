@@ -1,25 +1,9 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import {
-  Home,
-  Stethoscope,
-  Monitor,
-  CreditCard,
-  Scale,
-  Building2,
-  Dumbbell,
-  Sparkles,
-  HardHat,
-  UtensilsCrossed,
-  Smile,
-  ShoppingBag,
-  type LucideIcon,
-} from "lucide-react";
-import { getBenchmarkRubric } from "@/lib/benchmarks/library";
-import type { BenchmarkVertical } from "@/lib/types/audit";
 import { ScrollToTop } from "@/components/ScrollToTop";
 import { NavBar } from "@/components/NavBar";
 import { SiteFooter } from "@/components/SiteFooter";
+import { IndustryStandards } from "./industry-standards";
 
 export const metadata: Metadata = {
   title: "Website Benchmark Standards — WebsiteCreditScore",
@@ -33,21 +17,6 @@ export const metadata: Metadata = {
 };
 
 // ── Data ─────────────────────────────────────────────────────────────────────
-
-const verticals: Array<{ id: BenchmarkVertical; label: string; icon: LucideIcon; color: string }> = [
-  { id: "service-providers",      label: "Home & Service",        icon: Home,           color: "#60a5fa" },
-  { id: "private-healthcare",     label: "Private Care",          icon: Stethoscope,    color: "#4ade80" },
-  { id: "product-saas",           label: "Product & SaaS",        icon: Monitor,        color: "#818cf8" },
-  { id: "fintech",                label: "Fintech",               icon: CreditCard,     color: "#f7b21b" },
-  { id: "legal",                  label: "Law Firms",           icon: Scale,          color: "#34d399" },
-  { id: "real-estate",            label: "Real Estate",           icon: Building2,      color: "#fb923c" },
-  { id: "fitness",                label: "Fitness & Studios",     icon: Dumbbell,       color: "#f472b6" },
-  { id: "beauty-wellness",        label: "Beauty & Wellness",     icon: Sparkles,       color: "#38bdf8" },
-  { id: "construction-trades",    label: "Construction & Trades", icon: HardHat,        color: "#a78bfa" },
-  { id: "restaurant-hospitality", label: "Restaurants",           icon: UtensilsCrossed, color: "#facc15" },
-  { id: "dental",                 label: "Dental Practices",      icon: Smile,          color: "#4ade80" },
-  { id: "retail-ecommerce",       label: "Retail & E-commerce",   icon: ShoppingBag,    color: "#f7b21b" },
-];
 
 const scoreTiers = [
   { range: "90–100", grade: "A+/A",  label: "Exceptional", color: "#4ade80", score: 95, description: "Sets the bar for the industry. Trust is immediate, evidence is deep, and the experience is friction-free." },
@@ -142,127 +111,6 @@ function ScoreSpectrumBar() {
   );
 }
 
-/** Flat geometric hero art per vertical — no photography, no skeuomorphic icons */
-function IndustryFlatHero({ id, color }: { id: BenchmarkVertical; color: string }) {
-  const art = (() => {
-    switch (id) {
-      case "service-providers":
-        return (
-          <>
-            <rect x="8" y="42" width="62" height="36" rx="8" fill={color} opacity="0.38" />
-            <rect x="24" y="22" width="30" height="14" rx="4" fill={color} opacity="0.22" />
-          </>
-        );
-      case "private-healthcare":
-        return (
-          <>
-            <rect x="16" y="18" width="48" height="58" rx="12" fill={color} opacity="0.28" />
-            <circle cx="54" cy="36" r="14" fill={color} opacity="0.45" />
-          </>
-        );
-      case "product-saas":
-        return (
-          <>
-            <rect x="12" y="26" width="64" height="44" rx="8" fill={color} opacity="0.32" />
-            <rect x="22" y="16" width="44" height="10" rx="3" fill={color} opacity="0.2" />
-          </>
-        );
-      case "fintech":
-        return (
-          <>
-            <rect x="14" y="34" width="60" height="38" rx="9" fill={color} opacity="0.34" />
-            <rect x="26" y="20" width="36" height="10" rx="3" fill={color} opacity="0.5" />
-          </>
-        );
-      case "legal":
-        return (
-          <>
-            <path d="M48 16 L68 72 L28 72 Z" fill={color} opacity="0.35" />
-            <rect x="30" y="52" width="36" height="10" rx="2" fill={color} opacity="0.25" />
-          </>
-        );
-      case "real-estate":
-        return (
-          <>
-            <path d="M20 52 L48 24 L76 52 Z" fill={color} opacity="0.4" />
-            <rect x="38" y="46" width="20" height="22" rx="2" fill={color} opacity="0.28" />
-          </>
-        );
-      case "fitness":
-        return (
-          <>
-            <rect x="18" y="20" width="52" height="52" rx="14" fill={color} opacity="0.22" />
-            <rect x="30" y="32" width="28" height="28" rx="6" fill={color} opacity="0.42" />
-          </>
-        );
-      case "beauty-wellness":
-        return (
-          <>
-            <circle cx="40" cy="40" r="26" fill={color} opacity="0.3" />
-            <circle cx="58" cy="32" r="12" fill={color} opacity="0.45" />
-          </>
-        );
-      case "construction-trades":
-        return (
-          <>
-            <rect x="10" y="48" width="68" height="14" rx="3" fill={color} opacity="0.4" />
-            <rect x="22" y="22" width="16" height="30" rx="2" fill={color} opacity="0.32" />
-            <rect x="50" y="30" width="16" height="22" rx="2" fill={color} opacity="0.32" />
-          </>
-        );
-      case "restaurant-hospitality":
-        return (
-          <>
-            <ellipse cx="44" cy="44" rx="34" ry="22" fill={color} opacity="0.28" />
-            <rect x="28" y="30" width="36" height="8" rx="2" fill={color} opacity="0.45" />
-          </>
-        );
-      case "dental":
-        return (
-          <>
-            <path
-              d="M30 22 Q44 12 58 22 Q66 40 58 58 Q44 68 30 58 Q22 40 30 22 Z"
-              fill={color}
-              opacity="0.34"
-            />
-            <rect x="34" y="36" width="20" height="10" rx="3" fill={color} opacity="0.25" />
-          </>
-        );
-      case "retail-ecommerce":
-        return (
-          <>
-            <rect x="14" y="26" width="56" height="42" rx="10" fill={color} opacity="0.3" />
-            <path d="M26 26 L44 14 L62 26 Z" fill={color} opacity="0.38" />
-          </>
-        );
-    }
-  })();
-
-  return (
-    <div
-      className="relative mb-3 h-28 w-full overflow-hidden rounded-xl"
-      style={{
-        backgroundColor: "var(--theme-elevated)",
-        border: "1px solid color-mix(in srgb, var(--theme-border) 85%, transparent)",
-      }}
-    >
-      <div
-        className="absolute inset-0"
-        style={{
-          background: `linear-gradient(145deg, color-mix(in srgb, ${color} 38%, transparent) 0%, transparent 58%), linear-gradient(300deg, color-mix(in srgb, ${color} 22%, transparent), transparent 62%)`,
-        }}
-      />
-      <svg
-        className="absolute -right-3 -bottom-10 h-40 w-44"
-        viewBox="0 0 96 96"
-        aria-hidden
-      >
-        {art}
-      </svg>
-    </div>
-  );
-}
-
 function ProgressRing({ score, color, size = 80 }: { score: number; color: string; size?: number }) {
   const r = (size - 10) / 2;
   const circ = 2 * Math.PI * r;
@@ -314,10 +162,10 @@ function DimensionWeightBar({ dim }: { dim: typeof dimensions[number] }) {
 }
 
 function SampleRadarChart() {
-  const size = 240;
+  const size = 360;
   const cx = size / 2;
   const cy = size / 2;
-  const maxR = 90;
+  const maxR = 132;
   const N = dimensions.length;
 
   function pt(i: number, r: number) {
@@ -326,34 +174,78 @@ function SampleRadarChart() {
   }
 
   const gridLevels = [0.25, 0.5, 0.75, 1];
-  const scorePath = DEMO_SCORES.map((s, i) => {
-    const { x, y } = pt(i, (s / 100) * maxR);
-    return `${i === 0 ? "M" : "L"}${x.toFixed(1)},${y.toFixed(1)}`;
-  }).join(" ") + " Z";
-
   const avgScore = Math.round(DEMO_SCORES.reduce((a, b) => a + b, 0) / DEMO_SCORES.length);
 
   return (
-    <svg width={size} height={size} viewBox={`0 0 ${size} ${size}`} className="mx-auto">
+    <svg width="100%" height="100%" viewBox={`0 0 ${size} ${size}`} className="mx-auto block w-full max-w-[23rem]">
+      <defs>
+        {dimensions.map((dim, index) => {
+          const next = dimensions[(index + 1) % N];
+          return (
+            <linearGradient key={dim.key} id={`benchmark-slice-${dim.key}`} x1="0" y1="0" x2="1" y2="1">
+              <stop offset="0%" stopColor={dim.color} stopOpacity="0.38" />
+              <stop offset="100%" stopColor={next.color} stopOpacity="0.2" />
+            </linearGradient>
+          );
+        })}
+        <radialGradient id="benchmark-radar-glow" cx="50%" cy="50%" r="55%">
+          <stop offset="0%" stopColor="rgba(247,178,27,0.2)" />
+          <stop offset="80%" stopColor="rgba(247,178,27,0)" />
+        </radialGradient>
+      </defs>
+      <circle cx={cx} cy={cy} r={maxR + 18} fill="url(#benchmark-radar-glow)" />
       {gridLevels.map((level) => {
         const pts = Array.from({ length: N }, (_, i) => pt(i, level * maxR));
         const d = pts.map((p, i) => `${i === 0 ? "M" : "L"}${p.x.toFixed(1)},${p.y.toFixed(1)}`).join(" ") + " Z";
-        return <path key={level} d={d} fill="none" stroke="rgba(247,178,27,0.08)" strokeWidth={1} />;
+        return <path key={level} d={d} fill="none" stroke="rgba(247,178,27,0.09)" strokeWidth={1.2} />;
       })}
       {Array.from({ length: N }, (_, i) => {
         const outer = pt(i, maxR);
-        return <line key={i} x1={cx} y1={cy} x2={outer.x.toFixed(1)} y2={outer.y.toFixed(1)} stroke="rgba(247,178,27,0.06)" strokeWidth={1} />;
+        return <line key={i} x1={cx} y1={cy} x2={outer.x.toFixed(1)} y2={outer.y.toFixed(1)} stroke="rgba(247,178,27,0.09)" strokeWidth={1.2} />;
       })}
-      <path d={scorePath} fill="rgba(247,178,27,0.10)" stroke="rgba(247,178,27,0.45)" strokeWidth={1.5} />
+      {DEMO_SCORES.map((score, index) => {
+        const nextScore = DEMO_SCORES[(index + 1) % N];
+        const p1 = pt(index, (score / 100) * maxR);
+        const p2 = pt((index + 1) % N, (nextScore / 100) * maxR);
+        const path = `M${cx},${cy} L${p1.x.toFixed(1)},${p1.y.toFixed(1)} L${p2.x.toFixed(1)},${p2.y.toFixed(1)} Z`;
+        return (
+          <path
+            key={dimensions[index].key}
+            d={path}
+            fill={`url(#benchmark-slice-${dimensions[index].key})`}
+            stroke={dimensions[index].color}
+            strokeOpacity={0.58}
+            strokeWidth={1.25}
+            strokeLinejoin="round"
+          />
+        );
+      })}
       {DEMO_SCORES.map((s, i) => {
         const { x, y } = pt(i, (s / 100) * maxR);
-        return <circle key={i} cx={x.toFixed(1)} cy={y.toFixed(1)} r={3.5} fill={dimensions[i].color} fillOpacity={0.85} />;
+        return (
+          <g key={dimensions[i].key}>
+            <circle cx={x.toFixed(1)} cy={y.toFixed(1)} r={13} fill="rgba(14,14,7,0.96)" stroke={dimensions[i].color} strokeWidth={1.8} />
+            <text
+              x={x.toFixed(1)}
+              y={(y + 4).toFixed(1)}
+              textAnchor="middle"
+              fontSize={11}
+              fontWeight={650}
+              fontFamily="'Instrument Serif', Georgia, serif"
+              fill={dimensions[i].color}
+            >
+              {s}
+            </text>
+          </g>
+        );
       })}
-      {/* Center grade */}
-      <circle cx={cx} cy={cy} r={20} fill="#000" />
-      <circle cx={cx} cy={cy} r={20} fill="none" stroke="rgba(247,178,27,0.25)" strokeWidth={1} />
-      <text x={cx} y={cy + 5} textAnchor="middle" fontSize={14} fontWeight="400" fontFamily="'Instrument Serif', Georgia, serif" fill="#f7b21b">
+      <circle cx={cx} cy={cy} r={34} fill="rgba(14,14,7,0.97)" />
+      <circle cx={cx} cy={cy} r={34} fill="none" stroke="rgba(247,178,27,0.38)" strokeWidth={1.1} />
+      <text x={cx} y={cy - 1} textAnchor="middle" fontSize={22} fontWeight="400" fontFamily="'Instrument Serif', Georgia, serif" fill="#f7b21b">
         {GRADE_THRESHOLDS.find((t) => avgScore >= t.score)?.grade}
+      </text>
+      <text x={cx} y={cy + 17} textAnchor="middle" fontSize={8} letterSpacing={2} fontFamily="ui-monospace, monospace" fill="rgba(150,142,106,0.82)">
+        SAMPLE
       </text>
     </svg>
   );
@@ -457,13 +349,13 @@ export default function BenchmarksPage() {
                 <p className="text-xs mb-4" style={{ color: "var(--theme-muted)" }}>
                   Strong longevity and transparency, weaker social presence and visual design.
                 </p>
-                <div className="flex items-center gap-4">
+                <div className="grid grid-cols-1 gap-5 sm:grid-cols-[minmax(0,1.2fr)_minmax(10rem,0.8fr)] sm:items-center">
                   <SampleRadarChart />
-                  <div className="space-y-2 text-xs">
+                  <div className="grid grid-cols-1 gap-2 text-xs">
                     {dimensions.slice(0, 5).map((d, i) => (
                       <div key={d.key} className="flex items-center gap-2">
-                        <div className="w-1.5 h-1.5 rounded-full shrink-0" style={{ backgroundColor: d.color }} />
-                        <span style={{ color: "var(--theme-muted)" }}>{d.label}</span>
+                        <div className="h-2.5 w-2.5 rounded-full shrink-0" style={{ backgroundColor: d.color }} />
+                        <span className="min-w-0 flex-1 leading-tight" style={{ color: "var(--theme-muted)" }}>{d.label}</span>
                         <span className="font-score ml-auto" style={{ color: d.color }}>{DEMO_SCORES[i]}</span>
                       </div>
                     ))}
@@ -586,150 +478,7 @@ export default function BenchmarksPage() {
         </div>
       </section>
 
-      {/* Industry verticals grid */}
-      <section
-        className="px-6 py-16"
-        style={{ borderBottom: "1px solid var(--theme-border)", backgroundColor: "var(--theme-background-alt)" }}
-      >
-        <div className="max-w-5xl mx-auto">
-          <h2 className="font-display mb-1" style={{ fontSize: "clamp(2rem, 3.5vw, 2.75rem)", color: "var(--theme-foreground)" }}>
-            Industry-specific standards
-          </h2>
-          <p className="text-sm mb-10" style={{ color: "var(--theme-muted)" }}>
-            Scores are calibrated to industry expectations. A dental practice and a SaaS startup face different trust signals — the rubric accounts for both.
-          </p>
-
-          {/* Visual vertical grid */}
-          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3 mb-10">
-            {verticals.map(({ id, label, icon: Icon, color }) => {
-              const rubric = getBenchmarkRubric(id);
-              const liftCount = rubric?.fastLifts?.length ?? 0;
-              return (
-                <div
-                  key={id}
-                  className="rounded-2xl p-3 sm:p-4 flex flex-col gap-2 sm:gap-3"
-                  style={{ border: `1px solid ${color}25`, backgroundColor: `color-mix(in srgb, var(--theme-panel) 90%, ${color}08)` }}
-                >
-                  <IndustryFlatHero id={id} color={color} />
-                  <div className="flex items-start justify-between gap-2">
-                    <div
-                      className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl"
-                      style={{ backgroundColor: `${color}18`, border: `1px solid ${color}28` }}
-                    >
-                      <Icon className="h-5 w-5" style={{ color }} strokeWidth={1.75} aria-hidden />
-                    </div>
-                    {liftCount > 0 && (
-                      <span
-                        className="text-xs font-bold px-1.5 py-0.5 rounded-full shrink-0"
-                        style={{ backgroundColor: `${color}20`, color }}
-                      >
-                        {liftCount} lifts
-                      </span>
-                    )}
-                  </div>
-                  <div>
-                    <p className="text-sm font-semibold" style={{ color: "var(--theme-foreground)" }}>{label}</p>
-                    {rubric && (
-                      <p className="text-xs mt-0.5 line-clamp-2" style={{ color: "var(--theme-muted)" }}>
-                        {rubric.summary?.slice(0, 60)}…
-                      </p>
-                    )}
-                  </div>
-                  <div className="h-0.5 rounded-full overflow-hidden" style={{ backgroundColor: "rgba(255,255,255,0.06)" }}>
-                    <div className="h-full rounded-full" style={{ width: "72%", backgroundColor: color, opacity: 0.6 }} />
-                  </div>
-                </div>
-              );
-            })}
-          </div>
-
-          {/* Detail accordions */}
-          <h3 className="text-sm font-semibold mb-4" style={{ color: "var(--theme-foreground)" }}>
-            Rubric details by industry
-          </h3>
-          <div className="space-y-3">
-            {verticals.map(({ id, label, icon: Icon, color }) => {
-              const rubric = getBenchmarkRubric(id);
-              if (!rubric) return null;
-              return (
-                <details
-                  key={id}
-                  className="group rounded-xl overflow-hidden"
-                  style={{ border: "1px solid var(--theme-border)" }}
-                >
-                  <summary
-                    className="flex items-center justify-between gap-4 px-5 py-4 cursor-pointer list-none"
-                    style={{ backgroundColor: "var(--theme-panel)" }}
-                  >
-                    <div className="flex items-center gap-3">
-                      <span
-                        className="w-8 h-8 rounded-lg flex items-center justify-center shrink-0"
-                        style={{ backgroundColor: `${color}18`, border: `1px solid ${color}25` }}
-                      >
-                        <Icon className="h-4 w-4" style={{ color }} strokeWidth={1.75} aria-hidden />
-                      </span>
-                      <div>
-                        <p className="text-sm font-semibold" style={{ color: "var(--theme-foreground)" }}>{label}</p>
-                        <p className="text-xs mt-0.5" style={{ color: "var(--theme-muted)" }}>{rubric.title}</p>
-                      </div>
-                    </div>
-                    <span
-                      className="text-xs shrink-0 transition-transform group-open:rotate-180"
-                      style={{ color: "var(--theme-muted)" }}
-                    >
-                      ▾
-                    </span>
-                  </summary>
-
-                  <div
-                    className="px-5 py-5 space-y-5"
-                    style={{ borderTop: "1px solid var(--theme-border)", backgroundColor: "var(--theme-background-alt)" }}
-                  >
-                    <p className="text-sm leading-relaxed" style={{ color: "var(--theme-muted)" }}>{rubric.summary}</p>
-
-                    {rubric.fastLifts && rubric.fastLifts.length > 0 && (
-                      <div>
-                        <p className="text-xs font-semibold mb-3 uppercase tracking-wider" style={{ color }}>
-                          Fast improvements
-                        </p>
-                        <ul className="space-y-1.5">
-                          {rubric.fastLifts.map((lift, i) => (
-                            <li key={i} className="text-xs flex gap-2" style={{ color: "var(--theme-muted)" }}>
-                              <span style={{ color }}>→</span>
-                              {lift}
-                            </li>
-                          ))}
-                        </ul>
-                      </div>
-                    )}
-
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                      {rubric.criteria.slice(0, 4).map((criterion) => (
-                        <div
-                          key={criterion.id}
-                          className="rounded-xl p-3"
-                          style={{ border: `1px solid ${color}18`, backgroundColor: "var(--theme-panel)" }}
-                        >
-                          <div
-                            className="w-full h-0.5 rounded-full mb-3"
-                            style={{ backgroundColor: color, opacity: 0.4 }}
-                          />
-                          <p className="text-xs font-semibold mb-1" style={{ color: "var(--theme-foreground)" }}>
-                            {criterion.title}
-                          </p>
-                          <p className="text-xs leading-relaxed" style={{ color: "var(--theme-muted)" }}>
-                            {criterion.description}
-                          </p>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                </details>
-              );
-            })}
-          </div>
-        </div>
-      </section>
+      <IndustryStandards />
 
       {/* CTA */}
       <section className="px-6 py-16 text-center" style={{ borderTop: "1px solid var(--theme-border)" }}>
