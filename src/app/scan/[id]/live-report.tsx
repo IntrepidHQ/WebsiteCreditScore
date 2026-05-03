@@ -18,9 +18,17 @@ import {
   CheckCircle2,
   Search,
   Calendar,
+  ArrowRight,
+  BadgeCheck,
+  Flag,
+  Globe2,
+  Layers3,
+  Sparkles,
+  Target,
 } from "lucide-react";
-import { gradeColor, type WCSReport, type Grade } from "@/lib/schema";
+import { gradeColor, gradeLabel, type WCSReport, type Grade } from "@/lib/schema";
 import { buildStrategyCallCalendlyUrl, buildStrategyPresentationUrl } from "@/lib/strategy-call";
+import { buildScanResultSummary, type ScanResultSummaryViewModel } from "@/lib/scan-result-summary";
 
 const scanReportCalendlyUrl = (domain: string) =>
   buildStrategyCallCalendlyUrl({ medium: "scan_report", content: domain });
@@ -33,6 +41,13 @@ const panelStyle: CSSProperties = {
   borderColor: "var(--theme-border)",
   backgroundColor: "var(--theme-panel)",
 };
+
+function severityColor(severity: WCSReport["red_flags"][number]["severity"]) {
+  if (severity === "critical") return "#f87171";
+  if (severity === "high") return "#fb923c";
+  if (severity === "medium") return "#facc15";
+  return "var(--theme-muted)";
+}
 
 // ── Types ─────────────────────────────────────────────────────────────────
 interface Props {
@@ -202,6 +217,385 @@ function DimensionCard({ dim }: { dim: WCSReport["dimensions"][number] }) {
   );
 }
 
+function ScoreTrack({
+  label,
+  score,
+  grade,
+  color,
+  detail,
+}: {
+  label: string;
+  score: number;
+  grade: Grade;
+  color: string;
+  detail?: string;
+}) {
+  return (
+    <div className="rounded-2xl border p-4" style={panelStyle}>
+      <div className="flex items-start justify-between gap-3">
+        <div className="min-w-0">
+          <p className="truncate text-sm font-semibold" style={{ color: "var(--theme-foreground)" }}>
+            {label}
+          </p>
+          {detail ? (
+            <p className="mt-1 line-clamp-2 text-xs leading-relaxed" style={{ color: "var(--theme-muted)" }}>
+              {detail}
+            </p>
+          ) : null}
+        </div>
+        <div className="shrink-0 text-right">
+          <p className="font-score text-2xl" style={{ color }}>{grade}</p>
+          <p className="font-score text-xs" style={{ color: "var(--theme-muted)" }}>{score}</p>
+        </div>
+      </div>
+      <div className="mt-3 h-2 overflow-hidden rounded-full" style={{ backgroundColor: "var(--theme-border)" }}>
+        <div
+          className="h-full rounded-full"
+          style={{
+            width: `${score}%`,
+            background: `linear-gradient(90deg, ${color}, color-mix(in srgb, ${color} 45%, transparent))`,
+          }}
+        />
+      </div>
+    </div>
+  );
+}
+
+function InsightTile({
+  icon: Icon,
+  label,
+  value,
+  detail,
+}: {
+  icon: typeof Sparkles;
+  label: string;
+  value: string;
+  detail: string;
+}) {
+  return (
+    <div className="rounded-2xl border p-4" style={panelStyle}>
+      <div className="flex items-center gap-2" style={{ color: "var(--theme-accent)" }}>
+        <Icon className="h-4 w-4" aria-hidden />
+        <p className="text-[10px] font-bold uppercase tracking-[0.18em]" style={{ color: "var(--theme-muted)" }}>
+          {label}
+        </p>
+      </div>
+      <p className="mt-3 line-clamp-2 text-sm font-semibold" style={{ color: "var(--theme-foreground)" }}>
+        {value}
+      </p>
+      <p className="mt-1 line-clamp-2 text-xs leading-relaxed" style={{ color: "var(--theme-muted)" }}>
+        {detail}
+      </p>
+    </div>
+  );
+}
+
+function PriorityFlagCard({
+  flag,
+  index,
+}: {
+  flag: WCSReport["red_flags"][number];
+  index: number;
+}) {
+  const color = severityColor(flag.severity);
+  const content = (
+    <div
+      className="group h-full rounded-2xl border p-5 transition-opacity hover:opacity-92"
+      style={{
+        borderColor: `color-mix(in srgb, ${color} 30%, var(--theme-border))`,
+        background:
+          "linear-gradient(180deg, color-mix(in srgb, var(--theme-panel) 92%, transparent), color-mix(in srgb, var(--theme-background-alt) 82%, transparent))",
+      }}
+    >
+      <div className="flex items-start justify-between gap-4">
+        <div className="flex items-center gap-3">
+          <span
+            className="flex h-10 w-10 items-center justify-center rounded-xl border"
+            style={{ borderColor: `${color}44`, backgroundColor: `${color}14`, color }}
+          >
+            <Flag className="h-4 w-4" aria-hidden />
+          </span>
+          <div>
+            <p className="text-[10px] font-bold uppercase tracking-[0.18em]" style={{ color: "var(--theme-muted)" }}>
+              Priority {index + 1}
+            </p>
+            <p className="text-xs font-semibold uppercase tracking-[0.12em]" style={{ color }}>
+              {flag.severity}
+            </p>
+          </div>
+        </div>
+        {flag.url ? <ExternalLink className="h-4 w-4 shrink-0" style={{ color: "var(--theme-muted)" }} /> : null}
+      </div>
+      <h3 className="mt-5 font-display text-3xl leading-[1.02]" style={{ color: "var(--theme-foreground)" }}>
+        {flag.title}
+      </h3>
+      <p className="mt-3 text-sm leading-relaxed" style={{ color: "var(--theme-muted)" }}>
+        {flag.detail}
+      </p>
+    </div>
+  );
+
+  if (flag.url) {
+    return (
+      <a href={flag.url} target="_blank" rel="noopener noreferrer" className="block h-full">
+        {content}
+      </a>
+    );
+  }
+
+  return content;
+}
+
+function DomainSpecimen({
+  report,
+  summary,
+}: {
+  report: WCSReport;
+  summary: ScanResultSummaryViewModel;
+}) {
+  const strongest = summary.strongestCategories.slice(0, 2);
+  const weakest = summary.weakestCategories.slice(0, 2);
+
+  return (
+    <div
+      className="relative overflow-hidden rounded-[2rem] border p-5 shadow-2xl sm:p-6"
+      style={{
+        borderColor: "color-mix(in srgb, var(--theme-accent) 32%, var(--theme-border))",
+        background:
+          "radial-gradient(circle at top right, color-mix(in srgb, var(--theme-accent) 20%, transparent), transparent 38%), linear-gradient(180deg, var(--theme-panel), var(--theme-background-alt))",
+      }}
+    >
+      <div className="flex items-center justify-between gap-4 rounded-2xl border px-4 py-3" style={panelStyle}>
+        <div className="flex min-w-0 items-center gap-3">
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img
+            src={summary.previewAssets.faviconUrl}
+            alt=""
+            width={34}
+            height={34}
+            className="rounded-lg ring-1 ring-white/10"
+          />
+          <div className="min-w-0">
+            <p className="truncate text-sm font-semibold" style={{ color: "var(--theme-foreground)" }}>
+              {report.domain}
+            </p>
+            <p className="truncate text-xs" style={{ color: "var(--theme-muted)" }}>
+              {report.company_name ?? "Live public-domain research"}
+            </p>
+          </div>
+        </div>
+        <span className="rounded-full border px-3 py-1 text-[10px] font-bold uppercase tracking-[0.16em]" style={{ borderColor: "#f7b21b44", color: "var(--theme-accent)" }}>
+          Report
+        </span>
+      </div>
+
+      <div className="mt-5 grid gap-4 md:grid-cols-[minmax(0,0.95fr)_minmax(0,1.05fr)]">
+        <div className="rounded-2xl border p-5" style={{ borderColor: "var(--theme-border)", backgroundColor: "rgba(14,14,7,0.62)" }}>
+          <p className="text-[10px] font-bold uppercase tracking-[0.18em]" style={{ color: "var(--theme-muted)" }}>
+            Verdict
+          </p>
+          <p className="mt-3 font-display text-4xl leading-[0.98]" style={{ color: "var(--theme-foreground)" }}>
+            {report.overall.headline}
+          </p>
+          <p className="mt-4 text-sm leading-relaxed" style={{ color: "var(--theme-muted)" }}>
+            {report.overall.one_liner}
+          </p>
+        </div>
+
+        <div className="grid gap-3">
+          {strongest.map((dim) => (
+            <ScoreTrack
+              key={dim.key}
+              color={gradeColor(dim.grade as Grade)}
+              detail="Strong proof signal"
+              grade={dim.grade as Grade}
+              label={dim.label}
+              score={dim.score}
+            />
+          ))}
+          {weakest.map((dim) => (
+            <ScoreTrack
+              key={dim.key}
+              color={gradeColor(dim.grade as Grade)}
+              detail="Most visible opportunity"
+              grade={dim.grade as Grade}
+              label={dim.label}
+              score={dim.score}
+            />
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+export function ScanResultSummary({ report }: { report: WCSReport }) {
+  const summary = buildScanResultSummary(report);
+  const topDimensions = summary.strongestCategories;
+  const weakDimensions = summary.weakestCategories;
+  const priorityFlags = summary.priorityFindings;
+  const overallColor = gradeColor(report.overall.grade as Grade);
+  const factIcons = [Layers3, Globe2, AlertTriangle, BadgeCheck];
+
+  return (
+    <section className="space-y-6">
+      <div className="grid gap-6 xl:grid-cols-[minmax(0,0.92fr)_minmax(0,1.08fr)] xl:items-start">
+        <div className="space-y-5">
+          <div className="flex flex-wrap items-center gap-2">
+            <span
+              className="rounded-full border px-3 py-1 text-[10px] font-bold uppercase tracking-[0.18em]"
+              style={{ borderColor: "#f7b21b44", backgroundColor: "#f7b21b12", color: "var(--theme-accent)" }}
+            >
+              Scan result
+            </span>
+            <span
+              className="rounded-full border px-3 py-1 text-[10px] font-bold uppercase tracking-[0.18em]"
+              style={{ borderColor: `${overallColor}44`, backgroundColor: `${overallColor}14`, color: overallColor }}
+            >
+              {gradeLabel(report.overall.grade as Grade)}
+            </span>
+            <span className="text-xs" style={{ color: "var(--theme-muted)" }}>
+              {report.sources.length} sources · {summary.scannedAtLabel}
+            </span>
+          </div>
+
+          <div>
+            <h1 className="font-display leading-[0.94]" style={{ color: "var(--theme-foreground)", fontSize: "clamp(3.4rem, 8vw, 6.4rem)" }}>
+              {report.domain}
+            </h1>
+            {report.company_name ? (
+              <p className="mt-2 text-sm font-semibold" style={{ color: "var(--theme-accent)" }}>
+                {report.company_name}
+              </p>
+            ) : null}
+          </div>
+
+          <div
+            className="rounded-[2rem] border p-5 sm:p-6"
+            style={{
+              borderColor: `color-mix(in srgb, ${overallColor} 35%, var(--theme-border))`,
+              background:
+                "linear-gradient(135deg, color-mix(in srgb, var(--theme-panel) 88%, transparent), color-mix(in srgb, var(--theme-background-alt) 94%, transparent))",
+            }}
+          >
+            <div className="grid gap-5 sm:grid-cols-[8.5rem_minmax(0,1fr)] sm:items-center">
+              <GradeBadge grade={report.overall.grade as Grade} score={report.overall.score} size="lg" />
+              <div>
+                <p className="font-display text-4xl leading-[1.02]" style={{ color: "var(--theme-foreground)" }}>
+                  {report.overall.headline}
+                </p>
+                <p className="mt-3 text-sm leading-relaxed" style={{ color: "var(--theme-muted)" }}>
+                  {report.overall.one_liner}
+                </p>
+                <p className="mt-3 text-sm" style={{ color: "color-mix(in srgb, var(--theme-foreground) 86%, transparent)" }}>
+                  {summary.gradeNarrative}
+                </p>
+              </div>
+            </div>
+          </div>
+
+          <div>
+            <p className="mb-3 text-[10px] font-bold uppercase tracking-[0.18em]" style={{ color: "var(--theme-accent)" }}>
+              What we found
+            </p>
+            <div className="grid gap-3 sm:grid-cols-2">
+              {summary.observedFacts.map((fact, index) => (
+                <InsightTile
+                  key={fact.label}
+                  detail={fact.detail}
+                  icon={factIcons[index] ?? Sparkles}
+                  label={fact.label}
+                  value={fact.value}
+                />
+              ))}
+            </div>
+          </div>
+        </div>
+
+        <DomainSpecimen report={report} summary={summary} />
+      </div>
+
+      <div className="grid gap-5 xl:grid-cols-[minmax(0,1fr)_minmax(20rem,0.38fr)]">
+        <div className={`${panelClass} p-5 sm:p-6`} style={panelStyle}>
+          <div className="mb-5 flex flex-wrap items-end justify-between gap-3">
+            <div>
+              <p className="text-[10px] font-bold uppercase tracking-[0.18em]" style={{ color: "var(--theme-accent)" }}>
+                Top priorities
+              </p>
+              <h2 className="font-display text-4xl" style={{ color: "var(--theme-foreground)", lineHeight: 1 }}>
+                What should change first
+              </h2>
+            </div>
+            <a
+              href={summary.actionHrefs.strategyCall}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex items-center gap-2 rounded-xl px-4 py-2.5 text-xs font-bold transition-opacity hover:opacity-90"
+              style={{ backgroundColor: "var(--theme-accent)", color: "var(--theme-accent-foreground)" }}
+            >
+              Strategy Call
+              <ArrowRight className="h-3.5 w-3.5" aria-hidden />
+            </a>
+          </div>
+          {priorityFlags.length ? (
+            <div className="grid gap-4 md:grid-cols-3">
+              {priorityFlags.map((flag, index) => (
+                <PriorityFlagCard flag={flag} index={index} key={`${flag.title}-${index}`} />
+              ))}
+            </div>
+          ) : (
+            <div className="rounded-2xl border p-5" style={panelStyle}>
+              <p className="text-sm leading-relaxed" style={{ color: "var(--theme-muted)" }}>
+                No major red flags were detected. Focus on preserving the strongest proof signals and polishing the lowest-scoring dimensions below.
+              </p>
+            </div>
+          )}
+        </div>
+
+        <div className={`${panelClass} p-5 sm:p-6`} style={panelStyle}>
+          <div className="flex items-center gap-2" style={{ color: "var(--theme-accent)" }}>
+            <Target className="h-4 w-4" aria-hidden />
+            <p className="text-[10px] font-bold uppercase tracking-[0.18em]" style={{ color: "var(--theme-muted)" }}>
+              Score spread
+            </p>
+          </div>
+          <p className="mt-3 text-sm leading-relaxed" style={{ color: "var(--theme-muted)" }}>
+            {summary.benchmarkTarget}. Strong dimensions show what the site can already claim; weak dimensions show where visitors still need more proof.
+          </p>
+          <div className="mt-5 space-y-3">
+            <p className="text-xs font-bold uppercase tracking-[0.16em]" style={{ color: "var(--theme-accent)" }}>
+              Strongest
+            </p>
+            {topDimensions.map((dim) => (
+              <ScoreTrack
+                color={gradeColor(dim.grade as Grade)}
+                detail={dim.verdict}
+                grade={dim.grade as Grade}
+                key={dim.key}
+                label={dim.label}
+                score={dim.score}
+              />
+            ))}
+            <p className="pt-3 text-xs font-bold uppercase tracking-[0.16em]" style={{ color: "var(--theme-warning)" }}>
+              Needs attention
+            </p>
+            {weakDimensions.map((dim) => (
+              <ScoreTrack
+                color={gradeColor(dim.grade as Grade)}
+                detail={dim.verdict}
+                grade={dim.grade as Grade}
+                key={dim.key}
+                label={dim.label}
+                score={dim.score}
+              />
+            ))}
+          </div>
+        </div>
+      </div>
+    </section>
+  );
+}
+
 function StrategyPresentationUpsell({ domain }: { domain: string }) {
   const calUrl = scanReportCalendlyUrl(domain);
   const spUrl = scanReportPresentationUrl(domain);
@@ -311,49 +705,7 @@ export function ReportContent({ report }: { report: WCSReport }) {
 
   return (
     <div className="space-y-6">
-      {/* Hero score card */}
-      <motion.div
-        initial={{ opacity: 0, y: 12 }}
-        animate={{ opacity: 1, y: 0 }}
-        className={`${panelClass} flex flex-col items-start gap-6 p-6 sm:flex-row`}
-        style={panelStyle}
-      >
-        <motion.div
-          initial={{ scale: 0.7, opacity: 0 }}
-          animate={{ scale: 1, opacity: 1 }}
-          transition={{ type: "spring", stiffness: 200, damping: 15, delay: 0.1 }}
-        >
-          <GradeBadge
-            grade={report.overall.grade as Grade}
-            score={report.overall.score}
-            size="lg"
-          />
-        </motion.div>
-        <div className="min-w-0 flex-1">
-          <p className="text-lg font-semibold" style={{ color: "var(--theme-foreground)" }}>
-            {report.domain}
-          </p>
-          {report.company_name && (
-            <p className="text-sm" style={{ color: "var(--theme-muted)" }}>
-              {report.company_name}
-            </p>
-          )}
-          <p className="mt-2 text-base leading-relaxed" style={{ color: "color-mix(in srgb, var(--theme-foreground) 90%, transparent)" }}>
-            {report.overall.headline}
-          </p>
-          <p className="mt-1 text-sm" style={{ color: "var(--theme-muted)" }}>
-            {report.overall.one_liner}
-          </p>
-          <p className="mt-3 text-xs" style={{ color: "color-mix(in srgb, var(--theme-muted) 80%, transparent)" }}>
-            {report.sources.length} sources ·{" "}
-            {new Date(report.scanned_at).toLocaleDateString("en-US", {
-              month: "long",
-              day: "numeric",
-              year: "numeric",
-            })}
-          </p>
-        </div>
-      </motion.div>
+      <ScanResultSummary report={report} />
 
       <StrategyPresentationUpsell domain={report.domain} />
 
@@ -573,7 +925,7 @@ export function ReportContent({ report }: { report: WCSReport }) {
 }
 
 // ── Live report (client, handles streaming) ───────────────────────────────
-export function LiveReport({ scanId, domain, initialStatus, initialResult }: Props) {
+export function LiveReport({ scanId, domain, initialResult }: Props) {
   const [report, setReport] = useState<WCSReport | null>(initialResult);
   const [searches, setSearches] = useState<string[]>([]);
   const [sourceCount, setSourceCount] = useState(0);

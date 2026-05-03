@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import Link from "next/link";
 import {
   Home,
   Stethoscope,
@@ -739,13 +740,13 @@ export default function BenchmarksPage() {
           <p className="text-sm" style={{ color: "var(--theme-muted)" }}>
             Our AI researches any domain across all 10 dimensions with live web evidence. Results in ~90 seconds.
           </p>
-          <a
+          <Link
             href="/"
             className="inline-flex items-center gap-2 px-6 py-3 rounded-xl font-semibold text-sm transition-opacity hover:opacity-90"
             style={{ backgroundColor: "var(--theme-accent)", color: "var(--theme-accent-foreground)" }}
           >
             Get a report · $1
-          </a>
+          </Link>
         </div>
       </section>
 

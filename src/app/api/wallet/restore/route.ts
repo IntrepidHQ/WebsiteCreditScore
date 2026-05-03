@@ -1,11 +1,11 @@
 import { NextRequest, NextResponse } from "next/server";
+import Stripe from "stripe";
 import { findWalletByStripeSession, getWallet, getWalletBalances } from "@/lib/db/wallets";
 import { setWalletCookie } from "@/lib/wallet-cookie";
 
 export const runtime = "nodejs";
 
 function getStripe() {
-  const Stripe = require("stripe").default;
   return new Stripe(process.env.STRIPE_SECRET_KEY!, {
     apiVersion: "2025-02-24.acacia",
   });
@@ -28,7 +28,7 @@ export async function POST(req: NextRequest) {
 
     // Validate session exists in Stripe (catches typos and prevents arbitrary lookup probes).
     const stripe = getStripe();
-    let session: { id: string; client_reference_id?: string | null; metadata?: Record<string, string> };
+    let session: Stripe.Checkout.Session;
     try {
       session = await stripe.checkout.sessions.retrieve(sessionId);
     } catch {

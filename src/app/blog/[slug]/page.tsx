@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import type { ReactNode } from "react";
+import { createElement, type ReactNode } from "react";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { BLOG_POSTS, getPost } from "@/lib/blog/posts";
@@ -130,6 +130,11 @@ function renderBody(body: string) {
   return elements;
 }
 
+function BlogPostIcon({ slug, color }: { slug: string; color: string }) {
+  const Icon = getBlogIconForSlug(slug);
+  return createElement(Icon, { className: "h-5 w-5", style: { color }, "aria-hidden": true });
+}
+
 export default async function BlogPostPage({ params }: Props) {
   const { slug } = await params;
   const post = getPost(slug);
@@ -138,7 +143,6 @@ export default async function BlogPostPage({ params }: Props) {
   const currentIndex = BLOG_POSTS.findIndex((p) => p.slug === slug);
   const prev = currentIndex > 0 ? BLOG_POSTS[currentIndex - 1] : null;
   const next = currentIndex < BLOG_POSTS.length - 1 ? BLOG_POSTS[currentIndex + 1] : null;
-  const Icon = getBlogIconForSlug(post.slug);
 
   return (
     <main className="flex min-h-screen flex-col" style={{ backgroundColor: "var(--theme-background)" }}>
@@ -155,7 +159,7 @@ export default async function BlogPostPage({ params }: Props) {
                 backgroundColor: `color-mix(in srgb, ${post.dimensionColor} 12%, var(--theme-panel))`,
               }}
             >
-              <Icon className="h-5 w-5" style={{ color: post.dimensionColor }} aria-hidden />
+              <BlogPostIcon slug={post.slug} color={post.dimensionColor} />
             </div>
             <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
               <span className="text-xs font-semibold uppercase tracking-wider" style={{ color: "var(--theme-muted)" }}>

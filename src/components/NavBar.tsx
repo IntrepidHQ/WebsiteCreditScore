@@ -1,4 +1,5 @@
 "use client";
+import Link from "next/link";
 import { useState } from "react";
 import { Menu, X } from "lucide-react";
 import { buildStrategyCallCalendlyUrl } from "@/lib/strategy-call";
@@ -19,22 +20,22 @@ export function NavBar() {
         className="px-6 py-4 flex items-center justify-between sticky top-0 z-50 backdrop-blur-sm"
         style={{ borderBottom: "1px solid var(--theme-border)", backgroundColor: "color-mix(in srgb, var(--theme-background) 85%, transparent)" }}
       >
-        <a
+        <Link
           href="/"
           className="font-display tracking-tight hover:opacity-80 transition-opacity leading-none"
           style={{ color: "var(--theme-foreground)", fontSize: "clamp(1.6rem, 2.6vw, 2rem)" }}
         >
           WebsiteCreditScore
           <span style={{ color: "var(--theme-accent)" }}>.com</span>
-        </a>
+        </Link>
 
         {/* Desktop links */}
         <div className="hidden sm:flex items-center gap-4 text-xs">
           <div className="flex items-center gap-5" style={{ color: "var(--theme-muted)" }}>
             {NAV_LINKS.map((l) => (
-              <a key={l.href} href={l.href} className="hover:opacity-80 transition-opacity">
+              <Link key={l.href} href={l.href} className="hover:opacity-80 transition-opacity">
                 {l.label}
-              </a>
+              </Link>
             ))}
           </div>
           <a
@@ -71,7 +72,7 @@ export function NavBar() {
             onClick={(e) => e.stopPropagation()}
           >
             {NAV_LINKS.map((l) => (
-              <a
+              <Link
                 key={l.href}
                 href={l.href}
                 className="flex items-center py-3 text-sm font-medium hover:opacity-80 transition-opacity"
@@ -79,7 +80,7 @@ export function NavBar() {
                 onClick={() => setOpen(false)}
               >
                 {l.label}
-              </a>
+              </Link>
             ))}
             <a
               href={buildStrategyCallCalendlyUrl({ medium: "navbar" })}
@@ -91,14 +92,14 @@ export function NavBar() {
             >
               Strategy Call
             </a>
-            <a
+            <Link
               href="/"
               className="flex items-center py-3 text-sm font-medium hover:opacity-80 transition-opacity"
               style={{ color: "var(--theme-accent)" }}
               onClick={() => setOpen(false)}
             >
               Run a scan →
-            </a>
+            </Link>
           </div>
         </div>
       )}

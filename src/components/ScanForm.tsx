@@ -60,6 +60,15 @@ const FREE_SCAN_CLIENT =
   process.env.NEXT_PUBLIC_FREE_SCAN_MODE === "true";
 const TEMP_FREE_SCAN_ACTIVE = isTemporaryFreeScanWindow();
 
+function readFirstScanAvailable() {
+  if (typeof window === "undefined") return false;
+  try {
+    return window.localStorage.getItem(FIRST_SCAN_KEY) !== "1";
+  } catch {
+    return true;
+  }
+}
+
 function normalizeUrl(input: string): string {
   let url = input.trim();
   if (!url.startsWith("http://") && !url.startsWith("https://")) url = "https://" + url;
@@ -90,12 +99,10 @@ export function ScanForm({
   const [walletBalances, setWalletBalances] = useState<Record<string, number> | null>(null);
 
   useEffect(() => {
-    try {
-      const claimed = window.localStorage.getItem(FIRST_SCAN_KEY) === "1";
-      setFirstScanAvailable(!claimed);
-    } catch {
-      setFirstScanAvailable(true);
-    }
+    const id = window.setTimeout(() => {
+      setFirstScanAvailable(readFirstScanAvailable());
+    }, 0);
+    return () => window.clearTimeout(id);
   }, []);
 
   useEffect(() => {

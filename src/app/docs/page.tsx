@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import Link from "next/link";
 import { ScrollToTop } from "@/components/ScrollToTop";
 import { NavBar } from "@/components/NavBar";
 import { SiteFooter } from "@/components/SiteFooter";
@@ -135,7 +136,7 @@ export default function DocsPage() {
           </h1>
           <p className="text-base max-w-xl mx-auto" style={{ color: "var(--theme-muted)" }}>
             Every report is powered by Claude AI running 8–10 live web searches per domain.
-            Here's exactly what we look for, how we weight it, and what you get back.
+            Here&apos;s exactly what we look for, how we weight it, and what you get back.
           </p>
         </div>
       </section>
@@ -304,7 +305,7 @@ export default function DocsPage() {
           <p className="text-sm" style={{ color: "var(--theme-muted)" }}>
             Any domain · $1 · No account · Results in ~90 seconds
           </p>
-          <a
+          <Link
             href="/"
             className="inline-flex items-center gap-2 px-6 py-3 rounded-lg font-semibold text-sm transition-opacity hover:opacity-90"
             style={{
@@ -313,7 +314,7 @@ export default function DocsPage() {
             }}
           >
             Get a Report · $1
-          </a>
+          </Link>
         </div>
       </section>
 

@@ -1,11 +1,11 @@
 import { NextRequest, NextResponse } from "next/server";
 import { randomUUID } from "crypto";
+import Stripe from "stripe";
 import { isTier, isTierMode, priceCents, tierLabel, BUNDLE_SIZE } from "@/lib/pricing";
 import { getOrCreateWallet } from "@/lib/db/wallets";
 import { readWalletIdFromRequest, setWalletCookie } from "@/lib/wallet-cookie";
 
 function getStripe() {
-  const Stripe = require("stripe").default;
   return new Stripe(process.env.STRIPE_SECRET_KEY!, {
     apiVersion: "2025-02-24.acacia",
   });

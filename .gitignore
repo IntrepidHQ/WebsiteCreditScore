@@ -12,6 +12,8 @@
 
 # testing
 /coverage
+.playwright-mcp/
+websitecreditscore-*.png
 
 # next.js
 /.next/

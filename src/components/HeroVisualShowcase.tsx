@@ -22,6 +22,18 @@ const VARIANTS: { id: VisualId; label: string; hint: string }[] = [
   { id: "evidence", label: "Evidence", hint: "Sources + scan trail" },
 ];
 
+function readSavedVisual(): VisualId {
+  if (typeof window === "undefined") return "snapshot";
+  try {
+    const saved = window.localStorage.getItem(STORAGE_KEY);
+    return saved === "snapshot" || saved === "verdict" || saved === "evidence"
+      ? saved
+      : "snapshot";
+  } catch {
+    return "snapshot";
+  }
+}
+
 function BrowserChrome({ hostname }: { hostname: string }) {
   return (
     <div
@@ -297,12 +309,10 @@ export function HeroVisualShowcase({
   const [visual, setVisual] = useState<VisualId>("snapshot");
 
   useEffect(() => {
-    try {
-      const saved = localStorage.getItem(STORAGE_KEY) as VisualId | null;
-      if (saved === "snapshot" || saved === "verdict" || saved === "evidence") setVisual(saved);
-    } catch {
-      /* ignore */
-    }
+    const id = window.setTimeout(() => {
+      setVisual(readSavedVisual());
+    }, 0);
+    return () => window.clearTimeout(id);
   }, []);
 
   const handleSelect = (id: VisualId) => {

@@ -2,6 +2,7 @@ import "server-only";
 import { randomUUID } from "crypto";
 import { createClient } from "@/lib/supabase/server";
 import type { WCSReport } from "@/lib/schema";
+import { buildScanResultSummary } from "@/lib/scan-result-summary";
 
 export type ScanStatus = "pending" | "streaming" | "done" | "error";
 
@@ -140,6 +141,14 @@ export async function getRecentScans(limit = 6): Promise<Array<{
   grade: string;
   score: number;
   headline: string;
+  one_liner: string;
+  strongest_label: string;
+  strongest_score: number;
+  weakest_label: string;
+  weakest_score: number;
+  red_flags: number;
+  green_flags: number;
+  sources: number;
   created_at: string;
 }>> {
   const supabase = await createClient();
@@ -155,14 +164,28 @@ export async function getRecentScans(limit = 6): Promise<Array<{
 
   return data
     .filter((row) => row.result?.overall)
-    .map((row) => ({
-      id: row.id,
-      domain: row.domain,
-      grade: row.result.overall.grade,
-      score: row.result.overall.score,
-      headline: row.result.overall.headline,
-      created_at: row.created_at,
-    }));
+    .map((row) => {
+      const summary = buildScanResultSummary(row.result);
+      const strongest = summary.strongestCategories[0];
+      const weakest = summary.weakestCategories[0];
+
+      return {
+        id: row.id,
+        domain: row.domain,
+        grade: row.result.overall.grade,
+        score: row.result.overall.score,
+        headline: row.result.overall.headline,
+        one_liner: row.result.overall.one_liner,
+        strongest_label: strongest?.label ?? "Strong signal",
+        strongest_score: strongest?.score ?? row.result.overall.score,
+        weakest_label: weakest?.label ?? "Needs review",
+        weakest_score: weakest?.score ?? row.result.overall.score,
+        red_flags: row.result.red_flags?.length ?? 0,
+        green_flags: row.result.green_flags?.length ?? 0,
+        sources: row.result.sources?.length ?? 0,
+        created_at: row.created_at,
+      };
+    });
 }
 
 /** Check for a cached result for this domain (last 7 days). */

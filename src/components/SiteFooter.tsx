@@ -1,4 +1,16 @@
+import Link from "next/link";
 import { buildStrategyCallCalendlyUrl } from "@/lib/strategy-call";
+
+const FOOTER_LINKS = [
+  { href: "/pricing", label: "Pricing" },
+  { href: "/blog", label: "Blog" },
+  { href: "/benchmarks", label: "Benchmarks" },
+  { href: "/docs", label: "Docs" },
+  { href: "/restore", label: "Restore credits" },
+  { href: "/privacy", label: "Privacy" },
+  { href: "/cookies", label: "Cookies" },
+  { href: "/terms", label: "Terms" },
+] as const;
 
 export function SiteFooter() {
   return (
@@ -17,30 +29,11 @@ export function SiteFooter() {
           className="flex flex-wrap items-center justify-center gap-4 text-xs"
           style={{ color: "color-mix(in srgb, var(--theme-muted) 70%, transparent)" }}
         >
-          <a href="/pricing" className="hover:opacity-80 transition-opacity">
-            Pricing
-          </a>
-          <a href="/blog" className="hover:opacity-80 transition-opacity">
-            Blog
-          </a>
-          <a href="/benchmarks" className="hover:opacity-80 transition-opacity">
-            Benchmarks
-          </a>
-          <a href="/docs" className="hover:opacity-80 transition-opacity">
-            Docs
-          </a>
-          <a href="/restore" className="hover:opacity-80 transition-opacity">
-            Restore credits
-          </a>
-          <a href="/privacy" className="hover:opacity-80 transition-opacity">
-            Privacy
-          </a>
-          <a href="/cookies" className="hover:opacity-80 transition-opacity">
-            Cookies
-          </a>
-          <a href="/terms" className="hover:opacity-80 transition-opacity">
-            Terms
-          </a>
+          {FOOTER_LINKS.map((link) => (
+            <Link key={link.href} href={link.href} className="hover:opacity-80 transition-opacity">
+              {link.label}
+            </Link>
+          ))}
           <a
             href={buildStrategyCallCalendlyUrl({ medium: "footer" })}
             target="_blank"

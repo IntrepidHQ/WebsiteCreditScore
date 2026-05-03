@@ -7,7 +7,9 @@ import {
   getCachedResult,
 } from "@/lib/db/scans";
 import { WCSReportSchema, WCS_REPORT_JSON_SCHEMA, type WCSReport } from "@/lib/schema";
+import fixture from "@/lib/fixtures/wcs-mock.json";
 import Anthropic from "@anthropic-ai/sdk";
+import type { MessageStreamEvent, Tool, ToolUnion } from "@anthropic-ai/sdk/resources/messages";
 
 export const runtime = "nodejs";
 export const maxDuration = 300;
@@ -76,6 +78,20 @@ function startHeartbeat(controller: ReadableStreamDefaultController): ReturnType
   }, 15_000);
 }
 
+type ContentBlockStart = Extract<MessageStreamEvent, { type: "content_block_start" }>["content_block"];
+type StreamToolBlock = Extract<ContentBlockStart, { type: "tool_use" | "server_tool_use" }>;
+type InputJsonDeltaEvent = Extract<MessageStreamEvent, { type: "content_block_delta" }> & {
+  delta: { type: "input_json_delta"; partial_json: string };
+};
+
+function isStreamToolBlock(block: ContentBlockStart): block is StreamToolBlock {
+  return block.type === "tool_use" || block.type === "server_tool_use";
+}
+
+function isInputJsonDeltaEvent(event: MessageStreamEvent): event is InputJsonDeltaEvent {
+  return event.type === "content_block_delta" && event.delta.type === "input_json_delta";
+}
+
 // ── Mock stream (MOCK=1 mode) ─────────────────────────────────────────────
 async function streamMock(controller: ReadableStreamDefaultController, domain: string) {
   const queries = [
@@ -99,11 +115,9 @@ async function streamMock(controller: ReadableStreamDefaultController, domain: s
 
   await new Promise((r) => setTimeout(r, 1000));
 
-  // eslint-disable-next-line @typescript-eslint/no-require-imports
-  const fixture = require("@/lib/fixtures/wcs-mock.json") as WCSReport;
   send(controller, {
     type: "done",
-    report: { ...fixture, domain, scanned_at: new Date().toISOString() },
+    report: { ...(fixture as WCSReport), domain, scanned_at: new Date().toISOString() },
   });
 }
 
@@ -121,6 +135,15 @@ async function runAgent(
   // Track tool_use blocks across all turns (web_search is multi-turn server-side)
   let turnIndex = 0;
   const pendingBlocks = new Map<string, { name: string; inputAccum: string }>();
+  const tools: ToolUnion[] = [
+    { type: "web_search_20250305", name: "web_search", max_uses: 10 },
+    {
+      name: "submit_credit_report",
+      description:
+        "Submit the final WebsiteCreditScore report. Call this exactly once after completing all research.",
+      input_schema: WCS_REPORT_JSON_SCHEMA as unknown as Tool.InputSchema,
+    },
+  ];
 
   const anthropicStream = client.messages.stream({
     model: "claude-haiku-4-5",
@@ -132,16 +155,7 @@ async function runAgent(
         cache_control: { type: "ephemeral" } as { type: "ephemeral" },
       },
     ],
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    tools: [
-      { type: "web_search_20250305", name: "web_search", max_uses: 10 } as any,
-      {
-        name: "submit_credit_report",
-        description:
-          "Submit the final WebsiteCreditScore report. Call this exactly once after completing all research.",
-        input_schema: WCS_REPORT_JSON_SCHEMA,
-      },
-    ] as any,
+    tools,
     tool_choice: { type: "auto" },
     messages: [
       {
@@ -155,32 +169,29 @@ async function runAgent(
   // web_search triggers multi-turn responses server-side. We track blocks
   // across all turns using a composite key so indices don't collide.
   for await (const event of anthropicStream) {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const e = event as any;
-
-    switch (e.type) {
+    switch (event.type) {
       case "message_start":
         turnIndex++;
         break;
 
       case "content_block_start":
-        if (e.content_block?.type === "tool_use" || e.content_block?.type === "server_tool_use") {
-          pendingBlocks.set(`${turnIndex}:${e.index}`, {
-            name: e.content_block.name,
+        if (isStreamToolBlock(event.content_block)) {
+          pendingBlocks.set(`${turnIndex}:${event.index}`, {
+            name: event.content_block.name,
             inputAccum: "",
           });
         }
         break;
 
       case "content_block_delta":
-        if (e.delta?.type === "input_json_delta") {
-          const block = pendingBlocks.get(`${turnIndex}:${e.index}`);
-          if (block) block.inputAccum += e.delta.partial_json;
+        if (isInputJsonDeltaEvent(event)) {
+          const block = pendingBlocks.get(`${turnIndex}:${event.index}`);
+          if (block) block.inputAccum += event.delta.partial_json;
         }
         break;
 
       case "content_block_stop": {
-        const key = `${turnIndex}:${e.index}`;
+        const key = `${turnIndex}:${event.index}`;
         const block = pendingBlocks.get(key);
         if (!block) break;
 
@@ -239,7 +250,7 @@ async function runAgent(
   console.log(
     `[scan/${scanId}] domain=${domain} searches=${searchCount} ` +
     `in=${usage.input_tokens} out=${usage.output_tokens} ` +
-    `cache_read=${(usage as any).cache_read_input_tokens ?? 0} ` +
+    `cache_read=${usage.cache_read_input_tokens ?? 0} ` +
     `cost=$${(totalCostCents / 100).toFixed(4)}`
   );
 
