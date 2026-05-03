@@ -164,7 +164,7 @@ async function runAgent(
         break;
 
       case "content_block_start":
-        if (e.content_block?.type === "tool_use") {
+        if (e.content_block?.type === "tool_use" || e.content_block?.type === "server_tool_use") {
           pendingBlocks.set(`${turnIndex}:${e.index}`, {
             name: e.content_block.name,
             inputAccum: "",

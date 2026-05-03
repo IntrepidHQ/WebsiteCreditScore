@@ -155,7 +155,7 @@ async function main() {
         break;
 
       case "content_block_start":
-        if (event.content_block?.type === "tool_use") {
+        if (event.content_block?.type === "tool_use" || event.content_block?.type === "server_tool_use") {
           pendingBlocks.set(`${turnIndex}:${event.index}`, {
             name: event.content_block.name,
             inputAccum: "",
