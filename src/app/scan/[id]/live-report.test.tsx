@@ -9,8 +9,12 @@ import { ScanResultSummary } from "@/app/scan/[id]/live-report";
 describe("ScanResultSummary", () => {
   it("renders the main score, score breakdown, and reasoning actions", () => {
     const html = renderToStaticMarkup(<ScanResultSummary report={fixture as WCSReport} />);
+    const gradeIndex = html.indexOf("EXCELLENT");
+    const scanResultIndex = html.indexOf("Scan result");
 
-    expect(html).toContain("Average 9.6/10");
+    expect(html).not.toContain("Average 9.6/10");
+    expect(gradeIndex).toBeGreaterThanOrEqual(0);
+    expect(scanResultIndex).toBeGreaterThan(gradeIndex);
     expect(html).toContain("Scan result");
     expect(html).toContain("apple.com");
     expect(html).toContain("9.6");
@@ -20,7 +24,7 @@ describe("ScanResultSummary", () => {
     expect(html).toContain("View reasoning");
   });
 
-  it("opens dimension reasoning from a score card", async () => {
+  it("opens dimension reasoning from the score key", async () => {
     const container = document.createElement("div");
     document.body.append(container);
     const root = createRoot(container);
@@ -29,9 +33,7 @@ describe("ScanResultSummary", () => {
       root.render(<ScanResultSummary report={fixture as WCSReport} />);
     });
 
-    const button = Array.from(container.querySelectorAll("button")).find((candidate) =>
-      candidate.textContent?.includes("Business Legitimacy")
-    );
+    const button = container.querySelector('[aria-label="Open Business Legitimacy reasoning from key"]');
     expect(button).toBeTruthy();
 
     await act(async () => {

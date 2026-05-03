@@ -239,6 +239,22 @@ function ScoreRadar({ report }: { report: WCSReport }) {
     };
   };
   const activeColor = activeDimension ? dimensionColor(activeDimension) : "var(--theme-accent)";
+  const activeIndex = activeDimension ? dimensions.findIndex((dim) => dim.key === activeDimension.key) : -1;
+  const activePoint =
+    activeDimension && activeIndex >= 0
+      ? point(activeIndex, (activeDimension.score / 100) * maxR)
+      : null;
+  const placeTooltipBelow = activePoint ? activePoint.y < cy : true;
+  const tooltipX = activePoint ? `${(activePoint.x / size) * 100}%` : "50%";
+  const tooltipY = activePoint ? `${(activePoint.y / size) * 100}%` : "50%";
+  const tooltipHorizontalShift = activePoint
+    ? activePoint.x < size * 0.32
+      ? "0%"
+      : activePoint.x > size * 0.68
+        ? "-100%"
+        : "-50%"
+    : "-50%";
+  const tooltipVerticalShift = placeTooltipBelow ? "2.35rem" : "calc(-100% - 2.35rem)";
 
   return (
     <div className="relative w-full max-w-[34rem]">
@@ -378,44 +394,42 @@ function ScoreRadar({ report }: { report: WCSReport }) {
           fontFamily="ui-monospace, monospace"
           fill="rgba(150,142,106,0.82)"
         >
-          AVG
+          SCORE
         </text>
       </svg>
 
-      <AnimatePresence>
-        {activeDimension ? (
-          <motion.div
-            role="tooltip"
-            initial={{ opacity: 0, y: 8 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: 8 }}
-            transition={{ duration: 0.14 }}
-            className="mt-3 rounded-2xl border p-4 text-left shadow-2xl"
-            style={{
-              borderColor: `${activeColor}55`,
-              background:
-                "linear-gradient(180deg, color-mix(in srgb, var(--theme-panel) 96%, transparent), var(--theme-background-alt))",
-            }}
-          >
-            <div className="flex items-start justify-between gap-4">
-              <div className="min-w-0">
-                <p className="text-[10px] font-bold uppercase tracking-[0.16em]" style={{ color: "var(--theme-muted)" }}>
-                  Radar score
-                </p>
-                <h3 className="mt-1 text-base font-semibold" style={{ color: "var(--theme-foreground)", ...readableWrapStyle }}>
-                  {activeDimension.label}
-                </h3>
-              </div>
-              <p className="shrink-0 font-score text-3xl leading-none" style={{ color: activeColor }}>
-                {scoreOutOfTen(activeDimension.score)}
+      {activeDimension ? (
+        <div
+          role="tooltip"
+          className="pointer-events-none absolute z-20 w-[min(18rem,82vw)] rounded-2xl border p-4 text-left opacity-100 shadow-2xl"
+          style={{
+            left: tooltipX,
+            top: tooltipY,
+            transform: `translate(${tooltipHorizontalShift}, ${tooltipVerticalShift})`,
+            transformOrigin: placeTooltipBelow ? "top center" : "bottom center",
+            borderColor: `${activeColor}55`,
+            background:
+              "linear-gradient(180deg, color-mix(in srgb, var(--theme-panel) 96%, transparent), var(--theme-background-alt))",
+          }}
+        >
+          <div className="flex items-start justify-between gap-4">
+            <div className="min-w-0">
+              <p className="text-[10px] font-bold uppercase tracking-[0.16em]" style={{ color: "var(--theme-muted)" }}>
+                Radar score
               </p>
+              <h3 className="mt-1 text-base font-semibold" style={{ color: "var(--theme-foreground)", ...readableWrapStyle }}>
+                {activeDimension.label}
+              </h3>
             </div>
-            <p className="mt-3 line-clamp-3 text-sm leading-relaxed" style={{ color: "var(--theme-muted)", ...readableWrapStyle }}>
-              {activeDimension.verdict}
+            <p className="shrink-0 font-score text-3xl leading-none" style={{ color: activeColor }}>
+              {scoreOutOfTen(activeDimension.score)}
             </p>
-          </motion.div>
-        ) : null}
-      </AnimatePresence>
+          </div>
+          <p className="mt-3 line-clamp-3 text-sm leading-relaxed" style={{ color: "var(--theme-muted)", ...readableWrapStyle }}>
+            {activeDimension.verdict}
+          </p>
+        </div>
+      ) : null}
     </div>
   );
 }
@@ -437,7 +451,9 @@ function DimensionLegend({
             key={dim.key}
             type="button"
             onClick={() => onSelect(dim)}
-            className="group flex items-center gap-3 rounded-xl py-1.5 text-left transition-opacity hover:opacity-85"
+            className="group flex items-center gap-3 rounded-xl py-1.5 text-left transition-opacity hover:opacity-85 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-[var(--theme-background)]"
+            style={{ "--tw-ring-color": color } as CSSProperties}
+            aria-label={`Open ${dim.label} reasoning from key`}
           >
             <span
               className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg border transition-transform group-hover:scale-105"
@@ -448,6 +464,7 @@ function DimensionLegend({
             <span className="text-sm" style={{ color: "var(--theme-foreground)" }}>
               {dim.label}
             </span>
+            <ArrowRight className="h-3.5 w-3.5 opacity-0 transition-all group-hover:translate-x-0.5 group-hover:opacity-100 group-focus:opacity-100" style={{ color: "var(--theme-accent)" }} aria-hidden />
           </button>
         );
       })}
@@ -652,21 +669,15 @@ export function ScanResultSummary({ report }: { report: WCSReport }) {
       <div className="flex flex-wrap items-center gap-2">
         <span
           className="rounded-full border px-3 py-1 text-[10px] font-bold uppercase tracking-[0.18em]"
-          style={{ borderColor: "#f7b21b44", backgroundColor: "#f7b21b12", color: "var(--theme-accent)" }}
+          style={{ borderColor: `${gradeColor(report.overall.grade as Grade)}44`, backgroundColor: `${gradeColor(report.overall.grade as Grade)}14`, color: gradeColor(report.overall.grade as Grade) }}
         >
-          Average {scoreOutOfTen(report.overall.score)}/10
+          {gradeLabel(report.overall.grade as Grade)}
         </span>
         <span
           className="rounded-full border px-3 py-1 text-[10px] font-bold uppercase tracking-[0.18em]"
           style={{ borderColor: "var(--theme-border)", backgroundColor: "color-mix(in srgb, var(--theme-panel) 72%, transparent)", color: "var(--theme-muted)" }}
         >
           Scan result
-        </span>
-        <span
-          className="rounded-full border px-3 py-1 text-[10px] font-bold uppercase tracking-[0.18em]"
-          style={{ borderColor: `${gradeColor(report.overall.grade as Grade)}44`, backgroundColor: `${gradeColor(report.overall.grade as Grade)}14`, color: gradeColor(report.overall.grade as Grade) }}
-        >
-          {gradeLabel(report.overall.grade as Grade)}
         </span>
         <span className="text-xs" style={{ color: "var(--theme-muted)" }}>
           {report.sources.length} sources
