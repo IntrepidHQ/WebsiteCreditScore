@@ -41,6 +41,10 @@ const panelStyle: CSSProperties = {
   borderColor: "var(--theme-border)",
   backgroundColor: "var(--theme-panel)",
 };
+const readableWrapStyle: CSSProperties = {
+  overflowWrap: "break-word",
+  textWrap: "pretty",
+};
 
 function severityColor(severity: WCSReport["red_flags"][number]["severity"]) {
   if (severity === "critical") return "#f87171";
@@ -234,7 +238,7 @@ function ScoreTrack({
     <div className="rounded-2xl border p-4" style={panelStyle}>
       <div className="flex items-start justify-between gap-3">
         <div className="min-w-0">
-          <p className="truncate text-sm font-semibold" style={{ color: "var(--theme-foreground)" }}>
+          <p className="line-clamp-2 text-sm font-semibold" style={{ color: "var(--theme-foreground)" }}>
             {label}
           </p>
           {detail ? (
@@ -280,7 +284,7 @@ function InsightTile({
           {label}
         </p>
       </div>
-      <p className="mt-3 line-clamp-2 text-sm font-semibold" style={{ color: "var(--theme-foreground)" }}>
+      <p className="mt-3 line-clamp-2 text-sm font-semibold" style={{ color: "var(--theme-foreground)", ...readableWrapStyle }}>
         {value}
       </p>
       <p className="mt-1 line-clamp-2 text-xs leading-relaxed" style={{ color: "var(--theme-muted)" }}>
@@ -326,7 +330,7 @@ function PriorityFlagCard({
         </div>
         {flag.url ? <ExternalLink className="h-4 w-4 shrink-0" style={{ color: "var(--theme-muted)" }} /> : null}
       </div>
-      <h3 className="mt-5 font-display text-3xl leading-[1.02]" style={{ color: "var(--theme-foreground)" }}>
+      <h3 className="mt-5 font-display text-2xl leading-[1.08] sm:text-[1.7rem]" style={{ color: "var(--theme-foreground)", ...readableWrapStyle }}>
         {flag.title}
       </h3>
       <p className="mt-3 text-sm leading-relaxed" style={{ color: "var(--theme-muted)" }}>
@@ -389,12 +393,12 @@ function DomainSpecimen({
         </span>
       </div>
 
-      <div className="mt-5 grid gap-4 md:grid-cols-[minmax(0,0.95fr)_minmax(0,1.05fr)]">
+      <div className="mt-5 grid gap-4 lg:grid-cols-[minmax(18rem,0.95fr)_minmax(20rem,1.05fr)]">
         <div className="rounded-2xl border p-5" style={{ borderColor: "var(--theme-border)", backgroundColor: "rgba(14,14,7,0.62)" }}>
           <p className="text-[10px] font-bold uppercase tracking-[0.18em]" style={{ color: "var(--theme-muted)" }}>
             Verdict
           </p>
-          <p className="mt-3 font-display text-4xl leading-[0.98]" style={{ color: "var(--theme-foreground)" }}>
+          <p className="mt-3 font-display text-3xl leading-[1.02] sm:text-4xl" style={{ color: "var(--theme-foreground)", ...readableWrapStyle }}>
             {report.overall.headline}
           </p>
           <p className="mt-4 text-sm leading-relaxed" style={{ color: "var(--theme-muted)" }}>
@@ -439,7 +443,7 @@ export function ScanResultSummary({ report }: { report: WCSReport }) {
 
   return (
     <section className="space-y-6">
-      <div className="grid gap-6 xl:grid-cols-[minmax(0,0.92fr)_minmax(0,1.08fr)] xl:items-start">
+      <div className="grid gap-6 xl:grid-cols-[minmax(0,0.88fr)_minmax(32rem,1.12fr)] xl:items-start">
         <div className="space-y-5">
           <div className="flex flex-wrap items-center gap-2">
             <span
@@ -460,7 +464,7 @@ export function ScanResultSummary({ report }: { report: WCSReport }) {
           </div>
 
           <div>
-            <h1 className="font-display leading-[0.94]" style={{ color: "var(--theme-foreground)", fontSize: "clamp(3.4rem, 8vw, 6.4rem)" }}>
+            <h1 className="font-display leading-[0.94]" style={{ color: "var(--theme-foreground)", fontSize: "clamp(3rem, 6vw, 6.1rem)", ...readableWrapStyle }}>
               {report.domain}
             </h1>
             {report.company_name ? (
@@ -481,7 +485,7 @@ export function ScanResultSummary({ report }: { report: WCSReport }) {
             <div className="grid gap-5 sm:grid-cols-[8.5rem_minmax(0,1fr)] sm:items-center">
               <GradeBadge grade={report.overall.grade as Grade} score={report.overall.score} size="lg" />
               <div>
-                <p className="font-display text-4xl leading-[1.02]" style={{ color: "var(--theme-foreground)" }}>
+                <p className="font-display text-3xl leading-[1.04] sm:text-4xl" style={{ color: "var(--theme-foreground)", ...readableWrapStyle }}>
                   {report.overall.headline}
                 </p>
                 <p className="mt-3 text-sm leading-relaxed" style={{ color: "var(--theme-muted)" }}>
@@ -515,14 +519,14 @@ export function ScanResultSummary({ report }: { report: WCSReport }) {
         <DomainSpecimen report={report} summary={summary} />
       </div>
 
-      <div className="grid gap-5 xl:grid-cols-[minmax(0,1fr)_minmax(20rem,0.38fr)]">
+      <div className="grid gap-5 xl:grid-cols-[minmax(0,1fr)_minmax(24rem,0.42fr)]">
         <div className={`${panelClass} p-5 sm:p-6`} style={panelStyle}>
           <div className="mb-5 flex flex-wrap items-end justify-between gap-3">
             <div>
               <p className="text-[10px] font-bold uppercase tracking-[0.18em]" style={{ color: "var(--theme-accent)" }}>
                 Top priorities
               </p>
-              <h2 className="font-display text-4xl" style={{ color: "var(--theme-foreground)", lineHeight: 1 }}>
+              <h2 className="font-display text-3xl sm:text-4xl" style={{ color: "var(--theme-foreground)", lineHeight: 1 }}>
                 What should change first
               </h2>
             </div>
@@ -538,7 +542,7 @@ export function ScanResultSummary({ report }: { report: WCSReport }) {
             </a>
           </div>
           {priorityFlags.length ? (
-            <div className="grid gap-4 md:grid-cols-3">
+            <div className="grid gap-4 sm:grid-cols-2 2xl:grid-cols-3">
               {priorityFlags.map((flag, index) => (
                 <PriorityFlagCard flag={flag} index={index} key={`${flag.title}-${index}`} />
               ))}
@@ -969,7 +973,7 @@ export function LiveReport({ scanId, domain, initialResult }: Props) {
   }, [scanId, report]);
 
   return (
-    <div className="w-full max-w-4xl mx-auto px-4 py-8">
+    <div className="w-full max-w-7xl mx-auto px-4 py-8 sm:px-6 lg:px-8">
       <div className="mb-6 flex justify-end">
         <span
           className="max-w-[min(100%,20rem)] truncate text-right text-xs"

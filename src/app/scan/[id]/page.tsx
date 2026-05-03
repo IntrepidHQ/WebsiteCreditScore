@@ -83,7 +83,7 @@ export default async function ScanPage({ params }: Props) {
   }
 
   return shell(
-    <div className="mx-auto w-full flex-1 px-4 sm:px-6">
+    <div className="w-full flex-1">
       <LiveReport
         scanId={id}
         domain={scan.domain}

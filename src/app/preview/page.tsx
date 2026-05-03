@@ -10,7 +10,7 @@ export default function PreviewPage() {
     <main className="flex min-h-screen flex-col" style={{ backgroundColor: "var(--theme-background)" }}>
       <ScrollToTop />
       <NavBar />
-      <div className="mx-auto w-full max-w-4xl flex-1 px-4 py-8 sm:px-6">
+      <div className="mx-auto w-full max-w-7xl flex-1 px-4 py-8 sm:px-6 lg:px-8">
         <p className="mb-6 text-xs" style={{ color: "var(--theme-muted)" }}>
           Preview · mock data — same layout as a live report
         </p>
