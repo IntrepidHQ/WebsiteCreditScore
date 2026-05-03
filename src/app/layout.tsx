@@ -36,6 +36,11 @@ export const metadata: Metadata = {
     description: "AI-powered credibility reports for any website. $1 per scan.",
   },
   robots: { index: true, follow: true },
+  icons: {
+    icon: "/favicon.ico",
+    shortcut: "/favicon.ico",
+    apple: "/apple-touch-icon.png",
+  },
 };
 
 export default function RootLayout({

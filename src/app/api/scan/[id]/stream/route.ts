@@ -124,7 +124,7 @@ async function runAgent(
 
   const anthropicStream = client.messages.stream({
     model: "claude-haiku-4-5",
-    max_tokens: 8000,
+    max_tokens: 32000,
     system: [
       {
         type: "text",
