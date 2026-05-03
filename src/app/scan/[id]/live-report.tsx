@@ -4,14 +4,6 @@ import { useEffect, useRef, useState } from "react";
 import type { CSSProperties } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
-  RadarChart,
-  PolarGrid,
-  PolarAngleAxis,
-  Radar,
-  ResponsiveContainer,
-  Tooltip,
-} from "recharts";
-import {
   ChevronDown,
   ExternalLink,
   AlertTriangle,
@@ -115,16 +107,17 @@ function DimensionCard({ dim }: { dim: WCSReport["dimensions"][number] }) {
     <div className={`${panelClass} overflow-hidden`} style={panelStyle}>
       <button
         onClick={() => setOpen((o) => !o)}
-        className="flex w-full items-center gap-3 px-4 py-3 text-left transition-colors hover:[background-color:color-mix(in_srgb,var(--theme-accent)_7%,var(--theme-panel))]"
+        aria-expanded={open}
+        className="flex w-full items-center gap-3 px-4 py-4 text-left transition-colors hover:[background-color:color-mix(in_srgb,var(--theme-accent)_7%,var(--theme-panel))] sm:px-5"
       >
         <div
-          className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-lg font-mono text-sm font-bold"
+          className="flex h-11 w-11 flex-shrink-0 items-center justify-center rounded-lg font-mono text-sm font-bold"
           style={{ background: `${color}18`, color }}
         >
           {dim.grade}
         </div>
         <div className="min-w-0 flex-1">
-          <p className="truncate text-sm font-medium" style={{ color: "var(--theme-foreground)" }}>
+          <p className="text-base font-semibold" style={{ color: "var(--theme-foreground)", ...readableWrapStyle }}>
             {dim.label}
           </p>
           <div className="mt-1 h-1 overflow-hidden rounded-full" style={{ backgroundColor: "var(--theme-border)" }}>
@@ -134,8 +127,8 @@ function DimensionCard({ dim }: { dim: WCSReport["dimensions"][number] }) {
             />
           </div>
         </div>
-        <span className="flex-shrink-0 font-score text-sm" style={{ color: "var(--theme-muted)" }}>
-          {dim.score}
+        <span className="flex-shrink-0 font-score text-lg" style={{ color }}>
+          {scoreOutOfTen(dim.score)}
         </span>
         <ChevronDown
           className={`h-4 w-4 flex-shrink-0 transition-transform ${open ? "rotate-180" : ""}`}
@@ -152,8 +145,34 @@ function DimensionCard({ dim }: { dim: WCSReport["dimensions"][number] }) {
             transition={{ duration: 0.2 }}
             className="overflow-hidden"
           >
-            <div className="space-y-3 border-t px-4 pb-4" style={{ borderColor: "var(--theme-border)" }}>
-              <p className="pt-3 text-sm leading-relaxed" style={{ color: "color-mix(in srgb, var(--theme-foreground) 88%, transparent)" }}>
+            <div className="space-y-4 border-t px-4 pb-5 sm:px-5" style={{ borderColor: "var(--theme-border)" }}>
+              <div className="grid gap-2 pt-4 sm:grid-cols-3">
+                <div className="rounded-xl border p-3" style={{ borderColor: "var(--theme-border)" }}>
+                  <p className="text-[10px] font-bold uppercase tracking-[0.14em]" style={{ color: "var(--theme-muted)" }}>
+                    Score
+                  </p>
+                  <p className="mt-1 font-score text-2xl" style={{ color }}>
+                    {scoreOutOfTen(dim.score)}/10
+                  </p>
+                </div>
+                <div className="rounded-xl border p-3" style={{ borderColor: "var(--theme-border)" }}>
+                  <p className="text-[10px] font-bold uppercase tracking-[0.14em]" style={{ color: "var(--theme-muted)" }}>
+                    Grade
+                  </p>
+                  <p className="mt-1 text-base font-semibold" style={{ color: "var(--theme-foreground)" }}>
+                    {gradeLabel(dim.grade as Grade)}
+                  </p>
+                </div>
+                <div className="rounded-xl border p-3" style={{ borderColor: "var(--theme-border)" }}>
+                  <p className="text-[10px] font-bold uppercase tracking-[0.14em]" style={{ color: "var(--theme-muted)" }}>
+                    Weight
+                  </p>
+                  <p className="mt-1 font-score text-2xl" style={{ color: "var(--theme-foreground)" }}>
+                    {Math.round(dim.weight * 100)}%
+                  </p>
+                </div>
+              </div>
+              <p className="text-base leading-relaxed" style={{ color: "color-mix(in srgb, var(--theme-foreground) 88%, transparent)", ...readableWrapStyle }}>
                 {dim.verdict}
               </p>
               {dim.evidence.length > 0 && (
@@ -205,11 +224,12 @@ function scoreOutOfTen(score: number) {
 }
 
 function ScoreRadar({ report }: { report: WCSReport }) {
+  const [activeDimension, setActiveDimension] = useState<ReportDimension | null>(null);
   const dimensions = report.dimensions;
-  const size = 360;
+  const size = 520;
   const cx = size / 2;
   const cy = size / 2;
-  const maxR = 128;
+  const maxR = 190;
   const count = dimensions.length;
   const point = (index: number, radius: number) => {
     const angle = (index / count) * 2 * Math.PI - Math.PI / 2;
@@ -218,121 +238,185 @@ function ScoreRadar({ report }: { report: WCSReport }) {
       y: cy + radius * Math.sin(angle),
     };
   };
+  const activeColor = activeDimension ? dimensionColor(activeDimension) : "var(--theme-accent)";
 
   return (
-    <svg
-      width="100%"
-      height="100%"
-      viewBox={`0 0 ${size} ${size}`}
-      className="block max-w-[23rem]"
-      preserveAspectRatio="xMidYMid meet"
-      aria-label={`Overall score ${scoreOutOfTen(report.overall.score)} out of 10`}
-    >
-      <defs>
-        {dimensions.map((dim, index) => {
-          const next = dimensions[(index + 1) % count];
+    <div className="relative w-full max-w-[34rem]">
+      <svg
+        width="100%"
+        height="100%"
+        viewBox={`0 0 ${size} ${size}`}
+        className="block w-full"
+        preserveAspectRatio="xMidYMid meet"
+        aria-label={`Overall score ${scoreOutOfTen(report.overall.score)} out of 10`}
+      >
+        <defs>
+          {dimensions.map((dim, index) => {
+            const next = dimensions[(index + 1) % count];
+            return (
+              <linearGradient key={dim.key} id={`scan-slice-grad-${dim.key}`} x1="0" y1="0" x2="1" y2="1">
+                <stop offset="0%" stopColor={dimensionColor(dim)} stopOpacity="0.44" />
+                <stop offset="100%" stopColor={dimensionColor(next)} stopOpacity="0.24" />
+              </linearGradient>
+            );
+          })}
+          <radialGradient id="scan-radar-glow" cx="50%" cy="50%" r="55%">
+            <stop offset="0%" stopColor="rgba(247,178,27,0.2)" />
+            <stop offset="80%" stopColor="rgba(247,178,27,0)" />
+          </radialGradient>
+        </defs>
+
+        <circle cx={cx} cy={cy} r={maxR + 20} fill="url(#scan-radar-glow)" />
+
+        {[0.25, 0.5, 0.75, 1].map((level) => {
+          const ringPoints = dimensions.map((_, index) => point(index, level * maxR));
+          const path =
+            ringPoints.map((p, index) => `${index === 0 ? "M" : "L"}${p.x.toFixed(1)},${p.y.toFixed(1)}`).join(" ") +
+            " Z";
+          return <path key={level} d={path} fill="none" stroke="rgba(247,178,27,0.09)" strokeWidth={1.2} />;
+        })}
+
+        {dimensions.map((_, index) => {
+          const outer = point(index, maxR);
           return (
-            <linearGradient key={dim.key} id={`scan-slice-grad-${dim.key}`} x1="0" y1="0" x2="1" y2="1">
-              <stop offset="0%" stopColor={dimensionColor(dim)} stopOpacity="0.42" />
-              <stop offset="100%" stopColor={dimensionColor(next)} stopOpacity="0.22" />
-            </linearGradient>
+            <line
+              key={`spoke-${index}`}
+              x1={cx}
+              y1={cy}
+              x2={outer.x.toFixed(1)}
+              y2={outer.y.toFixed(1)}
+              stroke="rgba(247,178,27,0.09)"
+              strokeWidth={1.2}
+            />
           );
         })}
-        <radialGradient id="scan-radar-glow" cx="50%" cy="50%" r="55%">
-          <stop offset="0%" stopColor="rgba(247,178,27,0.18)" />
-          <stop offset="80%" stopColor="rgba(247,178,27,0)" />
-        </radialGradient>
-      </defs>
 
-      <circle cx={cx} cy={cy} r={maxR + 10} fill="url(#scan-radar-glow)" />
+        {dimensions.map((dim, index) => {
+          const next = dimensions[(index + 1) % count];
+          const p1 = point(index, (dim.score / 100) * maxR);
+          const p2 = point((index + 1) % count, (next.score / 100) * maxR);
+          const path = `M${cx},${cy} L${p1.x.toFixed(1)},${p1.y.toFixed(1)} L${p2.x.toFixed(1)},${p2.y.toFixed(1)} Z`;
+          return (
+            <path
+              key={`slice-${dim.key}`}
+              d={path}
+              fill={`url(#scan-slice-grad-${dim.key})`}
+              stroke={dimensionColor(dim)}
+              strokeOpacity={0.6}
+              strokeWidth={1.35}
+              strokeLinejoin="round"
+            />
+          );
+        })}
 
-      {[0.25, 0.5, 0.75, 1].map((level) => {
-        const ringPoints = dimensions.map((_, index) => point(index, level * maxR));
-        const path =
-          ringPoints.map((p, index) => `${index === 0 ? "M" : "L"}${p.x.toFixed(1)},${p.y.toFixed(1)}`).join(" ") +
-          " Z";
-        return <path key={level} d={path} fill="none" stroke="rgba(247,178,27,0.08)" strokeWidth={1} />;
-      })}
-
-      {dimensions.map((_, index) => {
-        const outer = point(index, maxR);
-        return (
-          <line
-            key={`spoke-${index}`}
-            x1={cx}
-            y1={cy}
-            x2={outer.x.toFixed(1)}
-            y2={outer.y.toFixed(1)}
-            stroke="rgba(247,178,27,0.08)"
-            strokeWidth={1}
-          />
-        );
-      })}
-
-      {dimensions.map((dim, index) => {
-        const next = dimensions[(index + 1) % count];
-        const p1 = point(index, (dim.score / 100) * maxR);
-        const p2 = point((index + 1) % count, (next.score / 100) * maxR);
-        const path = `M${cx},${cy} L${p1.x.toFixed(1)},${p1.y.toFixed(1)} L${p2.x.toFixed(1)},${p2.y.toFixed(1)} Z`;
-        return (
-          <path
-            key={`slice-${dim.key}`}
-            d={path}
-            fill={`url(#scan-slice-grad-${dim.key})`}
-            stroke={dimensionColor(dim)}
-            strokeOpacity={0.55}
-            strokeWidth={1.1}
-            strokeLinejoin="round"
-          />
-        );
-      })}
-
-      {dimensions.map((dim, index) => {
-        const { x, y } = point(index, (dim.score / 100) * maxR);
-        const color = dimensionColor(dim);
-        return (
-          <g key={`score-${dim.key}`}>
-            <circle cx={x} cy={y} r={14} fill="rgba(14,14,7,0.94)" stroke={color} strokeWidth={1.4} />
-            <text
-              x={x}
-              y={y + 3.5}
-              textAnchor="middle"
-              fontSize={10}
-              fontWeight={600}
-              fontFamily="'Instrument Serif', Georgia, serif"
-              fill={color}
+        {dimensions.map((dim, index) => {
+          const { x, y } = point(index, (dim.score / 100) * maxR);
+          const color = dimensionColor(dim);
+          const isActive = activeDimension?.key === dim.key;
+          return (
+            <g
+              key={`score-${dim.key}`}
+              role="button"
+              tabIndex={0}
+              aria-label={`Show ${dim.label} score tooltip`}
+              className="cursor-pointer outline-none"
+              onMouseEnter={() => setActiveDimension(dim)}
+              onMouseLeave={() => setActiveDimension(null)}
+              onFocus={() => setActiveDimension(dim)}
+              onBlur={() => setActiveDimension(null)}
+              onClick={() => setActiveDimension(dim)}
+              onKeyDown={(event) => {
+                if (event.key === "Enter" || event.key === " ") {
+                  event.preventDefault();
+                  setActiveDimension(dim);
+                }
+              }}
             >
-              {Math.round(dim.score)}
-            </text>
-          </g>
-        );
-      })}
+              <circle
+                cx={x}
+                cy={y}
+                r={isActive ? 22 : 19}
+                fill="rgba(14,14,7,0.96)"
+                stroke={color}
+                strokeWidth={isActive ? 2.6 : 2}
+              />
+              <text
+                x={x}
+                y={y + 4.5}
+                textAnchor="middle"
+                fontSize={14}
+                fontWeight={650}
+                fontFamily="'Instrument Serif', Georgia, serif"
+                fill={color}
+                pointerEvents="none"
+              >
+                {Math.round(dim.score)}
+              </text>
+            </g>
+          );
+        })}
 
-      <circle cx={cx} cy={cy} r={32} fill="rgba(14,14,7,0.96)" />
-      <circle cx={cx} cy={cy} r={32} fill="none" stroke="rgba(247,178,27,0.36)" strokeWidth={1} />
-      <text
-        x={cx}
-        y={cy - 1}
-        textAnchor="middle"
-        fontSize={22}
-        fontWeight={400}
-        fontFamily="'Instrument Serif', Georgia, serif"
-        fill="#f7b21b"
-      >
-        {scoreOutOfTen(report.overall.score)}
-      </text>
-      <text
-        x={cx}
-        y={cy + 13}
-        textAnchor="middle"
-        fontSize={7}
-        letterSpacing={1.5}
-        fontFamily="ui-monospace, monospace"
-        fill="rgba(150,142,106,0.8)"
-      >
-        AVG
-      </text>
-    </svg>
+        <circle cx={cx} cy={cy} r={50} fill="rgba(14,14,7,0.97)" />
+        <circle cx={cx} cy={cy} r={50} fill="none" stroke="rgba(247,178,27,0.4)" strokeWidth={1.2} />
+        <text
+          x={cx}
+          y={cy - 4}
+          textAnchor="middle"
+          fontSize={38}
+          fontWeight={400}
+          fontFamily="'Instrument Serif', Georgia, serif"
+          fill="#f7b21b"
+        >
+          {scoreOutOfTen(report.overall.score)}
+        </text>
+        <text
+          x={cx}
+          y={cy + 26}
+          textAnchor="middle"
+          fontSize={11}
+          letterSpacing={3}
+          fontFamily="ui-monospace, monospace"
+          fill="rgba(150,142,106,0.82)"
+        >
+          AVG
+        </text>
+      </svg>
+
+      <AnimatePresence>
+        {activeDimension ? (
+          <motion.div
+            role="tooltip"
+            initial={{ opacity: 0, y: 8 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: 8 }}
+            transition={{ duration: 0.14 }}
+            className="mt-3 rounded-2xl border p-4 text-left shadow-2xl"
+            style={{
+              borderColor: `${activeColor}55`,
+              background:
+                "linear-gradient(180deg, color-mix(in srgb, var(--theme-panel) 96%, transparent), var(--theme-background-alt))",
+            }}
+          >
+            <div className="flex items-start justify-between gap-4">
+              <div className="min-w-0">
+                <p className="text-[10px] font-bold uppercase tracking-[0.16em]" style={{ color: "var(--theme-muted)" }}>
+                  Radar score
+                </p>
+                <h3 className="mt-1 text-base font-semibold" style={{ color: "var(--theme-foreground)", ...readableWrapStyle }}>
+                  {activeDimension.label}
+                </h3>
+              </div>
+              <p className="shrink-0 font-score text-3xl leading-none" style={{ color: activeColor }}>
+                {scoreOutOfTen(activeDimension.score)}
+              </p>
+            </div>
+            <p className="mt-3 line-clamp-3 text-sm leading-relaxed" style={{ color: "var(--theme-muted)", ...readableWrapStyle }}>
+              {activeDimension.verdict}
+            </p>
+          </motion.div>
+        ) : null}
+      </AnimatePresence>
+    </div>
   );
 }
 
@@ -384,7 +468,7 @@ function DimensionScoreCard({
     <button
       type="button"
       onClick={() => onSelect(dim)}
-      className="group flex min-h-[14.5rem] flex-col rounded-2xl p-5 text-left transition-opacity hover:opacity-92 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-[var(--theme-background)]"
+      className="group flex min-h-[15rem] flex-col rounded-2xl p-5 text-left transition-opacity hover:opacity-92 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-[var(--theme-background)] sm:p-6"
       style={{
         border: "1px solid var(--theme-border)",
         backgroundColor: "var(--theme-panel)",
@@ -400,16 +484,16 @@ function DimensionScoreCard({
         >
           <Icon className="h-5 w-5" aria-hidden />
         </span>
-        <span className="font-score leading-none" style={{ color, fontSize: "clamp(2.15rem, 3vw, 3rem)" }}>
+        <span className="font-score leading-none" style={{ color, fontSize: "clamp(2.55rem, 4vw, 3.55rem)" }}>
           {scoreOutOfTen(dim.score)}
         </span>
       </div>
 
       <div className="mt-5 min-w-0">
-        <h3 className="text-sm font-semibold" style={{ color: "var(--theme-foreground)", ...readableWrapStyle }}>
+        <h3 className="text-base font-semibold" style={{ color: "var(--theme-foreground)", ...readableWrapStyle }}>
           {dim.label}
         </h3>
-        <p className="mt-3 line-clamp-3 text-sm leading-relaxed" style={{ color: "var(--theme-muted)" }}>
+        <p className="mt-3 line-clamp-3 text-[0.95rem] leading-relaxed" style={{ color: "var(--theme-muted)", ...readableWrapStyle }}>
           {dim.verdict}
         </p>
       </div>
@@ -564,11 +648,17 @@ export function ScanResultSummary({ report }: { report: WCSReport }) {
   const closeReasoning = () => setSelectedDimension(null);
 
   return (
-    <section className="space-y-10">
+    <section className="space-y-11">
       <div className="flex flex-wrap items-center gap-2">
         <span
           className="rounded-full border px-3 py-1 text-[10px] font-bold uppercase tracking-[0.18em]"
           style={{ borderColor: "#f7b21b44", backgroundColor: "#f7b21b12", color: "var(--theme-accent)" }}
+        >
+          Average {scoreOutOfTen(report.overall.score)}/10
+        </span>
+        <span
+          className="rounded-full border px-3 py-1 text-[10px] font-bold uppercase tracking-[0.18em]"
+          style={{ borderColor: "var(--theme-border)", backgroundColor: "color-mix(in srgb, var(--theme-panel) 72%, transparent)", color: "var(--theme-muted)" }}
         >
           Scan result
         </span>
@@ -579,17 +669,35 @@ export function ScanResultSummary({ report }: { report: WCSReport }) {
           {gradeLabel(report.overall.grade as Grade)}
         </span>
         <span className="text-xs" style={{ color: "var(--theme-muted)" }}>
-          {report.domain} · {report.sources.length} sources
+          {report.sources.length} sources
         </span>
       </div>
 
-      <div className="grid items-center gap-10 lg:grid-cols-[20rem_minmax(0,1fr)] lg:gap-14">
+      <div className="max-w-5xl">
+        <h1
+          className="font-display leading-[0.9]"
+          style={{
+            color: "var(--theme-foreground)",
+            fontSize: "clamp(3.75rem, 10vw, 7.5rem)",
+            overflowWrap: "anywhere",
+          }}
+        >
+          {report.domain}
+        </h1>
+        {report.company_name ? (
+          <p className="mt-4 text-base sm:text-lg" style={{ color: "var(--theme-muted)", ...readableWrapStyle }}>
+            {report.company_name}
+          </p>
+        ) : null}
+      </div>
+
+      <div className="grid items-center gap-10 lg:grid-cols-[34rem_minmax(0,1fr)] lg:gap-16">
         <div className="flex justify-center lg:justify-start">
           <ScoreRadar report={report} />
         </div>
         <div className="space-y-8">
           <div className="max-w-3xl">
-            <p className="text-base leading-relaxed sm:text-lg" style={{ color: "var(--theme-muted)", ...readableWrapStyle }}>
+            <p className="text-lg leading-relaxed sm:text-xl" style={{ color: "var(--theme-muted)", ...readableWrapStyle }}>
               {report.overall.one_liner}
             </p>
           </div>
@@ -713,132 +821,199 @@ function StrategyPresentationReminder({ domain }: { domain: string }) {
   );
 }
 
+type RedFlag = WCSReport["red_flags"][number];
+type GreenFlag = WCSReport["green_flags"][number];
+
+function redFlagSeverityClass(severity: RedFlag["severity"]) {
+  if (severity === "critical") return "border-red-500/35 bg-red-500/15 text-red-300";
+  if (severity === "high") return "border-orange-500/35 bg-orange-500/15 text-orange-300";
+  if (severity === "medium") return "border-yellow-500/35 bg-yellow-500/15 text-yellow-200";
+  return "border-zinc-500/30 bg-zinc-500/10 text-zinc-300";
+}
+
+function ExecutiveSummaryBlock({ report }: { report: WCSReport }) {
+  return (
+    <section className={`${panelClass} p-6 sm:p-8`} style={panelStyle}>
+      <p className="text-[10px] font-bold uppercase tracking-[0.2em]" style={{ color: "var(--theme-accent)" }}>
+        Executive Summary
+      </p>
+      <h2 className="mt-3 max-w-4xl font-display text-4xl leading-[1.02] sm:text-5xl" style={{ color: "var(--theme-foreground)", ...readableWrapStyle }}>
+        {report.overall.headline}
+      </h2>
+      <div className="mt-6 max-w-none space-y-4">
+        {report.summary.split("\n\n").map((para, i) => (
+          <p
+            key={i}
+            className="text-base leading-8 sm:text-[1.05rem]"
+            style={{ color: "color-mix(in srgb, var(--theme-foreground) 88%, transparent)", ...readableWrapStyle }}
+          >
+            {para}
+          </p>
+        ))}
+      </div>
+    </section>
+  );
+}
+
+function RedFlagsPanel({ flags }: { flags: RedFlag[] }) {
+  if (!flags.length) return null;
+
+  return (
+    <section className={`${panelClass} p-5 sm:p-6`} style={{ ...panelStyle, borderColor: "color-mix(in srgb, #ef4444 28%, var(--theme-border))" }}>
+      <h2 className="mb-4 flex items-center gap-2 text-base font-semibold text-red-300">
+        <AlertTriangle className="h-4 w-4" aria-hidden />
+        Red Flags ({flags.length})
+      </h2>
+      <div className="space-y-3">
+        {flags.map((flag, i) => {
+          const content = (
+            <>
+              <span className={`inline-flex w-fit rounded-full border px-2.5 py-1 text-[10px] font-bold uppercase tracking-[0.1em] ${redFlagSeverityClass(flag.severity)}`}>
+                {flag.severity}
+              </span>
+              <p className="mt-3 text-base font-semibold" style={{ color: "var(--theme-foreground)", ...readableWrapStyle }}>
+                {flag.title}
+              </p>
+              <p className="mt-2 text-sm leading-relaxed" style={{ color: "var(--theme-muted)", ...readableWrapStyle }}>
+                {flag.detail}
+              </p>
+              {flag.url ? (
+                <span className="mt-3 inline-flex items-center gap-1.5 text-xs font-semibold" style={{ color: "var(--theme-accent)" }}>
+                  Source <ExternalLink className="h-3 w-3" aria-hidden />
+                </span>
+              ) : null}
+            </>
+          );
+
+          return flag.url ? (
+            <a
+              key={`${flag.title}-${i}`}
+              href={flag.url}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="block rounded-xl border p-4 text-left transition-colors hover:[background-color:color-mix(in_srgb,#ef4444_7%,var(--theme-panel))]"
+              style={{ borderColor: "color-mix(in srgb, #ef4444 18%, var(--theme-border))" }}
+            >
+              {content}
+            </a>
+          ) : (
+            <div
+              key={`${flag.title}-${i}`}
+              className="rounded-xl border p-4 text-left"
+              style={{ borderColor: "color-mix(in srgb, #ef4444 18%, var(--theme-border))" }}
+            >
+              {content}
+            </div>
+          );
+        })}
+      </div>
+    </section>
+  );
+}
+
+function GreenFlagsPanel({ flags }: { flags: GreenFlag[] }) {
+  if (!flags.length) return null;
+
+  return (
+    <section className={`${panelClass} p-5 sm:p-6`} style={{ ...panelStyle, borderColor: "color-mix(in srgb, #34d399 28%, var(--theme-border))" }}>
+      <h2 className="mb-4 flex items-center gap-2 text-base font-semibold text-emerald-300">
+        <CheckCircle2 className="h-4 w-4" aria-hidden />
+        Green Flags ({flags.length})
+      </h2>
+      <div className="space-y-3">
+        {flags.map((flag, i) => {
+          const content = (
+            <>
+              <span className="inline-flex w-fit rounded-full border border-emerald-400/30 bg-emerald-500/10 px-2.5 py-1 text-[10px] font-bold uppercase tracking-[0.1em] text-emerald-300">
+                Strength
+              </span>
+              <p className="mt-3 text-base font-semibold" style={{ color: "var(--theme-foreground)", ...readableWrapStyle }}>
+                {flag.title}
+              </p>
+              <p className="mt-2 text-sm leading-relaxed" style={{ color: "var(--theme-muted)", ...readableWrapStyle }}>
+                {flag.detail}
+              </p>
+              {flag.url ? (
+                <span className="mt-3 inline-flex items-center gap-1.5 text-xs font-semibold" style={{ color: "var(--theme-accent)" }}>
+                  Source <ExternalLink className="h-3 w-3" aria-hidden />
+                </span>
+              ) : null}
+            </>
+          );
+
+          return flag.url ? (
+            <a
+              key={`${flag.title}-${i}`}
+              href={flag.url}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="block rounded-xl border p-4 text-left transition-colors hover:[background-color:color-mix(in_srgb,#34d399_7%,var(--theme-panel))]"
+              style={{ borderColor: "color-mix(in srgb, #34d399 18%, var(--theme-border))" }}
+            >
+              {content}
+            </a>
+          ) : (
+            <div
+              key={`${flag.title}-${i}`}
+              className="rounded-xl border p-4 text-left"
+              style={{ borderColor: "color-mix(in srgb, #34d399 18%, var(--theme-border))" }}
+            >
+              {content}
+            </div>
+          );
+        })}
+      </div>
+    </section>
+  );
+}
+
+function FlagsSection({ report }: { report: WCSReport }) {
+  if (!report.red_flags.length && !report.green_flags.length) return null;
+
+  return (
+    <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
+      <RedFlagsPanel flags={report.red_flags} />
+      <GreenFlagsPanel flags={report.green_flags} />
+    </div>
+  );
+}
+
+function DimensionBreakdown({ report }: { report: WCSReport }) {
+  return (
+    <section>
+      <div className="mb-5 max-w-4xl">
+        <p className="text-[10px] font-bold uppercase tracking-[0.2em]" style={{ color: "var(--theme-accent)" }}>
+          Dimension Breakdown
+        </p>
+        <h2 className="mt-3 font-display text-4xl leading-[1.04] sm:text-5xl" style={{ color: "var(--theme-foreground)", ...readableWrapStyle }}>
+          Why each score lands where it does
+        </h2>
+        <p className="mt-4 text-base leading-relaxed sm:text-lg" style={{ color: "var(--theme-muted)", ...readableWrapStyle }}>
+          These are the same ten dimensions from the top score cards, expanded with the grade, weighting, verdict, and source evidence used to explain the scan.
+        </p>
+      </div>
+      <div className="space-y-3">
+        {report.dimensions.map((dim) => (
+          <DimensionCard key={dim.key} dim={dim} />
+        ))}
+      </div>
+    </section>
+  );
+}
+
 // ── Main report ───────────────────────────────────────────────────────────
 export function ReportContent({ report }: { report: WCSReport }) {
-  const radarData = report.dimensions.map((d) => ({
-    subject: d.label.split(" ")[0],
-    score: d.score,
-    fullMark: 100,
-  }));
-
-  const overallColor = gradeColor(report.overall.grade as Grade);
-
   return (
     <div className="space-y-6">
       <ScanResultSummary report={report} />
 
+      <ExecutiveSummaryBlock report={report} />
+
       <StrategyPresentationUpsell domain={report.domain} />
 
-      {/* Radar + Flags */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-        {/* Radar chart */}
-        <div className={`${panelClass} p-6`} style={panelStyle}>
-          <h2 className="mb-4 text-sm font-medium" style={{ color: "var(--theme-muted)" }}>
-            10 Dimensions
-          </h2>
-          <ResponsiveContainer width="100%" height={260}>
-            <RadarChart data={radarData}>
-              <PolarGrid stroke="color-mix(in srgb, var(--theme-border) 80%, transparent)" />
-              <PolarAngleAxis
-                dataKey="subject"
-                tick={{ fill: "var(--theme-muted)", fontSize: 11 }}
-              />
-              <Radar
-                name="Score"
-                dataKey="score"
-                stroke={overallColor}
-                fill={overallColor}
-                fillOpacity={0.12}
-                strokeWidth={1.5}
-              />
-              <Tooltip
-                contentStyle={{
-                  background: "var(--theme-panel)",
-                  border: "1px solid var(--theme-border)",
-                  borderRadius: "8px",
-                  fontSize: "12px",
-                  color: "var(--theme-foreground)",
-                }}
-                formatter={(value: number) => [`${value}/100`, "Score"]}
-              />
-            </RadarChart>
-          </ResponsiveContainer>
-        </div>
+      <FlagsSection report={report} />
 
-        {/* Flags */}
-        <div className="space-y-4">
-          {/* Red flags */}
-          {report.red_flags.length > 0 && (
-            <div className={`${panelClass} border-red-500/20 p-4`} style={panelStyle}>
-              <h2 className="text-sm font-medium text-red-400 mb-3 flex items-center gap-2">
-                <AlertTriangle className="w-4 h-4" />
-                Red Flags ({report.red_flags.length})
-              </h2>
-              <div className="space-y-2">
-                {report.red_flags.map((flag, i) => (
-                  <div key={i} className="space-y-0.5">
-                    <div className="flex items-start gap-2">
-                      <span
-                        className={`mt-0.5 flex-shrink-0 text-xs px-1.5 py-0.5 rounded font-mono ${
-                          flag.severity === "critical"
-                            ? "bg-red-500/20 text-red-400"
-                            : flag.severity === "high"
-                            ? "bg-orange-500/20 text-orange-400"
-                            : flag.severity === "medium"
-                            ? "bg-yellow-500/20 text-yellow-400"
-                            : "bg-zinc-700 text-zinc-400"
-                        }`}
-                      >
-                        {flag.severity}
-                      </span>
-                      <p className="text-sm font-medium" style={{ color: "var(--theme-foreground)" }}>
-                        {flag.title}
-                      </p>
-                    </div>
-                    <p className="pl-10 text-xs" style={{ color: "var(--theme-muted)" }}>
-                      {flag.detail}
-                    </p>
-                  </div>
-                ))}
-              </div>
-            </div>
-          )}
-
-          {/* Green flags */}
-          {report.green_flags.length > 0 && (
-            <div className={`${panelClass} border-emerald-500/20 p-4`} style={panelStyle}>
-              <h2 className="text-sm font-medium text-emerald-400 mb-3 flex items-center gap-2">
-                <CheckCircle2 className="w-4 h-4" />
-                Green Flags ({report.green_flags.length})
-              </h2>
-              <div className="space-y-2">
-                {report.green_flags.map((flag, i) => (
-                  <div key={i} className="space-y-0.5">
-                    <p className="text-sm font-medium" style={{ color: "var(--theme-foreground)" }}>
-                      {flag.title}
-                    </p>
-                    <p className="text-xs" style={{ color: "var(--theme-muted)" }}>
-                      {flag.detail}
-                    </p>
-                  </div>
-                ))}
-              </div>
-            </div>
-          )}
-        </div>
-      </div>
-
-      {/* Dimension detail cards */}
-      <div>
-        <h2 className="mb-3 text-sm font-medium" style={{ color: "var(--theme-muted)" }}>
-          Dimension Breakdown
-        </h2>
-        <div className="space-y-2">
-          {report.dimensions.map((dim) => (
-            <DimensionCard key={dim.key} dim={dim} />
-          ))}
-        </div>
-      </div>
+      <DimensionBreakdown report={report} />
 
       {/* Timeline + Peers */}
       {((report.timeline?.length ?? 0) > 0 || (report.peers?.length ?? 0) > 0) && (
@@ -884,24 +1059,6 @@ export function ReportContent({ report }: { report: WCSReport }) {
           )}
         </div>
       )}
-
-      {/* Executive summary */}
-      <div className={`${panelClass} p-6`} style={panelStyle}>
-        <h2 className="mb-4 text-sm font-medium" style={{ color: "var(--theme-muted)" }}>
-          Executive Summary
-        </h2>
-        <div className="max-w-none">
-          {report.summary.split("\n\n").map((para, i) => (
-            <p
-              key={i}
-              className="mb-3 text-sm leading-relaxed last:mb-0"
-              style={{ color: "color-mix(in srgb, var(--theme-foreground) 88%, transparent)" }}
-            >
-              {para}
-            </p>
-          ))}
-        </div>
-      </div>
 
       {/* Sources */}
       <div className={`${panelClass} p-6`} style={panelStyle}>

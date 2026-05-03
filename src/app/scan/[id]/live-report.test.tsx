@@ -10,6 +10,7 @@ describe("ScanResultSummary", () => {
   it("renders the main score, score breakdown, and reasoning actions", () => {
     const html = renderToStaticMarkup(<ScanResultSummary report={fixture as WCSReport} />);
 
+    expect(html).toContain("Average 9.6/10");
     expect(html).toContain("Scan result");
     expect(html).toContain("apple.com");
     expect(html).toContain("9.6");
@@ -40,6 +41,31 @@ describe("ScanResultSummary", () => {
     expect(container.textContent).toContain("Dimension reasoning");
     expect(container.textContent).toContain("Why it scored this way");
     expect(container.textContent).toContain("Delaware C-Corp incorporated");
+
+    await act(async () => {
+      root.unmount();
+    });
+  });
+
+  it("shows a tappable radar tooltip for dimension scores", async () => {
+    const container = document.createElement("div");
+    document.body.append(container);
+    const root = createRoot(container);
+
+    await act(async () => {
+      root.render(<ScanResultSummary report={fixture as WCSReport} />);
+    });
+
+    const radarScore = container.querySelector('[aria-label="Show Business Legitimacy score tooltip"]');
+    expect(radarScore).toBeTruthy();
+
+    await act(async () => {
+      radarScore!.dispatchEvent(new MouseEvent("click", { bubbles: true }));
+    });
+
+    expect(container.textContent).toContain("Radar score");
+    expect(container.textContent).toContain("Business Legitimacy");
+    expect(container.textContent).toContain("9.9");
 
     await act(async () => {
       root.unmount();
