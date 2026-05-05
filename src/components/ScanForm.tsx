@@ -1,13 +1,11 @@
 "use client";
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import { isTemporaryFreeScanWindow } from "@/lib/free-scan-window";
 
 type Tier = "quick" | "standard" | "deep";
 export type TierMode = "standard" | "max";
 
 const TIER_ORDER: Tier[] = ["quick", "standard", "deep"];
-const FIRST_SCAN_KEY = "wcs_first_scan_claimed";
 
 const TIER_COPY: Record<
   TierMode,
@@ -55,20 +53,6 @@ const TIER_COPY: Record<
   },
 };
 
-const FREE_SCAN_CLIENT =
-  typeof process !== "undefined" &&
-  process.env.NEXT_PUBLIC_FREE_SCAN_MODE === "true";
-const TEMP_FREE_SCAN_ACTIVE = isTemporaryFreeScanWindow();
-
-function readFirstScanAvailable() {
-  if (typeof window === "undefined") return false;
-  try {
-    return window.localStorage.getItem(FIRST_SCAN_KEY) !== "1";
-  } catch {
-    return true;
-  }
-}
-
 function normalizeUrl(input: string): string {
   let url = input.trim();
   if (!url.startsWith("http://") && !url.startsWith("https://")) url = "https://" + url;
@@ -95,15 +79,7 @@ export function ScanForm({
   const [mode, setMode] = useState<TierMode>(initialMode);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
-  const [firstScanAvailable, setFirstScanAvailable] = useState(false);
   const [walletBalances, setWalletBalances] = useState<Record<string, number> | null>(null);
-
-  useEffect(() => {
-    const id = window.setTimeout(() => {
-      setFirstScanAvailable(readFirstScanAvailable());
-    }, 0);
-    return () => window.clearTimeout(id);
-  }, []);
 
   useEffect(() => {
     let cancelled = false;
@@ -122,7 +98,6 @@ export function ScanForm({
   const creditKey = `${tier}_${mode}`;
   const creditCount = walletBalances?.[creditKey] ?? 0;
   const hasCredit = creditCount > 0;
-  const useFreeFlow = !hasCredit && (TEMP_FREE_SCAN_ACTIVE || FREE_SCAN_CLIENT || firstScanAvailable);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -131,61 +106,28 @@ export function ScanForm({
     setLoading(true);
     try {
       const domain = normalizeUrl(url);
-
-      // Try the free / wallet-credit path first. The server decides which one applies.
-      if (hasCredit || useFreeFlow) {
-        const res = await fetch("/api/scan/start", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ domain, tier, mode }),
-        });
-        if (res.ok) {
-          const { scanId, source } = await res.json();
-          if (source === "first-free") {
-            try { window.localStorage.setItem(FIRST_SCAN_KEY, "1"); } catch {}
-          }
-          router.push(`/scan/${scanId}`);
-          return;
-        }
-        // 403 → no credit & no free scan; fall through to paid checkout.
-        if (res.status !== 403) {
-          const data = await res.json().catch(() => ({}));
-          throw new Error(data.error ?? "Something went wrong");
-        }
-        try { window.localStorage.setItem(FIRST_SCAN_KEY, "1"); } catch {}
-        setFirstScanAvailable(false);
-      }
-
-      const res = await fetch("/api/checkout", {
+      const res = await fetch("/api/scan/start", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ domain, tier, mode, quantity: 1 }),
+        body: JSON.stringify({ domain, tier, mode }),
       });
       if (!res.ok) {
         const data = await res.json().catch(() => ({}));
         throw new Error(data.error ?? "Something went wrong");
       }
-      const { checkoutUrl } = await res.json();
-      window.location.href = checkoutUrl;
+      const { scanId } = await res.json();
+      router.push(`/scan/${scanId}`);
     } catch (err) {
       setError(err instanceof Error ? err.message : "Something went wrong");
       setLoading(false);
     }
   };
 
-  const buttonLabel = hasCredit
-    ? "Use credit →"
-    : useFreeFlow
-      ? "Free scan →"
-      : "Scan →";
+  const buttonLabel = hasCredit ? "Use credit →" : "Scan →";
   const hintLine = hasCredit
     ? `${creditCount} ${copy.tabLabel} ${creditCount === 1 ? "credit" : "credits"} available`
-    : TEMP_FREE_SCAN_ACTIVE
-      ? "Temporary test mode (24h): scans are free"
-      : useFreeFlow
-      ? "First scan is free · No account required"
-      : `Starts at $${TIER_COPY[mode].quick.price} per report · No account required`;
-  const showFree = hasCredit || useFreeFlow;
+    : "Free · No account required";
+  const showFree = true;
 
   return (
     <form onSubmit={handleSubmit} className="w-full">
@@ -253,21 +195,14 @@ export function ScanForm({
               >
                 ★ {creditCount} {creditCount === 1 ? "credit" : "credits"}
               </span>
-            ) : TEMP_FREE_SCAN_ACTIVE ? (
+            ) : (
               <span
                 className="inline-flex items-center gap-1.5 rounded-full px-2.5 py-1"
                 style={{ backgroundColor: "rgba(74,222,128,0.12)", color: "#86efac", border: "1px solid rgba(74,222,128,0.3)" }}
               >
-                ★ Test mode free scan
+                ★ Free scan
               </span>
-            ) : useFreeFlow ? (
-              <span
-                className="inline-flex items-center gap-1.5 rounded-full px-2.5 py-1"
-                style={{ backgroundColor: "rgba(74,222,128,0.12)", color: "#86efac", border: "1px solid rgba(74,222,128,0.3)" }}
-              >
-                ★ First scan free
-              </span>
-            ) : null}
+            )}
             <span style={{ color: "var(--theme-accent)" }}>{hintLine}</span>
           </div>
 

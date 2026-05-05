@@ -285,12 +285,6 @@ export async function GET(
           return;
         }
 
-        // ── Guard: payment required ────────────────────────────────
-        if (!scan.paid) {
-          send(controller, { type: "error", error: "Payment required" });
-          return;
-        }
-
         // ── Already done: replay ───────────────────────────────────
         if (scan.status === "done" && scan.result) {
           send(controller, { type: "cached", report: scan.result });
