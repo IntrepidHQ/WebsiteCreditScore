@@ -10,6 +10,7 @@ import { WCSReportSchema, WCS_REPORT_JSON_SCHEMA, type WCSReport } from "@/lib/s
 import fixture from "@/lib/fixtures/wcs-mock.json";
 import Anthropic from "@anthropic-ai/sdk";
 import type { MessageStreamEvent, Tool, ToolUnion } from "@anthropic-ai/sdk/resources/messages";
+import { getScanDepthProfile } from "@/lib/scan-depth";
 
 export const runtime = "nodejs";
 export const maxDuration = 300;
@@ -125,9 +126,12 @@ async function streamMock(controller: ReadableStreamDefaultController, domain: s
 async function runAgent(
   controller: ReadableStreamDefaultController,
   scanId: string,
-  domain: string
+  domain: string,
+  tier: "quick" | "standard" | "deep",
+  mode: "standard" | "max"
 ) {
   const client = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY! });
+  const depth = getScanDepthProfile(tier, mode);
 
   let searchCount = 0;
   let finalReport: WCSReport | null = null;
@@ -136,7 +140,7 @@ async function runAgent(
   let turnIndex = 0;
   const pendingBlocks = new Map<string, { name: string; inputAccum: string }>();
   const tools: ToolUnion[] = [
-    { type: "web_search_20250305", name: "web_search", max_uses: 10 },
+    { type: "web_search_20250305", name: "web_search", max_uses: depth.searches },
     {
       name: "submit_credit_report",
       description:
@@ -151,7 +155,16 @@ async function runAgent(
     system: [
       {
         type: "text",
-        text: WCS_SYSTEM_PROMPT,
+        text: `${WCS_SYSTEM_PROMPT}
+
+SCAN DEPTH:
+- Product: ${depth.label}
+- Search budget: up to ${depth.searches} web searches
+- Cited-source target: ${depth.citedSources}
+- Value promise: ${depth.valuePromise}
+- Required depth signals: ${depth.unlocks.join("; ")}
+
+For Aerial scans, keep the result concise and high-signal. For deeper scans, use the larger search budget to add more specific evidence, richer peers/timeline/context, and a more decision-ready summary while preserving the same JSON schema.`,
         cache_control: { type: "ephemeral" } as { type: "ephemeral" },
       },
     ],
@@ -160,7 +173,7 @@ async function runAgent(
     messages: [
       {
         role: "user",
-        content: `Generate a WebsiteCreditScore report for: ${domain}\n\nResearch thoroughly. Use 8-10 diverse web searches before submitting. Be candid — don't hedge scores toward the middle.`,
+        content: `Generate a ${depth.label} WebsiteCreditScore report for: ${domain}\n\nResearch thoroughly. Use the scan depth budget and make the output feel worth the ${depth.label} tier. Be candid — don't hedge scores toward the middle.`,
       },
     ],
   });
@@ -285,6 +298,12 @@ export async function GET(
           return;
         }
 
+        // ── Guard: payment required ────────────────────────────────
+        if (!scan.paid) {
+          send(controller, { type: "error", error: "Payment required" });
+          return;
+        }
+
         // ── Already done: replay ───────────────────────────────────
         if (scan.status === "done" && scan.result) {
           send(controller, { type: "cached", report: scan.result });
@@ -304,7 +323,7 @@ export async function GET(
 
         // ── Run the agent ──────────────────────────────────────────
         await updateScanStatus(id, "streaming");
-        await runAgent(controller, id, scan.domain);
+        await runAgent(controller, id, scan.domain, scan.tier ?? "quick", scan.mode ?? "standard");
       } catch (err) {
         const msg = err instanceof Error ? err.message : "Scan failed";
         console.error("[scan/stream] fatal:", err);

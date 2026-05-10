@@ -152,7 +152,7 @@ export default function DocsPage() {
           </h2>
           <div className="grid grid-cols-1 sm:grid-cols-4 gap-4">
             {[
-              { step: "01", title: "Enter domain", body: "You type any domain (e.g. acmeplumbing.com). No account needed." },
+              { step: "01", title: "Enter domain", body: "You type any domain (e.g. acmeplumbing.com). Free Aerial Scans require verified email; paid scans do not require an account." },
               { step: "02", title: "Pay $1", body: "Stripe processes the payment securely. We never store card details." },
               { step: "03", title: "AI researches", body: "Claude AI runs 8–10 live searches: reviews, filings, Reddit, press, technical checks, and more." },
               { step: "04", title: "Get your report", body: "8 graded dimensions, red/green flags, cited sources, and an overall A–F letter grade." },
@@ -303,7 +303,7 @@ export default function DocsPage() {
             Ready to run your first scan?
           </h2>
           <p className="text-sm" style={{ color: "var(--theme-muted)" }}>
-            Any domain · $1 · No account · Results in ~90 seconds
+            Any domain · starts at $1 · verified free trial · Results in ~90 seconds
           </p>
           <Link
             href="/"

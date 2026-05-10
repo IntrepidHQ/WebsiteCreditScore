@@ -2,14 +2,9 @@ import { NextRequest, NextResponse } from "next/server";
 import Stripe from "stripe";
 import { findWalletByStripeSession, getWallet, getWalletBalances } from "@/lib/db/wallets";
 import { setWalletCookie } from "@/lib/wallet-cookie";
+import { createStripeClient } from "@/lib/stripe/server";
 
 export const runtime = "nodejs";
-
-function getStripe() {
-  return new Stripe(process.env.STRIPE_SECRET_KEY!, {
-    apiVersion: "2025-02-24.acacia",
-  });
-}
 
 /**
  * Restore a wallet from a Stripe checkout session id.
@@ -27,7 +22,7 @@ export async function POST(req: NextRequest) {
     }
 
     // Validate session exists in Stripe (catches typos and prevents arbitrary lookup probes).
-    const stripe = getStripe();
+    const stripe = createStripeClient();
     let session: Stripe.Checkout.Session;
     try {
       session = await stripe.checkout.sessions.retrieve(sessionId);

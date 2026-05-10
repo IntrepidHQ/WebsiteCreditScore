@@ -24,15 +24,21 @@ create index if not exists scans_stripe_session_idx on scans(stripe_session_id) 
 alter table scans enable row level security;
 
 -- Anyone can read a scan by its id (unguessable capability URL pattern)
+drop policy if exists "Read scan by id" on scans;
 create policy "Read scan by id"
   on scans for select
+  to anon, authenticated
   using (true);
 
 -- Only service role can insert/update (webhook + stream handler use service role key)
+drop policy if exists "Service role can insert" on scans;
 create policy "Service role can insert"
   on scans for insert
+  to service_role
   with check (true);
 
+drop policy if exists "Service role can update" on scans;
 create policy "Service role can update"
   on scans for update
+  to service_role
   using (true);

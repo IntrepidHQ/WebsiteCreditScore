@@ -3,24 +3,24 @@ export type TierMode = "standard" | "max";
 
 export interface TierPricing {
   unitCents: number;       // single-scan price
-  bundleCents: number;     // 10-pack price
-  bundleSize: number;      // number of credits in a bundle (10)
+  packCents: Record<number, number>;
   searches: number;        // displayed search budget
   citedSources: string;    // displayed cited-source range
 }
 
 export const BUNDLE_SIZE = 10;
+export const PACK_QUANTITIES = [5, 10, 20] as const;
 
 export const PRICING: Record<TierMode, Record<Tier, TierPricing>> = {
   standard: {
-    quick:    { unitCents:  100, bundleCents:   800, bundleSize: BUNDLE_SIZE, searches: 8,   citedSources: "12+" },
-    standard: { unitCents:  300, bundleCents:  2500, bundleSize: BUNDLE_SIZE, searches: 14,  citedSources: "20+" },
-    deep:     { unitCents:  600, bundleCents:  5000, bundleSize: BUNDLE_SIZE, searches: 20,  citedSources: "30+" },
+    quick:    { unitCents: 100, packCents: { 5: 400, 10: 700, 20: 1300 }, searches: 8,  citedSources: "12+" },
+    standard: { unitCents: 160, packCents: { 5: 625, 10: 1125, 20: 2000 }, searches: 14, citedSources: "20+" },
+    deep:     { unitCents: 210, packCents: { 5: 825, 10: 1500, 20: 2700 }, searches: 20, citedSources: "30+" },
   },
   max: {
-    quick:    { unitCents: 1000, bundleCents:  8000, bundleSize: BUNDLE_SIZE, searches: 50,  citedSources: "50+" },
-    standard: { unitCents: 2000, bundleCents: 17500, bundleSize: BUNDLE_SIZE, searches: 100, citedSources: "80+" },
-    deep:     { unitCents: 4000, bundleCents: 35000, bundleSize: BUNDLE_SIZE, searches: 200, citedSources: "150+" },
+    quick:    { unitCents: 450, packCents: { 5: 1750, 10: 3150, 20: 5600 }, searches: 50,  citedSources: "50+" },
+    standard: { unitCents: 825, packCents: { 5: 3200, 10: 5700, 20: 10200 }, searches: 100, citedSources: "80+" },
+    deep:     { unitCents: 1500, packCents: { 5: 5800, 10: 10400, 20: 18500 }, searches: 200, citedSources: "150+" },
   },
 };
 
@@ -41,10 +41,17 @@ export function isTierMode(m: unknown): m is TierMode {
 
 export function priceCents(tier: Tier, mode: TierMode, quantity: number): number {
   const p = PRICING[mode][tier];
-  if (quantity >= p.bundleSize) {
-    const bundles = Math.floor(quantity / p.bundleSize);
-    const remainder = quantity - bundles * p.bundleSize;
-    return bundles * p.bundleCents + remainder * p.unitCents;
+  if (quantity in p.packCents) {
+    return p.packCents[quantity];
   }
   return quantity * p.unitCents;
+}
+
+export function priceLookupKey(tier: Tier, mode: TierMode, quantity: number): string {
+  const scan =
+    mode === "max"
+      ? tier === "quick" ? "trench" : tier === "standard" ? "mantle" : "core"
+      : tier === "quick" ? "aerial" : tier === "standard" ? "surface" : "deep";
+
+  return `wcs_${scan}_${quantity}`;
 }

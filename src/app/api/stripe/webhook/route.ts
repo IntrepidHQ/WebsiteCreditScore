@@ -3,14 +3,9 @@ import Stripe from "stripe";
 import { upsertPaidScan } from "@/lib/db/scans";
 import { creditWallet, updateWalletContact } from "@/lib/db/wallets";
 import { isTier, isTierMode } from "@/lib/pricing";
+import { createStripeClient } from "@/lib/stripe/server";
 
 export const runtime = "nodejs";
-
-function getStripe() {
-  return new Stripe(process.env.STRIPE_SECRET_KEY!, {
-    apiVersion: "2025-02-24.acacia",
-  });
-}
 
 export async function POST(req: NextRequest) {
   const body = await req.text();
@@ -20,7 +15,7 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "Missing signature" }, { status: 400 });
   }
 
-  const stripe = getStripe();
+  const stripe = createStripeClient();
 
   let event: Stripe.Event;
   try {
@@ -78,6 +73,8 @@ export async function POST(req: NextRequest) {
           id: scan_id,
           domain,
           stripeSessionId: session.id,
+          tier: isTier(tier) ? tier : "quick",
+          mode: isTierMode(mode) ? mode : "standard",
         });
       } catch (err) {
         console.error("[stripe/webhook] failed to upsert scan:", err);

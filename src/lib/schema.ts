@@ -101,6 +101,33 @@ const SourceSchema = z.object({
   domain: z.string().optional(),
 });
 
+const SourceClusterSchema = z.object({
+  label: z.string(),
+  summary: z.string(),
+  count: z.number().int().min(0),
+});
+
+const RiskMatrixItemSchema = z.object({
+  risk: z.string(),
+  likelihood: z.enum(["low", "medium", "high"]),
+  impact: z.enum(["low", "medium", "high"]),
+  mitigation: z.string(),
+});
+
+const BenchmarkGapSchema = z.object({
+  dimension: z.enum(DIMENSION_KEYS),
+  current: z.string(),
+  benchmark: z.string(),
+  gap: z.string(),
+});
+
+const DecisionMemoSchema = z.object({
+  verdict: z.string(),
+  buy_side_summary: z.string(),
+  watch_items: z.array(z.string()),
+  next_steps: z.array(z.string()),
+});
+
 export const WCSReportSchema = z.object({
   domain: z.string(),
   company_name: z.string().optional(),
@@ -117,6 +144,12 @@ export const WCSReportSchema = z.object({
   timeline: z.array(TimelineItemSchema).optional(),
   peers: z.array(PeerSchema).optional(),
   sources: z.array(SourceSchema).min(12),
+  source_clusters: z.array(SourceClusterSchema).optional(),
+  risk_matrix: z.array(RiskMatrixItemSchema).optional(),
+  benchmark_gaps: z.array(BenchmarkGapSchema).optional(),
+  decision_memo: DecisionMemoSchema.optional(),
+  market_context: z.string().optional(),
+  coverage_summary: z.string().optional(),
   summary: z.string(),
 });
 
@@ -233,6 +266,56 @@ export const WCS_REPORT_JSON_SCHEMA = {
         },
       },
     },
+    source_clusters: {
+      type: "array",
+      items: {
+        type: "object",
+        required: ["label", "summary", "count"],
+        properties: {
+          label: { type: "string" },
+          summary: { type: "string" },
+          count: { type: "integer" },
+        },
+      },
+    },
+    risk_matrix: {
+      type: "array",
+      items: {
+        type: "object",
+        required: ["risk", "likelihood", "impact", "mitigation"],
+        properties: {
+          risk: { type: "string" },
+          likelihood: { type: "string", enum: ["low", "medium", "high"] },
+          impact: { type: "string", enum: ["low", "medium", "high"] },
+          mitigation: { type: "string" },
+        },
+      },
+    },
+    benchmark_gaps: {
+      type: "array",
+      items: {
+        type: "object",
+        required: ["dimension", "current", "benchmark", "gap"],
+        properties: {
+          dimension: { type: "string", enum: [...DIMENSION_KEYS] },
+          current: { type: "string" },
+          benchmark: { type: "string" },
+          gap: { type: "string" },
+        },
+      },
+    },
+    decision_memo: {
+      type: "object",
+      required: ["verdict", "buy_side_summary", "watch_items", "next_steps"],
+      properties: {
+        verdict: { type: "string" },
+        buy_side_summary: { type: "string" },
+        watch_items: { type: "array", items: { type: "string" } },
+        next_steps: { type: "array", items: { type: "string" } },
+      },
+    },
+    market_context: { type: "string" },
+    coverage_summary: { type: "string" },
     summary: { type: "string", description: "300-500 word executive summary, written like a credit analyst." },
   },
 } as const;
