@@ -24,6 +24,8 @@ import {
   X,
 } from "lucide-react";
 import { DIMENSION_COLORS, gradeColor, gradeLabel, type DimensionKey, type WCSReport, type Grade } from "@/lib/schema";
+import type { ScanDepthKey } from "@/lib/scan-depth";
+import { SCAN_DEPTH_PROFILES } from "@/lib/scan-depth";
 import { buildStrategyCallCalendlyUrl, buildStrategyPresentationUrl } from "@/lib/strategy-call";
 
 const scanReportCalendlyUrl = (domain: string) =>
@@ -866,6 +868,136 @@ function ExecutiveSummaryBlock({ report }: { report: WCSReport }) {
   );
 }
 
+function PremiumDepthBlock({ report, depth = "aerial" }: { report: WCSReport; depth?: ScanDepthKey }) {
+  const profile = SCAN_DEPTH_PROFILES[depth];
+  const showBlock =
+    report.coverage_summary ||
+    report.market_context ||
+    report.source_clusters?.length ||
+    report.benchmark_gaps?.length ||
+    report.risk_matrix?.length ||
+    report.decision_memo;
+
+  if (!showBlock) return null;
+
+  return (
+    <section className="space-y-4">
+      <div className={`${panelClass} p-6 sm:p-7`} style={{
+        ...panelStyle,
+        borderColor: depth === "core" ? "color-mix(in srgb, var(--theme-accent) 45%, var(--theme-border))" : "var(--theme-border)",
+      }}>
+        <div className="flex flex-wrap items-start justify-between gap-4">
+          <div className="max-w-3xl">
+            <p className="text-[10px] font-bold uppercase tracking-[0.2em]" style={{ color: "var(--theme-accent)" }}>
+              {profile.label} depth
+            </p>
+            <h2 className="mt-3 font-display text-4xl leading-[1.02] sm:text-5xl" style={{ color: "var(--theme-foreground)", ...readableWrapStyle }}>
+              {profile.valuePromise}
+            </h2>
+            {report.coverage_summary ? (
+              <p className="mt-4 text-base leading-relaxed" style={{ color: "var(--theme-muted)", ...readableWrapStyle }}>
+                {report.coverage_summary}
+              </p>
+            ) : null}
+          </div>
+          <div className="rounded-2xl border p-4 text-right" style={{ borderColor: "var(--theme-border)" }}>
+            <p className="font-score text-4xl" style={{ color: "var(--theme-accent)" }}>{profile.searches}</p>
+            <p className="text-xs font-semibold uppercase tracking-[0.14em]" style={{ color: "var(--theme-muted)" }}>
+              search budget
+            </p>
+          </div>
+        </div>
+        <div className="mt-5 flex flex-wrap gap-2">
+          {profile.unlocks.map((unlock) => (
+            <span key={unlock} className="rounded-full border px-3 py-1 text-xs font-semibold" style={{ borderColor: "var(--theme-border)", color: "var(--theme-foreground)" }}>
+              {unlock}
+            </span>
+          ))}
+        </div>
+      </div>
+
+      {report.decision_memo ? (
+        <div className={`${panelClass} p-6 sm:p-7`} style={panelStyle}>
+          <p className="text-[10px] font-bold uppercase tracking-[0.2em]" style={{ color: "var(--theme-accent)" }}>
+            Decision memo
+          </p>
+          <h3 className="mt-3 font-display text-3xl" style={{ color: "var(--theme-foreground)" }}>{report.decision_memo.verdict}</h3>
+          <p className="mt-4 text-base leading-relaxed" style={{ color: "var(--theme-muted)", ...readableWrapStyle }}>
+            {report.decision_memo.buy_side_summary}
+          </p>
+          <div className="mt-5 grid gap-4 lg:grid-cols-2">
+            <div>
+              <p className="mb-2 text-xs font-bold uppercase tracking-[0.14em]" style={{ color: "var(--theme-muted)" }}>Watch items</p>
+              <ul className="space-y-2">
+                {report.decision_memo.watch_items.map((item) => <li key={item} className="text-sm" style={{ color: "var(--theme-foreground)" }}>• {item}</li>)}
+              </ul>
+            </div>
+            <div>
+              <p className="mb-2 text-xs font-bold uppercase tracking-[0.14em]" style={{ color: "var(--theme-muted)" }}>Next steps</p>
+              <ul className="space-y-2">
+                {report.decision_memo.next_steps.map((item) => <li key={item} className="text-sm" style={{ color: "var(--theme-foreground)" }}>• {item}</li>)}
+              </ul>
+            </div>
+          </div>
+        </div>
+      ) : null}
+
+      {report.market_context ? (
+        <div className={`${panelClass} p-5 sm:p-6`} style={panelStyle}>
+          <p className="text-[10px] font-bold uppercase tracking-[0.2em]" style={{ color: "var(--theme-accent)" }}>Market context</p>
+          <p className="mt-3 text-base leading-relaxed" style={{ color: "var(--theme-muted)", ...readableWrapStyle }}>{report.market_context}</p>
+        </div>
+      ) : null}
+
+      {report.source_clusters?.length ? (
+        <div className="grid gap-4 lg:grid-cols-3">
+          {report.source_clusters.map((cluster) => (
+            <div key={cluster.label} className={`${panelClass} p-5`} style={panelStyle}>
+              <p className="font-score text-4xl" style={{ color: "var(--theme-accent)" }}>{cluster.count}</p>
+              <h3 className="mt-2 text-base font-semibold" style={{ color: "var(--theme-foreground)" }}>{cluster.label}</h3>
+              <p className="mt-2 text-sm leading-relaxed" style={{ color: "var(--theme-muted)", ...readableWrapStyle }}>{cluster.summary}</p>
+            </div>
+          ))}
+        </div>
+      ) : null}
+
+      {report.risk_matrix?.length ? (
+        <div className={`${panelClass} overflow-hidden`} style={panelStyle}>
+          <div className="border-b p-5" style={{ borderColor: "var(--theme-border)" }}>
+            <h3 className="text-base font-semibold" style={{ color: "var(--theme-foreground)" }}>Risk matrix</h3>
+          </div>
+          <div className="divide-y" style={{ borderColor: "var(--theme-border)" }}>
+            {report.risk_matrix.map((item) => (
+              <div key={item.risk} className="grid gap-3 p-5 lg:grid-cols-[minmax(0,1fr)_7rem_7rem_minmax(0,1.3fr)]">
+                <p className="font-semibold" style={{ color: "var(--theme-foreground)" }}>{item.risk}</p>
+                <p className="text-xs uppercase tracking-[0.12em]" style={{ color: "var(--theme-muted)" }}>Likely: {item.likelihood}</p>
+                <p className="text-xs uppercase tracking-[0.12em]" style={{ color: "var(--theme-muted)" }}>Impact: {item.impact}</p>
+                <p className="text-sm" style={{ color: "var(--theme-muted)" }}>{item.mitigation}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+      ) : null}
+
+      {report.benchmark_gaps?.length ? (
+        <div className={`${panelClass} p-5 sm:p-6`} style={panelStyle}>
+          <h3 className="text-base font-semibold" style={{ color: "var(--theme-foreground)" }}>Benchmark gap analysis</h3>
+          <div className="mt-4 grid gap-3">
+            {report.benchmark_gaps.map((gap) => (
+              <div key={`${gap.dimension}-${gap.gap}`} className="rounded-xl border p-4" style={{ borderColor: "var(--theme-border)" }}>
+                <p className="text-xs font-bold uppercase tracking-[0.14em]" style={{ color: "var(--theme-accent)" }}>{gap.dimension.replace(/_/g, " ")}</p>
+                <p className="mt-2 text-sm" style={{ color: "var(--theme-foreground)" }}>{gap.gap}</p>
+                <p className="mt-2 text-xs" style={{ color: "var(--theme-muted)" }}>Current: {gap.current}</p>
+                <p className="mt-1 text-xs" style={{ color: "var(--theme-muted)" }}>Benchmark: {gap.benchmark}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+      ) : null}
+    </section>
+  );
+}
+
 function RedFlagsPanel({ flags }: { flags: RedFlag[] }) {
   if (!flags.length) return null;
 
@@ -1013,12 +1145,14 @@ function DimensionBreakdown({ report }: { report: WCSReport }) {
 }
 
 // ── Main report ───────────────────────────────────────────────────────────
-export function ReportContent({ report }: { report: WCSReport }) {
+export function ReportContent({ report, depth = "aerial" }: { report: WCSReport; depth?: ScanDepthKey }) {
   return (
     <div className="space-y-6">
       <ScanResultSummary report={report} />
 
       <ExecutiveSummaryBlock report={report} />
+
+      <PremiumDepthBlock report={report} depth={depth} />
 
       <StrategyPresentationUpsell domain={report.domain} />
 

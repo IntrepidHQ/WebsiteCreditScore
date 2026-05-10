@@ -26,7 +26,7 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
   if (scan.status !== "done" || !scan.result) {
     return NextResponse.json({ error: "Scan is not complete" }, { status: 409 });
   }
-  if (scan.result.error) {
+  if ("error" in scan.result) {
     return NextResponse.json({ error: "Scan ended in error" }, { status: 409 });
   }
 

@@ -3,6 +3,7 @@ import { randomUUID } from "crypto";
 import { createClient } from "@/lib/supabase/server";
 import type { WCSReport } from "@/lib/schema";
 import { buildScanResultSummary } from "@/lib/scan-result-summary";
+import type { Tier, TierMode } from "@/lib/pricing";
 
 export type ScanStatus = "pending" | "streaming" | "done" | "error";
 
@@ -12,6 +13,9 @@ export interface Scan {
   status: ScanStatus;
   paid: boolean;
   stripe_session_id: string | null;
+  tier: Tier;
+  mode: TierMode;
+  free_claim_email: string | null;
   result: WCSReport | null;
   source_count: number | null;
   cost_cents: number | null;
@@ -31,8 +35,16 @@ export async function getScan(id: string): Promise<Scan | null> {
   return data as Scan;
 }
 
-/** Dev / limited-time: create a paid scan row without Stripe (guard with env on the API route). */
-export async function createFreeBypassScan(domain: string): Promise<{ id: string }> {
+export async function createFreeBypassScan(
+  domain: string,
+  opts: {
+    tier?: Tier;
+    mode?: TierMode;
+    freeClaimEmail?: string | null;
+    ipHash?: string | null;
+    userAgentHash?: string | null;
+  } = {}
+): Promise<{ id: string }> {
   const supabase = await createClient();
   const id = randomUUID();
   const { error } = await supabase.from("scans").insert({
@@ -40,6 +52,11 @@ export async function createFreeBypassScan(domain: string): Promise<{ id: string
     domain,
     status: "pending" as ScanStatus,
     paid: true,
+    tier: opts.tier ?? "quick",
+    mode: opts.mode ?? "standard",
+    free_claim_email: opts.freeClaimEmail ?? null,
+    ip_hash: opts.ipHash ?? null,
+    user_agent: opts.userAgentHash ?? null,
     stripe_session_id: `free_scan_${id.replace(/-/g, "").slice(0, 12)}`,
   });
   if (error) throw new Error(`Failed to create scan: ${error.message}`);
@@ -49,6 +66,8 @@ export async function createFreeBypassScan(domain: string): Promise<{ id: string
 export async function createScan(opts: {
   domain: string;
   stripeSessionId: string;
+  tier?: Tier;
+  mode?: TierMode;
   ipHash?: string;
   userAgent?: string;
 }): Promise<Scan> {
@@ -60,6 +79,8 @@ export async function createScan(opts: {
       status: "pending",
       paid: false,
       stripe_session_id: opts.stripeSessionId,
+      tier: opts.tier ?? "quick",
+      mode: opts.mode ?? "standard",
       ip_hash: opts.ipHash,
       user_agent: opts.userAgent,
     })
@@ -82,6 +103,8 @@ export async function upsertPaidScan(opts: {
   id: string;
   domain: string;
   stripeSessionId: string;
+  tier?: Tier;
+  mode?: TierMode;
 }): Promise<void> {
   const supabase = await createClient();
   const { error } = await supabase
@@ -92,6 +115,8 @@ export async function upsertPaidScan(opts: {
         domain: opts.domain,
         status: "pending" as ScanStatus,
         paid: true,
+        tier: opts.tier ?? "quick",
+        mode: opts.mode ?? "standard",
         stripe_session_id: opts.stripeSessionId,
       },
       { onConflict: "id" }
@@ -135,7 +160,7 @@ export async function saveScanError(id: string, message: string): Promise<void> 
 }
 
 /** Fetch the most recent completed public scans for the homepage feed. */
-export async function getRecentScans(limit = 6): Promise<Array<{
+export async function getRecentScans(limit = 6, offset = 0): Promise<Array<{
   id: string;
   domain: string;
   grade: string;
@@ -158,7 +183,7 @@ export async function getRecentScans(limit = 6): Promise<Array<{
     .eq("status", "done")
     .eq("paid", true)
     .order("created_at", { ascending: false })
-    .limit(limit);
+    .range(offset, offset + limit - 1);
 
   if (!data) return [];
 
