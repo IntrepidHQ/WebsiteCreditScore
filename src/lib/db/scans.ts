@@ -134,8 +134,8 @@ export async function saveScanError(id: string, message: string): Promise<void> 
     .eq("id", id);
 }
 
-/** Fetch the most recent completed public scans for the homepage feed. */
-export async function getRecentScans(limit = 6): Promise<Array<{
+/** Fetch completed public scans for the homepage and scans archive. */
+export async function getRecentScans(limit: number | null = 6): Promise<Array<{
   id: string;
   domain: string;
   grade: string;
@@ -152,13 +152,18 @@ export async function getRecentScans(limit = 6): Promise<Array<{
   created_at: string;
 }>> {
   const supabase = await createClient();
-  const { data } = await supabase
+  let query = supabase
     .from("scans")
     .select("id, domain, result, created_at")
     .eq("status", "done")
     .eq("paid", true)
-    .order("created_at", { ascending: false })
-    .limit(limit);
+    .order("created_at", { ascending: false });
+
+  if (limit !== null) {
+    query = query.limit(limit);
+  }
+
+  const { data } = await query;
 
   if (!data) return [];
 

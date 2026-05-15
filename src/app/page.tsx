@@ -259,7 +259,7 @@ export default async function LandingPage({
   const { tier: rawTier, mode: rawMode } = await searchParams;
   const defaultTier: Tier = isValidTier(rawTier) ? rawTier : "quick";
   const tierMode: TierMode = rawMode === "max" ? "max" : "standard";
-  const recentScans = await getRecentScans(6).catch(() => []);
+  const recentScans = await getRecentScans(null).catch(() => []);
 
   return (
     <main className="flex min-h-screen flex-col" style={{ backgroundColor: "var(--theme-background)" }}>
