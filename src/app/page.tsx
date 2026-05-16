@@ -46,28 +46,28 @@ const ANGLE_BLOG_SLUG: Record<string, string> = {
 
 const OPERATOR_CARDS = [
   {
-    title: "Verified operator",
-    body: "Tie the product to a real person, public work history, and a durable portfolio presence.",
+    title: "The score has a point of view",
+    body: "The rubric reflects how I judge trust, clarity, taste, and buyer momentum after years of shipping sites.",
     href: "https://www.linkedin.com/in/hans-turner-01155448/",
     cta: "Open LinkedIn",
     color: "#60a5fa",
-    graphic: "identity",
+    graphic: "viewpoint",
   },
   {
-    title: "Indexed proof trail",
-    body: "Keep the about, methodology, policy, support, and refund pages crawlable and internally linked.",
+    title: "From scan to sharper site",
+    body: "A report can become a supervised redesign plan: what to cut, rewrite, prove, or rebuild first.",
     href: "/docs",
-    cta: "Review methodology",
+    cta: "View methodology",
     color: "#f7b21b",
-    graphic: "method",
+    graphic: "audit",
   },
   {
-    title: "Third-party signals",
-    body: "Grow the score by earning independent links, social profiles, reviews, and portfolio citations.",
+    title: "Agents need direction",
+    body: "AI output is most useful when someone experienced can shape it into decisions a real buyer can feel.",
     href: "https://hansturner.com",
     cta: "Open portfolio",
     color: "#4ade80",
-    graphic: "signals",
+    graphic: "supervision",
   },
 ] as const;
 
@@ -103,52 +103,58 @@ function OperatorGraphic({
   type: (typeof OPERATOR_CARDS)[number]["graphic"];
   color: string;
 }) {
-  if (type === "identity") {
+  if (type === "viewpoint") {
     return (
-      <div className="relative h-28 overflow-hidden rounded-xl border p-3" style={{ borderColor: `${color}40`, backgroundColor: `${color}10` }}>
-        <div className="absolute inset-0 operator-scan-grid opacity-60" />
-        <div className="relative flex items-center gap-3">
-          <div className="h-12 w-12 rounded-full border" style={{ borderColor: `${color}80`, background: `linear-gradient(135deg, ${color}55, rgba(255,255,255,0.08))` }} />
-          <div className="space-y-2">
-            <div className="h-2 w-24 rounded-full" style={{ backgroundColor: `${color}90` }} />
-            <div className="h-2 w-16 rounded-full" style={{ backgroundColor: `${color}45` }} />
-          </div>
-        </div>
-        <div className="operator-pulse absolute bottom-4 left-4 right-4 h-1 rounded-full" style={{ background: `linear-gradient(90deg, transparent, ${color}, transparent)` }} />
+      <div className="relative h-32 overflow-hidden rounded-xl border" style={{ borderColor: `${color}40`, backgroundColor: `${color}0f` }}>
+        <div className="absolute inset-0 operator-scan-grid opacity-40" />
+        <svg className="absolute inset-0 h-full w-full" viewBox="0 0 280 132" aria-hidden>
+          <circle cx="82" cy="64" r="34" fill="none" stroke={color} strokeWidth="2" opacity="0.9" />
+          <circle cx="82" cy="64" r="18" fill={color} opacity="0.16" />
+          <path className="operator-orbit" d="M82 64 C126 14, 194 20, 236 66" fill="none" stroke={color} strokeWidth="2.5" strokeLinecap="round" />
+          <path d="M99 83 L132 108" stroke={color} strokeWidth="4" strokeLinecap="round" opacity="0.55" />
+          <path d="M150 44 H236" stroke={color} strokeWidth="8" strokeLinecap="round" opacity="0.72" />
+          <path d="M150 67 H208" stroke={color} strokeWidth="8" strokeLinecap="round" opacity="0.36" />
+          <path d="M150 90 H224" stroke={color} strokeWidth="8" strokeLinecap="round" opacity="0.18" />
+        </svg>
       </div>
     );
   }
 
-  if (type === "method") {
+  if (type === "audit") {
     return (
-      <div className="relative h-28 overflow-hidden rounded-xl border p-3" style={{ borderColor: `${color}40`, backgroundColor: `${color}10` }}>
-        {[0, 1, 2].map((i) => (
-          <div
-            key={i}
-            className="operator-float mb-2 flex items-center gap-2 rounded-lg border px-2 py-1.5"
-            style={{
-              animationDelay: `${i * 0.22}s`,
-              borderColor: `${color}28`,
-              backgroundColor: "rgba(14,14,7,0.5)",
-            }}
-          >
-            <span className="h-2 w-2 rounded-full" style={{ backgroundColor: i === 1 ? "#4ade80" : color }} />
-            <span className="h-1.5 flex-1 rounded-full" style={{ backgroundColor: `${color}${i === 0 ? "88" : "44"}` }} />
+      <div className="relative h-32 overflow-hidden rounded-xl border p-3" style={{ borderColor: `${color}40`, backgroundColor: `${color}0f` }}>
+        <div className="absolute inset-x-4 top-4 h-20 rounded-xl border" style={{ borderColor: `${color}38`, backgroundColor: "rgba(14,14,7,0.62)" }}>
+          <div className="grid h-full grid-cols-2">
+            <div className="p-3">
+              <div className="h-2 w-16 rounded-full" style={{ backgroundColor: `${color}50` }} />
+              <div className="mt-3 space-y-1.5">
+                {[44, 72, 52].map((w) => <div key={w} className="h-1.5 rounded-full" style={{ width: `${w}%`, backgroundColor: `${color}28` }} />)}
+              </div>
+            </div>
+            <div className="relative border-l p-3" style={{ borderColor: `${color}24` }}>
+              <div className="operator-mark absolute left-3 top-3 h-8 w-8 rounded-full border" style={{ borderColor: "#4ade80", backgroundColor: "rgba(74,222,128,0.12)" }} />
+              <div className="ml-12 h-2 w-16 rounded-full" style={{ backgroundColor: "#4ade8080" }} />
+              <div className="ml-12 mt-3 h-1.5 w-20 rounded-full" style={{ backgroundColor: "#4ade8035" }} />
+            </div>
           </div>
-        ))}
+        </div>
+        <div className="absolute bottom-4 left-6 right-6 h-2 overflow-hidden rounded-full" style={{ backgroundColor: `${color}20` }}>
+          <div className="operator-pulse h-full w-1/2 rounded-full" style={{ background: `linear-gradient(90deg, transparent, ${color}, #4ade80)` }} />
+        </div>
       </div>
     );
   }
 
   return (
-    <div className="relative h-28 overflow-hidden rounded-xl border" style={{ borderColor: `${color}40`, backgroundColor: `${color}10` }}>
-      <div className="absolute left-5 top-5 h-10 w-10 rounded-xl" style={{ backgroundColor: `${color}45` }} />
-      <div className="absolute right-5 top-7 h-8 w-8 rounded-full" style={{ backgroundColor: "#60a5fa55" }} />
-      <div className="absolute bottom-5 left-1/2 h-9 w-9 -translate-x-1/2 rounded-lg" style={{ backgroundColor: "#f472b655" }} />
-      <svg className="absolute inset-0 h-full w-full operator-link-draw" viewBox="0 0 240 112" aria-hidden>
-        <path d="M44 38 C88 18, 128 22, 194 42" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" />
-        <path d="M62 38 C94 84, 134 94, 120 82" fill="none" stroke="#60a5fa" strokeWidth="2" strokeLinecap="round" />
-        <path d="M194 42 C166 70, 144 78, 120 82" fill="none" stroke="#f472b6" strokeWidth="2" strokeLinecap="round" />
+    <div className="relative h-32 overflow-hidden rounded-xl border" style={{ borderColor: `${color}40`, backgroundColor: `${color}0f` }}>
+      <svg className="absolute inset-0 h-full w-full" viewBox="0 0 280 132" aria-hidden>
+        <rect x="28" y="26" width="64" height="80" rx="14" fill={color} opacity="0.14" stroke={color} />
+        <rect x="108" y="20" width="64" height="92" rx="14" fill="#60a5fa" opacity="0.12" stroke="#60a5fa" />
+        <rect x="188" y="32" width="64" height="68" rx="14" fill="#f472b6" opacity="0.12" stroke="#f472b6" />
+        <path className="operator-link-draw" d="M92 64 C116 40, 142 40, 172 64 S214 88, 252 62" fill="none" stroke={color} strokeWidth="2.5" strokeLinecap="round" />
+        <path d="M48 50 H74 M48 66 H72 M48 82 H66" stroke={color} strokeWidth="4" strokeLinecap="round" opacity="0.5" />
+        <path d="M128 44 H152 M128 61 H156 M128 78 H148" stroke="#60a5fa" strokeWidth="4" strokeLinecap="round" opacity="0.5" />
+        <path d="M206 56 H236 M206 73 H228" stroke="#f472b6" strokeWidth="4" strokeLinecap="round" opacity="0.5" />
       </svg>
     </div>
   );
@@ -457,28 +463,28 @@ export default async function LandingPage({
             className="rounded-2xl p-6"
             style={{ border: "1px solid var(--theme-border)", backgroundColor: "var(--theme-panel)" }}
           >
-            <div className="flex items-start gap-4">
+            <div className="flex items-start justify-between gap-5">
+              <div className="min-w-0">
+                <p className="text-xs font-semibold uppercase tracking-[0.18em]" style={{ color: "var(--theme-accent)" }}>
+                  Human editorial layer
+                </p>
+                <h2 className="font-display mt-3" style={{ fontSize: "clamp(2rem, 4vw, 3rem)", color: "var(--theme-foreground)", lineHeight: 1 }}>
+                  Opinionated tech, not an oracle.
+                </h2>
+              </div>
               <Image
                 src="/operator/hans-turner.png"
                 alt="Hans Turner"
-                width={92}
-                height={92}
-                className="h-[92px] w-[92px] rounded-2xl object-cover ring-1 ring-white/10"
+                width={132}
+                height={112}
+                className="h-[112px] w-[132px] shrink-0 rounded-2xl object-contain object-bottom"
                 priority
               />
-              <div>
-                <p className="text-xs font-semibold uppercase tracking-[0.18em]" style={{ color: "var(--theme-accent)" }}>
-                  Operator proof
-                </p>
-                <h2 className="font-display mt-3" style={{ fontSize: "clamp(2rem, 4vw, 3rem)", color: "var(--theme-foreground)", lineHeight: 1 }}>
-                  Built and operated by Hans Turner.
-                </h2>
-              </div>
             </div>
             <p className="mt-4 text-sm leading-relaxed" style={{ color: "var(--theme-muted)" }}>
-              WebsiteCreditScore is a public website audit tool from Hans Turner, a web strategist in Mount Pleasant,
-              South Carolina. The site publishes its pricing, methodology, privacy policy, terms, cookie policy, refund
-              approach, and support email so buyers can verify the service before purchasing.
+              WebsiteCreditScore is shaped by how I evaluate websites after years of building, reviewing, and improving
+              them for real businesses. The AI does the research quickly; the product is trained around my taste for
+              clear positioning, visible proof, low-friction UX, and technical decisions that help a site feel credible.
             </p>
             <div className="mt-5 flex flex-wrap gap-3 text-xs font-semibold">
               <a href="https://hansturner.com" target="_blank" rel="noopener noreferrer" className="rounded-full border px-3 py-1.5 hover:opacity-85" style={{ borderColor: "var(--theme-border)", color: "var(--theme-foreground)" }}>
@@ -493,16 +499,6 @@ export default async function LandingPage({
               <a href="mailto:websitecreditscore@gmail.com" className="rounded-full border px-3 py-1.5 hover:opacity-85" style={{ borderColor: "var(--theme-border)", color: "var(--theme-foreground)" }}>
                 websitecreditscore@gmail.com
               </a>
-            </div>
-            <div className="mt-5 rounded-2xl border p-4" style={{ borderColor: "rgba(247,178,27,0.22)", backgroundColor: "rgba(247,178,27,0.05)" }}>
-              <p className="text-xs font-bold uppercase tracking-[0.16em]" style={{ color: "var(--theme-accent)" }}>
-                Path from 2.2 to a real trust score
-              </p>
-              <p className="mt-2 text-xs leading-relaxed" style={{ color: "var(--theme-muted)" }}>
-                The next lift is external proof: Google indexation, linked operator profiles, portfolio references,
-                independent mentions, and public review/social profiles. The site can now show its work; the web needs
-                to corroborate it.
-              </p>
             </div>
           </div>
           <div className="grid gap-5 sm:grid-cols-3">
