@@ -127,13 +127,6 @@ html {
   animation: scan-bar-shimmer 2.6s linear infinite;
 }
 
-.operator-scan-grid {
-  background-image:
-    linear-gradient(to right, rgba(255,255,255,0.08) 1px, transparent 1px),
-    linear-gradient(to bottom, rgba(255,255,255,0.06) 1px, transparent 1px);
-  background-size: 18px 18px;
-}
-
 .operator-micro-scene {
   border-color: color-mix(in srgb, var(--operator-color) 34%, var(--theme-border));
   background:
@@ -151,6 +144,16 @@ html {
   mask-image: linear-gradient(90deg, #000 0%, #000 68%, transparent 100%);
 }
 
+.operator-perspective-grid {
+  background:
+    linear-gradient(to right, rgba(255,255,255,0.055) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(255,255,255,0.04) 1px, transparent 1px);
+  background-size: 26px 26px;
+  transform: perspective(260px) rotateX(58deg) translateY(-30px) scale(1.35);
+  transform-origin: 50% 0%;
+  opacity: 0.72;
+}
+
 .operator-lens {
   border-color: color-mix(in srgb, var(--operator-color) 70%, white 10%);
   box-shadow:
@@ -163,6 +166,15 @@ html {
   background: #4ade80;
   box-shadow: 0 0 16px rgba(74, 222, 128, 0.5);
   animation: operator-status-dot 2.6s ease-in-out infinite;
+}
+
+.operator-slide-track {
+  animation: operator-slide-track 7.2s cubic-bezier(.66,0,.34,1) infinite;
+}
+
+.operator-publish-dot {
+  box-shadow: 0 0 18px rgba(74, 222, 128, 0.48);
+  animation: operator-status-dot 2.2s ease-in-out infinite;
 }
 
 .operator-sequence-highlight {
@@ -184,6 +196,13 @@ html {
 @keyframes operator-status-dot {
   0%, 100% { opacity: 0.5; transform: scale(0.88); }
   50% { opacity: 1; transform: scale(1.08); }
+}
+
+@keyframes operator-slide-track {
+  0%, 24% { transform: translateX(0); }
+  34%, 58% { transform: translateX(-33.333%); }
+  68%, 92% { transform: translateX(-66.666%); }
+  100% { transform: translateX(0); }
 }
 
 @keyframes operator-sequence {

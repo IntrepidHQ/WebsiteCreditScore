@@ -1,5 +1,4 @@
 import Link from "next/link";
-import Image from "next/image";
 import { getRecentScans } from "@/lib/db/scans";
 import { ScanForm, type TierMode } from "@/components/ScanForm";
 import { WalletBadge } from "@/components/WalletBadge";
@@ -14,7 +13,7 @@ import { buildStrategyCallCalendlyUrl } from "@/lib/strategy-call";
 import {
   Building2, Star, Palette, MousePointer2,
   Eye, Zap, FileText, Share2, Clock, TrendingUp,
-  CheckCircle2, ArrowRight, Linkedin, ExternalLink,
+  CheckCircle2, ArrowRight, Linkedin, ExternalLink, Check,
 } from "lucide-react";
 
 // ── Apple.com fixture data ─────────────────────────────────────────────────
@@ -55,7 +54,7 @@ const OPERATOR_CARDS = [
   },
   {
     title: "From scan to sharper site",
-    body: "A report can become a supervised redesign plan: what to cut, rewrite, prove, or rebuild first.",
+    body: "A report can become a supervised redesign plan: what to scan, map, improve, and publish first.",
     href: "/docs",
     cta: "View methodology",
     color: "#f7b21b",
@@ -63,7 +62,7 @@ const OPERATOR_CARDS = [
   },
   {
     title: "Agents need direction",
-    body: "AI output is most useful when someone experienced can shape it into decisions a real buyer can feel.",
+    body: "Human Operator, Real experience combined with the latest models.",
     href: "https://hansturner.com",
     cta: "Open portfolio",
     color: "#4ade80",
@@ -105,23 +104,28 @@ function OperatorGraphic({
 }) {
   if (type === "viewpoint") {
     return (
-      <div className="operator-micro-scene relative h-32 overflow-hidden rounded-xl border" style={{ "--operator-color": color } as React.CSSProperties}>
-        <div className="operator-frame-grid" />
-        <div className="absolute left-4 top-4 h-24 w-[58%] rounded-lg border border-white/10 bg-black/20 p-3">
-          <div className="h-2 w-16 rounded-full bg-white/20" />
-          <div className="mt-3 grid grid-cols-3 gap-1.5">
-            {[72, 46, 88, 36, 64, 52].map((height, index) => (
-              <span
-                key={index}
-                className="rounded-sm"
-                style={{ height: `${height}%`, minHeight: 18, backgroundColor: index === 2 ? color : `${color}38` }}
-              />
+      <div className="operator-micro-scene relative h-40 overflow-hidden rounded-[14px] border" style={{ "--operator-color": color } as React.CSSProperties}>
+        <div className="operator-perspective-grid absolute inset-0" />
+        <div className="absolute left-5 top-5 h-28 w-[58%] rounded-[12px] border border-white/10 bg-black/20 p-3.5">
+          <div className="flex items-center justify-between">
+            <div className="h-1.5 w-16 rounded-full bg-white/20" />
+            <div className="h-1.5 w-8 rounded-full" style={{ backgroundColor: `${color}70` }} />
+          </div>
+          <div className="relative mt-4 h-20">
+            {[0, 1, 2].map((row) => (
+              <div key={row} className="absolute left-0 right-0 border-t border-white/10" style={{ top: `${row * 32}%` }} />
             ))}
+            {[0, 1, 2, 3].map((col) => (
+              <div key={col} className="absolute bottom-0 top-0 border-l border-white/10" style={{ left: `${col * 27}%` }} />
+            ))}
+            <div className="absolute left-[12%] top-[18%] h-6 w-[38%] rounded-[7px]" style={{ backgroundColor: `${color}32` }} />
+            <div className="absolute left-[28%] top-[52%] h-6 w-[46%] rounded-[7px]" style={{ backgroundColor: `${color}56` }} />
+            <div className="absolute left-[64%] top-[24%] h-6 w-[24%] rounded-[7px]" style={{ backgroundColor: `${color}70` }} />
           </div>
         </div>
-        <div className="operator-lens absolute right-6 top-6 h-16 w-16 rounded-full border bg-black/30" />
-        <div className="absolute bottom-4 right-5 rounded-full border border-white/10 bg-black/35 px-2.5 py-1 text-[10px] font-semibold" style={{ color }}>
-          judgment layer
+        <div className="operator-lens absolute right-7 top-8 h-20 w-20 rounded-full border bg-black/30" />
+        <div className="absolute bottom-5 right-5 rounded-full border border-white/10 bg-black/35 px-3 py-1 text-[10px] font-semibold" style={{ color }}>
+          POV model
         </div>
       </div>
     );
@@ -129,31 +133,57 @@ function OperatorGraphic({
 
   if (type === "audit") {
     return (
-      <div className="operator-micro-scene relative h-32 overflow-hidden rounded-xl border p-3" style={{ "--operator-color": color } as React.CSSProperties}>
-        <div className="absolute inset-x-3 top-3 grid h-[4.9rem] grid-cols-[0.9fr_1.1fr] gap-2">
-          <div className="rounded-lg border border-white/10 bg-black/25 p-2.5">
-            <div className="text-[10px] font-bold uppercase tracking-[0.16em]" style={{ color }}>Scan</div>
-            <div className="mt-2 h-2 w-16 rounded-full bg-white/14" />
-            <div className="mt-2 h-2 w-10 rounded-full" style={{ backgroundColor: `${color}55` }} />
-          </div>
-          <div className="rounded-lg border border-white/10 bg-black/25 p-2.5">
-            <div className="flex items-center justify-between gap-2">
-              <span className="text-[10px] font-bold uppercase tracking-[0.16em]" style={{ color }}>Plan</span>
-              <span className="operator-status-dot h-2 w-2 rounded-full" />
+      <div className="operator-micro-scene relative h-40 overflow-hidden rounded-[14px] border p-3" style={{ "--operator-color": color } as React.CSSProperties}>
+        <div className="absolute inset-x-4 top-4 h-24 overflow-hidden rounded-[12px] border border-white/10 bg-black/25">
+          <div className="operator-slide-track flex h-full w-[300%]">
+            <div className="relative h-full w-1/3 p-4">
+              <div className="text-[10px] font-bold uppercase tracking-[0.18em]" style={{ color }}>Scan</div>
+              <div className="absolute left-1/2 top-1/2 h-16 w-16 -translate-x-1/2 -translate-y-[42%] rounded-full" style={{ background: `conic-gradient(${color} 0 270deg, rgba(255,255,255,0.1) 270deg 360deg)` }}>
+                <div className="absolute inset-[5px] grid place-items-center rounded-full bg-[#121107] text-lg font-semibold" style={{ color }}>
+                  7.5
+                </div>
+              </div>
             </div>
-            <div className="mt-2 space-y-1.5">
-              {[82, 58, 74].map((width, index) => (
-                <div key={index} className="h-1.5 rounded-full" style={{ width: `${width}%`, backgroundColor: index === 0 ? "#4ade8077" : "rgba(255,255,255,0.14)" }} />
+            <div className="relative h-full w-1/3 p-4">
+              <div className="text-[10px] font-bold uppercase tracking-[0.18em]" style={{ color }}>Plan</div>
+              <div className="absolute left-1/2 top-[55%] h-9 w-9 -translate-x-1/2 -translate-y-1/2 rounded-full border border-white/15 bg-black/30" />
+              {[
+                ["22%", "34%"],
+                ["66%", "30%"],
+                ["30%", "74%"],
+                ["74%", "72%"],
+              ].map(([left, top], index) => (
+                <div key={index} className="absolute h-px origin-left bg-white/20" style={{ left, top, width: "48px", transform: `rotate(${index < 2 ? 20 : -24}deg)` }} />
               ))}
+              {[
+                ["19%", "28%"], ["70%", "26%"], ["24%", "75%"], ["76%", "72%"],
+              ].map(([left, top], index) => (
+                <div key={index} className="absolute h-5 w-12 rounded-[7px] border border-white/10 bg-black/35" style={{ left, top }} />
+              ))}
+            </div>
+            <div className="relative h-full w-1/3 p-4">
+              <div className="text-[10px] font-bold uppercase tracking-[0.18em]" style={{ color }}>Ship</div>
+              <div className="absolute inset-x-5 bottom-4 top-9 rounded-[10px] border border-white/10 bg-black/30">
+                <div className="h-4 rounded-t-[10px] border-b border-white/10 bg-white/8" />
+                <div className="p-2">
+                  <div className="h-3 w-20 rounded-full" style={{ backgroundColor: `${color}70` }} />
+                  <div className="mt-2 grid grid-cols-3 gap-1.5">
+                    <div className="h-8 rounded-[6px] bg-white/10" />
+                    <div className="h-8 rounded-[6px]" style={{ backgroundColor: `${color}35` }} />
+                    <div className="h-8 rounded-[6px] bg-white/10" />
+                  </div>
+                </div>
+              </div>
+              <div className="operator-publish-dot absolute right-8 top-8 h-2.5 w-2.5 rounded-full bg-[#4ade80]" />
             </div>
           </div>
         </div>
         <div className="absolute bottom-4 left-4 right-4 h-7 overflow-hidden rounded-full border border-white/10 bg-black/25">
           <div className="operator-sequence-highlight absolute inset-y-1 left-1 w-1/3 rounded-full" />
           <div className="relative grid h-full grid-cols-3 place-items-center text-[10px] font-semibold" style={{ color: "rgba(237,232,212,0.66)" }}>
-            <span>cut</span>
-            <span>prove</span>
-            <span>ship</span>
+            <span>Scan</span>
+            <span>Plan</span>
+            <span>Ship</span>
           </div>
         </div>
       </div>
@@ -161,24 +191,24 @@ function OperatorGraphic({
   }
 
   return (
-    <div className="operator-micro-scene relative h-32 overflow-hidden rounded-xl border p-3" style={{ "--operator-color": color } as React.CSSProperties}>
-      <div className="absolute left-3 top-3 right-3 rounded-lg border border-white/10 bg-black/25 p-2">
+    <div className="operator-micro-scene relative h-40 overflow-hidden rounded-[14px] border p-3" style={{ "--operator-color": color } as React.CSSProperties}>
+      <div className="absolute left-4 top-4 right-4 rounded-[10px] border border-white/10 bg-black/25 p-2.5">
         <div className="flex items-center gap-1.5">
           <span className="h-2 w-2 rounded-full" style={{ backgroundColor: color }} />
-          <span className="h-1.5 w-20 rounded-full bg-white/18" />
+          <span className="h-1.5 w-24 rounded-full bg-white/18" />
         </div>
       </div>
-      <div className="absolute bottom-4 left-4 right-4 grid grid-cols-3 gap-2">
+      <div className="absolute bottom-5 left-4 right-4 grid grid-cols-3 gap-2.5">
         {["research", "taste", "build"].map((label, index) => (
-          <div key={label} className="operator-console-card rounded-lg border border-white/10 bg-black/25 p-2" style={{ animationDelay: `${index * 0.25}s` }}>
-            <div className="mx-auto h-5 w-5 rounded-md" style={{ backgroundColor: index === 1 ? color : "rgba(255,255,255,0.12)" }} />
+          <div key={label} className="operator-console-card rounded-[10px] border border-white/10 bg-black/25 p-2.5" style={{ animationDelay: `${index * 0.25}s` }}>
+            <div className="mx-auto h-6 w-6 rounded-[7px]" style={{ backgroundColor: index === 1 ? color : "rgba(255,255,255,0.12)" }} />
             <div className="mt-2 h-1.5 rounded-full bg-white/14" />
             <div className="mt-1 h-1.5 w-2/3 rounded-full bg-white/10" />
           </div>
         ))}
       </div>
-      <div className="absolute left-6 top-[3.45rem] rounded-full border border-white/10 bg-black/50 px-2 py-1 text-[10px] font-semibold" style={{ color }}>
-        supervised
+      <div className="absolute left-6 top-[3.65rem] inline-flex items-center gap-1.5 rounded-full border border-white/10 bg-black/55 px-2.5 py-1 text-[10px] font-semibold" style={{ color }}>
+        <Check className="h-3 w-3" /> Human Supervision
       </div>
     </div>
   );
@@ -487,23 +517,13 @@ export default async function LandingPage({
             className="rounded-2xl p-6"
             style={{ border: "1px solid var(--theme-border)", backgroundColor: "var(--theme-panel)" }}
           >
-            <div className="flex items-start justify-between gap-5">
-              <div className="min-w-0">
-                <p className="text-xs font-semibold uppercase tracking-[0.18em]" style={{ color: "var(--theme-accent)" }}>
-                  Human editorial layer
-                </p>
-                <h2 className="font-display mt-3" style={{ fontSize: "clamp(2rem, 4vw, 3rem)", color: "var(--theme-foreground)", lineHeight: 1 }}>
-                  Opinionated tech, not an oracle.
-                </h2>
-              </div>
-              <Image
-                src="/operator/hans-turner.png"
-                alt="Hans Turner"
-                width={132}
-                height={112}
-                className="h-[112px] w-[132px] shrink-0 rounded-2xl object-contain object-bottom"
-                priority
-              />
+            <div>
+              <p className="text-xs font-semibold uppercase tracking-[0.18em]" style={{ color: "var(--theme-accent)" }}>
+                Human operator
+              </p>
+              <h2 className="font-display mt-3" style={{ fontSize: "clamp(2rem, 4vw, 3rem)", color: "var(--theme-foreground)", lineHeight: 1 }}>
+                Real experience combined with the latest models.
+              </h2>
             </div>
             <p className="mt-4 text-sm leading-relaxed" style={{ color: "var(--theme-muted)" }}>
               WebsiteCreditScore is shaped by how I evaluate websites after years of building, reviewing, and improving
