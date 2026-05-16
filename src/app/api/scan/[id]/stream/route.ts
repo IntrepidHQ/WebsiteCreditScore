@@ -23,7 +23,7 @@ You have access to:
 
 RESEARCH METHOD (mandatory order):
 Before submitting, perform 8–10 web searches covering, at minimum:
-  1. "https://{domain}" — inspect the live homepage content first.
+  1. "https://{domain}" — inspect the live homepage content first. Treat first-party homepage/about/pricing/docs content as authoritative evidence that the site exists, even if Google has not indexed it yet.
   2. "site:{domain} about OR company OR contact"
   3. "site:{domain} pricing OR refund OR terms OR privacy OR cookies"
   4. "{domain} reviews"
@@ -39,6 +39,7 @@ Do NOT call submit_credit_report until you have run at least 8 searches.
 Cite every claim with the URL it came from in the evidence field of each dimension.
 If the live homepage, pricing, privacy, terms, cookies, docs, or about pages are accessible, use them as first-party evidence.
 Do not give visual_design, ux_conversion, or content a 0 merely because third-party screenshots or reviews are unavailable. A 0 means the site is unreachable, broken, or empty. If the live site is accessible, score those dimensions from the visible structure, copy, navigation, forms, mobile cues, and content depth.
+For websitecreditscore.com specifically, include first-party pages, the public GitHub repository/README when found, and indexed blog/docs/cookies/privacy/terms pages as evidence. Low Google indexation should reduce social/longevity/reputation as appropriate, but it must not erase observable homepage UX, content depth, or technical/transparency work.
 
 SCORING (apply rigorously):
 Each of 10 dimensions gets a 0–100 score and a letter grade (A+ A A- B+ B B- C+ C C- D+ D D- F).
@@ -61,7 +62,7 @@ DIMENSION GUIDANCE:
 - financial_signals (3%): Funding, revenue signals, financial press coverage.
 
 OUTPUT:
-Call submit_credit_report exactly once with schema-compliant JSON. No prose.`;
+Call submit_credit_report exactly once with schema-compliant JSON. No prose. Do not put Markdown syntax in any customer-facing string; write labels as plain text, not **bold markers**.`;
 
 // ── SSE helper ────────────────────────────────────────────────────────────
 function send(controller: ReadableStreamDefaultController, data: object) {

@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import type { CSSProperties } from "react";
+import type { CSSProperties, ReactNode } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   ChevronDown,
@@ -41,6 +41,44 @@ const readableWrapStyle: CSSProperties = {
   overflowWrap: "break-word",
   textWrap: "pretty",
 };
+
+function siteUrl(domain: string) {
+  return domain.startsWith("http://") || domain.startsWith("https://") ? domain : `https://${domain}`;
+}
+
+function faviconUrl(domain: string, size = 64) {
+  return `https://www.google.com/s2/favicons?domain=${encodeURIComponent(domain)}&sz=${size}`;
+}
+
+function screenshotUrl(domain: string) {
+  return `https://s.wordpress.com/mshots/v1/${encodeURIComponent(siteUrl(domain))}?w=1200`;
+}
+
+function renderInlineMarkdown(text: string): ReactNode[] {
+  return text.split(/(\*\*.+?\*\*)/g).map((part, index) => {
+    if (part.startsWith("**") && part.endsWith("**")) {
+      return (
+        <strong key={index} style={{ color: "var(--theme-foreground)" }}>
+          {part.slice(2, -2)}
+        </strong>
+      );
+    }
+    return part;
+  });
+}
+
+function SummaryParagraph({ text }: { text: string }) {
+  const leadingLabel = text.match(/^\*\*(.+?)\*\*:\s*([\s\S]*)$/);
+  if (leadingLabel) {
+    return (
+      <>
+        <strong style={{ color: "var(--theme-foreground)" }}>{leadingLabel[1]}</strong>
+        {`: ${renderInlineMarkdown(leadingLabel[2])}`}
+      </>
+    );
+  }
+  return <>{renderInlineMarkdown(text)}</>;
+}
 
 // ── Types ─────────────────────────────────────────────────────────────────
 interface Props {
@@ -173,7 +211,7 @@ function DimensionCard({ dim }: { dim: WCSReport["dimensions"][number] }) {
                 </div>
               </div>
               <p className="text-base leading-relaxed" style={{ color: "color-mix(in srgb, var(--theme-foreground) 88%, transparent)", ...readableWrapStyle }}>
-                {dim.verdict}
+                {renderInlineMarkdown(dim.verdict)}
               </p>
               {dim.evidence.length > 0 && (
                 <div className="space-y-1.5">
@@ -187,7 +225,7 @@ function DimensionCard({ dim }: { dim: WCSReport["dimensions"][number] }) {
                       style={{ color: "var(--theme-muted)" }}
                     >
                       <ExternalLink className="mt-0.5 h-3 w-3 flex-shrink-0 transition-colors group-hover:text-[#4ade80]" />
-                      <span className="group-hover:text-[var(--theme-foreground)]">{ev.claim}</span>
+                      <span className="group-hover:text-[var(--theme-foreground)]">{renderInlineMarkdown(ev.claim)}</span>
                     </a>
                   ))}
                 </div>
@@ -511,7 +549,7 @@ function DimensionScoreCard({
           {dim.label}
         </h3>
         <p className="mt-3 line-clamp-3 text-[0.95rem] leading-relaxed" style={{ color: "var(--theme-muted)", ...readableWrapStyle }}>
-          {dim.verdict}
+          {renderInlineMarkdown(dim.verdict)}
         </p>
       </div>
 
@@ -624,7 +662,7 @@ function DimensionReasoningModal({
               Why it scored this way
             </p>
             <p className="mt-3 text-sm leading-relaxed" style={{ color: "color-mix(in srgb, var(--theme-foreground) 88%, transparent)", ...readableWrapStyle }}>
-              {dimension.verdict}
+              {renderInlineMarkdown(dimension.verdict)}
             </p>
           </div>
         </div>
@@ -645,7 +683,7 @@ function DimensionReasoningModal({
                   style={{ color: "var(--theme-muted)" }}
                 >
                   <ExternalLink className="mt-0.5 h-3.5 w-3.5 shrink-0 transition-colors group-hover:text-[var(--theme-accent)]" aria-hidden />
-                  <span className="leading-relaxed group-hover:text-[var(--theme-foreground)]">{item.claim}</span>
+                  <span className="leading-relaxed group-hover:text-[var(--theme-foreground)]">{renderInlineMarkdown(item.claim)}</span>
                 </a>
               ))}
             </div>
@@ -858,9 +896,79 @@ function ExecutiveSummaryBlock({ report }: { report: WCSReport }) {
             className="text-base leading-8 sm:text-[1.05rem]"
             style={{ color: "color-mix(in srgb, var(--theme-foreground) 88%, transparent)", ...readableWrapStyle }}
           >
-            {para}
+            <SummaryParagraph text={para} />
           </p>
         ))}
+      </div>
+    </section>
+  );
+}
+
+function ReportVisualEvidence({ report }: { report: WCSReport }) {
+  const sourceDomains = Array.from(
+    new Set(
+      report.sources
+        .map((source) => source.domain)
+        .filter((domain): domain is string => Boolean(domain))
+        .filter((domain) => domain !== report.domain)
+    )
+  ).slice(0, 5);
+
+  return (
+    <section className={`${panelClass} overflow-hidden`} style={panelStyle}>
+      <div className="grid gap-0 lg:grid-cols-[minmax(0,1.25fr)_minmax(18rem,0.75fr)]">
+        <div className="relative min-h-[18rem] overflow-hidden bg-black/30">
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img
+            src={screenshotUrl(report.domain)}
+            alt={`${report.domain} homepage preview`}
+            className="h-full min-h-[18rem] w-full object-cover object-top opacity-90"
+            onError={(event) => {
+              event.currentTarget.style.display = "none";
+            }}
+          />
+          <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-black/70 via-black/10 to-transparent" />
+          <div className="absolute bottom-5 left-5 right-5 flex items-center gap-3">
+            <span className="grid h-12 w-12 shrink-0 place-items-center overflow-hidden rounded-2xl border bg-black/60 ring-1 ring-white/10" style={{ borderColor: "var(--theme-border)" }}>
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img src={faviconUrl(report.domain, 128)} alt="" className="h-8 w-8 rounded-lg" />
+            </span>
+            <div className="min-w-0">
+              <p className="text-[10px] font-bold uppercase tracking-[0.18em]" style={{ color: "var(--theme-accent)" }}>
+                Site evidence
+              </p>
+              <p className="truncate text-lg font-semibold" style={{ color: "var(--theme-foreground)" }}>
+                {report.company_name ?? report.domain}
+              </p>
+            </div>
+          </div>
+        </div>
+        <div className="p-5 sm:p-6">
+          <p className="text-[10px] font-bold uppercase tracking-[0.18em]" style={{ color: "var(--theme-accent)" }}>
+            Visual evidence
+          </p>
+          <h2 className="mt-3 font-display text-3xl leading-[1.05]" style={{ color: "var(--theme-foreground)", ...readableWrapStyle }}>
+            The organization should feel recognizable in its own report.
+          </h2>
+          <p className="mt-4 text-sm leading-relaxed" style={{ color: "var(--theme-muted)", ...readableWrapStyle }}>
+            A homepage preview and source identities make the analysis easier to connect back to the real company, cause, or product being evaluated.
+          </p>
+          {sourceDomains.length ? (
+            <div className="mt-5 grid grid-cols-2 gap-2">
+              {sourceDomains.map((domain) => (
+                <div
+                  key={domain}
+                  className="flex min-w-0 items-center gap-2 rounded-xl border p-2"
+                  style={{ borderColor: "var(--theme-border)", backgroundColor: "color-mix(in srgb, var(--theme-background) 42%, transparent)" }}
+                >
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img src={faviconUrl(domain, 64)} alt="" className="h-6 w-6 shrink-0 rounded-md ring-1 ring-white/10" />
+                  <span className="truncate text-xs font-medium" style={{ color: "var(--theme-muted)" }}>{domain}</span>
+                </div>
+              ))}
+            </div>
+          ) : null}
+        </div>
       </div>
     </section>
   );
@@ -886,7 +994,7 @@ function RedFlagsPanel({ flags }: { flags: RedFlag[] }) {
                 {flag.title}
               </p>
               <p className="mt-2 text-sm leading-relaxed" style={{ color: "var(--theme-muted)", ...readableWrapStyle }}>
-                {flag.detail}
+                {renderInlineMarkdown(flag.detail)}
               </p>
               {flag.url ? (
                 <span className="mt-3 inline-flex items-center gap-1.5 text-xs font-semibold" style={{ color: "var(--theme-accent)" }}>
@@ -942,7 +1050,7 @@ function GreenFlagsPanel({ flags }: { flags: GreenFlag[] }) {
                 {flag.title}
               </p>
               <p className="mt-2 text-sm leading-relaxed" style={{ color: "var(--theme-muted)", ...readableWrapStyle }}>
-                {flag.detail}
+                {renderInlineMarkdown(flag.detail)}
               </p>
               {flag.url ? (
                 <span className="mt-3 inline-flex items-center gap-1.5 text-xs font-semibold" style={{ color: "var(--theme-accent)" }}>
@@ -1019,6 +1127,8 @@ export function ReportContent({ report }: { report: WCSReport }) {
       <ScanResultSummary report={report} />
 
       <ExecutiveSummaryBlock report={report} />
+
+      <ReportVisualEvidence report={report} />
 
       <StrategyPresentationUpsell domain={report.domain} />
 

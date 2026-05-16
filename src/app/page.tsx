@@ -908,10 +908,16 @@ export default async function LandingPage({
                         <div className="flex min-w-0 items-center gap-3">
                           <span
                             aria-hidden
-                            className="flex h-[38px] w-[38px] shrink-0 items-center justify-center rounded-xl text-xs font-bold ring-1 ring-white/10"
+                            className="relative flex h-[38px] w-[38px] shrink-0 items-center justify-center overflow-hidden rounded-xl text-xs font-bold ring-1 ring-white/10"
                             style={{ backgroundColor: `${color}22`, color }}
                           >
-                            {domainInitials(scan.domain)}
+                            <span>{domainInitials(scan.domain)}</span>
+                            {/* eslint-disable-next-line @next/next/no-img-element */}
+                            <img
+                              src={`https://www.google.com/s2/favicons?domain=${encodeURIComponent(scan.domain)}&sz=64`}
+                              alt=""
+                              className="absolute inset-0 h-full w-full bg-black/20 object-contain p-1.5"
+                            />
                           </span>
                           <div className="min-w-0">
                             <p className="truncate text-sm font-semibold" style={{ color: "var(--theme-foreground)" }}>

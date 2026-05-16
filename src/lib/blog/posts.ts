@@ -454,6 +454,132 @@ For most buyers, financial signals is a "nothing weird here" check rather than a
 
 For investment or high-stakes partnership decisions, supplement our score with a formal credit check or D&B profile.`,
   },
+  {
+    slug: "how-to-improve-website-trust-score",
+    title: "How to Improve Your Website Trust Score",
+    excerpt: "A practical website credibility checklist for raising trust, conversion, and buyer confidence after a scan.",
+    date: "May 16, 2026",
+    dimension: "Website Trust Score",
+    dimensionColor: "#4ade80",
+    readTime: "7 min read",
+    body: `A low website trust score is not a verdict on the business. It is a prioritized list of missing proof. The fastest gains usually come from making the real business easier to verify and making the next step easier to understand.
+
+## Start with proof a skeptical buyer can verify
+
+**Show who operates the site.** Add a real operator, founder, or leadership profile with a LinkedIn link, portfolio, company bio, and a direct support email. Anonymous sites feel risky even when the product is legitimate.
+
+**Publish policies buyers expect.** Privacy, terms, cookies, refunds, support, and pricing pages are not decoration. They are crawler-readable trust signals and human reassurance.
+
+**Use consistent contact details.** The same company name, email, phone, and address should appear on the site, Google Business Profile, LinkedIn, and directories. Inconsistency lowers confidence.
+
+**Add independent references.** Link to GitHub, case studies, client work, public profiles, press mentions, and reviews. First-party claims become stronger when third-party pages corroborate them.
+
+## Improve the homepage before chasing backlinks
+
+Most trust leaks happen above the fold. A buyer should understand what the site does, who it is for, why it is credible, and what to do next without opening another tab.
+
+A stronger homepage usually includes:
+- A specific headline that names the problem
+- One primary call to action
+- Visible proof near the CTA
+- Human operator or team context
+- Pricing or a clear path to pricing
+- A footer with policies and support links
+
+## Fix the score dimensions that compound
+
+Legitimacy, transparency, content quality, and UX tend to lift other categories. When you add operator identity, support pages, original explanation, and clearer navigation, the site becomes easier for both humans and crawlers to understand.
+
+## What to do after a WebsiteCreditScore scan
+
+Treat the report as a backlog. Fix the visible trust gaps first, then rescan after Google and third-party services have time to recrawl. Some improvements show immediately because the site changed. Others, like reviews and indexation, need time to propagate.`,
+  },
+  {
+    slug: "why-google-is-not-indexing-your-website",
+    title: "Why Google Is Not Indexing Your Website",
+    excerpt: "If your site is live but invisible in search, work through this indexing checklist before assuming the domain has no trust.",
+    date: "May 16, 2026",
+    dimension: "SEO & Indexation",
+    dimensionColor: "#38bdf8",
+    readTime: "6 min read",
+    body: `A live website and an indexed website are not the same thing. New domains, thin sites, blocked crawlers, missing sitemaps, and weak internal linking can all make a real site look invisible in Google results.
+
+## The first indexing checks
+
+**Check robots.txt.** Make sure the site is not blocking Googlebot or the pages you want indexed.
+
+**Submit a sitemap.** A sitemap does not guarantee rankings, but it gives Google a clean map of the pages that matter.
+
+**Use Google Search Console.** Verify the domain, inspect the homepage URL, request indexing, and watch for crawl errors.
+
+**Make every important page internally linked.** Pages that only exist in a sitemap but are not linked from navigation, footer, or body content look less important.
+
+**Avoid thin placeholder pages.** Google is less likely to index pages with nearly identical copy, no original point of view, or no clear reason to exist.
+
+## Why this affects credibility scores
+
+Search indexation is a public proof signal. If a domain has no indexed homepage, no indexed policy pages, no external mentions, and no social profiles, a risk model has less evidence to work with.
+
+That does not mean the business is fake. It means the web cannot corroborate it yet.
+
+## A practical path for a new site
+
+Publish a real about page, pricing page, methodology page, privacy policy, terms, cookies page, refund/support page, and several useful blog posts. Add schema markup, submit the sitemap, link the site from LinkedIn and GitHub, and request indexing in Search Console.
+
+Indexation is not instant. But once Google can crawl a complete site with original content and real external references, the credibility picture gets much easier to defend.`,
+  },
+  {
+    slug: "website-credibility-checklist",
+    title: "Website Credibility Checklist for Small Businesses",
+    excerpt: "A buyer-focused checklist for making a website feel legitimate before someone pays, books, donates, or requests a quote.",
+    date: "May 16, 2026",
+    dimension: "Buyer Trust",
+    dimensionColor: "#f7b21b",
+    readTime: "8 min read",
+    body: `Website credibility is not one thing. It is the accumulation of small signals that reduce doubt before a visitor has to make a decision.
+
+## Identity
+
+**Business name:** Use the same legal or operating name everywhere.
+
+**Operator visibility:** Show real people, not generic copy. Link to professional profiles when possible.
+
+**Contact path:** Give visitors a support email, phone number, or clear form. A business that cannot be contacted is harder to trust.
+
+## Policies
+
+**Privacy policy:** Explain what data is collected and why.
+
+**Terms:** Define the relationship between the visitor and the site.
+
+**Refunds or cancellations:** If money changes hands, tell people what happens when something goes wrong.
+
+**Cookies:** If analytics, ads, or embedded tools are used, disclose them clearly.
+
+## Proof
+
+**Reviews:** Ask real customers for reviews and link to platforms where they live.
+
+**Case studies:** Show before/after work, outcomes, and context.
+
+**Public references:** GitHub, portfolio pages, LinkedIn, press, directories, and partner sites all help corroborate the story.
+
+**Visual evidence:** Use real photography, product screenshots, site previews, or project imagery. A credible website should not feel detached from the actual business.
+
+## UX
+
+**One primary action:** Do not make visitors decode five competing CTAs.
+
+**Readable mobile layout:** Most trust judgments happen on a phone.
+
+**Fast load time:** Slow pages feel abandoned, even when the business is active.
+
+**Clear pricing path:** If pricing cannot be public, explain the buying process.
+
+## The fastest credibility lift
+
+Add the missing pages, link them from the footer, make the operator real, publish original content, and connect the site to public profiles. Those changes do not require a full redesign, but they change how both buyers and search engines read the business.`,
+  },
 ];
 
 export function getPost(slug: string): BlogPost | undefined {
