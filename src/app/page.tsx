@@ -102,29 +102,50 @@ function OperatorGraphic({
   type: (typeof OPERATOR_CARDS)[number]["graphic"];
   color: string;
 }) {
+  const sceneStyle = { "--operator-color": color } as React.CSSProperties;
+
   if (type === "viewpoint") {
     return (
-      <div className="operator-micro-scene relative h-40 overflow-hidden rounded-[14px] border" style={{ "--operator-color": color } as React.CSSProperties}>
+      <div className="operator-micro-scene relative h-40 overflow-hidden rounded-[14px] border" style={sceneStyle}>
+        <div className="operator-depth-light" />
         <div className="operator-perspective-grid absolute inset-0" />
-        <div className="absolute left-5 top-5 h-28 w-[58%] rounded-[12px] border border-white/10 bg-black/20 p-3.5">
+        <div className="operator-surface-panel absolute left-5 top-5 h-28 w-[62%] rounded-[12px] p-3">
           <div className="flex items-center justify-between">
-            <div className="h-1.5 w-16 rounded-full bg-white/20" />
-            <div className="h-1.5 w-8 rounded-full" style={{ backgroundColor: `${color}70` }} />
+            <div className="text-[9px] font-bold uppercase tracking-[0.16em]" style={{ color }}>POV matrix</div>
+            <div className="rounded-full border border-white/10 px-1.5 py-0.5 text-[8px] text-white/45">live</div>
           </div>
-          <div className="relative mt-4 h-20">
-            {[0, 1, 2].map((row) => (
-              <div key={row} className="absolute left-0 right-0 border-t border-white/10" style={{ top: `${row * 32}%` }} />
+          <div className="relative mt-3 grid h-[4.65rem] grid-cols-3 gap-1.5">
+            {[
+              ["Trust", "88", "12%", "15%"],
+              ["Friction", "42", "54%", "8%"],
+              ["Proof", "73", "25%", "56%"],
+              ["Taste", "91", "66%", "51%"],
+              ["Intent", "67", "46%", "34%"],
+            ].map(([label, score, left, top], index) => (
+              <div
+                key={label}
+                className="operator-tiny-tile absolute rounded-[7px] px-1.5 py-1"
+                style={{
+                  left,
+                  top,
+                  borderColor: index === 3 ? `${color}66` : "rgba(255,255,255,0.11)",
+                  backgroundColor: index === 3 ? `${color}1d` : "rgba(0,0,0,0.22)",
+                }}
+              >
+                <div className="text-[7px] font-semibold leading-none text-white/70">{label}</div>
+                <div className="mt-1 text-[8px] font-bold leading-none" style={{ color }}>{score}</div>
+              </div>
             ))}
-            {[0, 1, 2, 3].map((col) => (
-              <div key={col} className="absolute bottom-0 top-0 border-l border-white/10" style={{ left: `${col * 27}%` }} />
-            ))}
-            <div className="absolute left-[12%] top-[18%] h-6 w-[38%] rounded-[7px]" style={{ backgroundColor: `${color}32` }} />
-            <div className="absolute left-[28%] top-[52%] h-6 w-[46%] rounded-[7px]" style={{ backgroundColor: `${color}56` }} />
-            <div className="absolute left-[64%] top-[24%] h-6 w-[24%] rounded-[7px]" style={{ backgroundColor: `${color}70` }} />
           </div>
+          <svg className="pointer-events-none absolute inset-0 h-full w-full" viewBox="0 0 190 112" aria-hidden>
+            <path className="operator-elbow-path operator-elbow-path-a" d="M148 30 H120 V49 H92" />
+            <path className="operator-elbow-path operator-elbow-path-b" d="M148 66 H118 V77 H84" />
+          </svg>
         </div>
-        <div className="operator-lens absolute right-7 top-8 h-20 w-20 rounded-full border bg-black/30" />
-        <div className="absolute bottom-5 right-5 rounded-full border border-white/10 bg-black/35 px-3 py-1 text-[10px] font-semibold" style={{ color }}>
+        <div className="operator-lens absolute right-6 top-7 h-[4.9rem] w-[4.9rem] rounded-full border bg-black/30">
+          <div className="absolute inset-[14px] rounded-full border border-white/10" />
+        </div>
+        <div className="operator-system-badge absolute bottom-5 right-5" style={{ color }}>
           POV model
         </div>
       </div>
@@ -133,38 +154,56 @@ function OperatorGraphic({
 
   if (type === "audit") {
     return (
-      <div className="operator-micro-scene relative h-40 overflow-hidden rounded-[14px] border p-3" style={{ "--operator-color": color } as React.CSSProperties}>
-        <div className="absolute inset-x-4 top-4 h-24 overflow-hidden rounded-[12px] border border-white/10 bg-black/25">
+      <div className="operator-micro-scene relative h-40 overflow-hidden rounded-[14px] border p-3" style={sceneStyle}>
+        <div className="operator-depth-light" />
+        <div className="operator-surface-panel absolute inset-x-4 top-4 h-24 overflow-hidden rounded-[12px]">
           <div className="operator-slide-track flex h-full w-[300%]">
             <div className="relative h-full w-1/3 p-4">
               <div className="text-[10px] font-bold uppercase tracking-[0.18em]" style={{ color }}>Scan</div>
-              <div className="absolute left-1/2 top-1/2 h-16 w-16 -translate-x-1/2 -translate-y-[42%] rounded-full" style={{ background: `conic-gradient(${color} 0 270deg, rgba(255,255,255,0.1) 270deg 360deg)` }}>
+              <div className="absolute left-5 top-11 space-y-1">
+                {["UX", "Proof", "Speed"].map((label, index) => (
+                  <div key={label} className="flex items-center gap-1.5 text-[8px] font-semibold text-white/52">
+                    <span className="h-1.5 w-1.5 rounded-full" style={{ backgroundColor: index === 1 ? color : "rgba(255,255,255,0.24)" }} />
+                    {label}
+                  </div>
+                ))}
+              </div>
+              <div className="absolute right-6 top-1/2 h-16 w-16 -translate-y-[43%] rounded-full" style={{ background: `conic-gradient(${color} 0 270deg, rgba(255,255,255,0.1) 270deg 360deg)` }}>
                 <div className="absolute inset-[5px] grid place-items-center rounded-full bg-[#121107] text-lg font-semibold" style={{ color }}>
                   7.5
                 </div>
               </div>
+              <div className="absolute bottom-3 left-5 rounded-full border border-white/10 px-2 py-0.5 text-[8px] font-semibold text-white/45">18 sources</div>
             </div>
             <div className="relative h-full w-1/3 p-4">
               <div className="text-[10px] font-bold uppercase tracking-[0.18em]" style={{ color }}>Plan</div>
-              <div className="absolute left-1/2 top-[55%] h-9 w-9 -translate-x-1/2 -translate-y-1/2 rounded-full border border-white/15 bg-black/30" />
+              <div className="absolute left-1/2 top-[55%] grid h-10 w-14 -translate-x-1/2 -translate-y-1/2 place-items-center rounded-[9px] border border-white/12 bg-black/35 text-[8px] font-bold" style={{ color }}>
+                Priority
+              </div>
+              <svg className="absolute inset-0 h-full w-full" viewBox="0 0 286 96" aria-hidden>
+                <path className="operator-elbow-path" d="M143 52 H91 V31 H58" />
+                <path className="operator-elbow-path" d="M143 52 H93 V72 H58" />
+                <path className="operator-elbow-path" d="M143 52 H197 V31 H230" />
+                <path className="operator-elbow-path" d="M143 52 H196 V72 H230" />
+              </svg>
               {[
-                ["22%", "34%"],
-                ["66%", "30%"],
-                ["30%", "74%"],
-                ["74%", "72%"],
-              ].map(([left, top], index) => (
-                <div key={index} className="absolute h-px origin-left bg-white/20" style={{ left, top, width: "48px", transform: `rotate(${index < 2 ? 20 : -24}deg)` }} />
-              ))}
-              {[
-                ["19%", "28%"], ["70%", "26%"], ["24%", "75%"], ["76%", "72%"],
-              ].map(([left, top], index) => (
-                <div key={index} className="absolute h-5 w-12 rounded-[7px] border border-white/10 bg-black/35" style={{ left, top }} />
+                ["Rewrite", "12%", "26%"],
+                ["Proof", "12%", "69%"],
+                ["CTA", "72%", "26%"],
+                ["Layout", "72%", "69%"],
+              ].map(([label, left, top]) => (
+                <div key={label} className="absolute grid h-5 w-14 place-items-center rounded-[7px] border border-white/10 bg-black/40 text-[7px] font-semibold text-white/58" style={{ left, top }}>
+                  {label}
+                </div>
               ))}
             </div>
             <div className="relative h-full w-1/3 p-4">
               <div className="text-[10px] font-bold uppercase tracking-[0.18em]" style={{ color }}>Ship</div>
-              <div className="absolute inset-x-5 bottom-4 top-9 rounded-[10px] border border-white/10 bg-black/30">
-                <div className="h-4 rounded-t-[10px] border-b border-white/10 bg-white/8" />
+              <div className="absolute inset-x-5 bottom-4 top-8 rounded-[10px] border border-white/10 bg-black/30 shadow-2xl shadow-black/30">
+                <div className="flex h-4 items-center gap-1 rounded-t-[10px] border-b border-white/10 bg-white/8 px-2">
+                  <span className="h-1.5 w-1.5 rounded-full bg-[#4ade80]" />
+                  <span className="text-[7px] font-semibold text-white/38">Published</span>
+                </div>
                 <div className="p-2">
                   <div className="h-3 w-20 rounded-full" style={{ backgroundColor: `${color}70` }} />
                   <div className="mt-2 grid grid-cols-3 gap-1.5">
@@ -191,19 +230,34 @@ function OperatorGraphic({
   }
 
   return (
-    <div className="operator-micro-scene relative h-40 overflow-hidden rounded-[14px] border p-3" style={{ "--operator-color": color } as React.CSSProperties}>
-      <div className="absolute left-4 top-4 right-4 rounded-[10px] border border-white/10 bg-black/25 p-2.5">
+    <div className="operator-micro-scene relative h-40 overflow-hidden rounded-[14px] border p-3" style={sceneStyle}>
+      <div className="operator-depth-light" />
+      <div className="operator-surface-panel absolute left-4 top-4 right-4 rounded-[10px] p-2.5">
         <div className="flex items-center gap-1.5">
           <span className="h-2 w-2 rounded-full" style={{ backgroundColor: color }} />
-          <span className="h-1.5 w-24 rounded-full bg-white/18" />
+          <span className="text-[8px] font-bold uppercase tracking-[0.16em] text-white/48">Agent console</span>
         </div>
       </div>
+      <svg className="absolute inset-0 h-full w-full" viewBox="0 0 320 160" aria-hidden>
+        <path className="operator-elbow-path" d="M94 62 V83 H62" />
+        <path className="operator-elbow-path" d="M153 62 V77 H160 V101" />
+        <path className="operator-elbow-path" d="M212 62 V83 H258" />
+      </svg>
       <div className="absolute bottom-5 left-4 right-4 grid grid-cols-3 gap-2.5">
-        {["research", "taste", "build"].map((label, index) => (
+        {[
+          ["Research", "source checked"],
+          ["Taste", "revise CTA"],
+          ["Build", "ship ready"],
+        ].map(([label, note], index) => (
           <div key={label} className="operator-console-card rounded-[10px] border border-white/10 bg-black/25 p-2.5" style={{ animationDelay: `${index * 0.25}s` }}>
-            <div className="mx-auto h-6 w-6 rounded-[7px]" style={{ backgroundColor: index === 1 ? color : "rgba(255,255,255,0.12)" }} />
-            <div className="mt-2 h-1.5 rounded-full bg-white/14" />
-            <div className="mt-1 h-1.5 w-2/3 rounded-full bg-white/10" />
+            <div className="flex items-center justify-between gap-1">
+              <span className="text-[7px] font-bold text-white/58">{label}</span>
+              <span className="h-1.5 w-1.5 rounded-full" style={{ backgroundColor: index === 1 ? color : "rgba(255,255,255,0.22)" }} />
+            </div>
+            <div className="mt-2 text-[7px] leading-none text-white/38">{note}</div>
+            <div className="mt-2 h-1 rounded-full bg-white/10">
+              <div className="h-full rounded-full" style={{ width: `${index === 0 ? 82 : index === 1 ? 58 : 74}%`, backgroundColor: `${color}88` }} />
+            </div>
           </div>
         ))}
       </div>
