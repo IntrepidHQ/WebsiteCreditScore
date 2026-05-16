@@ -106,7 +106,7 @@ function OperatorGraphic({
 
   if (type === "viewpoint") {
     return (
-      <div className="operator-micro-scene relative aspect-[2/1] max-h-40 overflow-hidden rounded-[14px] border" style={sceneStyle}>
+      <div className="operator-micro-scene relative aspect-[4/3] overflow-hidden rounded-[14px] border" style={sceneStyle}>
         <div className="operator-depth-light" />
         <svg className="operator-scene-svg" viewBox="0 0 320 160" role="img" aria-label="Perspective rubric board inspecting a website score workflow">
           <defs>
@@ -169,9 +169,9 @@ function OperatorGraphic({
 
   if (type === "audit") {
     return (
-      <div className="operator-micro-scene relative aspect-[2/1] max-h-40 overflow-hidden rounded-[14px] border p-3" style={sceneStyle}>
+      <div className="operator-micro-scene relative aspect-[4/3] overflow-hidden rounded-[14px] border p-3" style={sceneStyle}>
         <div className="operator-depth-light" />
-        <div className="operator-surface-panel absolute inset-x-4 top-4 h-24 overflow-hidden rounded-[12px]">
+        <div className="operator-surface-panel absolute inset-x-4 bottom-4 top-4 overflow-hidden rounded-[12px]">
           <div className="operator-slide-track flex h-full w-[300%]">
             <div className="relative h-full w-1/3">
               <svg className="operator-slide-svg" viewBox="0 0 286 96" aria-hidden>
@@ -252,20 +252,12 @@ function OperatorGraphic({
             </div>
           </div>
         </div>
-        <div className="absolute bottom-4 left-4 right-4 h-7 overflow-hidden rounded-full border border-white/10 bg-black/25">
-          <div className="operator-sequence-highlight absolute inset-y-1 left-1 w-1/3 rounded-full" />
-          <div className="relative grid h-full grid-cols-3 place-items-center text-[10px] font-semibold" style={{ color: "rgba(237,232,212,0.66)" }}>
-            <span>Scan</span>
-            <span>Plan</span>
-            <span>Ship</span>
-          </div>
-        </div>
       </div>
     );
   }
 
   return (
-    <div className="operator-micro-scene relative aspect-[2/1] max-h-40 overflow-hidden rounded-[14px] border p-3" style={sceneStyle}>
+    <div className="operator-micro-scene relative aspect-[4/3] overflow-hidden rounded-[14px] border p-3" style={sceneStyle}>
       <div className="operator-depth-light" />
       <svg className="operator-scene-svg" viewBox="0 0 320 160" role="img" aria-label="Human-supervised agent workflow with research, taste, and build panels">
         <defs>
