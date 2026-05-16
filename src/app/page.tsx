@@ -106,113 +106,148 @@ function OperatorGraphic({
 
   if (type === "viewpoint") {
     return (
-      <div className="operator-micro-scene relative h-40 overflow-hidden rounded-[14px] border" style={sceneStyle}>
+      <div className="operator-micro-scene relative aspect-[2/1] max-h-40 overflow-hidden rounded-[14px] border" style={sceneStyle}>
         <div className="operator-depth-light" />
-        <div className="operator-perspective-grid absolute inset-0" />
-        <div className="operator-surface-panel absolute left-5 top-5 h-28 w-[62%] rounded-[12px] p-3">
-          <div className="flex items-center justify-between">
-            <div className="text-[9px] font-bold uppercase tracking-[0.16em]" style={{ color }}>POV matrix</div>
-            <div className="rounded-full border border-white/10 px-1.5 py-0.5 text-[8px] text-white/45">live</div>
-          </div>
-          <div className="relative mt-3 grid h-[4.65rem] grid-cols-3 gap-1.5">
-            {[
-              ["Trust", "88", "12%", "15%"],
-              ["Friction", "42", "54%", "8%"],
-              ["Proof", "73", "25%", "56%"],
-              ["Taste", "91", "66%", "51%"],
-              ["Intent", "67", "46%", "34%"],
-            ].map(([label, score, left, top], index) => (
-              <div
-                key={label}
-                className="operator-tiny-tile absolute rounded-[7px] px-1.5 py-1"
-                style={{
-                  left,
-                  top,
-                  borderColor: index === 3 ? `${color}66` : "rgba(255,255,255,0.11)",
-                  backgroundColor: index === 3 ? `${color}1d` : "rgba(0,0,0,0.22)",
-                }}
-              >
-                <div className="text-[7px] font-semibold leading-none text-white/70">{label}</div>
-                <div className="mt-1 text-[8px] font-bold leading-none" style={{ color }}>{score}</div>
-              </div>
-            ))}
-          </div>
-          <svg className="pointer-events-none absolute inset-0 h-full w-full" viewBox="0 0 190 112" aria-hidden>
-            <path className="operator-elbow-path operator-elbow-path-a" d="M148 30 H120 V49 H92" />
-            <path className="operator-elbow-path operator-elbow-path-b" d="M148 66 H118 V77 H84" />
-          </svg>
-        </div>
-        <div className="operator-lens absolute right-6 top-7 h-[4.9rem] w-[4.9rem] rounded-full border bg-black/30">
-          <div className="absolute inset-[14px] rounded-full border border-white/10" />
-        </div>
-        <div className="operator-system-badge absolute bottom-5 right-5" style={{ color }}>
-          POV model
-        </div>
+        <svg className="operator-scene-svg" viewBox="0 0 320 160" role="img" aria-label="Perspective rubric board inspecting a website score workflow">
+          <defs>
+            <pattern id="operator-dot-grid-view" width="10" height="10" patternUnits="userSpaceOnUse">
+              <circle cx="1" cy="1" r="0.65" fill="rgba(237,232,212,0.24)" />
+            </pattern>
+            <linearGradient id="operator-board-view" x1="0" x2="1" y1="0" y2="1">
+              <stop offset="0%" stopColor="rgba(255,255,255,0.14)" />
+              <stop offset="100%" stopColor="rgba(0,0,0,0.18)" />
+            </linearGradient>
+            <filter id="operator-soft-shadow-view" x="-20%" y="-20%" width="140%" height="150%">
+              <feDropShadow dx="0" dy="10" stdDeviation="9" floodColor="rgba(0,0,0,0.46)" />
+            </filter>
+          </defs>
+          <polygon points="26,33 222,18 278,132 54,139" fill="url(#operator-dot-grid-view)" opacity="0.55" />
+          <polygon points="31,35 219,21 271,128 58,135" fill="url(#operator-board-view)" stroke="rgba(255,255,255,0.13)" strokeWidth="1" filter="url(#operator-soft-shadow-view)" />
+          <g opacity="0.42">
+            <path d="M55 38 L80 135 M90 35 L112 134 M126 32 L145 132 M162 29 L178 130 M198 25 L213 128" stroke="rgba(237,232,212,0.16)" strokeWidth="1" />
+            <path d="M42 57 L230 45 M48 80 L241 70 M55 104 L255 97 M63 125 L268 121" stroke="rgba(237,232,212,0.13)" strokeWidth="1" />
+          </g>
+          <g className="operator-board-tiles" fontSize="7" fontWeight="700">
+            <g transform="translate(59 51)">
+              <rect width="45" height="24" rx="5" fill="rgba(0,0,0,0.45)" stroke="rgba(255,255,255,0.14)" />
+              <text x="7" y="10" fill="rgba(237,232,212,0.66)">Trust</text><text x="7" y="20" fill={color}>88</text>
+            </g>
+            <g transform="translate(125 42)">
+              <rect width="53" height="24" rx="5" fill="rgba(0,0,0,0.38)" stroke="rgba(255,255,255,0.13)" />
+              <text x="7" y="10" fill="rgba(237,232,212,0.66)">Friction</text><text x="7" y="20" fill={color}>42</text>
+            </g>
+            <g transform="translate(83 94)">
+              <rect width="45" height="24" rx="5" fill="rgba(0,0,0,0.42)" stroke="rgba(255,255,255,0.13)" />
+              <text x="7" y="10" fill="rgba(237,232,212,0.66)">Proof</text><text x="7" y="20" fill={color}>73</text>
+            </g>
+            <g transform="translate(171 87)">
+              <rect width="46" height="24" rx="5" fill={`${color}24`} stroke={`${color}88`} />
+              <text x="7" y="10" fill="rgba(237,232,212,0.78)">Taste</text><text x="7" y="20" fill={color}>91</text>
+            </g>
+            <g transform="translate(195 55)">
+              <rect width="45" height="24" rx="5" fill="rgba(0,0,0,0.36)" stroke="rgba(255,255,255,0.13)" />
+              <text x="7" y="10" fill="rgba(237,232,212,0.66)">Intent</text><text x="7" y="20" fill={color}>67</text>
+            </g>
+          </g>
+          <g className="operator-lens-svg">
+            <circle cx="232" cy="66" r="26" fill="rgba(0,0,0,0.32)" stroke={`${color}cc`} strokeWidth="1" />
+            <circle cx="232" cy="66" r="14" fill="none" stroke="rgba(255,255,255,0.18)" strokeWidth="1" />
+            <path d="M251 83 L270 101" stroke={color} strokeWidth="2" strokeLinecap="round" opacity="0.7" />
+          </g>
+          <path className="operator-elbow-path operator-elbow-path-a" d="M207 66 H183 V99 H171" />
+          <path className="operator-elbow-path operator-elbow-path-b" d="M212 57 H180 V54 H178" />
+          <path className="operator-elbow-path operator-elbow-path-c" d="M222 91 V110 H128" />
+          <g transform="translate(227 121)">
+            <rect width="66" height="19" rx="9.5" fill="rgba(0,0,0,0.48)" stroke="rgba(255,255,255,0.11)" />
+            <circle cx="12" cy="9.5" r="3" fill={color} />
+            <text x="20" y="12" fill={color} fontSize="8" fontWeight="700">POV model</text>
+          </g>
+        </svg>
       </div>
     );
   }
 
   if (type === "audit") {
     return (
-      <div className="operator-micro-scene relative h-40 overflow-hidden rounded-[14px] border p-3" style={sceneStyle}>
+      <div className="operator-micro-scene relative aspect-[2/1] max-h-40 overflow-hidden rounded-[14px] border p-3" style={sceneStyle}>
         <div className="operator-depth-light" />
         <div className="operator-surface-panel absolute inset-x-4 top-4 h-24 overflow-hidden rounded-[12px]">
           <div className="operator-slide-track flex h-full w-[300%]">
-            <div className="relative h-full w-1/3 p-4">
-              <div className="text-[10px] font-bold uppercase tracking-[0.18em]" style={{ color }}>Scan</div>
-              <div className="absolute left-5 top-11 space-y-1">
-                {["UX", "Proof", "Speed"].map((label, index) => (
-                  <div key={label} className="flex items-center gap-1.5 text-[8px] font-semibold text-white/52">
-                    <span className="h-1.5 w-1.5 rounded-full" style={{ backgroundColor: index === 1 ? color : "rgba(255,255,255,0.24)" }} />
-                    {label}
-                  </div>
-                ))}
-              </div>
-              <div className="absolute right-6 top-1/2 h-16 w-16 -translate-y-[43%] rounded-full" style={{ background: `conic-gradient(${color} 0 270deg, rgba(255,255,255,0.1) 270deg 360deg)` }}>
-                <div className="absolute inset-[5px] grid place-items-center rounded-full bg-[#121107] text-lg font-semibold" style={{ color }}>
-                  7.5
-                </div>
-              </div>
-              <div className="absolute bottom-3 left-5 rounded-full border border-white/10 px-2 py-0.5 text-[8px] font-semibold text-white/45">18 sources</div>
-            </div>
-            <div className="relative h-full w-1/3 p-4">
-              <div className="text-[10px] font-bold uppercase tracking-[0.18em]" style={{ color }}>Plan</div>
-              <div className="absolute left-1/2 top-[55%] grid h-10 w-14 -translate-x-1/2 -translate-y-1/2 place-items-center rounded-[9px] border border-white/12 bg-black/35 text-[8px] font-bold" style={{ color }}>
-                Priority
-              </div>
-              <svg className="absolute inset-0 h-full w-full" viewBox="0 0 286 96" aria-hidden>
-                <path className="operator-elbow-path" d="M143 52 H91 V31 H58" />
-                <path className="operator-elbow-path" d="M143 52 H93 V72 H58" />
-                <path className="operator-elbow-path" d="M143 52 H197 V31 H230" />
-                <path className="operator-elbow-path" d="M143 52 H196 V72 H230" />
+            <div className="relative h-full w-1/3">
+              <svg className="operator-slide-svg" viewBox="0 0 286 96" aria-hidden>
+                <defs>
+                  <pattern id="operator-dot-grid-scan" width="9" height="9" patternUnits="userSpaceOnUse">
+                    <circle cx="1" cy="1" r="0.55" fill="rgba(237,232,212,0.22)" />
+                  </pattern>
+                </defs>
+                <rect width="286" height="96" fill="url(#operator-dot-grid-scan)" opacity="0.46" />
+                <rect x="20" y="30" width="72" height="42" rx="8" fill="rgba(0,0,0,0.35)" stroke="rgba(255,255,255,0.13)" />
+                <text x="32" y="44" fill="rgba(237,232,212,0.72)" fontSize="8" fontWeight="700">UX</text>
+                <text x="32" y="56" fill="rgba(237,232,212,0.52)" fontSize="7">CTA found</text>
+                <text x="32" y="67" fill={color} fontSize="7" fontWeight="700">low friction</text>
+                <rect x="106" y="25" width="72" height="50" rx="10" fill="rgba(0,0,0,0.35)" stroke="rgba(255,255,255,0.13)" />
+                <text x="118" y="39" fill="rgba(237,232,212,0.72)" fontSize="8" fontWeight="700">Proof</text>
+                <text x="118" y="51" fill="rgba(237,232,212,0.52)" fontSize="7">bio linked</text>
+                <text x="118" y="63" fill={color} fontSize="7" fontWeight="700">sources 18</text>
+                <circle cx="226" cy="50" r="29" fill="none" stroke="rgba(255,255,255,0.12)" strokeWidth="8" />
+                <circle cx="226" cy="50" r="29" fill="none" stroke={color} strokeWidth="8" strokeDasharray="137 182" strokeLinecap="round" transform="rotate(-90 226 50)" />
+                <circle cx="226" cy="50" r="19" fill="rgba(0,0,0,0.58)" stroke="rgba(255,255,255,0.12)" />
+                <text x="226" y="54" textAnchor="middle" fill={color} fontSize="17" fontWeight="800">7.5</text>
               </svg>
-              {[
-                ["Rewrite", "12%", "26%"],
-                ["Proof", "12%", "69%"],
-                ["CTA", "72%", "26%"],
-                ["Layout", "72%", "69%"],
-              ].map(([label, left, top]) => (
-                <div key={label} className="absolute grid h-5 w-14 place-items-center rounded-[7px] border border-white/10 bg-black/40 text-[7px] font-semibold text-white/58" style={{ left, top }}>
-                  {label}
-                </div>
-              ))}
+              <div className="text-[10px] font-bold uppercase tracking-[0.18em]" style={{ color }}>Scan</div>
             </div>
-            <div className="relative h-full w-1/3 p-4">
+            <div className="relative h-full w-1/3">
+              <svg className="operator-slide-svg" viewBox="0 0 286 96" aria-hidden>
+                <defs>
+                  <pattern id="operator-dot-grid-plan" width="9" height="9" patternUnits="userSpaceOnUse">
+                    <circle cx="1" cy="1" r="0.55" fill="rgba(237,232,212,0.22)" />
+                  </pattern>
+                </defs>
+                <rect width="286" height="96" fill="url(#operator-dot-grid-plan)" opacity="0.46" />
+                <rect x="110" y="33" width="66" height="31" rx="8" fill={`${color}20`} stroke={`${color}88`} />
+                <text x="143" y="46" textAnchor="middle" fill={color} fontSize="9" fontWeight="800">Priority</text>
+                <text x="143" y="57" textAnchor="middle" fill="rgba(237,232,212,0.5)" fontSize="6.5">fix first</text>
+                <path className="operator-elbow-path" d="M110 48 H74 V24 H51" />
+                <path className="operator-elbow-path" d="M110 48 H75 V74 H52" />
+                <path className="operator-elbow-path" d="M176 48 H211 V24 H234" />
+                <path className="operator-elbow-path" d="M176 48 H211 V74 H234" />
+                {[
+                  ["Rewrite", 16, 15, "headline"],
+                  ["Proof", 17, 65, "logos + bio"],
+                  ["CTA", 229, 15, "start scan"],
+                  ["Layout", 225, 65, "above fold"],
+                ].map(([label, x, y, note]) => (
+                  <g key={label as string} transform={`translate(${x} ${y})`}>
+                    <rect width="50" height="20" rx="6" fill="rgba(0,0,0,0.44)" stroke="rgba(255,255,255,0.13)" />
+                    <text x="25" y="9" textAnchor="middle" fill="rgba(237,232,212,0.72)" fontSize="7" fontWeight="700">{label}</text>
+                    <text x="25" y="17" textAnchor="middle" fill="rgba(237,232,212,0.38)" fontSize="5.7">{note}</text>
+                  </g>
+                ))}
+              </svg>
+              <div className="text-[10px] font-bold uppercase tracking-[0.18em]" style={{ color }}>Plan</div>
+            </div>
+            <div className="relative h-full w-1/3">
+              <svg className="operator-slide-svg" viewBox="0 0 286 96" aria-hidden>
+                <defs>
+                  <pattern id="operator-dot-grid-ship" width="9" height="9" patternUnits="userSpaceOnUse">
+                    <circle cx="1" cy="1" r="0.55" fill="rgba(237,232,212,0.22)" />
+                  </pattern>
+                </defs>
+                <rect width="286" height="96" fill="url(#operator-dot-grid-ship)" opacity="0.42" />
+                <g transform="translate(48 19)">
+                  <path d="M12 0 H178 Q190 0 190 12 V58 Q190 70 178 70 H12 Q0 70 0 58 V12 Q0 0 12 0Z" fill="rgba(0,0,0,0.46)" stroke="rgba(255,255,255,0.14)" />
+                  <path d="M1 15 H189" stroke="rgba(255,255,255,0.12)" />
+                  <circle cx="13" cy="8" r="2.2" fill="#4ade80" />
+                  <text x="22" y="10" fill="rgba(237,232,212,0.62)" fontSize="7" fontWeight="700">Published</text>
+                  <rect x="14" y="27" width="64" height="8" rx="4" fill={color} opacity="0.78" />
+                  <rect x="14" y="41" width="44" height="6" rx="3" fill="rgba(237,232,212,0.18)" />
+                  <rect x="96" y="26" width="31" height="31" rx="6" fill="rgba(255,255,255,0.08)" stroke="rgba(255,255,255,0.08)" />
+                  <rect x="134" y="26" width="31" height="31" rx="6" fill={`${color}30`} stroke={`${color}66`} />
+                  <path d="M75 62 H105 V54 H134" className="operator-elbow-path" />
+                  <text x="146" y="67" fill="#4ade80" fontSize="7" fontWeight="700">live</text>
+                </g>
+              </svg>
               <div className="text-[10px] font-bold uppercase tracking-[0.18em]" style={{ color }}>Ship</div>
-              <div className="absolute inset-x-5 bottom-4 top-8 rounded-[10px] border border-white/10 bg-black/30 shadow-2xl shadow-black/30">
-                <div className="flex h-4 items-center gap-1 rounded-t-[10px] border-b border-white/10 bg-white/8 px-2">
-                  <span className="h-1.5 w-1.5 rounded-full bg-[#4ade80]" />
-                  <span className="text-[7px] font-semibold text-white/38">Published</span>
-                </div>
-                <div className="p-2">
-                  <div className="h-3 w-20 rounded-full" style={{ backgroundColor: `${color}70` }} />
-                  <div className="mt-2 grid grid-cols-3 gap-1.5">
-                    <div className="h-8 rounded-[6px] bg-white/10" />
-                    <div className="h-8 rounded-[6px]" style={{ backgroundColor: `${color}35` }} />
-                    <div className="h-8 rounded-[6px] bg-white/10" />
-                  </div>
-                </div>
-              </div>
               <div className="operator-publish-dot absolute right-8 top-8 h-2.5 w-2.5 rounded-full bg-[#4ade80]" />
             </div>
           </div>
@@ -230,37 +265,42 @@ function OperatorGraphic({
   }
 
   return (
-    <div className="operator-micro-scene relative h-40 overflow-hidden rounded-[14px] border p-3" style={sceneStyle}>
+    <div className="operator-micro-scene relative aspect-[2/1] max-h-40 overflow-hidden rounded-[14px] border p-3" style={sceneStyle}>
       <div className="operator-depth-light" />
-      <div className="operator-surface-panel absolute left-4 top-4 right-4 rounded-[10px] p-2.5">
-        <div className="flex items-center gap-1.5">
-          <span className="h-2 w-2 rounded-full" style={{ backgroundColor: color }} />
-          <span className="text-[8px] font-bold uppercase tracking-[0.16em] text-white/48">Agent console</span>
-        </div>
-      </div>
-      <svg className="absolute inset-0 h-full w-full" viewBox="0 0 320 160" aria-hidden>
-        <path className="operator-elbow-path" d="M94 62 V83 H62" />
-        <path className="operator-elbow-path" d="M153 62 V77 H160 V101" />
-        <path className="operator-elbow-path" d="M212 62 V83 H258" />
-      </svg>
-      <div className="absolute bottom-5 left-4 right-4 grid grid-cols-3 gap-2.5">
+      <svg className="operator-scene-svg" viewBox="0 0 320 160" role="img" aria-label="Human-supervised agent workflow with research, taste, and build panels">
+        <defs>
+          <pattern id="operator-dot-grid-supervision" width="10" height="10" patternUnits="userSpaceOnUse">
+            <circle cx="1" cy="1" r="0.6" fill="rgba(237,232,212,0.22)" />
+          </pattern>
+          <filter id="operator-soft-shadow-supervision" x="-20%" y="-20%" width="140%" height="150%">
+            <feDropShadow dx="0" dy="9" stdDeviation="8" floodColor="rgba(0,0,0,0.42)" />
+          </filter>
+        </defs>
+        <rect x="16" y="16" width="288" height="128" rx="13" fill="url(#operator-dot-grid-supervision)" opacity="0.44" />
+        <rect x="24" y="21" width="272" height="31" rx="9" fill="rgba(0,0,0,0.38)" stroke="rgba(255,255,255,0.12)" filter="url(#operator-soft-shadow-supervision)" />
+        <circle cx="40" cy="36.5" r="4.5" fill={color} />
+        <text x="52" y="39.5" fill="rgba(237,232,212,0.62)" fontSize="8" fontWeight="800" letterSpacing="1.2">AGENT CONSOLE</text>
+        <rect x="216" y="28" width="61" height="16" rx="8" fill={`${color}20`} stroke={`${color}66`} />
+        <path d="M226 36 L231 41 L241 30" stroke={color} strokeWidth="1.4" fill="none" strokeLinecap="round" strokeLinejoin="round" />
+        <text x="248" y="39.5" textAnchor="middle" fill={color} fontSize="7" fontWeight="800">approved</text>
+        <path className="operator-elbow-path" d="M93 76 V62 H72 V52" />
+        <path className="operator-elbow-path" d="M160 76 V58 H160 V52" />
+        <path className="operator-elbow-path" d="M227 76 V62 H248 V52" />
         {[
-          ["Research", "source checked"],
-          ["Taste", "revise CTA"],
-          ["Build", "ship ready"],
-        ].map(([label, note], index) => (
-          <div key={label} className="operator-console-card rounded-[10px] border border-white/10 bg-black/25 p-2.5" style={{ animationDelay: `${index * 0.25}s` }}>
-            <div className="flex items-center justify-between gap-1">
-              <span className="text-[7px] font-bold text-white/58">{label}</span>
-              <span className="h-1.5 w-1.5 rounded-full" style={{ backgroundColor: index === 1 ? color : "rgba(255,255,255,0.22)" }} />
-            </div>
-            <div className="mt-2 text-[7px] leading-none text-white/38">{note}</div>
-            <div className="mt-2 h-1 rounded-full bg-white/10">
-              <div className="h-full rounded-full" style={{ width: `${index === 0 ? 82 : index === 1 ? 58 : 74}%`, backgroundColor: `${color}88` }} />
-            </div>
-          </div>
+          ["Research", "source checked", "46", 31, "#60a5fa"],
+          ["Taste", "revise CTA", "33", 118, color],
+          ["Build", "ship ready", "41", 205, "#4ade80"],
+        ].map(([label, note, width, x, accent]) => (
+          <g key={label as string} className="operator-console-svg-card" transform={`translate(${x} 82)`}>
+            <rect width="76" height="47" rx="9" fill="rgba(0,0,0,0.42)" stroke="rgba(255,255,255,0.13)" />
+            <text x="10" y="14" fill="rgba(237,232,212,0.72)" fontSize="7.5" fontWeight="800">{label}</text>
+            <circle cx="63" cy="12" r="3.2" fill={accent as string} opacity="0.9" />
+            <text x="10" y="27" fill="rgba(237,232,212,0.42)" fontSize="6.5">{note}</text>
+            <rect x="10" y="35" width="56" height="4" rx="2" fill="rgba(255,255,255,0.1)" />
+            <rect x="10" y="35" width={width as string} height="4" rx="2" fill={accent as string} opacity="0.74" />
+          </g>
         ))}
-      </div>
+      </svg>
       <div className="absolute left-6 top-[3.65rem] inline-flex items-center gap-1.5 rounded-full border border-white/10 bg-black/55 px-2.5 py-1 text-[10px] font-semibold" style={{ color }}>
         <Check className="h-3 w-3" /> Human Supervision
       </div>
