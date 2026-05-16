@@ -3,6 +3,8 @@ import { Manrope, Instrument_Serif } from "next/font/google";
 import { CookieConsent } from "@/components/CookieConsent";
 import "./globals.css";
 
+const SITE_URL = "https://www.websitecreditscore.com";
+
 const manrope = Manrope({
   variable: "--font-manrope",
   subsets: ["latin"],
@@ -23,7 +25,10 @@ export const metadata: Metadata = {
   },
   description:
     "Get a deep credibility report for any website. Powered by Claude AI with live web research. Graded A+ to F across 8 dimensions. $1 per scan.",
-  metadataBase: new URL("https://websitecreditscore.com"),
+  metadataBase: new URL(SITE_URL),
+  alternates: {
+    canonical: "/",
+  },
   openGraph: {
     title: "WebsiteCreditScore",
     description: "AI-powered credibility reports for any website. $1 per scan.",
@@ -48,9 +53,9 @@ const structuredData = {
   "@graph": [
     {
       "@type": "Organization",
-      "@id": "https://websitecreditscore.com/#organization",
+      "@id": `${SITE_URL}/#organization`,
       name: "WebsiteCreditScore",
-      url: "https://websitecreditscore.com",
+      url: SITE_URL,
       email: "hello@websitecreditscore.com",
       founder: {
         "@type": "Person",
@@ -70,25 +75,25 @@ const structuredData = {
     },
     {
       "@type": "Service",
-      "@id": "https://websitecreditscore.com/#service",
+      "@id": `${SITE_URL}/#service`,
       name: "WebsiteCreditScore website trust reports",
-      provider: { "@id": "https://websitecreditscore.com/#organization" },
+      provider: { "@id": `${SITE_URL}/#organization` },
       serviceType: "AI-powered website credibility audits",
       areaServed: "Worldwide",
       offers: {
         "@type": "Offer",
         priceCurrency: "USD",
         price: "1.00",
-        url: "https://websitecreditscore.com/pricing",
+        url: `${SITE_URL}/pricing`,
       },
-      termsOfService: "https://websitecreditscore.com/terms",
+      termsOfService: `${SITE_URL}/terms`,
     },
     {
       "@type": "WebSite",
-      "@id": "https://websitecreditscore.com/#website",
+      "@id": `${SITE_URL}/#website`,
       name: "WebsiteCreditScore",
-      url: "https://websitecreditscore.com",
-      publisher: { "@id": "https://websitecreditscore.com/#organization" },
+      url: SITE_URL,
+      publisher: { "@id": `${SITE_URL}/#organization` },
     },
   ],
 };

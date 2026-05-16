@@ -6,6 +6,6 @@ export default function robots(): MetadataRoute.Robots {
       userAgent: "*",
       allow: "/",
     },
-    sitemap: "https://websitecreditscore.com/sitemap.xml",
+    sitemap: "https://www.websitecreditscore.com/sitemap.xml",
   };
 }

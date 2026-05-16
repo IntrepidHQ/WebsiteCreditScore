@@ -1,5 +1,7 @@
 import type { MetadataRoute } from "next";
 
+const SITE_URL = "https://www.websitecreditscore.com";
+
 const routes = [
   "",
   "/about",
@@ -17,7 +19,7 @@ const routes = [
 export default function sitemap(): MetadataRoute.Sitemap {
   const now = new Date();
   return routes.map((route) => ({
-    url: `https://websitecreditscore.com${route}`,
+    url: `${SITE_URL}${route}`,
     lastModified: now,
     changeFrequency: route === "" ? "daily" : "weekly",
     priority: route === "" ? 1 : 0.7,
