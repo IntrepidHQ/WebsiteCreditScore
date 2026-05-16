@@ -343,6 +343,69 @@ export default async function LandingPage({
         </div>
       </section>
 
+      {/* Trust proof */}
+      <section className="px-6 py-12" style={{ borderTop: "1px solid var(--theme-border)" }}>
+        <div className="mx-auto grid max-w-7xl gap-5 lg:grid-cols-[minmax(0,0.8fr)_minmax(0,1.2fr)] lg:items-stretch">
+          <div
+            className="rounded-2xl p-6"
+            style={{ border: "1px solid var(--theme-border)", backgroundColor: "var(--theme-panel)" }}
+          >
+            <p className="text-xs font-semibold uppercase tracking-[0.18em]" style={{ color: "var(--theme-accent)" }}>
+              Operator proof
+            </p>
+            <h2 className="font-display mt-3" style={{ fontSize: "clamp(2rem, 4vw, 3rem)", color: "var(--theme-foreground)", lineHeight: 1 }}>
+              Built and operated by Hans Turner.
+            </h2>
+            <p className="mt-4 text-sm leading-relaxed" style={{ color: "var(--theme-muted)" }}>
+              WebsiteCreditScore is a public website audit tool from Hans Turner, a web strategist in Mount Pleasant,
+              South Carolina. The site publishes its pricing, methodology, privacy policy, terms, cookie policy, refund
+              approach, and support email so buyers can verify the service before purchasing.
+            </p>
+            <div className="mt-5 flex flex-wrap gap-3 text-xs font-semibold">
+              <a href="https://hansturner.com" target="_blank" rel="noopener noreferrer" className="rounded-full border px-3 py-1.5 hover:opacity-85" style={{ borderColor: "var(--theme-border)", color: "var(--theme-foreground)" }}>
+                HansTurner.com
+              </a>
+              <a href="https://github.com/IntrepidHQ/WebsiteCreditScore" target="_blank" rel="noopener noreferrer" className="rounded-full border px-3 py-1.5 hover:opacity-85" style={{ borderColor: "var(--theme-border)", color: "var(--theme-foreground)" }}>
+                Public GitHub repo
+              </a>
+              <a href="mailto:hello@websitecreditscore.com" className="rounded-full border px-3 py-1.5 hover:opacity-85" style={{ borderColor: "var(--theme-border)", color: "var(--theme-foreground)" }}>
+                hello@websitecreditscore.com
+              </a>
+            </div>
+          </div>
+          <div className="grid gap-5 sm:grid-cols-3">
+            {[
+              {
+                title: "Transparent pricing",
+                body: "Aerial scans start at $1, with clearly listed deeper scan tiers and bundle pricing.",
+                href: "/pricing",
+              },
+              {
+                title: "Published methodology",
+                body: "The scoring model explains the trust dimensions, evidence sources, and report limitations.",
+                href: "/docs",
+              },
+              {
+                title: "Privacy and cookies",
+                body: "No ad pixels or cross-site tracking; optional analytics are gated by the cookie banner.",
+                href: "/cookies",
+              },
+            ].map((item) => (
+              <Link
+                key={item.href}
+                href={item.href}
+                className="rounded-2xl p-5 transition-opacity hover:opacity-90"
+                style={{ border: "1px solid var(--theme-border)", backgroundColor: "color-mix(in srgb, var(--theme-panel) 65%, transparent)" }}
+              >
+                <p className="text-sm font-semibold" style={{ color: "var(--theme-foreground)" }}>{item.title}</p>
+                <p className="mt-3 text-xs leading-relaxed" style={{ color: "var(--theme-muted)" }}>{item.body}</p>
+                <p className="mt-4 text-xs font-bold" style={{ color: "var(--theme-accent)" }}>Verify →</p>
+              </Link>
+            ))}
+          </div>
+        </div>
+      </section>
+
       {/* Ten angles */}
       <section
         className="px-6 py-20"

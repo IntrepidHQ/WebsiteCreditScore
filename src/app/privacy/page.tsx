@@ -48,7 +48,7 @@ export default function PrivacyPage() {
                 </div>
                 <div>
                   <p className="font-semibold mb-1" style={{ color: "var(--theme-foreground)" }}>Analytics</p>
-                  <p>We use Vercel Analytics for aggregate, anonymized traffic data. No cookies are set for tracking. No cross-site tracking.</p>
+                  <p>We use Vercel Analytics only if you accept optional analytics in the cookie banner. Analytics are aggregate and privacy-friendly. We do not use ad pixels, retargeting tags, or cross-site tracking.</p>
                 </div>
               </div>
             ),
@@ -58,7 +58,8 @@ export default function PrivacyPage() {
             content: (
               <ul className="space-y-1.5 text-sm leading-relaxed list-disc list-inside" style={{ color: "var(--theme-muted)" }}>
                 <li>No account is required — we collect no email or name from you.</li>
-                <li>No cookies beyond what Stripe needs for checkout.</li>
+                <li>No advertising cookies, retargeting pixels, or cross-site tracking cookies.</li>
+                <li>No optional analytics unless you accept them in the cookie banner.</li>
                 <li>No marketing pixels or retargeting tags.</li>
                 <li>No sale of your data to any third party, ever.</li>
               </ul>

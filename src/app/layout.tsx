@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import { Manrope, Instrument_Serif } from "next/font/google";
-import { Analytics } from "@vercel/analytics/react";
+import { CookieConsent } from "@/components/CookieConsent";
 import "./globals.css";
 
 const manrope = Manrope({
@@ -43,6 +43,49 @@ export const metadata: Metadata = {
   },
 };
 
+const structuredData = {
+  "@context": "https://schema.org",
+  "@graph": [
+    {
+      "@type": "Organization",
+      "@id": "https://websitecreditscore.com/#organization",
+      name: "WebsiteCreditScore",
+      url: "https://websitecreditscore.com",
+      email: "hello@websitecreditscore.com",
+      founder: {
+        "@type": "Person",
+        name: "Hans Turner",
+        url: "https://hansturner.com",
+      },
+      sameAs: [
+        "https://hansturner.com",
+        "https://github.com/IntrepidHQ/WebsiteCreditScore",
+      ],
+    },
+    {
+      "@type": "Service",
+      "@id": "https://websitecreditscore.com/#service",
+      name: "WebsiteCreditScore website trust reports",
+      provider: { "@id": "https://websitecreditscore.com/#organization" },
+      serviceType: "AI-powered website credibility audits",
+      areaServed: "Worldwide",
+      offers: {
+        "@type": "Offer",
+        priceCurrency: "USD",
+        price: "1.00",
+        url: "https://websitecreditscore.com/pricing",
+      },
+    },
+    {
+      "@type": "WebSite",
+      "@id": "https://websitecreditscore.com/#website",
+      name: "WebsiteCreditScore",
+      url: "https://websitecreditscore.com",
+      publisher: { "@id": "https://websitecreditscore.com/#organization" },
+    },
+  ],
+};
+
 export default function RootLayout({
   children,
 }: {
@@ -51,8 +94,12 @@ export default function RootLayout({
   return (
     <html lang="en" className={`${manrope.variable} ${instrumentSerif.variable}`}>
       <body className="min-h-screen antialiased">
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(structuredData) }}
+        />
         {children}
-        <Analytics />
+        <CookieConsent />
       </body>
     </html>
   );

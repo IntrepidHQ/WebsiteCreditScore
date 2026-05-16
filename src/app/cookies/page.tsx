@@ -3,129 +3,123 @@ import { ScrollToTop } from "@/components/ScrollToTop";
 import { NavBar } from "@/components/NavBar";
 import { SiteFooter } from "@/components/SiteFooter";
 
-/**
- * DRAFT cookies policy. Structural skeleton. Review with counsel and
- * confirm the actual cookies the production build sets before publishing.
- *
- * Placeholders:
- *   COMPANY_LEGAL_NAME, PRIVACY_EMAIL.
- */
-
 export const metadata: Metadata = {
-  title: "Cookies Policy (Draft) | WebsiteCreditScore.com",
+  title: "Cookie Policy — WebsiteCreditScore",
   description:
-    "Draft cookies policy for WebsiteCreditScore.com. Lists the cookies we set, their purpose, and how to opt out.",
+    "Cookie policy for WebsiteCreditScore.com, including necessary checkout cookies, credit recovery cookies, Stripe cookies, and optional analytics.",
 };
+
+const rows = [
+  {
+    name: "wcs_wallet_id",
+    purpose: "Stores your credit wallet so purchased scan credits can be used on this device.",
+    duration: "1 year",
+    setBy: "WebsiteCreditScore",
+    category: "Strictly necessary",
+  },
+  {
+    name: "wcs_cookie_consent",
+    purpose: "Remembers whether you accepted optional analytics or chose necessary cookies only.",
+    duration: "Until browser storage is cleared",
+    setBy: "WebsiteCreditScore",
+    category: "Strictly necessary",
+  },
+  {
+    name: "__stripe_mid / __stripe_sid",
+    purpose: "Fraud prevention and secure checkout session handling when you buy scans.",
+    duration: "30 minutes to 1 year",
+    setBy: "Stripe",
+    category: "Strictly necessary for checkout",
+  },
+  {
+    name: "Vercel Analytics",
+    purpose: "Aggregate page view and performance analytics. Loaded only if you accept analytics.",
+    duration: "No advertising profile; aggregate analytics only",
+    setBy: "Vercel",
+    category: "Optional analytics",
+  },
+];
 
 export default function CookiesPage() {
   return (
     <main className="flex min-h-screen flex-col" style={{ backgroundColor: "var(--theme-background)" }}>
       <ScrollToTop />
       <NavBar />
-      <div className="mx-auto w-full max-w-3xl flex-1 px-4 py-16 sm:px-6 lg:px-8">
-      <div
-        role="alert"
-        className="mb-8 rounded-lg border border-warning/40 bg-warning/10 p-4 text-sm text-foreground"
-      >
-        <strong className="font-semibold">DRAFT — REVIEW WITH COUNSEL BEFORE LAUNCH.</strong> This
-        document is a structural placeholder. Replace every <code>{"{{PLACEHOLDER}}"}</code> value,
-        confirm the actual cookie list in production, have qualified counsel review, and remove
-        this banner before publishing.
-      </div>
-
-      <article className="prose prose-neutral max-w-none">
-        <h1>Cookies Policy</h1>
-        <p>
-          <em>Last updated: {"{{LAST_UPDATED_DATE}}"}</em>
-        </p>
-
-        <p>
-          This policy explains which cookies {"{{COMPANY_LEGAL_NAME}}"} sets on websitecreditscore.com,
-          what each cookie does, and how you can manage or disable them.
-        </p>
-
-        <h2>What cookies we set</h2>
-
-        <div className="not-prose overflow-x-auto">
-          <table className="w-full text-left text-sm">
-            <thead className="border-b border-border">
-              <tr>
-                <th className="py-2 pr-4 font-semibold">Name / prefix</th>
-                <th className="py-2 pr-4 font-semibold">Purpose</th>
-                <th className="py-2 pr-4 font-semibold">Duration</th>
-                <th className="py-2 pr-4 font-semibold">Set by</th>
-              </tr>
-            </thead>
-            <tbody className="[&>tr]:border-b [&>tr]:border-border/40">
-              <tr>
-                <td className="py-2 pr-4 font-mono text-xs">sb-*</td>
-                <td className="py-2 pr-4">Authentication session (Supabase).</td>
-                <td className="py-2 pr-4">Session / up to 7 days</td>
-                <td className="py-2 pr-4">Supabase</td>
-              </tr>
-              <tr>
-                <td className="py-2 pr-4 font-mono text-xs">craydl-demo-session</td>
-                <td className="py-2 pr-4">
-                  Demo session unlock for local preview environments. Not set in production.
-                </td>
-                <td className="py-2 pr-4">Session</td>
-                <td className="py-2 pr-4">WebsiteCreditScore.com</td>
-              </tr>
-              <tr>
-                <td className="py-2 pr-4 font-mono text-xs">__stripe_mid</td>
-                <td className="py-2 pr-4">Stripe fraud prevention.</td>
-                <td className="py-2 pr-4">1 year</td>
-                <td className="py-2 pr-4">Stripe</td>
-              </tr>
-              <tr>
-                <td className="py-2 pr-4 font-mono text-xs">__stripe_sid</td>
-                <td className="py-2 pr-4">Stripe session tracking during checkout.</td>
-                <td className="py-2 pr-4">30 minutes</td>
-                <td className="py-2 pr-4">Stripe</td>
-              </tr>
-              <tr>
-                <td className="py-2 pr-4 font-mono text-xs">_vercel_analytics</td>
-                <td className="py-2 pr-4">Aggregate, privacy-friendly traffic analytics.</td>
-                <td className="py-2 pr-4">24 hours</td>
-                <td className="py-2 pr-4">Vercel</td>
-              </tr>
-            </tbody>
-          </table>
+      <article className="mx-auto w-full max-w-3xl flex-1 px-6 py-16">
+        <div className="space-y-3">
+          <p className="text-xs font-semibold uppercase tracking-[0.18em]" style={{ color: "var(--theme-accent)" }}>
+            Legal
+          </p>
+          <h1
+            className="font-display"
+            style={{ fontSize: "clamp(2.4rem, 5vw, 3.8rem)", color: "var(--theme-foreground)", lineHeight: 1 }}
+          >
+            Cookie Policy
+          </h1>
+          <p className="text-sm" style={{ color: "var(--theme-muted)" }}>
+            Last updated: May 15, 2026
+          </p>
+          <p className="text-sm leading-relaxed" style={{ color: "var(--theme-muted)" }}>
+            WebsiteCreditScore.com uses a small number of cookies and browser-storage values to keep checkout,
+            scan credits, and consent preferences working. We do not use advertising cookies, retargeting pixels,
+            or cross-site tracking.
+          </p>
         </div>
 
-        <h2>Categories</h2>
-        <ul>
-          <li>
-            <strong>Strictly necessary:</strong> <code>sb-*</code>, <code>craydl-demo-session</code>
-            — required for sign-in and session state. Disabling these will break authentication.
-          </li>
-          <li>
-            <strong>Functional:</strong> <code>__stripe_mid</code>, <code>__stripe_sid</code> —
-            required for secure checkout. Disabling them will prevent purchases.
-          </li>
-          <li>
-            <strong>Analytics:</strong> <code>_vercel_analytics</code> — aggregate, anonymized
-            metrics. Disabling is safe.
-          </li>
-        </ul>
+        <section className="mt-10 space-y-4">
+          <h2 className="text-base font-semibold" style={{ color: "var(--theme-foreground)" }}>
+            Cookies and storage we use
+          </h2>
+          <div className="overflow-x-auto rounded-2xl border" style={{ borderColor: "var(--theme-border)" }}>
+            <table className="w-full min-w-[42rem] text-left text-sm">
+              <thead style={{ backgroundColor: "var(--theme-panel)", color: "var(--theme-foreground)" }}>
+                <tr>
+                  <th className="px-4 py-3 font-semibold">Name</th>
+                  <th className="px-4 py-3 font-semibold">Purpose</th>
+                  <th className="px-4 py-3 font-semibold">Duration</th>
+                  <th className="px-4 py-3 font-semibold">Set by</th>
+                  <th className="px-4 py-3 font-semibold">Category</th>
+                </tr>
+              </thead>
+              <tbody>
+                {rows.map((row) => (
+                  <tr key={row.name} style={{ borderTop: "1px solid var(--theme-border)" }}>
+                    <td className="px-4 py-3 font-mono text-xs" style={{ color: "var(--theme-foreground)" }}>{row.name}</td>
+                    <td className="px-4 py-3" style={{ color: "var(--theme-muted)" }}>{row.purpose}</td>
+                    <td className="px-4 py-3" style={{ color: "var(--theme-muted)" }}>{row.duration}</td>
+                    <td className="px-4 py-3" style={{ color: "var(--theme-muted)" }}>{row.setBy}</td>
+                    <td className="px-4 py-3" style={{ color: "var(--theme-muted)" }}>{row.category}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </section>
 
-        <h2>How to manage cookies</h2>
-        <p>
-          Most browsers allow you to view, delete, and block cookies via their settings.
-          Disabling strictly necessary cookies will break sign-in and checkout. We respect the
-          <em>Do Not Track</em> browser signal where technically feasible.
-        </p>
+        <section className="mt-10 space-y-3">
+          <h2 className="text-base font-semibold" style={{ color: "var(--theme-foreground)" }}>
+            Managing consent
+          </h2>
+          <p className="text-sm leading-relaxed" style={{ color: "var(--theme-muted)" }}>
+            The cookie banner lets you choose “Necessary only” or “Accept analytics.” Necessary cookies support
+            checkout, purchased credits, and your consent preference. Optional analytics are not loaded unless you
+            accept them. You can reset your choice by clearing this site’s browser data.
+          </p>
+        </section>
 
-        <h2>Third-party cookies</h2>
-        <p>
-          Stripe and Vercel set their own cookies when you interact with their embedded surfaces
-          (checkout, analytics). Their own privacy policies describe those cookies in detail.
-        </p>
-
-        <h2>Contact</h2>
-        <p>Questions: {"{{PRIVACY_EMAIL}}"}.</p>
+        <section className="mt-10 space-y-3">
+          <h2 className="text-base font-semibold" style={{ color: "var(--theme-foreground)" }}>
+            Contact
+          </h2>
+          <p className="text-sm leading-relaxed" style={{ color: "var(--theme-muted)" }}>
+            Questions about cookies or privacy can be sent to{" "}
+            <a href="mailto:hello@websitecreditscore.com" className="underline underline-offset-2" style={{ color: "var(--theme-accent)" }}>
+              hello@websitecreditscore.com
+            </a>
+            .
+          </p>
+        </section>
       </article>
-      </div>
       <SiteFooter />
     </main>
   );

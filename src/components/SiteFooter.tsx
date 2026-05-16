@@ -19,12 +19,20 @@ export function SiteFooter() {
       style={{ borderTop: "1px solid var(--theme-border)" }}
     >
       <div className="max-w-5xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-4">
-        <span
-          className="text-sm font-semibold font-display"
-          style={{ color: "var(--theme-foreground)" }}
-        >
-          WebsiteCreditScore.com
-        </span>
+        <div className="text-center sm:text-left">
+          <span
+            className="text-sm font-semibold font-display"
+            style={{ color: "var(--theme-foreground)" }}
+          >
+            WebsiteCreditScore.com
+          </span>
+          <p className="mt-1 text-xs" style={{ color: "color-mix(in srgb, var(--theme-muted) 65%, transparent)" }}>
+            Operated by Hans Turner ·{" "}
+            <a href="mailto:hello@websitecreditscore.com" className="hover:opacity-80">
+              hello@websitecreditscore.com
+            </a>
+          </p>
+        </div>
         <div
           className="flex flex-wrap items-center justify-center gap-4 text-xs"
           style={{ color: "color-mix(in srgb, var(--theme-muted) 70%, transparent)" }}
