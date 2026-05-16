@@ -7,11 +7,11 @@ import { SiteFooter } from "@/components/SiteFooter";
 export const metadata: Metadata = {
   title: "How It Works — WebsiteCreditScore",
   description:
-    "Learn how WebsiteCreditScore grades websites across 8 dimensions using live AI research. Understand the methodology, scoring, and what every report includes.",
+    "Learn how WebsiteCreditScore grades websites across 10 dimensions using live AI research. Understand the methodology, scoring, and what every report includes.",
   openGraph: {
     title: "How WebsiteCreditScore Works",
     description:
-      "AI-powered website trust scoring across 8 weighted dimensions — methodology, grading, and what each report includes.",
+      "AI-powered website trust scoring across 10 weighted dimensions — methodology, grading, and what each report includes.",
   },
 };
 
@@ -19,7 +19,7 @@ const dimensions = [
   {
     key: "legitimacy",
     label: "Business Legitimacy",
-    weight: "25%",
+    weight: "18%",
     color: "#3dd598",
     desc: "Is this a real, registered business? We check state filings, physical addresses, verifiable phone numbers, BBB registration, and whether contact information is consistent across sources.",
     signals: ["Business registration records", "BBB accreditation status", "Address verification", "Phone & email consistency"],
@@ -27,15 +27,31 @@ const dimensions = [
   {
     key: "reputation",
     label: "Online Reputation",
-    weight: "20%",
+    weight: "15%",
     color: "#38bdf8",
     desc: "What do customers actually say? We search Google Reviews, Trustpilot, Reddit, Yelp, and industry-specific review platforms — looking at sentiment, recency, and response patterns.",
     signals: ["Google review sentiment", "Trustpilot profile", "Reddit mentions", "BBB complaint history"],
   },
   {
+    key: "visual_design",
+    label: "Visual Design",
+    weight: "14%",
+    color: "#818cf8",
+    desc: "Does the site look current, intentional, and credible? We evaluate layout, typography, hierarchy, polish, mobile presentation, and whether the visual system supports trust.",
+    signals: ["Visual hierarchy", "Typography quality", "Mobile presentation", "Brand consistency"],
+  },
+  {
+    key: "ux_conversion",
+    label: "UX / Conversion",
+    weight: "12%",
+    color: "#f7b21b",
+    desc: "Can a visitor quickly understand what to do next? We check call-to-action clarity, navigation friction, form design, speed of task completion, and whether the flow matches buyer intent.",
+    signals: ["CTA clarity", "Navigation friction", "Form usability", "Purchase / inquiry path"],
+  },
+  {
     key: "transparency",
     label: "Transparency & Disclosure",
-    weight: "12%",
+    weight: "10%",
     color: "#a78bfa",
     desc: "Does the site tell you what it is? We look for clear pricing, refund policies, terms of service, privacy policies, and honest representation of the company and its owners.",
     signals: ["Pricing clarity", "Refund / cancellation policy", "Privacy policy", "Terms of service"],
@@ -43,15 +59,15 @@ const dimensions = [
   {
     key: "financial",
     label: "Financial Signals",
-    weight: "12%",
-    color: "#f7b21b",
+    weight: "3%",
+    color: "#facc15",
     desc: "Is there evidence of real financial activity? We look at funding history, Crunchbase records, press coverage of revenue milestones, and signals of financial stability or distress.",
     signals: ["Funding rounds", "Crunchbase profile", "Revenue press coverage", "Financial distress signals"],
   },
   {
     key: "technical",
     label: "Technical Health",
-    weight: "10%",
+    weight: "8%",
     color: "#34d399",
     desc: "Does the site operate like a legitimate business? HTTPS enforcement, page speed, uptime history, security headers, and basic infrastructure quality are all evaluated.",
     signals: ["HTTPS & TLS validity", "Page load performance", "Security headers", "Uptime history"],
@@ -59,7 +75,7 @@ const dimensions = [
   {
     key: "longevity",
     label: "Domain & Company Longevity",
-    weight: "10%",
+    weight: "5%",
     color: "#fb923c",
     desc: "How long has this site and company existed? Domain age, Wayback Machine history, and consistent business presence over time all indicate lower scam risk.",
     signals: ["Domain registration age", "Wayback Machine history", "Business founding date", "Consistent presence"],
@@ -67,7 +83,7 @@ const dimensions = [
   {
     key: "content",
     label: "Content Quality",
-    weight: "10%",
+    weight: "8%",
     color: "#f472b6",
     desc: "Does the content reflect a real expert operation? We look for depth, original research, author credentials, and evidence-backed claims — versus thin, copy-pasted, or AI-spun filler.",
     signals: ["Content depth & originality", "Author expertise signals", "Cited sources", "Accuracy indicators"],
@@ -75,7 +91,7 @@ const dimensions = [
   {
     key: "social",
     label: "Social & Press Presence",
-    weight: "10%",
+    weight: "7%",
     color: "#60a5fa",
     desc: "Is there a real community around this brand? We check LinkedIn, X/Twitter, YouTube, and press mentions — distinguishing genuine engagement from ghost accounts or purchased followers.",
     signals: ["LinkedIn company page", "X/Twitter activity", "YouTube presence", "Press & news mentions"],
@@ -93,7 +109,7 @@ const faqItems = [
   },
   {
     q: "How is the overall score calculated?",
-    a: "Each of the 8 dimensions is scored 0–100 and then multiplied by its weight. The weighted sum produces the overall score (also 0–100). The letter grade (A+ to F) maps to score tiers: A+ ≥ 95, A ≥ 90, B+ ≥ 85, and so on.",
+    a: "Each of the 10 dimensions is scored 0–100 and then multiplied by its weight. The weighted sum produces the overall score (also 0–100). The letter grade (A+ to F) maps to score tiers: A+ ≥ 95, A ≥ 90, B+ ≥ 85, and so on.",
   },
   {
     q: "Can I run a scan on any website?",
@@ -155,7 +171,7 @@ export default function DocsPage() {
               { step: "01", title: "Enter domain", body: "You type any domain (e.g. acmeplumbing.com). No account needed." },
               { step: "02", title: "Pay $1", body: "Stripe processes the payment securely. We never store card details." },
               { step: "03", title: "AI researches", body: "Claude AI runs 8–10 live searches: reviews, filings, Reddit, press, technical checks, and more." },
-              { step: "04", title: "Get your report", body: "8 graded dimensions, red/green flags, cited sources, and an overall A–F letter grade." },
+              { step: "04", title: "Get your report", body: "10 graded dimensions, red/green flags, cited sources, and an overall A–F letter grade." },
             ].map(({ step, title, body }) => (
               <div
                 key={step}
@@ -177,11 +193,11 @@ export default function DocsPage() {
         </div>
       </section>
 
-      {/* 8 Dimensions */}
+      {/* 10 Dimensions */}
       <section className="px-6 py-14" style={{ borderBottom: "1px solid var(--theme-border)" }}>
         <div className="max-w-4xl mx-auto">
           <h2 className="text-lg font-semibold mb-2" style={{ color: "var(--theme-foreground)" }}>
-            The 8 scoring dimensions
+            The 10 scoring dimensions
           </h2>
           <p className="text-sm mb-10" style={{ color: "var(--theme-muted)" }}>
             Each dimension is weighted independently. The weighted average produces the overall 0–100 score.

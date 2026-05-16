@@ -45,7 +45,7 @@ export default function RefundsPage() {
             },
             {
               title: "Support contact",
-              body: "For refund questions, send the scan URL or Stripe receipt to hello@websitecreditscore.com. We respond as quickly as possible and use the report URL to locate the relevant scan.",
+              body: "For refund questions, send the scan URL or Stripe receipt to websitecreditscore@gmail.com. We respond as quickly as possible and use the report URL to locate the relevant scan.",
             },
           ].map((item) => (
             <section key={item.title} className="rounded-2xl p-5" style={{ border: "1px solid var(--theme-border)", backgroundColor: "var(--theme-panel)" }}>

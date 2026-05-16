@@ -17,8 +17,12 @@ export default function BlogPage() {
       <ScrollToTop />
       <NavBar />
 
-      <section className="px-6 py-16" style={{ borderBottom: "1px solid var(--theme-border)" }}>
-        <div className="max-w-3xl mx-auto space-y-4">
+      <section className="relative overflow-hidden px-6 py-16" style={{ borderBottom: "1px solid var(--theme-border)" }}>
+        <div className="pointer-events-none absolute inset-0 opacity-80">
+          <div className="absolute left-[-8rem] top-[-10rem] h-72 w-72 rounded-full blur-3xl" style={{ backgroundColor: "rgba(96,165,250,0.18)" }} />
+          <div className="absolute right-[-8rem] top-10 h-80 w-80 rounded-full blur-3xl" style={{ backgroundColor: "rgba(247,178,27,0.16)" }} />
+        </div>
+        <div className="relative max-w-3xl mx-auto space-y-4">
           <div
             className="inline-flex items-center gap-2 rounded-full px-4 py-1.5 text-xs"
             style={{ border: "1px solid var(--theme-border)", backgroundColor: "color-mix(in srgb, var(--theme-panel) 60%, transparent)", color: "var(--theme-muted)" }}
@@ -35,16 +39,28 @@ export default function BlogPage() {
       </section>
 
       <section className="px-6 py-12">
-        <div className="max-w-3xl mx-auto space-y-4">
+        <div className="max-w-5xl mx-auto grid gap-4 sm:grid-cols-2">
           {BLOG_POSTS.map((post) => {
             const Icon = getBlogIconForSlug(post.slug);
             return (
               <Link
                 key={post.slug}
                 href={`/blog/${post.slug}`}
-                className="block rounded-2xl p-6 group transition-all hover:scale-[1.01]"
-                style={{ border: "1px solid var(--theme-border)", backgroundColor: "var(--theme-panel)" }}
+                className="group relative block overflow-hidden rounded-2xl p-6 transition-all hover:-translate-y-1"
+                style={{
+                  border: `1px solid color-mix(in srgb, ${post.dimensionColor} 24%, var(--theme-border))`,
+                  background:
+                    `linear-gradient(135deg, color-mix(in srgb, ${post.dimensionColor} 16%, var(--theme-panel)) 0%, var(--theme-panel) 52%, color-mix(in srgb, ${post.dimensionColor} 8%, var(--theme-background)) 100%)`,
+                }}
               >
+                <div
+                  className="pointer-events-none absolute -right-10 -top-10 h-32 w-32 rounded-full opacity-60 blur-2xl transition-transform group-hover:scale-125"
+                  style={{ backgroundColor: post.dimensionColor }}
+                />
+                <div
+                  className="pointer-events-none absolute bottom-0 left-0 h-1 w-full"
+                  style={{ background: `linear-gradient(90deg, ${post.dimensionColor}, transparent)` }}
+                />
                 <div className="flex items-start gap-4">
                   <div
                     className="shrink-0 flex h-12 w-12 items-center justify-center rounded-xl"

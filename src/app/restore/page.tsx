@@ -110,7 +110,7 @@ export default function RestorePage() {
               <span style={{ color: "var(--theme-foreground)" }}>checkout success URL</span> next time you purchase — it works as a permanent recovery link.
             </p>
             <a
-              href="mailto:hello@websitecreditscore.com?subject=Help%20restoring%20credits"
+              href="mailto:websitecreditscore@gmail.com?subject=Help%20restoring%20credits"
               className="inline-flex items-center gap-1 text-xs underline underline-offset-2 mt-2"
               style={{ color: "var(--theme-accent)" }}
             >

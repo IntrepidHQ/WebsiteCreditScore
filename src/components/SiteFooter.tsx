@@ -30,8 +30,8 @@ export function SiteFooter() {
           </span>
           <p className="mt-1 text-xs" style={{ color: "color-mix(in srgb, var(--theme-muted) 65%, transparent)" }}>
             Operated by Hans Turner ·{" "}
-            <a href="mailto:hello@websitecreditscore.com" className="hover:opacity-80">
-              hello@websitecreditscore.com
+            <a href="mailto:websitecreditscore@gmail.com" className="hover:opacity-80">
+              websitecreditscore@gmail.com
             </a>
           </p>
         </div>

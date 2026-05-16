@@ -113,8 +113,8 @@ export default function CookiesPage() {
           </h2>
           <p className="text-sm leading-relaxed" style={{ color: "var(--theme-muted)" }}>
             Questions about cookies or privacy can be sent to{" "}
-            <a href="mailto:hello@websitecreditscore.com" className="underline underline-offset-2" style={{ color: "var(--theme-accent)" }}>
-              hello@websitecreditscore.com
+            <a href="mailto:websitecreditscore@gmail.com" className="underline underline-offset-2" style={{ color: "var(--theme-accent)" }}>
+              websitecreditscore@gmail.com
             </a>
             .
           </p>

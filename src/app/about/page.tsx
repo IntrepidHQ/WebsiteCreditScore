@@ -13,7 +13,7 @@ export const metadata: Metadata = {
 const facts = [
   ["Operator", "Hans Turner"],
   ["Location", "Mount Pleasant / Charleston, South Carolina"],
-  ["Support", "hello@websitecreditscore.com"],
+  ["Support", "websitecreditscore@gmail.com"],
   ["Service", "AI-powered website credibility reports using live public web research"],
   ["Pricing", "Free Aerial Scan during the current launch window; paid deeper scans and bundles are listed on the pricing page"],
   ["Refunds", "Failed scans are refunded automatically; completed reports are not refunded because research compute has already run"],
@@ -69,11 +69,28 @@ export default function AboutPage() {
               Hans Turner
             </a>
             , a web strategist based in the Charleston, South Carolina area. Public support is handled at{" "}
-            <a href="mailto:hello@websitecreditscore.com" className="underline underline-offset-2" style={{ color: "var(--theme-accent)" }}>
-              hello@websitecreditscore.com
+            <a href="mailto:websitecreditscore@gmail.com" className="underline underline-offset-2" style={{ color: "var(--theme-accent)" }}>
+              websitecreditscore@gmail.com
             </a>
             .
           </p>
+          <div className="grid gap-3 sm:grid-cols-2">
+            {[
+              ["Portfolio", "https://hansturner.com"],
+              ["LinkedIn", "https://www.linkedin.com/in/hans-turner-01155448/"],
+            ].map(([label, href]) => (
+              <a
+                key={href}
+                href={href}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="rounded-xl border px-4 py-3 text-sm font-semibold transition-opacity hover:opacity-85"
+                style={{ borderColor: "var(--theme-border)", color: "var(--theme-foreground)" }}
+              >
+                {label} →
+              </a>
+            ))}
+          </div>
         </section>
 
         <section className="mt-12 space-y-4">

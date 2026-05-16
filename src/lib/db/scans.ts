@@ -157,6 +157,7 @@ export async function getRecentScans(limit: number | null = 6): Promise<Array<{
     .select("id, domain, result, created_at")
     .eq("status", "done")
     .eq("paid", true)
+    .not("domain", "ilike", "%websitecreditscore.com%")
     .order("created_at", { ascending: false });
 
   if (limit !== null) {

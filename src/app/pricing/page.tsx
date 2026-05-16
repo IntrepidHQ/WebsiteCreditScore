@@ -120,7 +120,7 @@ const faq = [
   },
   {
     q: "Do you offer agency or enterprise pricing?",
-    a: "Email hello@websitecreditscore.com for volume pricing above 50 scans/month.",
+    a: "Email websitecreditscore@gmail.com for volume pricing above 50 scans/month.",
   },
 ];
 

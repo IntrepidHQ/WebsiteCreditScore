@@ -133,8 +133,8 @@ export default function TermsPage() {
             content: (
               <p className="text-sm leading-relaxed" style={{ color: "var(--theme-muted)" }}>
                 Questions:{" "}
-                <a href="mailto:hello@websitecreditscore.com" className="underline underline-offset-2 hover:opacity-80" style={{ color: "var(--theme-accent)" }}>
-                  hello@websitecreditscore.com
+                <a href="mailto:websitecreditscore@gmail.com" className="underline underline-offset-2 hover:opacity-80" style={{ color: "var(--theme-accent)" }}>
+                  websitecreditscore@gmail.com
                 </a>
               </p>
             ),

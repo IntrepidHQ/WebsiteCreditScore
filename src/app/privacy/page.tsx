@@ -24,8 +24,8 @@ export default function PrivacyPage() {
 
         <p className="text-sm leading-relaxed" style={{ color: "var(--theme-muted)" }}>
           WebsiteCreditScore.com (&ldquo;we,&rdquo; &ldquo;us,&rdquo; &ldquo;our&rdquo;) operates a pay-per-scan website intelligence service. This policy explains what data we collect, how we use it, and your rights. Questions? Email{" "}
-          <a href="mailto:hello@websitecreditscore.com" className="underline underline-offset-2 hover:opacity-80" style={{ color: "var(--theme-accent)" }}>
-            hello@websitecreditscore.com
+          <a href="mailto:websitecreditscore@gmail.com" className="underline underline-offset-2 hover:opacity-80" style={{ color: "var(--theme-accent)" }}>
+            websitecreditscore@gmail.com
           </a>.
           The operator and public verification links are listed on the{" "}
           <a href="/about" className="underline underline-offset-2 hover:opacity-80" style={{ color: "var(--theme-accent)" }}>
@@ -120,8 +120,8 @@ export default function PrivacyPage() {
             content: (
               <p className="text-sm leading-relaxed" style={{ color: "var(--theme-muted)" }}>
                 You may request access to, correction of, or deletion of any data we hold that is associated with your scan. Since we don&rsquo;t collect accounts or emails, the easiest way to identify your data is to send us the report URL. Email{" "}
-                <a href="mailto:hello@websitecreditscore.com" className="underline underline-offset-2 hover:opacity-80" style={{ color: "var(--theme-accent)" }}>
-                  hello@websitecreditscore.com
+                <a href="mailto:websitecreditscore@gmail.com" className="underline underline-offset-2 hover:opacity-80" style={{ color: "var(--theme-accent)" }}>
+                  websitecreditscore@gmail.com
                 </a>
                 {" "}and we will respond within 30 days.
               </p>

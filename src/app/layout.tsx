@@ -24,7 +24,7 @@ export const metadata: Metadata = {
     template: "%s | WebsiteCreditScore",
   },
   description:
-    "Get a deep credibility report for any website. Powered by Claude AI with live web research. Graded A+ to F across 8 dimensions. $1 per scan.",
+    "Get a deep credibility report for any website. Powered by Claude AI with live web research. Graded A+ to F across 10 dimensions. $1 per scan.",
   metadataBase: new URL(SITE_URL),
   alternates: {
     canonical: "/",
@@ -56,7 +56,7 @@ const structuredData = {
       "@id": `${SITE_URL}/#organization`,
       name: "WebsiteCreditScore",
       url: SITE_URL,
-      email: "hello@websitecreditscore.com",
+      email: "websitecreditscore@gmail.com",
       founder: {
         "@type": "Person",
         name: "Hans Turner",
@@ -64,12 +64,13 @@ const structuredData = {
       },
       sameAs: [
         "https://hansturner.com",
+        "https://www.linkedin.com/in/hans-turner-01155448/",
         "https://github.com/IntrepidHQ/WebsiteCreditScore",
       ],
       contactPoint: {
         "@type": "ContactPoint",
         contactType: "customer support",
-        email: "hello@websitecreditscore.com",
+        email: "websitecreditscore@gmail.com",
         availableLanguage: "en",
       },
     },

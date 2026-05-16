@@ -1,4 +1,5 @@
 import Link from "next/link";
+import Image from "next/image";
 import { getRecentScans } from "@/lib/db/scans";
 import { ScanForm, type TierMode } from "@/components/ScanForm";
 import { WalletBadge } from "@/components/WalletBadge";
@@ -13,7 +14,7 @@ import { buildStrategyCallCalendlyUrl } from "@/lib/strategy-call";
 import {
   Building2, Star, Palette, MousePointer2,
   Eye, Zap, FileText, Share2, Clock, TrendingUp,
-  CheckCircle2, ArrowRight,
+  CheckCircle2, ArrowRight, Linkedin, ExternalLink,
 } from "lucide-react";
 
 // ── Apple.com fixture data ─────────────────────────────────────────────────
@@ -43,6 +44,33 @@ const ANGLE_BLOG_SLUG: Record<string, string> = {
   financial: "financial-signals",
 };
 
+const OPERATOR_CARDS = [
+  {
+    title: "Verified operator",
+    body: "Tie the product to a real person, public work history, and a durable portfolio presence.",
+    href: "https://www.linkedin.com/in/hans-turner-01155448/",
+    cta: "Open LinkedIn",
+    color: "#60a5fa",
+    graphic: "identity",
+  },
+  {
+    title: "Indexed proof trail",
+    body: "Keep the about, methodology, policy, support, and refund pages crawlable and internally linked.",
+    href: "/docs",
+    cta: "Review methodology",
+    color: "#f7b21b",
+    graphic: "method",
+  },
+  {
+    title: "Third-party signals",
+    body: "Grow the score by earning independent links, social profiles, reviews, and portfolio citations.",
+    href: "https://hansturner.com",
+    cta: "Open portfolio",
+    color: "#4ade80",
+    graphic: "signals",
+  },
+] as const;
+
 function gradeLabel(grade: string): string {
   if (grade === "A+" || grade === "A") return "EXCELLENT";
   if (grade === "A-" || grade === "B+" || grade === "B") return "GREAT";
@@ -66,6 +94,64 @@ function domainInitials(domain: string): string {
     .join("")
     .slice(0, 2)
     .toUpperCase() || "W";
+}
+
+function OperatorGraphic({
+  type,
+  color,
+}: {
+  type: (typeof OPERATOR_CARDS)[number]["graphic"];
+  color: string;
+}) {
+  if (type === "identity") {
+    return (
+      <div className="relative h-28 overflow-hidden rounded-xl border p-3" style={{ borderColor: `${color}40`, backgroundColor: `${color}10` }}>
+        <div className="absolute inset-0 operator-scan-grid opacity-60" />
+        <div className="relative flex items-center gap-3">
+          <div className="h-12 w-12 rounded-full border" style={{ borderColor: `${color}80`, background: `linear-gradient(135deg, ${color}55, rgba(255,255,255,0.08))` }} />
+          <div className="space-y-2">
+            <div className="h-2 w-24 rounded-full" style={{ backgroundColor: `${color}90` }} />
+            <div className="h-2 w-16 rounded-full" style={{ backgroundColor: `${color}45` }} />
+          </div>
+        </div>
+        <div className="operator-pulse absolute bottom-4 left-4 right-4 h-1 rounded-full" style={{ background: `linear-gradient(90deg, transparent, ${color}, transparent)` }} />
+      </div>
+    );
+  }
+
+  if (type === "method") {
+    return (
+      <div className="relative h-28 overflow-hidden rounded-xl border p-3" style={{ borderColor: `${color}40`, backgroundColor: `${color}10` }}>
+        {[0, 1, 2].map((i) => (
+          <div
+            key={i}
+            className="operator-float mb-2 flex items-center gap-2 rounded-lg border px-2 py-1.5"
+            style={{
+              animationDelay: `${i * 0.22}s`,
+              borderColor: `${color}28`,
+              backgroundColor: "rgba(14,14,7,0.5)",
+            }}
+          >
+            <span className="h-2 w-2 rounded-full" style={{ backgroundColor: i === 1 ? "#4ade80" : color }} />
+            <span className="h-1.5 flex-1 rounded-full" style={{ backgroundColor: `${color}${i === 0 ? "88" : "44"}` }} />
+          </div>
+        ))}
+      </div>
+    );
+  }
+
+  return (
+    <div className="relative h-28 overflow-hidden rounded-xl border" style={{ borderColor: `${color}40`, backgroundColor: `${color}10` }}>
+      <div className="absolute left-5 top-5 h-10 w-10 rounded-xl" style={{ backgroundColor: `${color}45` }} />
+      <div className="absolute right-5 top-7 h-8 w-8 rounded-full" style={{ backgroundColor: "#60a5fa55" }} />
+      <div className="absolute bottom-5 left-1/2 h-9 w-9 -translate-x-1/2 rounded-lg" style={{ backgroundColor: "#f472b655" }} />
+      <svg className="absolute inset-0 h-full w-full operator-link-draw" viewBox="0 0 240 112" aria-hidden>
+        <path d="M44 38 C88 18, 128 22, 194 42" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" />
+        <path d="M62 38 C94 84, 134 94, 120 82" fill="none" stroke="#60a5fa" strokeWidth="2" strokeLinecap="round" />
+        <path d="M194 42 C166 70, 144 78, 120 82" fill="none" stroke="#f472b6" strokeWidth="2" strokeLinecap="round" />
+      </svg>
+    </div>
+  );
 }
 
 // ── SVG Radar chart — stained-glass per-dimension slices ──────────────────
@@ -234,14 +320,16 @@ function AngleCard({ angle }: { angle: typeof ANGLES[number] }) {
     </>
   );
   const shellClass =
-    "rounded-2xl p-5 flex flex-col gap-3 relative overflow-hidden transition-opacity hover:opacity-92";
+    "group rounded-2xl p-5 flex flex-col gap-3 relative overflow-hidden transition-all hover:-translate-y-1 hover:opacity-95";
   const shellStyle = {
-    border: "1px solid var(--theme-border)",
-    backgroundColor: "var(--theme-panel)",
+    border: `1px solid color-mix(in srgb, ${angle.color} 22%, var(--theme-border))`,
+    background:
+      `linear-gradient(145deg, color-mix(in srgb, ${angle.color} 12%, var(--theme-panel)) 0%, var(--theme-panel) 62%, color-mix(in srgb, ${angle.color} 6%, var(--theme-background)) 100%)`,
   } as const;
   if (blogSlug) {
     return (
       <Link href={`/blog/${blogSlug}`} className={`${shellClass} h-full`} style={shellStyle}>
+        <div className="pointer-events-none absolute -right-10 -top-10 h-24 w-24 rounded-full opacity-25 blur-2xl transition-transform group-hover:scale-125" style={{ backgroundColor: angle.color }} />
         {inner}
         <span className="text-[10px] font-medium mt-auto pt-2" style={{ color: "var(--theme-accent)" }}>
           Read dimension guide →
@@ -369,12 +457,24 @@ export default async function LandingPage({
             className="rounded-2xl p-6"
             style={{ border: "1px solid var(--theme-border)", backgroundColor: "var(--theme-panel)" }}
           >
-            <p className="text-xs font-semibold uppercase tracking-[0.18em]" style={{ color: "var(--theme-accent)" }}>
-              Operator proof
-            </p>
-            <h2 className="font-display mt-3" style={{ fontSize: "clamp(2rem, 4vw, 3rem)", color: "var(--theme-foreground)", lineHeight: 1 }}>
-              Built and operated by Hans Turner.
-            </h2>
+            <div className="flex items-start gap-4">
+              <Image
+                src="/operator/hans-turner.png"
+                alt="Hans Turner"
+                width={92}
+                height={92}
+                className="h-[92px] w-[92px] rounded-2xl object-cover ring-1 ring-white/10"
+                priority
+              />
+              <div>
+                <p className="text-xs font-semibold uppercase tracking-[0.18em]" style={{ color: "var(--theme-accent)" }}>
+                  Operator proof
+                </p>
+                <h2 className="font-display mt-3" style={{ fontSize: "clamp(2rem, 4vw, 3rem)", color: "var(--theme-foreground)", lineHeight: 1 }}>
+                  Built and operated by Hans Turner.
+                </h2>
+              </div>
+            </div>
             <p className="mt-4 text-sm leading-relaxed" style={{ color: "var(--theme-muted)" }}>
               WebsiteCreditScore is a public website audit tool from Hans Turner, a web strategist in Mount Pleasant,
               South Carolina. The site publishes its pricing, methodology, privacy policy, terms, cookie policy, refund
@@ -382,45 +482,65 @@ export default async function LandingPage({
             </p>
             <div className="mt-5 flex flex-wrap gap-3 text-xs font-semibold">
               <a href="https://hansturner.com" target="_blank" rel="noopener noreferrer" className="rounded-full border px-3 py-1.5 hover:opacity-85" style={{ borderColor: "var(--theme-border)", color: "var(--theme-foreground)" }}>
-                HansTurner.com
+                <span className="inline-flex items-center gap-1.5">HansTurner.com <ExternalLink className="h-3 w-3" /></span>
+              </a>
+              <a href="https://www.linkedin.com/in/hans-turner-01155448/" target="_blank" rel="noopener noreferrer" className="rounded-full border px-3 py-1.5 hover:opacity-85" style={{ borderColor: "var(--theme-border)", color: "var(--theme-foreground)" }}>
+                <span className="inline-flex items-center gap-1.5"><Linkedin className="h-3 w-3" /> LinkedIn</span>
               </a>
               <a href="https://github.com/IntrepidHQ/WebsiteCreditScore" target="_blank" rel="noopener noreferrer" className="rounded-full border px-3 py-1.5 hover:opacity-85" style={{ borderColor: "var(--theme-border)", color: "var(--theme-foreground)" }}>
                 Public GitHub repo
               </a>
-              <a href="mailto:hello@websitecreditscore.com" className="rounded-full border px-3 py-1.5 hover:opacity-85" style={{ borderColor: "var(--theme-border)", color: "var(--theme-foreground)" }}>
-                hello@websitecreditscore.com
+              <a href="mailto:websitecreditscore@gmail.com" className="rounded-full border px-3 py-1.5 hover:opacity-85" style={{ borderColor: "var(--theme-border)", color: "var(--theme-foreground)" }}>
+                websitecreditscore@gmail.com
               </a>
+            </div>
+            <div className="mt-5 rounded-2xl border p-4" style={{ borderColor: "rgba(247,178,27,0.22)", backgroundColor: "rgba(247,178,27,0.05)" }}>
+              <p className="text-xs font-bold uppercase tracking-[0.16em]" style={{ color: "var(--theme-accent)" }}>
+                Path from 2.2 to a real trust score
+              </p>
+              <p className="mt-2 text-xs leading-relaxed" style={{ color: "var(--theme-muted)" }}>
+                The next lift is external proof: Google indexation, linked operator profiles, portfolio references,
+                independent mentions, and public review/social profiles. The site can now show its work; the web needs
+                to corroborate it.
+              </p>
             </div>
           </div>
           <div className="grid gap-5 sm:grid-cols-3">
-            {[
-              {
-                title: "Transparent pricing",
-                body: "Aerial scans start at $1, with clearly listed deeper scan tiers and bundle pricing.",
-                href: "/pricing",
-              },
-              {
-                title: "Published methodology",
-                body: "The scoring model explains the trust dimensions, evidence sources, and report limitations.",
-                href: "/docs",
-              },
-              {
-                title: "Privacy and cookies",
-                body: "No ad pixels or cross-site tracking; optional analytics are gated by the cookie banner.",
-                href: "/cookies",
-              },
-            ].map((item) => (
-              <Link
-                key={item.href}
-                href={item.href}
-                className="rounded-2xl p-5 transition-opacity hover:opacity-90"
-                style={{ border: "1px solid var(--theme-border)", backgroundColor: "color-mix(in srgb, var(--theme-panel) 65%, transparent)" }}
-              >
-                <p className="text-sm font-semibold" style={{ color: "var(--theme-foreground)" }}>{item.title}</p>
-                <p className="mt-3 text-xs leading-relaxed" style={{ color: "var(--theme-muted)" }}>{item.body}</p>
-                <p className="mt-4 text-xs font-bold" style={{ color: "var(--theme-accent)" }}>Verify →</p>
-              </Link>
-            ))}
+            {OPERATOR_CARDS.map((item) => {
+              const external = item.href.startsWith("http");
+              const content = (
+                <>
+                  <OperatorGraphic type={item.graphic} color={item.color} />
+                  <p className="mt-4 text-sm font-semibold" style={{ color: "var(--theme-foreground)" }}>{item.title}</p>
+                  <p className="mt-3 text-xs leading-relaxed" style={{ color: "var(--theme-muted)" }}>{item.body}</p>
+                  <p className="mt-4 inline-flex items-center gap-1 text-xs font-bold" style={{ color: item.color }}>
+                    {item.cta} <ArrowRight className="h-3 w-3 transition-transform group-hover:translate-x-0.5" />
+                  </p>
+                </>
+              );
+              const className = "group rounded-2xl p-4 transition-all hover:-translate-y-1 hover:opacity-95";
+              const style = {
+                border: `1px solid color-mix(in srgb, ${item.color} 24%, var(--theme-border))`,
+                backgroundColor: "color-mix(in srgb, var(--theme-panel) 65%, transparent)",
+              };
+
+              return external ? (
+                <a
+                  key={item.href}
+                  href={item.href}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className={className}
+                  style={style}
+                >
+                  {content}
+                </a>
+              ) : (
+                <Link key={item.href} href={item.href} className={className} style={style}>
+                  {content}
+                </Link>
+              );
+            })}
           </div>
         </div>
       </section>
@@ -553,17 +673,15 @@ export default async function LandingPage({
             </p>
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3">
               {RESEARCH_SOURCES_PER_SCAN.map((src) => (
-                <div
+                <a
                   key={src.name}
+                  href={src.href}
+                  target="_blank"
+                  rel="noopener noreferrer"
                   className="rounded-xl p-4 flex flex-col gap-2 transition-opacity hover:opacity-95"
                   style={{ border: "1px solid var(--theme-border)", backgroundColor: "var(--theme-panel)" }}
                 >
-                  <a
-                    href={src.href}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="flex items-center gap-3 min-h-[2.5rem] group"
-                  >
+                  <span className="flex items-center gap-3 min-h-[2.5rem] group">
                     {/* eslint-disable-next-line @next/next/no-img-element */}
                     <img
                       src={`https://www.google.com/s2/favicons?domain=${src.domain}&sz=32`}
@@ -575,17 +693,11 @@ export default async function LandingPage({
                     <span className="text-sm font-medium leading-snug group-hover:underline underline-offset-2" style={{ color: "var(--theme-foreground)" }}>
                       {src.name}
                     </span>
-                  </a>
-                  {src.blogSlug ? (
-                    <Link
-                      href={`/blog/${src.blogSlug}`}
-                      className="text-xs font-medium hover:opacity-85 transition-opacity inline-flex items-center gap-1"
-                      style={{ color: "var(--theme-accent)" }}
-                    >
-                      How we use this in scoring →
-                    </Link>
-                  ) : null}
-                </div>
+                  </span>
+                  <span className="text-xs font-medium inline-flex items-center gap-1" style={{ color: "var(--theme-accent)" }}>
+                    Open source <ArrowRight className="h-3 w-3" />
+                  </span>
+                </a>
               ))}
             </div>
           </div>

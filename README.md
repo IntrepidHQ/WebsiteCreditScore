@@ -1,6 +1,6 @@
 # WebsiteCreditScore.com
 
-A Next.js App Router product that turns a single URL into a cinematic redesign audit and proposal workflow. WebsiteCreditScore.com is built for agencies and website providers who want to package stronger outreach, clearer pricing, and better discovery control before a build begins.
+A Next.js App Router product that turns a single domain into a live WebsiteCreditScore report. WebsiteCreditScore.com is built for fast public trust audits: no account required, one scan form, cited sources, and a 10-dimension score that turns website credibility gaps into a practical improvement path.
 
 ## Stack
 
@@ -14,6 +14,11 @@ A Next.js App Router product that turns a single URL into a cinematic redesign a
 
 ## Features
 
+- Public scan flow with URL intake, live AI research, cited sources, and shareable `/scan/[id]` reports
+- 10 scored dimensions: business legitimacy, online reputation, visual design, UX / conversion, transparency, technical health, content quality, social / press presence, domain longevity, and financial signals
+- Public methodology, pricing, cookies, privacy, terms, refunds, security.txt, robots.txt, sitemap.xml, and operator proof pages
+- Homepage trust proof with Hans Turner operator identity, portfolio / LinkedIn links, and a visible path for improving WebsiteCreditScore.com’s own score
+- Public recent-scan feed that excludes WebsiteCreditScore self-scans while keeping underlying report URLs available
 - Home, Platform, and Examples pages with URL intake, sample audits, and agency-facing positioning
 - Internal workspace at `/app` with:
   - Google OAuth when Supabase env vars are present
