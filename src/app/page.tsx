@@ -105,57 +105,81 @@ function OperatorGraphic({
 }) {
   if (type === "viewpoint") {
     return (
-      <div className="relative h-32 overflow-hidden rounded-xl border" style={{ borderColor: `${color}40`, backgroundColor: `${color}0f` }}>
-        <div className="absolute inset-0 operator-scan-grid opacity-40" />
-        <svg className="absolute inset-0 h-full w-full" viewBox="0 0 280 132" aria-hidden>
-          <circle cx="82" cy="64" r="34" fill="none" stroke={color} strokeWidth="2" opacity="0.9" />
-          <circle cx="82" cy="64" r="18" fill={color} opacity="0.16" />
-          <path className="operator-orbit" d="M82 64 C126 14, 194 20, 236 66" fill="none" stroke={color} strokeWidth="2.5" strokeLinecap="round" />
-          <path d="M99 83 L132 108" stroke={color} strokeWidth="4" strokeLinecap="round" opacity="0.55" />
-          <path d="M150 44 H236" stroke={color} strokeWidth="8" strokeLinecap="round" opacity="0.72" />
-          <path d="M150 67 H208" stroke={color} strokeWidth="8" strokeLinecap="round" opacity="0.36" />
-          <path d="M150 90 H224" stroke={color} strokeWidth="8" strokeLinecap="round" opacity="0.18" />
-        </svg>
+      <div className="operator-micro-scene relative h-32 overflow-hidden rounded-xl border" style={{ "--operator-color": color } as React.CSSProperties}>
+        <div className="operator-frame-grid" />
+        <div className="absolute left-4 top-4 h-24 w-[58%] rounded-lg border border-white/10 bg-black/20 p-3">
+          <div className="h-2 w-16 rounded-full bg-white/20" />
+          <div className="mt-3 grid grid-cols-3 gap-1.5">
+            {[72, 46, 88, 36, 64, 52].map((height, index) => (
+              <span
+                key={index}
+                className="rounded-sm"
+                style={{ height: `${height}%`, minHeight: 18, backgroundColor: index === 2 ? color : `${color}38` }}
+              />
+            ))}
+          </div>
+        </div>
+        <div className="operator-lens absolute right-6 top-6 h-16 w-16 rounded-full border bg-black/30" />
+        <div className="absolute bottom-4 right-5 rounded-full border border-white/10 bg-black/35 px-2.5 py-1 text-[10px] font-semibold" style={{ color }}>
+          judgment layer
+        </div>
       </div>
     );
   }
 
   if (type === "audit") {
     return (
-      <div className="relative h-32 overflow-hidden rounded-xl border p-3" style={{ borderColor: `${color}40`, backgroundColor: `${color}0f` }}>
-        <div className="absolute inset-x-4 top-4 h-20 rounded-xl border" style={{ borderColor: `${color}38`, backgroundColor: "rgba(14,14,7,0.62)" }}>
-          <div className="grid h-full grid-cols-2">
-            <div className="p-3">
-              <div className="h-2 w-16 rounded-full" style={{ backgroundColor: `${color}50` }} />
-              <div className="mt-3 space-y-1.5">
-                {[44, 72, 52].map((w) => <div key={w} className="h-1.5 rounded-full" style={{ width: `${w}%`, backgroundColor: `${color}28` }} />)}
-              </div>
+      <div className="operator-micro-scene relative h-32 overflow-hidden rounded-xl border p-3" style={{ "--operator-color": color } as React.CSSProperties}>
+        <div className="absolute inset-x-3 top-3 grid h-[4.9rem] grid-cols-[0.9fr_1.1fr] gap-2">
+          <div className="rounded-lg border border-white/10 bg-black/25 p-2.5">
+            <div className="text-[10px] font-bold uppercase tracking-[0.16em]" style={{ color }}>Scan</div>
+            <div className="mt-2 h-2 w-16 rounded-full bg-white/14" />
+            <div className="mt-2 h-2 w-10 rounded-full" style={{ backgroundColor: `${color}55` }} />
+          </div>
+          <div className="rounded-lg border border-white/10 bg-black/25 p-2.5">
+            <div className="flex items-center justify-between gap-2">
+              <span className="text-[10px] font-bold uppercase tracking-[0.16em]" style={{ color }}>Plan</span>
+              <span className="operator-status-dot h-2 w-2 rounded-full" />
             </div>
-            <div className="relative border-l p-3" style={{ borderColor: `${color}24` }}>
-              <div className="operator-mark absolute left-3 top-3 h-8 w-8 rounded-full border" style={{ borderColor: "#4ade80", backgroundColor: "rgba(74,222,128,0.12)" }} />
-              <div className="ml-12 h-2 w-16 rounded-full" style={{ backgroundColor: "#4ade8080" }} />
-              <div className="ml-12 mt-3 h-1.5 w-20 rounded-full" style={{ backgroundColor: "#4ade8035" }} />
+            <div className="mt-2 space-y-1.5">
+              {[82, 58, 74].map((width, index) => (
+                <div key={index} className="h-1.5 rounded-full" style={{ width: `${width}%`, backgroundColor: index === 0 ? "#4ade8077" : "rgba(255,255,255,0.14)" }} />
+              ))}
             </div>
           </div>
         </div>
-        <div className="absolute bottom-4 left-6 right-6 h-2 overflow-hidden rounded-full" style={{ backgroundColor: `${color}20` }}>
-          <div className="operator-pulse h-full w-1/2 rounded-full" style={{ background: `linear-gradient(90deg, transparent, ${color}, #4ade80)` }} />
+        <div className="absolute bottom-4 left-4 right-4 h-7 overflow-hidden rounded-full border border-white/10 bg-black/25">
+          <div className="operator-sequence-highlight absolute inset-y-1 left-1 w-1/3 rounded-full" />
+          <div className="relative grid h-full grid-cols-3 place-items-center text-[10px] font-semibold" style={{ color: "rgba(237,232,212,0.66)" }}>
+            <span>cut</span>
+            <span>prove</span>
+            <span>ship</span>
+          </div>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="relative h-32 overflow-hidden rounded-xl border" style={{ borderColor: `${color}40`, backgroundColor: `${color}0f` }}>
-      <svg className="absolute inset-0 h-full w-full" viewBox="0 0 280 132" aria-hidden>
-        <rect x="28" y="26" width="64" height="80" rx="14" fill={color} opacity="0.14" stroke={color} />
-        <rect x="108" y="20" width="64" height="92" rx="14" fill="#60a5fa" opacity="0.12" stroke="#60a5fa" />
-        <rect x="188" y="32" width="64" height="68" rx="14" fill="#f472b6" opacity="0.12" stroke="#f472b6" />
-        <path className="operator-link-draw" d="M92 64 C116 40, 142 40, 172 64 S214 88, 252 62" fill="none" stroke={color} strokeWidth="2.5" strokeLinecap="round" />
-        <path d="M48 50 H74 M48 66 H72 M48 82 H66" stroke={color} strokeWidth="4" strokeLinecap="round" opacity="0.5" />
-        <path d="M128 44 H152 M128 61 H156 M128 78 H148" stroke="#60a5fa" strokeWidth="4" strokeLinecap="round" opacity="0.5" />
-        <path d="M206 56 H236 M206 73 H228" stroke="#f472b6" strokeWidth="4" strokeLinecap="round" opacity="0.5" />
-      </svg>
+    <div className="operator-micro-scene relative h-32 overflow-hidden rounded-xl border p-3" style={{ "--operator-color": color } as React.CSSProperties}>
+      <div className="absolute left-3 top-3 right-3 rounded-lg border border-white/10 bg-black/25 p-2">
+        <div className="flex items-center gap-1.5">
+          <span className="h-2 w-2 rounded-full" style={{ backgroundColor: color }} />
+          <span className="h-1.5 w-20 rounded-full bg-white/18" />
+        </div>
+      </div>
+      <div className="absolute bottom-4 left-4 right-4 grid grid-cols-3 gap-2">
+        {["research", "taste", "build"].map((label, index) => (
+          <div key={label} className="operator-console-card rounded-lg border border-white/10 bg-black/25 p-2" style={{ animationDelay: `${index * 0.25}s` }}>
+            <div className="mx-auto h-5 w-5 rounded-md" style={{ backgroundColor: index === 1 ? color : "rgba(255,255,255,0.12)" }} />
+            <div className="mt-2 h-1.5 rounded-full bg-white/14" />
+            <div className="mt-1 h-1.5 w-2/3 rounded-full bg-white/10" />
+          </div>
+        ))}
+      </div>
+      <div className="absolute left-6 top-[3.45rem] rounded-full border border-white/10 bg-black/50 px-2 py-1 text-[10px] font-semibold" style={{ color }}>
+        supervised
+      </div>
     </div>
   );
 }
