@@ -311,11 +311,18 @@ export default async function LandingPage({
             </h1>
 
             <p className="text-base leading-relaxed max-w-md" style={{ color: "var(--theme-muted)" }}>
-              Score the live site, see where it is leaking trust or momentum,
-              and get a clearer plan for what to improve first. Ten angles. One verdict.
+              Paste a domain. Get a live credibility report across ten trust dimensions. No account creation,
+              no dashboard setup, no sales gate. One form at the top, one form at the bottom.
             </p>
 
             <div className="flex flex-col gap-2 sm:flex-row sm:flex-wrap sm:items-center">
+              <Link
+                href="/scan/demo"
+                className="inline-flex w-fit items-center justify-center rounded-xl px-5 py-3 text-xs font-bold transition-opacity hover:opacity-90"
+                style={{ border: "1px solid var(--theme-border)", color: "var(--theme-foreground)" }}
+              >
+                View sample report
+              </Link>
               <a
                 href={buildStrategyCallCalendlyUrl({ medium: "hero", content: "landing_hero" })}
                 target="_blank"
@@ -326,7 +333,8 @@ export default async function LandingPage({
                 Strategy Call
               </a>
               <p className="max-w-md text-xs leading-relaxed" style={{ color: "var(--theme-muted)" }}>
-                Already scanned or prefer to talk first? A Strategy Call books your session and triggers your{" "}
+                The main flow is intentionally direct: scan first, then decide what to improve. Already scanned or
+                prefer to talk first? A Strategy Call books your session and triggers your{" "}
                 <strong style={{ color: "var(--theme-foreground)" }}>Strategy Presentation</strong> from the audit.
               </p>
             </div>

@@ -27,6 +27,10 @@ export default function PrivacyPage() {
           <a href="mailto:hello@websitecreditscore.com" className="underline underline-offset-2 hover:opacity-80" style={{ color: "var(--theme-accent)" }}>
             hello@websitecreditscore.com
           </a>.
+          The operator and public verification links are listed on the{" "}
+          <a href="/about" className="underline underline-offset-2 hover:opacity-80" style={{ color: "var(--theme-accent)" }}>
+            About page
+          </a>.
         </p>
 
         {[

@@ -4,7 +4,6 @@ import {
   updateScanStatus,
   saveScanResult,
   saveScanError,
-  getCachedResult,
 } from "@/lib/db/scans";
 import { WCSReportSchema, WCS_REPORT_JSON_SCHEMA, type WCSReport } from "@/lib/schema";
 import fixture from "@/lib/fixtures/wcs-mock.json";
@@ -24,20 +23,22 @@ You have access to:
 
 RESEARCH METHOD (mandatory order):
 Before submitting, perform 8–10 web searches covering, at minimum:
-  1. "{domain} reviews"
-  2. "{domain} complaints" OR "{domain} scam"
-  3. "{company} news" (extract company name from homepage or domain)
-  4. "{company} BBB" OR Trustpilot OR Glassdoor
-  5. "{company} founders" OR "{company} about"
-  6. "{domain} site:reddit.com" — real user sentiment
-  7. "{company} funding" OR "{company} revenue"
-  8. "{domain} homepage design user experience mobile"
-  9. "{company} social media" (LinkedIn, X presence)
-  10. A peer/competitor comparison search
+  1. "https://{domain}" — inspect the live homepage content first.
+  2. "site:{domain} about OR company OR contact"
+  3. "site:{domain} pricing OR refund OR terms OR privacy OR cookies"
+  4. "{domain} reviews"
+  5. "{domain} complaints" OR "{domain} scam"
+  6. "{company} news" (extract company name from homepage or domain)
+  7. "{company} BBB" OR Trustpilot OR Glassdoor
+  8. "{company} founders" OR "{company} about"
+  9. "{domain} site:reddit.com" OR "{company} social media LinkedIn X" — user and social sentiment
+  10. "{company} funding revenue competitors" — financial signals and peer comparison
 
 After each search, briefly update your internal assessment.
 Do NOT call submit_credit_report until you have run at least 8 searches.
 Cite every claim with the URL it came from in the evidence field of each dimension.
+If the live homepage, pricing, privacy, terms, cookies, docs, or about pages are accessible, use them as first-party evidence.
+Do not give visual_design, ux_conversion, or content a 0 merely because third-party screenshots or reviews are unavailable. A 0 means the site is unreachable, broken, or empty. If the live site is accessible, score those dimensions from the visible structure, copy, navigation, forms, mobile cues, and content depth.
 
 SCORING (apply rigorously):
 Each of 10 dimensions gets a 0–100 score and a letter grade (A+ A A- B+ B B- C+ C C- D+ D D- F).
@@ -288,17 +289,6 @@ export async function GET(
         // ── Already done: replay ───────────────────────────────────
         if (scan.status === "done" && scan.result) {
           send(controller, { type: "cached", report: scan.result });
-          return;
-        }
-
-        // ── 7-day domain cache (reuse prior paid scan; persist on this row) ──
-        const cached = await getCachedResult(scan.domain);
-        if (cached) {
-          await saveScanResult(id, cached, {
-            sourceCount: cached.sources?.length ?? 0,
-            costCents: 0,
-          });
-          send(controller, { type: "cached", report: cached });
           return;
         }
 

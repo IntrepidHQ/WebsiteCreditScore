@@ -61,6 +61,12 @@ const structuredData = {
         "https://hansturner.com",
         "https://github.com/IntrepidHQ/WebsiteCreditScore",
       ],
+      contactPoint: {
+        "@type": "ContactPoint",
+        contactType: "customer support",
+        email: "hello@websitecreditscore.com",
+        availableLanguage: "en",
+      },
     },
     {
       "@type": "Service",
@@ -75,6 +81,7 @@ const structuredData = {
         price: "1.00",
         url: "https://websitecreditscore.com/pricing",
       },
+      termsOfService: "https://websitecreditscore.com/terms",
     },
     {
       "@type": "WebSite",

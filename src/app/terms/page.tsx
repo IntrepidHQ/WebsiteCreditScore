@@ -49,7 +49,11 @@ export default function TermsPage() {
               <div className="space-y-3 text-sm leading-relaxed" style={{ color: "var(--theme-muted)" }}>
                 <p>Payments are processed by Stripe. By completing checkout, you authorize us to charge the amount shown for your selected scan tier.</p>
                 <p>Each scan consumes one credit at the purchased tier. Credits are non-refundable once consumed. Bundle credits do not expire.</p>
-                <p>If the AI fails to produce a valid report for any reason (server error, timeout, parsing failure), you will be automatically refunded the cost of that scan within 5 business days via Stripe.</p>
+                <p>
+                  If the AI fails to produce a valid report for any reason (server error, timeout, parsing failure),
+                  you will be automatically refunded the cost of that scan within 5 business days via Stripe. The full
+                  refund policy is published at <a href="/refunds" className="underline underline-offset-2" style={{ color: "var(--theme-accent)" }}>/refunds</a>.
+                </p>
               </div>
             ),
           },

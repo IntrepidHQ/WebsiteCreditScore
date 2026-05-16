@@ -2,6 +2,7 @@ import Link from "next/link";
 import { buildStrategyCallCalendlyUrl } from "@/lib/strategy-call";
 
 const FOOTER_LINKS = [
+  { href: "/about", label: "About" },
   { href: "/pricing", label: "Pricing" },
   { href: "/blog", label: "Blog" },
   { href: "/benchmarks", label: "Benchmarks" },
@@ -9,6 +10,7 @@ const FOOTER_LINKS = [
   { href: "/restore", label: "Restore credits" },
   { href: "/privacy", label: "Privacy" },
   { href: "/cookies", label: "Cookies" },
+  { href: "/refunds", label: "Refunds" },
   { href: "/terms", label: "Terms" },
 ] as const;
 

@@ -5,6 +5,7 @@ import { Menu, X } from "lucide-react";
 import { buildStrategyCallCalendlyUrl } from "@/lib/strategy-call";
 
 const NAV_LINKS = [
+  { href: "/about",      label: "About" },
   { href: "/benchmarks", label: "Benchmarks" },
   { href: "/pricing",    label: "Pricing" },
   { href: "/blog",       label: "Blog" },
