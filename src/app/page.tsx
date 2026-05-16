@@ -57,6 +57,17 @@ function gradeToColor(grade: string): string {
   return "#f87171";
 }
 
+function domainInitials(domain: string): string {
+  return domain
+    .replace(/^www\./, "")
+    .split(".")[0]
+    .split(/[-_]/)
+    .map((part) => part[0])
+    .join("")
+    .slice(0, 2)
+    .toUpperCase() || "W";
+}
+
 // ── SVG Radar chart — stained-glass per-dimension slices ──────────────────
 function RadarChart() {
   const size = 360;
@@ -649,14 +660,13 @@ export default async function LandingPage({
                       />
                       <div className="relative flex items-start justify-between gap-4">
                         <div className="flex min-w-0 items-center gap-3">
-                          {/* eslint-disable-next-line @next/next/no-img-element */}
-                          <img
-                            src={`https://www.google.com/s2/favicons?domain=${scan.domain}&sz=64`}
-                            alt=""
-                            width={38}
-                            height={38}
-                            className="rounded-xl ring-1 ring-white/10"
-                          />
+                          <span
+                            aria-hidden
+                            className="flex h-[38px] w-[38px] shrink-0 items-center justify-center rounded-xl text-xs font-bold ring-1 ring-white/10"
+                            style={{ backgroundColor: `${color}22`, color }}
+                          >
+                            {domainInitials(scan.domain)}
+                          </span>
                           <div className="min-w-0">
                             <p className="truncate text-sm font-semibold" style={{ color: "var(--theme-foreground)" }}>
                               {scan.domain}
