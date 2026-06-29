@@ -36,11 +36,15 @@ export default function PrivacyPage() {
               <div className="space-y-4 text-sm leading-relaxed" style={{ color: "var(--theme-muted)" }}>
                 <div>
                   <p className="font-semibold mb-1" style={{ color: "var(--theme-foreground)" }}>Scan data</p>
-                  <p>When you submit a domain for scanning, we store the domain name, the generated report, the number of sources analyzed, and the cost in cents. We do not collect any personal information about the person who owns the domain being scanned.</p>
+                  <p>When you submit a domain for scanning, we store the domain name, selected scan depth, the generated report, the number of sources analyzed, and the cost in cents. We do not collect any personal information about the person who owns the domain being scanned.</p>
                 </div>
                 <div>
                   <p className="font-semibold mb-1" style={{ color: "var(--theme-foreground)" }}>Payment data</p>
                   <p>Payments are processed by Stripe. We receive a Stripe session ID and payment confirmation. We never see, store, or touch your card number, CVV, or full billing address — Stripe handles all of that under their PCI-DSS compliance program.</p>
+                </div>
+                <div>
+                  <p className="font-semibold mb-1" style={{ color: "var(--theme-foreground)" }}>Free scan verification</p>
+                  <p>If you claim a free Aerial Scan, we collect and store your verified email address so we can enforce one free scan per person and prevent abuse. Paid scans do not require an account.</p>
                 </div>
                 <div>
                   <p className="font-semibold mb-1" style={{ color: "var(--theme-foreground)" }}>Technical data</p>
@@ -57,7 +61,8 @@ export default function PrivacyPage() {
             title: "2. What we don't collect",
             content: (
               <ul className="space-y-1.5 text-sm leading-relaxed list-disc list-inside" style={{ color: "var(--theme-muted)" }}>
-                <li>No account is required — we collect no email or name from you.</li>
+                <li>No account is required for paid scans.</li>
+                <li>Free Aerial Scans require verified email so they cannot be repeatedly claimed.</li>
                 <li>No cookies beyond what Stripe needs for checkout.</li>
                 <li>No marketing pixels or retargeting tags.</li>
                 <li>No sale of your data to any third party, ever.</li>
@@ -114,7 +119,7 @@ export default function PrivacyPage() {
             title: "7. Your rights",
             content: (
               <p className="text-sm leading-relaxed" style={{ color: "var(--theme-muted)" }}>
-                You may request access to, correction of, or deletion of any data we hold that is associated with your scan. Since we don&rsquo;t collect accounts or emails, the easiest way to identify your data is to send us the report URL. Email{" "}
+                You may request access to, correction of, or deletion of any data we hold that is associated with your scan. The easiest way to identify your data is to send us the report URL or the email used to claim a free scan. Email{" "}
                 <a href="mailto:hello@websitecreditscore.com" className="underline underline-offset-2 hover:opacity-80" style={{ color: "var(--theme-accent)" }}>
                   hello@websitecreditscore.com
                 </a>

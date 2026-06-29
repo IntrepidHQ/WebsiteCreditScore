@@ -3,6 +3,7 @@ import { randomUUID } from "crypto";
 import { createClient } from "@/lib/supabase/server";
 import type { WCSReport } from "@/lib/schema";
 import { buildScanResultSummary } from "@/lib/scan-result-summary";
+import type { Tier, TierMode } from "@/lib/pricing";
 
 export type ScanStatus = "pending" | "streaming" | "done" | "error";
 
@@ -12,6 +13,9 @@ export interface Scan {
   status: ScanStatus;
   paid: boolean;
   stripe_session_id: string | null;
+  tier: Tier;
+  mode: TierMode;
+  free_claim_email: string | null;
   result: WCSReport | null;
   source_count: number | null;
   cost_cents: number | null;
@@ -31,8 +35,24 @@ export async function getScan(id: string): Promise<Scan | null> {
   return data as Scan;
 }
 
-/** Dev / limited-time: create a paid scan row without Stripe (guard with env on the API route). */
-export async function createFreeBypassScan(domain: string): Promise<{ id: string }> {
+export interface ScanAttribution {
+  referrer?: string | null;
+  utmSource?: string | null;
+  utmMedium?: string | null;
+  utmCampaign?: string | null;
+}
+
+export async function createFreeBypassScan(
+  domain: string,
+  opts: {
+    tier?: Tier;
+    mode?: TierMode;
+    freeClaimEmail?: string | null;
+    ipHash?: string | null;
+    userAgentHash?: string | null;
+    attribution?: ScanAttribution;
+  } = {}
+): Promise<{ id: string }> {
   const supabase = await createClient();
   const id = randomUUID();
   const { error } = await supabase.from("scans").insert({
@@ -40,6 +60,15 @@ export async function createFreeBypassScan(domain: string): Promise<{ id: string
     domain,
     status: "pending" as ScanStatus,
     paid: true,
+    tier: opts.tier ?? "quick",
+    mode: opts.mode ?? "standard",
+    free_claim_email: opts.freeClaimEmail ?? null,
+    ip_hash: opts.ipHash ?? null,
+    user_agent: opts.userAgentHash ?? null,
+    referrer: opts.attribution?.referrer ?? null,
+    utm_source: opts.attribution?.utmSource ?? null,
+    utm_medium: opts.attribution?.utmMedium ?? null,
+    utm_campaign: opts.attribution?.utmCampaign ?? null,
     stripe_session_id: `free_scan_${id.replace(/-/g, "").slice(0, 12)}`,
   });
   if (error) throw new Error(`Failed to create scan: ${error.message}`);
@@ -49,6 +78,8 @@ export async function createFreeBypassScan(domain: string): Promise<{ id: string
 export async function createScan(opts: {
   domain: string;
   stripeSessionId: string;
+  tier?: Tier;
+  mode?: TierMode;
   ipHash?: string;
   userAgent?: string;
 }): Promise<Scan> {
@@ -60,6 +91,8 @@ export async function createScan(opts: {
       status: "pending",
       paid: false,
       stripe_session_id: opts.stripeSessionId,
+      tier: opts.tier ?? "quick",
+      mode: opts.mode ?? "standard",
       ip_hash: opts.ipHash,
       user_agent: opts.userAgent,
     })
@@ -82,6 +115,8 @@ export async function upsertPaidScan(opts: {
   id: string;
   domain: string;
   stripeSessionId: string;
+  tier?: Tier;
+  mode?: TierMode;
 }): Promise<void> {
   const supabase = await createClient();
   const { error } = await supabase
@@ -92,6 +127,8 @@ export async function upsertPaidScan(opts: {
         domain: opts.domain,
         status: "pending" as ScanStatus,
         paid: true,
+        tier: opts.tier ?? "quick",
+        mode: opts.mode ?? "standard",
         stripe_session_id: opts.stripeSessionId,
       },
       { onConflict: "id" }
@@ -101,9 +138,14 @@ export async function upsertPaidScan(opts: {
 
 export async function updateScanStatus(id: string, status: ScanStatus): Promise<void> {
   const supabase = await createClient();
+  const patch: { status: ScanStatus; started_at?: string } = { status };
+  // Stamp when the agent actually begins work so we can measure scan duration.
+  if (status === "streaming") {
+    patch.started_at = new Date().toISOString();
+  }
   const { error } = await supabase
     .from("scans")
-    .update({ status })
+    .update(patch)
     .eq("id", id);
   if (error) throw new Error(`Failed to update scan status: ${error.message}`);
 }
@@ -111,7 +153,7 @@ export async function updateScanStatus(id: string, status: ScanStatus): Promise<
 export async function saveScanResult(
   id: string,
   result: WCSReport,
-  opts: { sourceCount: number; costCents: number }
+  opts: { sourceCount: number; costCents: number; searchCount?: number }
 ): Promise<void> {
   const supabase = await createClient();
   const { error } = await supabase
@@ -121,6 +163,10 @@ export async function saveScanResult(
       result,
       source_count: opts.sourceCount,
       cost_cents: opts.costCents,
+      completed_at: new Date().toISOString(),
+      search_count: opts.searchCount ?? null,
+      result_grade: result.overall?.grade ?? null,
+      result_score: result.overall?.score ?? null,
     })
     .eq("id", id);
   if (error) throw new Error(`Failed to save scan result: ${error.message}`);

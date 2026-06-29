@@ -1,9 +1,17 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createFreeBypassScan } from "@/lib/db/scans";
+import {
+  assertFreeScanVelocity,
+  claimVerifiedFreeScan,
+  getFreeScanClaim,
+  hashFreeScanSignal,
+  normalizeEmail,
+} from "@/lib/db/free-scan-claims";
 import { consumeWalletCredit, getWalletBalances } from "@/lib/db/wallets";
 import { readWalletIdFromRequest } from "@/lib/wallet-cookie";
 import { isTier, isTierMode, type Tier, type TierMode } from "@/lib/pricing";
 import { isTemporaryFreeScanWindow } from "@/lib/free-scan-window";
+import { createAuthClient } from "@/lib/supabase/server";
 
 const FIRST_SCAN_COOKIE = "wcs_first_scan_claimed";
 
@@ -31,7 +39,13 @@ function cleanDomain(raw: unknown): string | null {
 }
 
 export async function POST(req: NextRequest) {
-  let body: { domain?: unknown; tier?: unknown; mode?: unknown };
+  let body: {
+    domain?: unknown;
+    tier?: unknown;
+    mode?: unknown;
+    email?: unknown;
+    utm?: { source?: unknown; medium?: unknown; campaign?: unknown };
+  };
   try {
     body = await req.json();
   } catch {
@@ -46,6 +60,23 @@ export async function POST(req: NextRequest) {
   const tier: Tier = isTier(body.tier) ? body.tier : "quick";
   const mode: TierMode = isTierMode(body.mode) ? body.mode : "standard";
   const walletId = readWalletIdFromRequest(req);
+  const requestedEmail = typeof body.email === "string" ? normalizeEmail(body.email) : null;
+  const ipHash = hashFreeScanSignal(
+    req.headers.get("x-forwarded-for")?.split(",")[0]?.trim() ??
+    req.headers.get("x-real-ip")
+  );
+  const userAgentHash = hashFreeScanSignal(req.headers.get("user-agent"));
+
+  // Acquisition attribution: referrer from the request header, UTM from the
+  // client (it owns the landing-page query string). Capped to keep rows small.
+  const cap = (v: unknown): string | null =>
+    typeof v === "string" && v.trim() ? v.trim().slice(0, 255) : null;
+  const attribution = {
+    referrer: cap(req.headers.get("referer")),
+    utmSource: cap(body.utm?.source),
+    utmMedium: cap(body.utm?.medium),
+    utmCampaign: cap(body.utm?.campaign),
+  };
 
   // 1. Try wallet credit first (paid balance trumps everything).
   if (walletId) {
@@ -53,7 +84,7 @@ export async function POST(req: NextRequest) {
       const balances = await getWalletBalances(walletId);
       const key = `${tier}_${mode}` as const;
       if (balances[key] > 0) {
-        const { id } = await createFreeBypassScan(domain);
+        const { id } = await createFreeBypassScan(domain, { tier, mode, ipHash, userAgentHash, attribution });
         const consumed = await consumeWalletCredit({
           walletId,
           tier,
@@ -71,24 +102,81 @@ export async function POST(req: NextRequest) {
     }
   }
 
-  // 2. First-scan-free promo (cookie-gated).
+  // 2. First-scan-free promo (verified email gated).
   const envFree = isFreeScanModeEnabled();
   const firstScanFree = isFirstScanFreeEnabled();
-  const cookieClaimed = req.cookies.get(FIRST_SCAN_COOKIE)?.value === "1";
   const tempFreeWindow = isTemporaryFreeScanWindow();
-  const allowFree = tempFreeWindow || envFree || (firstScanFree && !cookieClaimed);
+  const allowDevFree = tempFreeWindow || envFree;
+  let verifiedEmail: string | null = null;
+  if (!allowDevFree && requestedEmail) {
+    const auth = await createAuthClient();
+    const { data } = await auth.auth.getUser();
+    verifiedEmail = data.user?.email ? normalizeEmail(data.user.email) : null;
+  }
+  const allowVerifiedFree =
+    firstScanFree &&
+    tier === "quick" &&
+    mode === "standard" &&
+    requestedEmail !== null &&
+    verifiedEmail === requestedEmail;
 
-  if (!allowFree) {
+  if (!allowDevFree && !allowVerifiedFree) {
     return NextResponse.json(
-      { error: "Free scan unavailable", reason: cookieClaimed ? "claimed" : "disabled" },
+      {
+        error: "Free scan unavailable",
+        reason: tier !== "quick" || mode !== "standard" ? "paid_depth" : "email_verification_required",
+      },
       { status: 403 }
     );
   }
 
   try {
-    const { id } = await createFreeBypassScan(domain);
+    if (!allowDevFree) {
+      const existing = await getFreeScanClaim(verifiedEmail!);
+      if (existing) {
+        return NextResponse.json(
+          { error: "Free scan already claimed", reason: "claimed", scanId: existing.scan_id },
+          { status: 403 }
+        );
+      }
+
+      const velocity = await assertFreeScanVelocity({ domain, ipHash });
+      if (!velocity.ok) {
+        return NextResponse.json(
+          { error: "Free scan limit reached", reason: velocity.reason },
+          { status: 429 }
+        );
+      }
+    }
+
+    let id: string;
+    if (allowDevFree) {
+      const scan = await createFreeBypassScan(domain, {
+        tier,
+        mode,
+        ipHash,
+        userAgentHash,
+        attribution,
+      });
+      id = scan.id;
+    } else {
+      const claimedScanId = await claimVerifiedFreeScan({
+        email: verifiedEmail!,
+        domain,
+        ipHash,
+        userAgentHash,
+      });
+      if (!claimedScanId) {
+        return NextResponse.json(
+          { error: "Free scan already claimed", reason: "claimed" },
+          { status: 403 }
+        );
+      }
+      id = claimedScanId;
+    }
+
     const res = NextResponse.json({ scanId: id, source: "first-free" });
-    if (!tempFreeWindow && !envFree) {
+    if (!allowDevFree) {
       res.cookies.set(FIRST_SCAN_COOKIE, "1", {
         httpOnly: true,
         sameSite: "lax",

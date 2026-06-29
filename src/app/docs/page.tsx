@@ -7,78 +7,97 @@ import { SiteFooter } from "@/components/SiteFooter";
 export const metadata: Metadata = {
   title: "How It Works — WebsiteCreditScore",
   description:
-    "Learn how WebsiteCreditScore grades websites across 8 dimensions using live AI research. Understand the methodology, scoring, and what every report includes.",
+    "Learn how WebsiteCreditScore grades websites across 10 dimensions using live AI research. Understand the methodology, scoring, and what every report includes.",
   openGraph: {
     title: "How WebsiteCreditScore Works",
     description:
-      "AI-powered website trust scoring across 8 weighted dimensions — methodology, grading, and what each report includes.",
+      "AI-powered website trust scoring across 10 weighted dimensions — methodology, grading, and what each report includes.",
   },
 };
 
+// Dimensions, weights, and colors are the canonical values from
+// src/lib/schema.ts (DIMENSION_WEIGHTS / DIMENSION_COLORS). Keep them in sync —
+// the weights below sum to exactly 100%.
 const dimensions = [
   {
     key: "legitimacy",
     label: "Business Legitimacy",
-    weight: "25%",
-    color: "#3dd598",
+    weight: "18%",
+    color: "#4ade80",
     desc: "Is this a real, registered business? We check state filings, physical addresses, verifiable phone numbers, BBB registration, and whether contact information is consistent across sources.",
     signals: ["Business registration records", "BBB accreditation status", "Address verification", "Phone & email consistency"],
   },
   {
     key: "reputation",
     label: "Online Reputation",
-    weight: "20%",
-    color: "#38bdf8",
+    weight: "15%",
+    color: "#60a5fa",
     desc: "What do customers actually say? We search Google Reviews, Trustpilot, Reddit, Yelp, and industry-specific review platforms — looking at sentiment, recency, and response patterns.",
     signals: ["Google review sentiment", "Trustpilot profile", "Reddit mentions", "BBB complaint history"],
   },
   {
+    key: "visual_design",
+    label: "Visual Design",
+    weight: "14%",
+    color: "#818cf8",
+    desc: "Does the site look like a credible, modern operation? We assess homepage design quality, brand consistency, visual hierarchy, and professional polish from screenshots, search results, and reviews mentioning the site's look.",
+    signals: ["Homepage design quality", "Brand consistency", "Visual hierarchy", "Professional polish"],
+  },
+  {
+    key: "ux_conversion",
+    label: "UX / Conversion",
+    weight: "12%",
+    color: "#f7b21b",
+    desc: "Is the site easy and frictionless to use? We evaluate navigation clarity, call-to-action placement, form friction, mobile responsiveness, and load experience using PageSpeed insights and observable site structure.",
+    signals: ["Navigation clarity", "CTA placement", "Mobile responsiveness", "Load experience"],
+  },
+  {
     key: "transparency",
     label: "Transparency & Disclosure",
-    weight: "12%",
-    color: "#a78bfa",
+    weight: "10%",
+    color: "#34d399",
     desc: "Does the site tell you what it is? We look for clear pricing, refund policies, terms of service, privacy policies, and honest representation of the company and its owners.",
     signals: ["Pricing clarity", "Refund / cancellation policy", "Privacy policy", "Terms of service"],
   },
   {
-    key: "financial",
-    label: "Financial Signals",
-    weight: "12%",
-    color: "#f7b21b",
-    desc: "Is there evidence of real financial activity? We look at funding history, Crunchbase records, press coverage of revenue milestones, and signals of financial stability or distress.",
-    signals: ["Funding rounds", "Crunchbase profile", "Revenue press coverage", "Financial distress signals"],
-  },
-  {
     key: "technical",
     label: "Technical Health",
-    weight: "10%",
-    color: "#34d399",
+    weight: "8%",
+    color: "#fb923c",
     desc: "Does the site operate like a legitimate business? HTTPS enforcement, page speed, uptime history, security headers, and basic infrastructure quality are all evaluated.",
     signals: ["HTTPS & TLS validity", "Page load performance", "Security headers", "Uptime history"],
   },
   {
-    key: "longevity",
-    label: "Domain & Company Longevity",
-    weight: "10%",
-    color: "#fb923c",
-    desc: "How long has this site and company existed? Domain age, Wayback Machine history, and consistent business presence over time all indicate lower scam risk.",
-    signals: ["Domain registration age", "Wayback Machine history", "Business founding date", "Consistent presence"],
-  },
-  {
     key: "content",
     label: "Content Quality",
-    weight: "10%",
+    weight: "8%",
     color: "#f472b6",
     desc: "Does the content reflect a real expert operation? We look for depth, original research, author credentials, and evidence-backed claims — versus thin, copy-pasted, or AI-spun filler.",
     signals: ["Content depth & originality", "Author expertise signals", "Cited sources", "Accuracy indicators"],
   },
   {
-    key: "social",
+    key: "social_presence",
     label: "Social & Press Presence",
-    weight: "10%",
-    color: "#60a5fa",
+    weight: "7%",
+    color: "#38bdf8",
     desc: "Is there a real community around this brand? We check LinkedIn, X/Twitter, YouTube, and press mentions — distinguishing genuine engagement from ghost accounts or purchased followers.",
     signals: ["LinkedIn company page", "X/Twitter activity", "YouTube presence", "Press & news mentions"],
+  },
+  {
+    key: "longevity",
+    label: "Domain & Company Longevity",
+    weight: "5%",
+    color: "#a78bfa",
+    desc: "How long has this site and company existed? Domain age, Wayback Machine history, and consistent business presence over time all indicate lower scam risk.",
+    signals: ["Domain registration age", "Wayback Machine history", "Business founding date", "Consistent presence"],
+  },
+  {
+    key: "financial_signals",
+    label: "Financial Signals",
+    weight: "3%",
+    color: "#facc15",
+    desc: "Is there evidence of real financial activity? We look at funding history, Crunchbase records, press coverage of revenue milestones, and signals of financial stability or distress.",
+    signals: ["Funding rounds", "Crunchbase profile", "Revenue press coverage", "Financial distress signals"],
   },
 ];
 
@@ -93,7 +112,7 @@ const faqItems = [
   },
   {
     q: "How is the overall score calculated?",
-    a: "Each of the 8 dimensions is scored 0–100 and then multiplied by its weight. The weighted sum produces the overall score (also 0–100). The letter grade (A+ to F) maps to score tiers: A+ ≥ 95, A ≥ 90, B+ ≥ 85, and so on.",
+    a: "Each of the 10 dimensions is scored 0–100 and then multiplied by its weight. The weighted sum produces the overall score (also 0–100). The letter grade (A+ to F) maps to score tiers: A+ ≥ 97, A ≥ 93, A− ≥ 90, B+ ≥ 87, B ≥ 83, B− ≥ 80, and so on down to F below 60.",
   },
   {
     q: "Can I run a scan on any website?",
@@ -152,10 +171,10 @@ export default function DocsPage() {
           </h2>
           <div className="grid grid-cols-1 sm:grid-cols-4 gap-4">
             {[
-              { step: "01", title: "Enter domain", body: "You type any domain (e.g. acmeplumbing.com). No account needed." },
+              { step: "01", title: "Enter domain", body: "You type any domain (e.g. acmeplumbing.com). Free Aerial Scans require verified email; paid scans do not require an account." },
               { step: "02", title: "Pay $1", body: "Stripe processes the payment securely. We never store card details." },
               { step: "03", title: "AI researches", body: "Claude AI runs 8–10 live searches: reviews, filings, Reddit, press, technical checks, and more." },
-              { step: "04", title: "Get your report", body: "8 graded dimensions, red/green flags, cited sources, and an overall A–F letter grade." },
+              { step: "04", title: "Get your report", body: "10 graded dimensions, red/green flags, cited sources, and an overall A–F letter grade." },
             ].map(({ step, title, body }) => (
               <div
                 key={step}
@@ -177,11 +196,11 @@ export default function DocsPage() {
         </div>
       </section>
 
-      {/* 8 Dimensions */}
+      {/* 10 Dimensions */}
       <section className="px-6 py-14" style={{ borderBottom: "1px solid var(--theme-border)" }}>
         <div className="max-w-4xl mx-auto">
           <h2 className="text-lg font-semibold mb-2" style={{ color: "var(--theme-foreground)" }}>
-            The 8 scoring dimensions
+            The 10 scoring dimensions
           </h2>
           <p className="text-sm mb-10" style={{ color: "var(--theme-muted)" }}>
             Each dimension is weighted independently. The weighted average produces the overall 0–100 score.
@@ -245,10 +264,10 @@ export default function DocsPage() {
           </h2>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
             {[
-              { grade: "A+ / A", range: "90–100", label: "Exceptional", color: "#3dd598", desc: "Strong trust signals across almost every dimension. Very low risk." },
-              { grade: "A− / B+", range: "75–89", label: "Strong", color: "#60a5fa", desc: "Solid credibility with minor gaps. Converts well but some signals missing." },
-              { grade: "B / C", range: "55–74", label: "Average", color: "#f7b21b", desc: "Adequate presence but gaps in transparency, reputation, or technical health." },
-              { grade: "D / F", range: "Below 55", label: "At Risk", color: "#f87171", desc: "Red flags outweigh green signals. High caution warranted before engaging." },
+              { grade: "A+ / A", range: "93–100", label: "Exceptional", color: "#4ade80", desc: "Strong trust signals across almost every dimension. Very low risk." },
+              { grade: "A− / B", range: "80–92", label: "Strong", color: "#60a5fa", desc: "Solid credibility with minor gaps. Converts well but some signals missing." },
+              { grade: "C", range: "70–79", label: "Average", color: "#facc15", desc: "Adequate presence but gaps in transparency, reputation, or technical health." },
+              { grade: "D / F", range: "Below 70", label: "At Risk", color: "#f87171", desc: "Red flags outweigh green signals. High caution warranted before engaging." },
             ].map((tier) => (
               <div
                 key={tier.grade}
@@ -303,7 +322,7 @@ export default function DocsPage() {
             Ready to run your first scan?
           </h2>
           <p className="text-sm" style={{ color: "var(--theme-muted)" }}>
-            Any domain · $1 · No account · Results in ~90 seconds
+            Any domain · starts at $1 · verified free trial · Results in ~90 seconds
           </p>
           <Link
             href="/"

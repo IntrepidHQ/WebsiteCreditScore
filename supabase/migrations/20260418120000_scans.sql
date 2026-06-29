@@ -6,9 +6,9 @@
 --
 -- Additive migration. No existing columns dropped.
 
-create table if not exists public.scans (
+create table if not exists public.scan_ledger (
   id uuid primary key default gen_random_uuid(),
-  workspace_id uuid not null references public.workspaces(id) on delete cascade,
+  workspace_id text not null references public.workspaces(id) on delete cascade,
   user_id uuid references auth.users(id) on delete set null,
   url text not null,
   status text not null check (status in ('running', 'complete', 'failed')) default 'complete',
@@ -21,17 +21,17 @@ create table if not exists public.scans (
 );
 
 create index if not exists scans_workspace_started_idx
-  on public.scans (workspace_id, started_at desc);
+  on public.scan_ledger (workspace_id, started_at desc);
 create index if not exists scans_started_idx
-  on public.scans (started_at desc);
+  on public.scan_ledger (started_at desc);
 
-alter table public.scans enable row level security;
+alter table public.scan_ledger enable row level security;
 
 -- Workspace owners can read their own scans. Service-role bypasses RLS,
 -- which is what recordScan uses for writes. No INSERT/UPDATE/DELETE policies
 -- are defined, so authenticated clients cannot write or mutate scans.
-drop policy if exists scans_read_own on public.scans;
-create policy scans_read_own on public.scans
+drop policy if exists scans_read_own on public.scan_ledger;
+create policy scans_read_own on public.scan_ledger
   for select
   using (
     workspace_id in (
@@ -40,7 +40,7 @@ create policy scans_read_own on public.scans
   );
 
 -- Rollback (uncomment to revert):
--- drop policy if exists scans_read_own on public.scans;
+-- drop policy if exists scans_read_own on public.scan_ledger;
 -- drop index if exists public.scans_started_idx;
 -- drop index if exists public.scans_workspace_started_idx;
--- drop table if exists public.scans;
+-- drop table if exists public.scan_ledger;

@@ -17,6 +17,7 @@ on conflict (id) do update set
 -- Optional: lock down direct anonymous uploads (service role bypasses RLS).
 -- Adjust if you later allow client-side uploads with a signed policy.
 
+drop policy if exists "Public read dataroom objects" on storage.objects;
 create policy "Public read dataroom objects"
 on storage.objects for select
 to anon, authenticated

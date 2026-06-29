@@ -2,6 +2,7 @@ import type { ReactNode } from "react";
 import { getScan } from "@/lib/db/scans";
 import { LiveReport } from "./live-report";
 import type { WCSReport } from "@/lib/schema";
+import { scanDepthKey } from "@/lib/scan-depth";
 import { NavBar } from "@/components/NavBar";
 import { SiteFooter } from "@/components/SiteFooter";
 import { ScrollToTop } from "@/components/ScrollToTop";
@@ -89,6 +90,7 @@ export default async function ScanPage({ params }: Props) {
         domain={scan.domain}
         initialStatus={scan.status}
         initialResult={scan.result as WCSReport | null}
+        depth={scanDepthKey(scan.tier ?? "quick", scan.mode ?? "standard")}
       />
     </div>
   );

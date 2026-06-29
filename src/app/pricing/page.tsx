@@ -5,7 +5,7 @@ import { CheckCircle2 } from "lucide-react";
 import { ScrollToTop } from "@/components/ScrollToTop";
 import { NavBar } from "@/components/NavBar";
 import { SiteFooter } from "@/components/SiteFooter";
-import { BUNDLE_SIZE, type Tier, type TierMode } from "@/lib/pricing";
+import { PACK_QUANTITIES, PRICING, type Tier, type TierMode } from "@/lib/pricing";
 
 async function startCheckout(tier: Tier, mode: TierMode, quantity: number) {
   const res = await fetch("/api/checkout", {
@@ -34,13 +34,35 @@ const tierTitle = (id: string, mode: TierMode): string => {
   return "Deep Scan";
 };
 
+const formatPrice = (cents: number): string => {
+  const dollars = cents / 100;
+  return dollars % 1 === 0 ? `$${dollars.toFixed(0)}` : `$${dollars.toFixed(2)}`;
+};
+
+function ComparisonValue({ value }: { value: string }) {
+  if (value === "✓") {
+    return (
+      <span className="inline-flex h-8 w-8 items-center justify-center rounded-full bg-emerald-500 text-base font-black text-[#07120b] shadow-[0_0_22px_rgba(16,185,129,0.35)]">
+        ✓
+      </span>
+    );
+  }
+
+  return (
+    <span
+      className="font-mono text-sm font-semibold"
+      style={{ color: value === "—" ? "color-mix(in srgb, var(--theme-muted) 40%, transparent)" : "var(--theme-foreground)" }}
+    >
+      {value}
+    </span>
+  );
+}
+
 const TIERS = [
   {
     id: "quick",
     color: "#60a5fa",
     badge: null,
-    standard: { price: 1,  searches: 8,   bundlePrice: 8,  bundleSave: 2 },
-    max:      { price: 10, searches: 50,  bundlePrice: 80, bundleSave: 20 },
     features: (mode: TierMode) => [
       `${mode === "max" ? "50" : "8"} live web searches`,
       "10 scored dimensions",
@@ -55,8 +77,6 @@ const TIERS = [
     id: "standard",
     color: "#f7b21b",
     badge: "Most popular",
-    standard: { price: 3,  searches: 14,  bundlePrice: 25, bundleSave: 5 },
-    max:      { price: 20, searches: 100, bundlePrice: 175, bundleSave: 25 },
     features: (mode: TierMode) => [
       `${mode === "max" ? "100" : "14"} live web searches`,
       "10 scored dimensions",
@@ -74,8 +94,6 @@ const TIERS = [
     id: "deep",
     color: "#4ade80",
     badge: "Most thorough",
-    standard: { price: 6,  searches: 20,  bundlePrice: 50,  bundleSave: 10 },
-    max:      { price: 40, searches: 200, bundlePrice: 350, bundleSave: 50 },
     features: (mode: TierMode) => [
       `${mode === "max" ? "200" : "20"} live web searches`,
       "10 scored dimensions",
@@ -203,7 +221,8 @@ export default function PricingPage() {
       <section className="px-6 py-16" style={{ borderBottom: "1px solid var(--theme-border)" }}>
         <div className="max-w-5xl mx-auto grid grid-cols-1 md:grid-cols-3 gap-6">
           {TIERS.map((tier) => {
-            const data = tier[mode];
+            const tierId = tier.id as Tier;
+            const data = PRICING[mode][tierId];
             const feats = tier.features(mode);
             return (
               <div
@@ -239,7 +258,7 @@ export default function PricingPage() {
                   </div>
                   <div className="flex items-baseline gap-1">
                     <span className="text-4xl font-score font-bold" style={{ color: "var(--theme-foreground)" }}>
-                      ${data.price}
+                      {formatPrice(data.unitCents)}
                     </span>
                     <span className="text-sm" style={{ color: "var(--theme-muted)" }}>/ report</span>
                   </div>
@@ -263,7 +282,7 @@ export default function PricingPage() {
 
                 <button
                   type="button"
-                  onClick={() => buy(tier.id as Tier, 1)}
+                  onClick={() => buy(tierId, 1)}
                   disabled={pendingId !== null}
                   className="block w-full text-center py-3 rounded-xl font-semibold text-sm transition-opacity hover:opacity-90 disabled:opacity-50 disabled:cursor-wait"
                   style={tier.badge
@@ -271,7 +290,7 @@ export default function PricingPage() {
                     : { border: `1px solid ${tier.color}`, color: tier.color, backgroundColor: `${tier.color}10` }
                   }
                 >
-                  {pendingId === `${tier.id}-1` ? "Redirecting…" : `Get ${tierTitle(tier.id, mode)} · $${data.price}`}
+                  {pendingId === `${tier.id}-1` ? "Redirecting…" : `Get ${tierTitle(tier.id, mode)} · ${formatPrice(data.unitCents)}`}
                 </button>
               </div>
             );
@@ -286,14 +305,15 @@ export default function PricingPage() {
       >
         <div className="max-w-5xl mx-auto">
           <h2 className="font-display text-center mb-2" style={{ fontSize: "clamp(1.8rem,3vw,2.5rem)", color: "var(--theme-foreground)" }}>
-            Bundle packs · 10 scans
+            Bundle packs
           </h2>
           <p className="text-sm text-center mb-10" style={{ color: "var(--theme-muted)" }}>
             Credits never expire. Use on any domain, any time.
           </p>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
             {TIERS.map((tier) => {
-              const data = tier[mode];
+              const tierId = tier.id as Tier;
+              const data = PRICING[mode][tierId];
               return (
                 <div
                   key={tier.id}
@@ -302,32 +322,34 @@ export default function PricingPage() {
                 >
                   <div>
                     <p className="text-xs font-semibold uppercase tracking-wider mb-1" style={{ color: tier.color }}>
-                      {tierTitle(tier.id, mode)}{mode === "max" ? " MAX" : ""} × 10
+                      {tierTitle(tier.id, mode)}{mode === "max" ? " MAX" : ""}
                     </p>
-                    <div className="flex items-baseline gap-2">
-                      <span className="text-3xl font-score font-bold" style={{ color: "var(--theme-foreground)" }}>
-                        ${data.bundlePrice}
-                      </span>
-                      <span
-                        className="text-xs px-2 py-0.5 rounded-full font-semibold"
-                        style={{ backgroundColor: `${tier.color}18`, color: tier.color }}
-                      >
-                        Save ${data.bundleSave}
-                      </span>
-                    </div>
                     <p className="text-xs mt-1" style={{ color: "var(--theme-muted)" }}>
-                      ${(data.bundlePrice / 10).toFixed(2)} per scan
+                      Lower per-scan pricing for repeat research.
                     </p>
                   </div>
-                  <button
-                    type="button"
-                    onClick={() => buy(tier.id as Tier, BUNDLE_SIZE)}
-                    disabled={pendingId !== null}
-                    className="block w-full text-center py-3 rounded-xl text-sm font-semibold transition-opacity hover:opacity-90 disabled:opacity-50 disabled:cursor-wait"
-                    style={{ border: `1px solid ${tier.color}`, color: tier.color, backgroundColor: `${tier.color}10` }}
-                  >
-                    {pendingId === `${tier.id}-${BUNDLE_SIZE}` ? "Redirecting…" : `Buy 10-pack · $${data.bundlePrice}`}
-                  </button>
+                  <div className="space-y-2">
+                    {PACK_QUANTITIES.map((quantity) => {
+                      const packPrice = data.packCents[quantity];
+                      const fullPrice = data.unitCents * quantity;
+                      const saveCents = fullPrice - packPrice;
+                      return (
+                        <button
+                          key={quantity}
+                          type="button"
+                          onClick={() => buy(tierId, quantity)}
+                          disabled={pendingId !== null}
+                          className="flex w-full items-center justify-between rounded-xl px-4 py-3 text-sm transition-opacity hover:opacity-90 disabled:cursor-wait disabled:opacity-50"
+                          style={{ border: `1px solid ${tier.color}`, color: tier.color, backgroundColor: `${tier.color}10` }}
+                        >
+                          <span className="font-semibold">{quantity} scans · {formatPrice(packPrice)}</span>
+                          <span className="text-xs" style={{ color: "var(--theme-muted)" }}>
+                            {formatPrice(Math.round(packPrice / quantity))}/scan · save {formatPrice(saveCents)}
+                          </span>
+                        </button>
+                      );
+                    })}
+                  </div>
                 </div>
               );
             })}
@@ -343,17 +365,21 @@ export default function PricingPage() {
 
       {/* Comparison table */}
       <section className="px-6 py-16" style={{ borderBottom: "1px solid var(--theme-border)" }}>
-        <div className="max-w-4xl mx-auto">
-          <h2 className="text-lg font-semibold mb-8 text-center" style={{ color: "var(--theme-foreground)" }}>
+        <div className="max-w-6xl mx-auto">
+          <h2 className="text-2xl font-semibold mb-8 text-center" style={{ color: "var(--theme-foreground)" }}>
             What&rsquo;s included
           </h2>
-          <div className="rounded-2xl overflow-hidden" style={{ border: "1px solid var(--theme-border)" }}>
-            <table className="w-full text-sm">
+          <div className="rounded-2xl overflow-x-auto" style={{ border: "1px solid var(--theme-border)" }}>
+            <table className="w-full min-w-[760px] text-base">
               <thead>
                 <tr style={{ backgroundColor: "var(--theme-panel)", borderBottom: "1px solid var(--theme-border)" }}>
-                  <th className="px-5 py-3 text-left text-xs font-semibold" style={{ color: "var(--theme-muted)" }}>Feature</th>
+                  <th className="px-6 py-5 text-left text-sm font-semibold" style={{ color: "var(--theme-muted)" }}>Feature</th>
                   {TIERS.map((t) => (
-                    <th key={t.id} className="px-5 py-3 text-center text-xs font-semibold" style={{ color: t.color }}>
+                    <th
+                      key={t.id}
+                      className="px-6 py-5 text-center text-sm font-semibold"
+                      style={{ color: t.color, borderLeft: "1px solid var(--theme-border)" }}
+                    >
                       {tierTitle(t.id, mode)}
                     </th>
                   ))}
@@ -378,9 +404,9 @@ export default function PricingPage() {
                   ["Press deep dive", "—", "—", "✓"],
                   ["Shareable URL", "✓", "✓", "✓"],
                   ["Price",
-                    `$${TIERS[0][mode].price}`,
-                    `$${TIERS[1][mode].price}`,
-                    `$${TIERS[2][mode].price}`],
+                    formatPrice(PRICING[mode].quick.unitCents),
+                    formatPrice(PRICING[mode].standard.unitCents),
+                    formatPrice(PRICING[mode].deep.unitCents)],
                 ].map(([feature, ...vals], i) => (
                   <tr
                     key={feature}
@@ -389,10 +415,17 @@ export default function PricingPage() {
                       backgroundColor: i % 2 === 0 ? "var(--theme-panel)" : "var(--theme-background-alt)",
                     }}
                   >
-                    <td className="px-5 py-3 text-xs" style={{ color: "var(--theme-muted)" }}>{feature}</td>
+                    <td className="px-6 py-5 text-sm font-medium" style={{ color: "var(--theme-muted)" }}>{feature}</td>
                     {vals.map((val, j) => (
-                      <td key={j} className="px-5 py-3 text-center text-xs font-mono" style={{ color: val === "—" ? "color-mix(in srgb, var(--theme-muted) 40%, transparent)" : "var(--theme-foreground)" }}>
-                        {val}
+                      <td
+                        key={j}
+                        className="px-6 py-5 text-center"
+                        style={{
+                          borderLeft: "1px solid var(--theme-border)",
+                          backgroundColor: j === 1 ? "color-mix(in srgb, var(--theme-accent) 4%, transparent)" : "transparent",
+                        }}
+                      >
+                        <ComparisonValue value={String(val)} />
                       </td>
                     ))}
                   </tr>

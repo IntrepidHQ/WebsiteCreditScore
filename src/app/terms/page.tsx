@@ -36,10 +36,10 @@ export default function TermsPage() {
             ),
           },
           {
-            title: "2. No account required",
+            title: "2. Accounts and free scans",
             content: (
               <p className="text-sm leading-relaxed" style={{ color: "var(--theme-muted)" }}>
-                The Service is available without registration. You purchase scans on a pay-per-scan basis. Bundle credits are tied to your order and accessed via your purchase confirmation.
+                Paid scans are available without registration. One free Aerial Scan may be offered per verified email address. Attempting to bypass free-scan limits by clearing cookies, changing browsers, or automating claims violates these Terms. Bundle credits are tied to your order and accessed via your purchase confirmation.
               </p>
             ),
           },

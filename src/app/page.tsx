@@ -7,6 +7,7 @@ import { NavBar } from "@/components/NavBar";
 import { SiteFooter } from "@/components/SiteFooter";
 import { ResearchSourcesMarquee } from "@/components/ResearchSourcesMarquee";
 import { ScrollToTop } from "@/components/ScrollToTop";
+import { HumanOperatorSection } from "@/components/HumanOperatorSection";
 import { RESEARCH_SOURCES_PER_SCAN } from "@/lib/research-sources";
 import { getBlogIconForSlug } from "@/lib/blog/icons";
 import { buildStrategyCallCalendlyUrl } from "@/lib/strategy-call";
@@ -509,6 +510,9 @@ export default async function LandingPage({
           </div>
         </div>
       </section>
+
+      {/* Human operator — the person behind the score + the scan→plan→ship loop */}
+      <HumanOperatorSection />
 
       {/* Recent scans — fed from completed paid reports; duplicate domains reuse cached results within 7 days */}
       <section

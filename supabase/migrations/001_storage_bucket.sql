@@ -13,9 +13,11 @@ values (
 on conflict (id) do nothing;
 
 -- Public read: preview images are non-sensitive (any URL can be screenshotted).
+drop policy if exists "public can read site preview images" on storage.objects;
 create policy "public can read site preview images"
   on storage.objects
   for select
+  to anon, authenticated
   using (bucket_id = 'site-previews');
 
 -- Server-side uploads use the service role key which bypasses RLS, so no

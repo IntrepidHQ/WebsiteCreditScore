@@ -22,7 +22,7 @@ export const metadata: Metadata = {
     template: "%s | WebsiteCreditScore",
   },
   description:
-    "Get a deep credibility report for any website. Powered by Claude AI with live web research. Graded A+ to F across 8 dimensions. $1 per scan.",
+    "Get a deep credibility report for any website. Powered by Claude AI with live web research. Graded A+ to F across 10 dimensions. $1 per scan.",
   metadataBase: new URL("https://websitecreditscore.com"),
   openGraph: {
     title: "WebsiteCreditScore",

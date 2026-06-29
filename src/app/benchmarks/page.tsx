@@ -4,6 +4,7 @@ import { ScrollToTop } from "@/components/ScrollToTop";
 import { NavBar } from "@/components/NavBar";
 import { SiteFooter } from "@/components/SiteFooter";
 import { IndustryStandards } from "./industry-standards";
+import { SCAN_DEPTH_PROFILES, type ScanDepthKey } from "@/lib/scan-depth";
 
 export const metadata: Metadata = {
   title: "Website Benchmark Standards — WebsiteCreditScore",
@@ -37,6 +38,8 @@ const dimensions = [
   { key: "longevity",        label: "Longevity",           weight:  5, color: "#a78bfa",  desc: "Domain age, business tenure, and stability signals over time." },
   { key: "financial_signals",label: "Financial Signals",   weight:  3, color: "#facc15",  desc: "Funding, revenue signals, financial press coverage, and viability indicators." },
 ];
+
+const scanDepths: ScanDepthKey[] = ["aerial", "surface", "deep", "trench", "mantle", "core"];
 
 // sample scores for the demo radar (a "B-grade" site)
 const DEMO_SCORES = [72, 68, 58, 65, 80, 74, 62, 55, 85, 70];
@@ -299,6 +302,68 @@ function GradeDistributionChart() {
   );
 }
 
+function ScanDepthStandards() {
+  return (
+    <section className="px-6 py-16" style={{ borderBottom: "1px solid var(--theme-border)", backgroundColor: "var(--theme-background-alt)" }}>
+      <div className="mx-auto max-w-6xl">
+        <div className="mb-10 max-w-3xl">
+          <p className="mb-3 text-xs font-bold uppercase tracking-[0.18em]" style={{ color: "var(--theme-accent)" }}>
+            Scan depth standards
+          </p>
+          <h2 className="font-display leading-tight" style={{ fontSize: "clamp(2rem, 3.5vw, 2.85rem)", color: "var(--theme-foreground)" }}>
+            Each deeper scan adds analysis, not artificial scarcity
+          </h2>
+          <p className="mt-4 text-sm leading-relaxed sm:text-base" style={{ color: "var(--theme-muted)" }}>
+            Aerial keeps the full 10-dimension benchmark. Higher depths expand the evidence trail, source organization, peer context, risk analysis, and decision-ready synthesis.
+          </p>
+        </div>
+
+        <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
+          {scanDepths.map((depth) => {
+            const profile = SCAN_DEPTH_PROFILES[depth];
+            const isCore = depth === "core";
+            return (
+              <div
+                key={depth}
+                className="rounded-2xl border p-5"
+                style={{
+                  borderColor: isCore ? "color-mix(in srgb, var(--theme-accent) 42%, var(--theme-border))" : "var(--theme-border)",
+                  backgroundColor: isCore ? "color-mix(in srgb, var(--theme-panel) 86%, var(--theme-accent) 8%)" : "var(--theme-panel)",
+                }}
+              >
+                <div className="flex items-start justify-between gap-4">
+                  <div>
+                    <h3 className="text-lg font-semibold" style={{ color: "var(--theme-foreground)" }}>{profile.label}</h3>
+                    <p className="mt-2 text-sm leading-relaxed" style={{ color: "var(--theme-muted)" }}>{profile.valuePromise}</p>
+                  </div>
+                  <div className="text-right">
+                    <p className="font-score text-3xl" style={{ color: "var(--theme-accent)" }}>{profile.searches}</p>
+                    <p className="text-[10px] uppercase tracking-[0.14em]" style={{ color: "var(--theme-muted)" }}>searches</p>
+                  </div>
+                </div>
+                <div className="mt-5 flex flex-wrap gap-2">
+                  {profile.unlocks.map((unlock) => (
+                    <span key={unlock} className="rounded-full border px-2.5 py-1 text-xs" style={{ borderColor: "var(--theme-border)", color: "var(--theme-foreground)" }}>
+                      {unlock}
+                    </span>
+                  ))}
+                </div>
+                <Link
+                  href={`/scan/demo?depth=${depth}`}
+                  className="mt-5 inline-flex text-xs font-semibold underline-offset-4 hover:underline"
+                  style={{ color: "var(--theme-accent)" }}
+                >
+                  View mock {profile.label} →
+                </Link>
+              </div>
+            );
+          })}
+        </div>
+      </div>
+    </section>
+  );
+}
+
 // ── Page ─────────────────────────────────────────────────────────────────────
 
 export default function BenchmarksPage() {
@@ -477,6 +542,8 @@ export default function BenchmarksPage() {
           </div>
         </div>
       </section>
+
+      <ScanDepthStandards />
 
       <IndustryStandards />
 

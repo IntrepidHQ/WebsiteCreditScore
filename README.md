@@ -90,12 +90,14 @@ If you want Google OAuth and Supabase-backed workspaces instead of the local dem
 
 ```bash
 NEXT_PUBLIC_SUPABASE_URL=...
-# Any one of: NEXT_PUBLIC_SUPABASE_ANON_KEY, NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY,
-# or NEXT_PUBLIC_SUPABASE_PUBLISHABLE_DEFAULT_KEY (see src/lib/supabase/config.ts)
+# Any one of: NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY, NEXT_PUBLIC_SUPABASE_ANON_KEY,
+# or NEXT_PUBLIC_SUPABASE_PUBLISHABLE_DEFAULT_KEY.
 NEXT_PUBLIC_SITE_URL=http://localhost:3000
 ```
 
-Optional: `STRIPE_SECRET_KEY`, `STRIPE_WEBHOOK_SECRET`, `SUPABASE_SERVICE_ROLE_KEY` (storage uploads), `GOOGLE_PAGESPEED_API_KEY` (PageSpeed screenshot fallback quota; create a key in Google Cloud Console with PageSpeed Insights API enabled).
+Optional: `STRIPE_SECRET_KEY`, `STRIPE_WEBHOOK_SECRET`, `SUPABASE_SECRET_KEY` or `SUPABASE_SERVICE_ROLE_KEY` (server-side DB writes and storage uploads), `GOOGLE_PAGESPEED_API_KEY` (PageSpeed screenshot fallback quota; create a key in Google Cloud Console with PageSpeed Insights API enabled).
+
+Free Aerial scans require Supabase email OTP verification. In Supabase Auth, make sure the email template exposes the one-time token (for example with `{{ .Token }}`) so users can paste the code into the scan form. The free-claim abuse hashes also require `FREE_SCAN_HASH_SALT` in production.
 
 ## Production sign-in checklist (Plan A)
 
@@ -107,8 +109,10 @@ Set for the **Production** environment (and **Preview** if you test OAuth on pre
 
 | Variable | Notes |
 |----------|--------|
-| `NEXT_PUBLIC_SUPABASE_URL` | Project URL from Supabase → Settings → API |
-| **One** of: `NEXT_PUBLIC_SUPABASE_ANON_KEY`, `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY`, or `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_DEFAULT_KEY` | Anon/public key from the same project |
+| `NEXT_PUBLIC_SUPABASE_URL` or `SUPABASE_URL` | Project URL from the Vercel Supabase integration or Supabase → Settings → API |
+| **One** of: `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY`, `NEXT_PUBLIC_SUPABASE_ANON_KEY`, or `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_DEFAULT_KEY` | Public key from the same project |
+| `SUPABASE_SECRET_KEY` or `SUPABASE_SERVICE_ROLE_KEY` | Secret/service-role key from the same project; server-only DB writes, wallet credits, and free-scan claims depend on this |
+| `FREE_SCAN_HASH_SALT` | Long random server-only salt used to hash IP/user-agent abuse signals for free Aerial scans |
 | `NEXT_PUBLIC_SITE_URL` | Your live origin, e.g. `https://websitecreditscore.com` (used for absolute links) |
 
 Redeploy after changing these.
@@ -135,8 +139,11 @@ In Supabase → **SQL Editor**, run the migration files **in order** (filename p
 5. `supabase/migrations/20260409120000_dataroom_bucket.sql` — dataroom storage bucket.
 6. `supabase/migrations/20260410120000_public_recent_scans.sql` — public recent-scans view.
 7. `supabase/migrations/20260412130000_ai_response_cache.sql` — LLM prompt cache.
-8. `supabase/migrations/20260418120000_scans.sql` — per-scan cost/revenue ledger (powers `/admin`).
+8. `supabase/migrations/20260418120000_scans.sql` — per-scan cost/revenue ledger.
 9. `supabase/migrations/20260418120500_stripe_webhook_log.sql` — Stripe webhook event ledger + dedupe.
+10. `supabase/migrations/20260425000000_create_scans.sql` — public scan records and report storage.
+11. `supabase/migrations/20260427000000_wallets.sql` — prepaid scan wallets, balances, and transaction ledger.
+12. `supabase/migrations/20260508000000_free_scan_claims_and_depth.sql` — verified-email free-scan claims, scan depth metadata, and atomic free-claim RPC.
 
 Without (1), workspace load fails and you may be redirected to `/app/login?error=db-not-ready` or `workspace-unavailable`.
 
