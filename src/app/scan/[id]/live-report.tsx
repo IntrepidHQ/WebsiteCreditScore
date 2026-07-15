@@ -35,6 +35,11 @@ const scanReportCalendlyUrl = (domain: string) =>
 const scanReportPresentationUrl = (domain: string) =>
   buildStrategyPresentationUrl({ medium: "scan_report", content: domain });
 
+// The auto-built Strategy Presentation for this scan — the SP deck endpoint
+// renders on demand from the shared scans table, in fast-paced auto-play mode.
+const scanReportDeckUrl = (scanId: string) =>
+  `https://strategypresentation.com/api/demo/deck?source=scan&id=${encodeURIComponent(scanId)}&src=wcs&autoplay=1`;
+
 const panelClass = "rounded-2xl border";
 const panelStyle: CSSProperties = {
   borderColor: "var(--theme-border)",
@@ -739,9 +744,10 @@ export function ScanResultSummary({ report }: { report: WCSReport }) {
   );
 }
 
-function StrategyPresentationUpsell({ domain }: { domain: string }) {
+function StrategyPresentationUpsell({ domain, scanId }: { domain: string; scanId?: string }) {
   const calUrl = scanReportCalendlyUrl(domain);
   const spUrl = scanReportPresentationUrl(domain);
+  const deckUrl = scanId ? scanReportDeckUrl(scanId) : null;
   return (
     <div
       className={`${panelClass} overflow-hidden`}
@@ -761,18 +767,41 @@ function StrategyPresentationUpsell({ domain }: { domain: string }) {
               Turn this scan for <span className="whitespace-nowrap">{domain}</span> into a decision-ready deck
             </h3>
             <p className="text-sm leading-relaxed" style={{ color: "var(--theme-muted)" }}>
-              Book a <strong style={{ color: "var(--theme-foreground)" }}>Strategy Call</strong> — that booking triggers your{" "}
-              <strong style={{ color: "var(--theme-foreground)" }}>Strategy Presentation</strong> build from this scan (priorities, proof, what to ship first).
-              Remote by default; in-person when it fits your business.
+              {deckUrl ? (
+                <>
+                  Your <strong style={{ color: "var(--theme-foreground)" }}>Strategy Presentation</strong> is already built from this scan —
+                  a fast, animated walkthrough of your priorities, proof, and the plan we&apos;d put into a custom operating system for you.
+                  It ends with a free trial you can open in minutes.
+                </>
+              ) : (
+                <>
+                  Book a <strong style={{ color: "var(--theme-foreground)" }}>Strategy Call</strong> — that booking triggers your{" "}
+                  <strong style={{ color: "var(--theme-foreground)" }}>Strategy Presentation</strong> build from this scan (priorities, proof, what to ship first).
+                  Remote by default; in-person when it fits your business.
+                </>
+              )}
             </p>
           </div>
           <div className="flex w-full flex-shrink-0 flex-col gap-2 sm:w-auto">
+            {deckUrl && (
+              <a
+                href={deckUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center justify-center gap-2 rounded-xl px-5 py-3.5 text-sm font-bold transition-opacity hover:opacity-92"
+                style={{ backgroundColor: "var(--theme-accent)", color: "var(--theme-accent-foreground)" }}
+              >
+                ▶ Watch your Strategy Presentation
+              </a>
+            )}
             <a
               href={calUrl}
               target="_blank"
               rel="noopener noreferrer"
-              className="inline-flex items-center justify-center gap-2 rounded-xl px-5 py-3.5 text-sm font-bold transition-opacity hover:opacity-92"
-              style={{ backgroundColor: "var(--theme-accent)", color: "var(--theme-accent-foreground)" }}
+              className={`inline-flex items-center justify-center gap-2 rounded-xl px-5 text-sm font-bold transition-opacity hover:opacity-92 ${deckUrl ? "border py-2.5 text-xs font-semibold" : "py-3.5"}`}
+              style={deckUrl
+                ? { borderColor: "var(--theme-border)", color: "var(--theme-foreground)", backgroundColor: "color-mix(in srgb, var(--theme-panel) 55%, transparent)" }
+                : { backgroundColor: "var(--theme-accent)", color: "var(--theme-accent-foreground)" }}
             >
               <Calendar className="h-4 w-4" aria-hidden />
               Strategy Call — book 30 min →
@@ -1147,7 +1176,7 @@ function DimensionBreakdown({ report }: { report: WCSReport }) {
 }
 
 // ── Main report ───────────────────────────────────────────────────────────
-export function ReportContent({ report, depth = "aerial" }: { report: WCSReport; depth?: ScanDepthKey }) {
+export function ReportContent({ report, depth = "aerial", scanId }: { report: WCSReport; depth?: ScanDepthKey; scanId?: string }) {
   return (
     <div className="space-y-6">
       <ScanResultSummary report={report} />
@@ -1156,7 +1185,7 @@ export function ReportContent({ report, depth = "aerial" }: { report: WCSReport;
 
       <PremiumDepthBlock report={report} depth={depth} />
 
-      <StrategyPresentationUpsell domain={report.domain} />
+      <StrategyPresentationUpsell domain={report.domain} scanId={scanId} />
 
       <FlagsSection report={report} />
 
@@ -1342,7 +1371,7 @@ export function LiveReport({ scanId, domain, initialResult, depth = "aerial" }: 
           <ReportSkeleton searches={searches} />
         </div>
       ) : (
-        <ReportContent report={report} depth={depth} />
+        <ReportContent report={report} depth={depth} scanId={scanId} />
       )}
     </div>
   );

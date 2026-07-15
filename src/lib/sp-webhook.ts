@@ -20,6 +20,7 @@ export { deriveClientSlug };
  */
 
 export type SPTier = "standard" | "nonprofit";
+export type SPSource = "wcs" | "brainztem" | "sp-demo";
 
 export interface SPWebhookPayload {
   wcsReport: WCSReport;
@@ -27,6 +28,12 @@ export interface SPWebhookPayload {
   /** lowercase alphanumeric + hyphens, max 63 chars — becomes the subdomain */
   clientSlug: string;
   tier: SPTier;
+  /** deck template (summit/signal/…); SP defaults to signal when omitted */
+  templateId?: string;
+  /** which funnel produced this — drives the deck's closing CTA on the SP side */
+  source?: SPSource;
+  /** Brainztem trial token, when the scan came through a trial */
+  sandboxToken?: string;
   gatePassword?: string;
   gateSignedDate?: string;
 }
@@ -102,4 +109,33 @@ export async function signAndPostToSP(payload: SPWebhookPayload): Promise<SPWebh
       httpStatus: 0,
     };
   }
+}
+
+/**
+ * Auto-build a Strategy Presentation from a completed scan — the automated
+ * counterpart to the admin handoff button. Best-effort: derives the client
+ * name/slug, defaults to the `signal` template, and always resolves (never
+ * throws) so it can be fired-and-awaited off the scan pipeline without ever
+ * breaking a scan. Idempotent on the SP side by clientSlug. Bounded so a slow
+ * SP can't hold a serverless function open.
+ */
+export async function autoHandoffToSP(
+  report: WCSReport,
+  opts?: { source?: SPSource; timeoutMs?: number },
+): Promise<SPWebhookResult> {
+  if (!spWebhookConfigured()) {
+    return { ok: false, error: "SP_WEBHOOK_SECRET not set", httpStatus: 0 };
+  }
+  const payload: SPWebhookPayload = {
+    wcsReport: report,
+    clientName: report.company_name?.trim() || report.domain,
+    clientSlug: deriveClientSlug(report.domain),
+    tier: "standard",
+    templateId: "signal",
+    source: opts?.source ?? "wcs",
+  };
+  const timeout = new Promise<SPWebhookResult>((resolve) =>
+    setTimeout(() => resolve({ ok: false, error: "timeout", httpStatus: 0 }), opts?.timeoutMs ?? 8000),
+  );
+  return Promise.race([signAndPostToSP(payload), timeout]);
 }
