@@ -11,6 +11,7 @@ import fixture from "@/lib/fixtures/wcs-mock.json";
 import Anthropic from "@anthropic-ai/sdk";
 import type { MessageStreamEvent, Tool, ToolUnion } from "@anthropic-ai/sdk/resources/messages";
 import { getScanDepthProfile } from "@/lib/scan-depth";
+import { autoHandoffToSP } from "@/lib/sp-webhook";
 
 export const runtime = "nodejs";
 export const maxDuration = 300;
@@ -274,6 +275,20 @@ For Aerial scans, keep the result concise and high-signal. For deeper scans, use
   });
 
   send(controller, { type: "done", report: finalReport });
+
+  // Auto-build the Strategy Presentation from this scan (the automated
+  // counterpart to the admin handoff button). The report is already delivered
+  // to the client above, so awaiting here doesn't delay the UX — it just keeps
+  // the serverless function alive long enough to complete the (bounded) POST.
+  // Best-effort and idempotent by slug; never breaks the scan.
+  try {
+    const r = await autoHandoffToSP(finalReport, { source: "wcs" });
+    console.log(
+      `[scan/${scanId}] SP auto-handoff: ${r.ok ? `ok (${r.strategyId}, new=${r.isNew})` : `skipped: ${r.error}`}`,
+    );
+  } catch (e) {
+    console.error(`[scan/${scanId}] SP auto-handoff threw:`, e);
+  }
 }
 
 // ── Route handler ─────────────────────────────────────────────────────────
