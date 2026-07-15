@@ -9,6 +9,7 @@ import { WCSReportSchema, WCS_REPORT_JSON_SCHEMA, type WCSReport } from "@/lib/s
 import fixture from "@/lib/fixtures/wcs-mock.json";
 import Anthropic from "@anthropic-ai/sdk";
 import type { MessageStreamEvent, Tool, ToolUnion } from "@anthropic-ai/sdk/resources/messages";
+import { autoHandoffToSP } from "@/lib/sp-webhook";
 
 export const runtime = "nodejs";
 export const maxDuration = 300;
@@ -262,6 +263,19 @@ async function runAgent(
   });
 
   send(controller, { type: "done", report: finalReport });
+
+  // Auto-build the Strategy Presentation from this scan. The report is already
+  // delivered above, so awaiting here doesn't delay the UX — it just keeps the
+  // serverless function alive long enough to complete the (bounded) POST.
+  // Best-effort and idempotent by slug; never breaks the scan.
+  try {
+    const r = await autoHandoffToSP(finalReport, { source: "wcs" });
+    console.log(
+      `[scan/${scanId}] SP auto-handoff: ${r.ok ? `ok (${r.strategyId}, new=${r.isNew})` : `skipped: ${r.error}`}`,
+    );
+  } catch (e) {
+    console.error(`[scan/${scanId}] SP auto-handoff threw:`, e);
+  }
 }
 
 // ── Route handler ─────────────────────────────────────────────────────────
