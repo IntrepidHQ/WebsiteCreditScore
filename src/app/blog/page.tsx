@@ -8,7 +8,8 @@ import { SiteFooter } from "@/components/SiteFooter";
 
 export const metadata: Metadata = {
   title: "Blog — WebsiteCreditScore",
-  description: "How we score websites across 10 dimensions: legitimacy, reputation, visual design, UX, transparency, technical health, content quality, social presence, longevity, and financial signals.",
+  description: "Guides on website credibility, trust scores, and online reputation — plus how we score websites across 10 weighted dimensions, from legitimacy to financial signals.",
+  alternates: { canonical: "/blog" },
 };
 
 export default function BlogPage() {
@@ -30,10 +31,10 @@ export default function BlogPage() {
             10 angles · one score
           </div>
           <h1 className="font-display" style={{ fontSize: "clamp(2rem,4vw,3rem)", color: "var(--theme-foreground)" }}>
-            How We Score Websites
+            The Website Credibility Blog
           </h1>
           <p className="text-base max-w-xl leading-relaxed" style={{ color: "var(--theme-muted)" }}>
-            Every audit evaluates 10 weighted dimensions. These articles explain exactly what our AI looks for — and what you can do about it.
+            Practical guides on trust, reputation, and conversion — plus exactly how our AI scores websites across 10 weighted dimensions, and what you can do about it.
           </p>
         </div>
       </section>
