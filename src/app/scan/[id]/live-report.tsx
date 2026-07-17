@@ -22,6 +22,9 @@ import {
   Clock,
   TrendingUp,
   X,
+  Wrench,
+  ArrowUpRight,
+  Sparkles,
 } from "lucide-react";
 import { DIMENSION_COLORS, gradeColor, gradeLabel, type DimensionKey, type WCSReport, type Grade } from "@/lib/schema";
 import { buildStrategyCallCalendlyUrl, buildStrategyPresentationUrl } from "@/lib/strategy-call";
@@ -235,10 +238,124 @@ function DimensionCard({ dim }: { dim: WCSReport["dimensions"][number] }) {
                   ))}
                 </div>
               )}
+              <SuggestedFixes dim={dim} color={color} />
             </div>
           </motion.div>
         )}
       </AnimatePresence>
+    </div>
+  );
+}
+
+const PRIORITY_ORDER = { high: 0, medium: 1, low: 2 } as const;
+
+function SuggestedFixes({
+  dim,
+  color,
+}: {
+  dim: WCSReport["dimensions"][number];
+  color: string;
+}) {
+  const fixes = dim.suggested_fixes ?? [];
+  const remediation = dim.remediation;
+  if (fixes.length === 0 && !remediation) return null;
+
+  const sortedFixes = [...fixes].sort(
+    (a, b) =>
+      (PRIORITY_ORDER[a.priority ?? "medium"] ?? 1) -
+      (PRIORITY_ORDER[b.priority ?? "medium"] ?? 1),
+  );
+
+  return (
+    <div
+      className="space-y-3 rounded-xl border p-4"
+      style={{
+        borderColor: `color-mix(in srgb, ${color} 30%, var(--theme-border))`,
+        backgroundColor: `color-mix(in srgb, ${color} 6%, transparent)`,
+      }}
+    >
+      <div className="flex items-center gap-2">
+        <Wrench className="h-3.5 w-3.5" style={{ color }} />
+        <p className="text-[10px] font-bold uppercase tracking-[0.14em]" style={{ color }}>
+          Suggested fixes
+        </p>
+      </div>
+
+      {sortedFixes.length > 0 && (
+        <ul className="space-y-2">
+          {sortedFixes.map((fix, i) => (
+            <li key={i} className="flex items-start gap-2">
+              <span
+                className="mt-1.5 h-1.5 w-1.5 flex-shrink-0 rounded-full"
+                style={{ backgroundColor: color }}
+              />
+              <div className="min-w-0">
+                <p className="text-sm font-semibold" style={{ color: "var(--theme-foreground)", ...readableWrapStyle }}>
+                  {fix.title}
+                  {fix.priority === "high" && (
+                    <span
+                      className="ml-2 rounded px-1.5 py-0.5 text-[9px] font-bold uppercase tracking-wider align-middle"
+                      style={{ backgroundColor: "#f8717122", color: "#f87171" }}
+                    >
+                      Priority
+                    </span>
+                  )}
+                </p>
+                <p className="text-xs leading-relaxed" style={{ color: "var(--theme-muted)", ...readableWrapStyle }}>
+                  {renderInlineMarkdown(fix.detail)}
+                </p>
+              </div>
+            </li>
+          ))}
+        </ul>
+      )}
+
+      {/* Fall back to the catalog's self-serve steps when the agent gave none. */}
+      {sortedFixes.length === 0 && remediation && (
+        <ul className="space-y-1.5">
+          {remediation.self_serve.map((step, i) => (
+            <li key={i} className="flex items-start gap-2">
+              <span
+                className="mt-1.5 h-1.5 w-1.5 flex-shrink-0 rounded-full"
+                style={{ backgroundColor: color }}
+              />
+              <p className="text-sm" style={{ color: "var(--theme-foreground)", ...readableWrapStyle }}>
+                {step}
+              </p>
+            </li>
+          ))}
+        </ul>
+      )}
+
+      {remediation?.addon && (
+        <div
+          className="flex items-start gap-2 rounded-lg border p-3"
+          style={{ borderColor: "var(--theme-border)", backgroundColor: "var(--theme-panel)" }}
+        >
+          <Sparkles className="mt-0.5 h-4 w-4 flex-shrink-0" style={{ color: "var(--theme-accent)" }} />
+          <div className="min-w-0 flex-1">
+            <p className="text-xs font-semibold" style={{ color: "var(--theme-foreground)" }}>
+              Done for you: {remediation.addon.name}
+              <span className="ml-1.5 font-score" style={{ color: "var(--theme-accent)" }}>
+                ${remediation.addon.price_usd.toLocaleString()}
+              </span>
+            </p>
+            <p className="mt-0.5 text-xs leading-relaxed" style={{ color: "var(--theme-muted)", ...readableWrapStyle }}>
+              {remediation.addon.pitch}
+            </p>
+            <a
+              href="https://brainztem.com/#addons"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="mt-1.5 inline-flex items-center gap-1 text-xs font-semibold transition-opacity hover:opacity-80"
+              style={{ color: "var(--theme-accent)" }}
+            >
+              Fix this with Brainztem
+              <ArrowUpRight className="h-3 w-3" />
+            </a>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
@@ -697,6 +814,10 @@ function DimensionReasoningModal({
               No source citations were attached to this dimension.
             </p>
           )}
+        </div>
+
+        <div className="mt-4">
+          <SuggestedFixes dim={dimension} color={color} />
         </div>
       </motion.div>
     </motion.div>

@@ -64,6 +64,29 @@ const EvidenceItemSchema = z.object({
   title: z.string().optional(),
 });
 
+// Agent-written, site-specific fixes for a dimension.
+const SuggestedFixSchema = z.object({
+  title: z.string(),
+  detail: z.string(),
+  priority: z.enum(["high", "medium", "low"]).optional(),
+});
+
+// Server-attached (see @/lib/remediation): the productized way to lift the
+// dimension, including the Brainztem add-on that addresses it when one applies.
+const AddonRefSchema = z.object({
+  id: z.string(),
+  name: z.string(),
+  price_usd: z.number(),
+  pitch: z.string(),
+});
+
+const DimensionRemediationSchema = z.object({
+  headline: z.string(),
+  self_serve: z.array(z.string()),
+  mode: z.enum(["addon", "self_serve"]),
+  addon: AddonRefSchema.optional(),
+});
+
 const DimensionSchema = z.object({
   key: z.enum(DIMENSION_KEYS),
   label: z.string(),
@@ -72,6 +95,9 @@ const DimensionSchema = z.object({
   weight: z.number(),
   verdict: z.string(),
   evidence: z.array(EvidenceItemSchema),
+  // Optional: agent supplies suggested_fixes; the server attaches remediation.
+  suggested_fixes: z.array(SuggestedFixSchema).optional(),
+  remediation: DimensionRemediationSchema.optional(),
 });
 
 const FlagSchema = z.object({
@@ -121,6 +147,8 @@ export const WCSReportSchema = z.object({
 });
 
 export type WCSReport = z.infer<typeof WCSReportSchema>;
+export type SuggestedFix = z.infer<typeof SuggestedFixSchema>;
+export type DimensionRemediation = z.infer<typeof DimensionRemediationSchema>;
 export type Dimension = z.infer<typeof DimensionSchema>;
 export type EvidenceItem = z.infer<typeof EvidenceItemSchema>;
 export type RedFlag = z.infer<typeof RedFlagSchema>;
@@ -167,6 +195,20 @@ export const WCS_REPORT_JSON_SCHEMA = {
                 claim: { type: "string" },
                 url: { type: "string", format: "uri" },
                 title: { type: "string" },
+              },
+            },
+          },
+          suggested_fixes: {
+            type: "array",
+            description:
+              "For any dimension scoring below 80, 2-4 concrete, site-specific fixes the owner could make to raise this score. Empty or omitted for strong dimensions.",
+            items: {
+              type: "object",
+              required: ["title", "detail"],
+              properties: {
+                title: { type: "string", description: "Short imperative fix, e.g. 'Add a public pricing page'" },
+                detail: { type: "string", description: "1-2 sentences: what to do and why it lifts the score" },
+                priority: { type: "string", enum: ["high", "medium", "low"] },
               },
             },
           },

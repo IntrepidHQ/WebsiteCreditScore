@@ -49,6 +49,35 @@ describe("ScanResultSummary", () => {
     });
   });
 
+  it("renders suggested fixes and the Brainztem add-on in dimension reasoning", async () => {
+    const container = document.createElement("div");
+    document.body.append(container);
+    const root = createRoot(container);
+
+    await act(async () => {
+      root.render(<ScanResultSummary report={fixture as WCSReport} />);
+    });
+
+    const button = container.querySelector(
+      '[aria-label="Open Transparency & Disclosure reasoning from key"]',
+    );
+    expect(button).toBeTruthy();
+
+    await act(async () => {
+      button!.dispatchEvent(new MouseEvent("click", { bubbles: true }));
+    });
+
+    expect(container.textContent).toContain("Suggested fixes");
+    expect(container.textContent).toContain("Publish a public pricing page");
+    expect(container.textContent).toContain("Score Recovery Program");
+    expect(container.textContent).toContain("$1,700");
+    expect(container.textContent).toContain("Fix this with Brainztem");
+
+    await act(async () => {
+      root.unmount();
+    });
+  });
+
   it("shows a tappable radar tooltip for dimension scores", async () => {
     const container = document.createElement("div");
     document.body.append(container);
