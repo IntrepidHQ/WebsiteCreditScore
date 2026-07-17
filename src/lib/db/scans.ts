@@ -163,7 +163,9 @@ export async function getRecentScans(limit: number | null = 6): Promise<Array<{
   created_at: string;
 }>> {
   const supabase = await createClient();
-  let query = supabase
+  // Pull newest-first, unbounded, so we can dedupe by domain before limiting —
+  // a re-scanned domain shows only its latest report, never a stale duplicate.
+  const { data } = await supabase
     .from("scans")
     .select("id, domain, result, created_at")
     .eq("status", "done")
@@ -171,15 +173,19 @@ export async function getRecentScans(limit: number | null = 6): Promise<Array<{
     .not("domain", "ilike", "%websitecreditscore.com%")
     .order("created_at", { ascending: false });
 
-  if (limit !== null) {
-    query = query.limit(limit);
-  }
-
-  const { data } = await query;
-
   if (!data) return [];
 
-  return data
+  const seenDomains = new Set<string>();
+  const deduped = data.filter((row) => {
+    const key = row.domain.trim().toLowerCase();
+    if (seenDomains.has(key)) return false;
+    seenDomains.add(key);
+    return true;
+  });
+
+  const limited = limit !== null ? deduped.slice(0, limit) : deduped;
+
+  return limited
     .filter((row) => row.result?.overall)
     .map((row) => {
       const summary = buildScanResultSummary(row.result);
