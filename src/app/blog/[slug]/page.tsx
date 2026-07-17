@@ -2,11 +2,20 @@ import type { Metadata } from "next";
 import { createElement, type ReactNode } from "react";
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { BLOG_POSTS, getPost } from "@/lib/blog/posts";
+import { BLOG_POSTS, getPost, getRelatedPosts, type BlogPost } from "@/lib/blog/posts";
 import { getBlogIconForSlug } from "@/lib/blog/icons";
+import { DIMENSION_LABELS } from "@/lib/schema";
 import { ScrollToTop } from "@/components/ScrollToTop";
 import { NavBar } from "@/components/NavBar";
 import { SiteFooter } from "@/components/SiteFooter";
+
+const SITE_URL = "https://www.websitecreditscore.com";
+
+const SCORED_DIMENSIONS = new Set(Object.values(DIMENSION_LABELS));
+
+function isScoredDimension(label: string): boolean {
+  return SCORED_DIMENSIONS.has(label);
+}
 
 interface Props {
   params: Promise<{ slug: string }>;
@@ -20,10 +29,107 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { slug } = await params;
   const post = getPost(slug);
   if (!post) return {};
+  const canonical = `/blog/${post.slug}`;
   return {
     title: `${post.title} — WebsiteCreditScore Blog`,
     description: post.excerpt,
+    alternates: { canonical },
+    openGraph: {
+      type: "article",
+      title: post.title,
+      description: post.excerpt,
+      url: `${SITE_URL}${canonical}`,
+      siteName: "WebsiteCreditScore",
+      publishedTime: toIsoDate(post.date),
+      authors: post.author ? [post.author] : undefined,
+    },
   };
+}
+
+function toIsoDate(humanDate: string): string | undefined {
+  const parsed = new Date(humanDate);
+  if (Number.isNaN(parsed.getTime())) return undefined;
+  return parsed.toISOString().slice(0, 10);
+}
+
+function buildJsonLd(post: BlogPost): object[] {
+  const url = `${SITE_URL}/blog/${post.slug}`;
+  const isoDate = toIsoDate(post.date);
+  const blocks: object[] = [
+    {
+      "@context": "https://schema.org",
+      "@type": "Article",
+      headline: post.title,
+      description: post.excerpt,
+      url,
+      mainEntityOfPage: { "@type": "WebPage", "@id": url },
+      ...(isoDate ? { datePublished: isoDate, dateModified: isoDate } : {}),
+      author: {
+        "@type": "Person",
+        name: post.author ?? "WebsiteCreditScore",
+      },
+      publisher: {
+        "@type": "Organization",
+        name: "WebsiteCreditScore",
+        url: SITE_URL,
+      },
+    },
+  ];
+  if (post.faq?.length) {
+    blocks.push({
+      "@context": "https://schema.org",
+      "@type": "FAQPage",
+      mainEntity: post.faq.map((item) => ({
+        "@type": "Question",
+        name: item.question,
+        acceptedAnswer: { "@type": "Answer", text: item.answer },
+      })),
+    });
+  }
+  return blocks;
+}
+
+/** Renders inline **bold** spans and [text](url) links inside a line of body text. */
+function renderInline(text: string): ReactNode[] {
+  const parts = text.split(/(\*\*[^*]+\*\*|\[[^\]]+\]\([^)\s]+\))/g);
+  return parts.map((part, j) => {
+    if (part.startsWith("**") && part.endsWith("**")) {
+      return (
+        <strong key={j} style={{ color: "var(--theme-foreground)" }}>
+          {renderInline(part.slice(2, -2))}
+        </strong>
+      );
+    }
+    const linkMatch = part.match(/^\[([^\]]+)\]\(([^)\s]+)\)$/);
+    if (linkMatch) {
+      const [, label, href] = linkMatch;
+      const linkStyle = {
+        color: "var(--theme-accent)",
+        textDecoration: "underline",
+        textUnderlineOffset: "3px",
+      } as const;
+      if (href.startsWith("/")) {
+        return (
+          <Link key={j} href={href} style={linkStyle} className="hover:opacity-80 transition-opacity">
+            {label}
+          </Link>
+        );
+      }
+      return (
+        <a
+          key={j}
+          href={href}
+          target="_blank"
+          rel="noopener noreferrer"
+          style={linkStyle}
+          className="hover:opacity-80 transition-opacity"
+        >
+          {label}
+        </a>
+      );
+    }
+    return part;
+  });
 }
 
 function renderBody(body: string) {
@@ -52,7 +158,7 @@ function renderBody(body: string) {
     if (line.startsWith("- ")) {
       listBuffer.push(
         <li key={i} className="text-base leading-[1.75] pl-0.5">
-          {line.slice(2)}
+          {renderInline(line.slice(2))}
         </li>
       );
       i++;
@@ -90,36 +196,18 @@ function renderBody(body: string) {
             <span className="font-semibold" style={{ color: "var(--theme-foreground)" }}>
               {match[1]}. {match[2]}
             </span>
-            {match[3]}
+            {renderInline(match[3])}
           </p>
         );
       }
     } else if (line.trim() === "") {
       // skip blanks between paragraphs
     } else {
-      const hasBold = /\*\*.+?\*\*/.test(line);
-      if (hasBold) {
-        const parts = line.split(/(\*\*.+?\*\*)/g).map((part, j) =>
-          part.startsWith("**") ? (
-            <strong key={j} style={{ color: "var(--theme-foreground)" }}>
-              {part.slice(2, -2)}
-            </strong>
-          ) : (
-            part
-          )
-        );
-        elements.push(
-          <p key={i} className="text-base leading-[1.75] mb-4" style={{ color: "var(--theme-muted)" }}>
-            {parts}
-          </p>
-        );
-      } else {
-        elements.push(
-          <p key={i} className="text-base leading-[1.75] mb-4" style={{ color: "var(--theme-muted)" }}>
-            {line}
-          </p>
-        );
-      }
+      elements.push(
+        <p key={i} className="text-base leading-[1.75] mb-4" style={{ color: "var(--theme-muted)" }}>
+          {renderInline(line)}
+        </p>
+      );
     }
 
     i++;
@@ -143,9 +231,18 @@ export default async function BlogPostPage({ params }: Props) {
   const currentIndex = BLOG_POSTS.findIndex((p) => p.slug === slug);
   const prev = currentIndex > 0 ? BLOG_POSTS[currentIndex - 1] : null;
   const next = currentIndex < BLOG_POSTS.length - 1 ? BLOG_POSTS[currentIndex + 1] : null;
+  const related = getRelatedPosts(post);
+  const jsonLd = buildJsonLd(post);
 
   return (
     <main className="flex min-h-screen flex-col" style={{ backgroundColor: "var(--theme-background)" }}>
+      {jsonLd.map((block, i) => (
+        <script
+          key={i}
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(block) }}
+        />
+      ))}
       <ScrollToTop />
       <NavBar />
 
@@ -167,6 +264,7 @@ export default async function BlogPostPage({ params }: Props) {
               </span>
               <span className="text-xs" style={{ color: "color-mix(in srgb, var(--theme-muted) 55%, transparent)" }}>
                 {post.readTime} · {post.date}
+                {post.author ? ` · By ${post.author}` : ""}
               </span>
             </div>
           </div>
@@ -190,6 +288,74 @@ export default async function BlogPostPage({ params }: Props) {
 
         <div>{renderBody(post.body)}</div>
 
+        {post.faq && post.faq.length > 0 && (
+          <section className="mt-14">
+            <h2
+              className="font-display mb-6"
+              style={{
+                fontSize: "clamp(1.35rem, 2.8vw, 1.85rem)",
+                color: "var(--theme-foreground)",
+                lineHeight: 1.15,
+                letterSpacing: "-0.02em",
+              }}
+            >
+              Frequently asked questions
+            </h2>
+            <div className="space-y-4">
+              {post.faq.map((item) => (
+                <div
+                  key={item.question}
+                  className="rounded-xl p-5"
+                  style={{ border: "1px solid var(--theme-border)", backgroundColor: "var(--theme-panel)" }}
+                >
+                  <p className="text-base font-semibold mb-2" style={{ color: "var(--theme-foreground)" }}>
+                    {item.question}
+                  </p>
+                  <p className="text-base leading-[1.7]" style={{ color: "var(--theme-muted)" }}>
+                    {item.answer}
+                  </p>
+                </div>
+              ))}
+            </div>
+          </section>
+        )}
+
+        {related.length > 0 && (
+          <section className="mt-14">
+            <h2
+              className="font-display mb-5"
+              style={{
+                fontSize: "clamp(1.2rem, 2.4vw, 1.55rem)",
+                color: "var(--theme-foreground)",
+                lineHeight: 1.15,
+                letterSpacing: "-0.02em",
+              }}
+            >
+              Related reading
+            </h2>
+            <div className="grid gap-3 sm:grid-cols-2">
+              {related.map((rp) => (
+                <Link
+                  key={rp.slug}
+                  href={`/blog/${rp.slug}`}
+                  className="rounded-xl p-4 group hover:opacity-90 transition-opacity"
+                  style={{ border: "1px solid var(--theme-border)", backgroundColor: "var(--theme-panel)" }}
+                >
+                  <p
+                    className="text-xs font-semibold uppercase tracking-wider mb-1"
+                    style={{ color: rp.dimensionColor }}
+                  >
+                    {rp.dimension}
+                  </p>
+                  <p className="text-sm font-medium group-hover:opacity-80" style={{ color: "var(--theme-foreground)" }}>
+                    {rp.title}
+                  </p>
+                </Link>
+              ))}
+            </div>
+          </section>
+        )}
+
         <div
           className="mt-16 rounded-2xl p-8 text-center space-y-4"
           style={{
@@ -198,7 +364,9 @@ export default async function BlogPostPage({ params }: Props) {
           }}
         >
           <p className="font-display" style={{ fontSize: "clamp(1.2rem, 2.5vw, 1.6rem)", color: "var(--theme-foreground)" }}>
-            See how your site scores on {post.dimension}
+            {isScoredDimension(post.dimension)
+              ? `See how your site scores on ${post.dimension}`
+              : "See how your website scores"}
           </p>
           <p className="text-sm leading-relaxed" style={{ color: "var(--theme-muted)" }}>
             Full audit — all 10 dimensions, cited sources, and a shareable report.

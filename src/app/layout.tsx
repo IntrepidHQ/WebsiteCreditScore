@@ -24,21 +24,21 @@ export const metadata: Metadata = {
     template: "%s | WebsiteCreditScore",
   },
   description:
-    "Get a deep credibility report for any website. Powered by Claude AI with live web research. Graded A+ to F across 10 dimensions. $1 per scan.",
+    "Get a deep credibility report for any website. Powered by Claude AI with live web research. Graded A+ to F across 10 dimensions. First scan free.",
   metadataBase: new URL(SITE_URL),
   alternates: {
     canonical: "/",
   },
   openGraph: {
     title: "WebsiteCreditScore",
-    description: "AI-powered credibility reports for any website. $1 per scan.",
+    description: "AI-powered credibility reports for any website. First scan free.",
     siteName: "WebsiteCreditScore",
     type: "website",
   },
   twitter: {
     card: "summary_large_image",
     title: "WebsiteCreditScore",
-    description: "AI-powered credibility reports for any website. $1 per scan.",
+    description: "AI-powered credibility reports for any website. First scan free.",
   },
   robots: { index: true, follow: true },
   icons: {

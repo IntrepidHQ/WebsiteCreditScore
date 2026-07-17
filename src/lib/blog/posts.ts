@@ -1,15 +1,9 @@
-export interface BlogPost {
-  slug: string;
-  title: string;
-  excerpt: string;
-  date: string;
-  dimension: string;
-  dimensionColor: string;
-  readTime: string;
-  body: string;
-}
+import type { BlogPost } from "./types";
+import { LAUNCH_POSTS } from "./launch-posts";
 
-export const BLOG_POSTS: BlogPost[] = [
+export type { BlogPost, BlogFaqItem } from "./types";
+
+const DIMENSION_POSTS: BlogPost[] = [
   {
     slug: "business-legitimacy",
     title: "How We Score Business Legitimacy — And Why It's 18% of Your Grade",
@@ -582,6 +576,15 @@ Add the missing pages, link them from the footer, make the operator real, publis
   },
 ];
 
+export const BLOG_POSTS: BlogPost[] = [...LAUNCH_POSTS, ...DIMENSION_POSTS];
+
 export function getPost(slug: string): BlogPost | undefined {
   return BLOG_POSTS.find((p) => p.slug === slug);
+}
+
+export function getRelatedPosts(post: BlogPost): BlogPost[] {
+  if (!post.related?.length) return [];
+  return post.related
+    .map((slug) => BLOG_POSTS.find((p) => p.slug === slug))
+    .filter((p): p is BlogPost => Boolean(p) && p!.slug !== post.slug);
 }

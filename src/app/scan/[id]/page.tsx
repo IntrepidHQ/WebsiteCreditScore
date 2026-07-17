@@ -53,6 +53,35 @@ export default async function ScanPage({ params }: Props) {
     );
   }
 
+  // Stripe redirect can land here before the webhook marks the scan paid.
+  if (!scan.paid) {
+    return shell(
+      <div className="flex flex-1 items-center justify-center p-6">
+        <div className="text-center max-w-sm space-y-3">
+          <div
+            className="w-12 h-12 rounded-full border flex items-center justify-center mx-auto"
+            style={{ borderColor: "#f7b21b44", backgroundColor: "#f7b21b11" }}
+          >
+            <span style={{ color: "#f7b21b" }} className="text-xl">
+              ⏳
+            </span>
+          </div>
+          <h1 className="font-semibold" style={{ color: "var(--theme-foreground)" }}>
+            Verifying Payment
+          </h1>
+          <p className="text-sm" style={{ color: "var(--theme-muted)" }}>
+            Your payment is being confirmed. This page will refresh automatically.
+          </p>
+          <script
+            dangerouslySetInnerHTML={{
+              __html: `setTimeout(() => window.location.reload(), 3000)`,
+            }}
+          />
+        </div>
+      </div>
+    );
+  }
+
   return shell(
     <div className="w-full flex-1">
       <LiveReport
