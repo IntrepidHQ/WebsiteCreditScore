@@ -116,7 +116,7 @@ const faq = [
   },
   {
     q: "Is there a free tier?",
-    a: "No — every scan uses real AI compute and live web searches. $1 is the minimum viable price to cover the cost of a quality result.",
+    a: "Your first scan is free — no account required. After that, every scan uses real AI compute and live web searches, so scans start at $1 to cover the cost of a quality result.",
   },
   {
     q: "Do you offer agency or enterprise pricing?",

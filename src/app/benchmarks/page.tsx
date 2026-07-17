@@ -494,7 +494,7 @@ export default function BenchmarksPage() {
             className="inline-flex items-center gap-2 px-6 py-3 rounded-xl font-semibold text-sm transition-opacity hover:opacity-90"
             style={{ backgroundColor: "var(--theme-accent)", color: "var(--theme-accent-foreground)" }}
           >
-            Get a report · $1
+            Get a report — first scan free
           </Link>
         </div>
       </section>

@@ -31,16 +31,27 @@ export async function getScan(id: string): Promise<Scan | null> {
   return data as Scan;
 }
 
-/** Dev / limited-time: create a paid scan row without Stripe (guard with env on the API route). */
-export async function createFreeBypassScan(domain: string): Promise<{ id: string }> {
+/**
+ * Create a paid scan row without Stripe checkout — used for the one free
+ * first scan (`kind: "free"`, the default) and for wallet-credit scans
+ * (`kind: "wallet"`). The synthetic stripe_session_id prefix distinguishes
+ * them so the first-scan-free gate only counts genuinely free scans.
+ */
+export async function createFreeBypassScan(
+  domain: string,
+  opts?: { ipHash?: string | null; userAgent?: string | null; kind?: "free" | "wallet" }
+): Promise<{ id: string }> {
   const supabase = await createClient();
   const id = randomUUID();
+  const prefix = opts?.kind === "wallet" ? "wallet_scan_" : "free_scan_";
   const { error } = await supabase.from("scans").insert({
     id,
     domain,
     status: "pending" as ScanStatus,
     paid: true,
-    stripe_session_id: `free_scan_${id.replace(/-/g, "").slice(0, 12)}`,
+    stripe_session_id: `${prefix}${id.replace(/-/g, "").slice(0, 12)}`,
+    ip_hash: opts?.ipHash ?? null,
+    user_agent: opts?.userAgent ?? null,
   });
   if (error) throw new Error(`Failed to create scan: ${error.message}`);
   return { id };

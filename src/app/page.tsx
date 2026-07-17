@@ -750,17 +750,17 @@ export default async function LandingPage({
             className="font-display text-center mb-3"
             style={{ fontSize: "clamp(3rem, 5.5vw, 4.25rem)", color: "var(--theme-foreground)" }}
           >
-            What do I get for $1?
+            What do I get in a report?
           </h2>
           <p className="text-sm text-center mb-12" style={{ color: "var(--theme-muted)" }}>
-            One payment. No account. Results in 60–120 seconds.
+            First scan free. No account. Results in 60–120 seconds.
           </p>
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
             {[
               {
                 step: "01",
                 title: "Paste any domain",
-                body: "Any public domain — a competitor, a vendor, your own site. No account needed, just $1 via Stripe.",
+                body: "Any public domain — a competitor, a vendor, your own site. No account needed, and your first scan is free.",
                 icon: ArrowRight,
               },
               {
@@ -1028,13 +1028,13 @@ export default async function LandingPage({
             <span style={{ color: "var(--theme-accent)" }}>really scores.</span>
           </h2>
           <p className="text-sm" style={{ color: "var(--theme-muted)" }}>
-            Before you buy, partner, or hire — know what the AI finds. $1, no account required.
+            Before you buy, partner, or hire — know what the AI finds. First scan free, no account required.
           </p>
           <div className="max-w-lg mx-auto">
             <ScanForm showTierSelect defaultTier={defaultTier} tierMode={tierMode} />
           </div>
           <div className="flex flex-wrap justify-center gap-6 text-xs" style={{ color: "color-mix(in srgb, var(--theme-muted) 60%, transparent)" }}>
-            <span>$1 per report</span>
+            <span>First scan free</span>
             <span>·</span>
             <span>No subscription</span>
             <span>·</span>

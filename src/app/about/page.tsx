@@ -15,7 +15,7 @@ const facts = [
   ["Location", "Mount Pleasant / Charleston, South Carolina"],
   ["Support", "websitecreditscore@gmail.com"],
   ["Service", "AI-powered website credibility reports using live public web research"],
-  ["Pricing", "Free Aerial Scan during the current launch window; paid deeper scans and bundles are listed on the pricing page"],
+  ["Pricing", "First scan free for every visitor; paid scans start at $1 — full tiers and bundles are listed on the pricing page"],
   ["Refunds", "Failed scans are refunded automatically; completed reports are not refunded because research compute has already run"],
 ];
 

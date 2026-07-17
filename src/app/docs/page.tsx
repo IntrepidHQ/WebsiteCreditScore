@@ -2,6 +2,12 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { ScrollToTop } from "@/components/ScrollToTop";
 import { NavBar } from "@/components/NavBar";
+import {
+  GradeScaleVisual,
+  ReportAnatomyVisual,
+  ScanPipelineVisual,
+  WeightChart,
+} from "./visuals";
 import { SiteFooter } from "@/components/SiteFooter";
 
 export const metadata: Metadata = {
@@ -104,8 +110,8 @@ const faqItems = [
     a: "Most scans complete in 60–120 seconds. Claude AI runs 8–10 live web searches in parallel, then synthesizes the results into a graded report. Complex or obscure domains may take slightly longer.",
   },
   {
-    q: "Is the $1 charge refundable?",
-    a: "Yes — if the scan fails to produce a report, you are automatically refunded in full within a few business days. We do not offer refunds for completed reports, as the AI research has already been performed.",
+    q: "Are paid scans refundable?",
+    a: "Yes — if a paid scan fails to produce a report, you are automatically refunded in full within a few business days. We do not offer refunds for completed reports, as the AI research has already been performed.",
   },
   {
     q: "How is the overall score calculated?",
@@ -166,10 +172,13 @@ export default function DocsPage() {
           <h2 className="text-lg font-semibold mb-8" style={{ color: "var(--theme-foreground)" }}>
             What happens when you scan a domain
           </h2>
+          <div className="mb-8">
+            <ScanPipelineVisual />
+          </div>
           <div className="grid grid-cols-1 sm:grid-cols-4 gap-4">
             {[
               { step: "01", title: "Enter domain", body: "You type any domain (e.g. acmeplumbing.com). No account needed." },
-              { step: "02", title: "Pay $1", body: "Stripe processes the payment securely. We never store card details." },
+              { step: "02", title: "Start the scan", body: "Your first scan is free. After that, scans start at $1 — Stripe processes payments securely and we never store card details." },
               { step: "03", title: "AI researches", body: "Claude AI runs 8–10 live searches: reviews, filings, Reddit, press, technical checks, and more." },
               { step: "04", title: "Get your report", body: "10 graded dimensions, red/green flags, cited sources, and an overall A–F letter grade." },
             ].map(({ step, title, body }) => (
@@ -199,9 +208,12 @@ export default function DocsPage() {
           <h2 className="text-lg font-semibold mb-2" style={{ color: "var(--theme-foreground)" }}>
             The 10 scoring dimensions
           </h2>
-          <p className="text-sm mb-10" style={{ color: "var(--theme-muted)" }}>
+          <p className="text-sm mb-6" style={{ color: "var(--theme-muted)" }}>
             Each dimension is weighted independently. The weighted average produces the overall 0–100 score.
           </p>
+          <div className="mb-10">
+            <WeightChart dimensions={dimensions} />
+          </div>
           <div className="space-y-4">
             {dimensions.map((dim) => (
               <div
@@ -259,6 +271,9 @@ export default function DocsPage() {
           <h2 className="text-lg font-semibold mb-8" style={{ color: "var(--theme-foreground)" }}>
             What each grade means
           </h2>
+          <div className="mb-8">
+            <GradeScaleVisual />
+          </div>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
             {[
               { grade: "A+ / A", range: "90–100", label: "Exceptional", color: "#3dd598", desc: "Strong trust signals across almost every dimension. Very low risk." },
@@ -282,6 +297,20 @@ export default function DocsPage() {
               </div>
             ))}
           </div>
+        </div>
+      </section>
+
+      {/* Report anatomy */}
+      <section className="px-6 py-14" style={{ borderBottom: "1px solid var(--theme-border)" }}>
+        <div className="max-w-4xl mx-auto">
+          <h2 className="text-lg font-semibold mb-2" style={{ color: "var(--theme-foreground)" }}>
+            What a report looks like
+          </h2>
+          <p className="text-sm mb-8" style={{ color: "var(--theme-muted)" }}>
+            Every scan produces a permanent, shareable report: overall grade, 10 dimension scores,
+            red and green flags, and every source the AI consulted.
+          </p>
+          <ReportAnatomyVisual />
         </div>
       </section>
 
@@ -319,7 +348,7 @@ export default function DocsPage() {
             Ready to run your first scan?
           </h2>
           <p className="text-sm" style={{ color: "var(--theme-muted)" }}>
-            Any domain · $1 · No account · Results in ~90 seconds
+            Any domain · First scan free · No account · Results in ~90 seconds
           </p>
           <Link
             href="/"
@@ -329,7 +358,7 @@ export default function DocsPage() {
               color: "var(--theme-accent-foreground)",
             }}
           >
-            Get a Report · $1
+            Get a Report — First Scan Free
           </Link>
         </div>
       </section>

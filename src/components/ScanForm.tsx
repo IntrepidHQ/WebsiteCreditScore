@@ -111,6 +111,21 @@ export function ScanForm({
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ domain, tier, mode }),
       });
+      if (res.status === 402) {
+        // Free scan already used — send them to Stripe checkout.
+        const checkout = await fetch("/api/checkout", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ domain, tier, mode }),
+        });
+        if (!checkout.ok) {
+          const data = await checkout.json().catch(() => ({}));
+          throw new Error(data.error ?? "Checkout failed — please try again");
+        }
+        const { checkoutUrl } = await checkout.json();
+        window.location.href = checkoutUrl;
+        return;
+      }
       if (!res.ok) {
         const data = await res.json().catch(() => ({}));
         throw new Error(data.error ?? "Something went wrong");
@@ -126,8 +141,7 @@ export function ScanForm({
   const buttonLabel = hasCredit ? "Use credit →" : "Scan →";
   const hintLine = hasCredit
     ? `${creditCount} ${copy.tabLabel} ${creditCount === 1 ? "credit" : "credits"} available`
-    : "Free · No account required";
-  const showFree = true;
+    : "First scan free · No account required";
 
   return (
     <form onSubmit={handleSubmit} className="w-full">
@@ -179,7 +193,7 @@ export function ScanForm({
               className="font-display leading-none"
               style={{ color: "var(--theme-accent)", fontSize: "clamp(1.8rem, 3.5vw, 2.4rem)" }}
             >
-              {showFree ? "Free" : `$${copy.price}`}
+              {`$${copy.price}`}
             </span>
           </div>
 
@@ -200,7 +214,7 @@ export function ScanForm({
                 className="inline-flex items-center gap-1.5 rounded-full px-2.5 py-1"
                 style={{ backgroundColor: "rgba(74,222,128,0.12)", color: "#86efac", border: "1px solid rgba(74,222,128,0.3)" }}
               >
-                ★ Free scan
+                ★ First scan free
               </span>
             )}
             <span style={{ color: "var(--theme-accent)" }}>{hintLine}</span>
