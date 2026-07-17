@@ -10,6 +10,8 @@ import fixture from "@/lib/fixtures/wcs-mock.json";
 import Anthropic from "@anthropic-ai/sdk";
 import type { MessageStreamEvent, Tool, ToolUnion } from "@anthropic-ai/sdk/resources/messages";
 import { autoHandoffToSP } from "@/lib/sp-webhook";
+import { crawlSite, crawlToPromptBlock } from "@/lib/site-crawl";
+import { attachRemediations } from "@/lib/attach-remediations";
 
 export const runtime = "nodejs";
 export const maxDuration = 300;
@@ -22,7 +24,18 @@ You have access to:
 - web_search (max 10 uses) — use it aggressively across diverse angles.
 - submit_credit_report — call this EXACTLY ONCE at the end with the full report.
 
+You will also be given a FIRST-PARTY SITE CRAWL: the result of directly fetching
+the live site (homepage links + the actual legal/pricing/contact pages). This is
+AUTHORITATIVE ground truth — far more reliable than web_search for "does this
+page exist?". web_search only sees what a search engine has indexed, so new or
+lightly-indexed sites will look like they are missing pages that in fact exist
+and are linked in the footer. NEVER claim a page listed as FOUND in the crawl is
+missing. Only treat a transparency/pricing/contact page as absent if BOTH the
+crawl did not find it AND web_search turns up nothing.
+
 RESEARCH METHOD (mandatory order):
+Read the FIRST-PARTY SITE CRAWL first and let it anchor the transparency,
+legitimacy, and ux_conversion dimensions. Then perform 8–10 web searches:
 Before submitting, perform 8–10 web searches covering, at minimum:
   1. "https://{domain}" — inspect the live homepage content first. Treat first-party homepage/about/pricing/docs content as authoritative evidence that the site exists, even if Google has not indexed it yet.
   2. "site:{domain} about OR company OR contact"
@@ -61,6 +74,14 @@ DIMENSION GUIDANCE:
 - social_presence (7%): LinkedIn, X/Twitter, YouTube — real engagement vs. ghost accounts.
 - longevity (5%): Domain age, business tenure, Wayback Machine history.
 - financial_signals (3%): Funding, revenue signals, financial press coverage.
+
+SUGGESTED FIXES (required for weak dimensions):
+For every dimension you score below 80, populate its suggested_fixes array with
+2–4 concrete, site-specific actions the owner could take to raise that score
+(reference what you actually observed — the missing page, the ghost profile, the
+slow check, the thin section). Order them most-impactful first via priority.
+Strong dimensions (80+) need no fixes. Do not recommend products or vendors here
+— just the fix itself; the platform maps fixes to solutions separately.
 
 OUTPUT:
 Call submit_credit_report exactly once with schema-compliant JSON. No prose. Do not put Markdown syntax in any customer-facing string; write labels as plain text, not **bold markers**.`;
@@ -148,6 +169,13 @@ async function runAgent(
     },
   ];
 
+  // Fetch the live site directly first — authoritative ground truth the agent
+  // anchors on so footer-linked legal/pricing pages are never missed (search
+  // indexes lag new sites). Best-effort; never blocks the scan.
+  send(controller, { type: "search", query: `Reading ${domain} homepage + footer directly` });
+  const crawl = await crawlSite(domain);
+  const crawlBlock = crawlToPromptBlock(crawl);
+
   const anthropicStream = client.messages.stream({
     model: "claude-haiku-4-5",
     max_tokens: 32000,
@@ -163,7 +191,7 @@ async function runAgent(
     messages: [
       {
         role: "user",
-        content: `Generate a WebsiteCreditScore report for: ${domain}\n\nResearch thoroughly. Use 8-10 diverse web searches before submitting. Be candid — don't hedge scores toward the middle.`,
+        content: `Generate a WebsiteCreditScore report for: ${domain}\n\n${crawlBlock}\n\nResearch thoroughly. Use 8-10 diverse web searches before submitting. Be candid — don't hedge scores toward the middle.`,
       },
     ],
   });
@@ -241,6 +269,10 @@ async function runAgent(
       "Claude did not call submit_credit_report — try increasing max_tokens or reducing search count"
     );
   }
+
+  // Attach the productized remediation (self-serve steps + Brainztem add-on)
+  // to each weak dimension so it flows to the report UI and the SP pitch.
+  finalReport = attachRemediations(finalReport);
 
   // Usage stats for cost logging
   const finalMessage = await anthropicStream.finalMessage();
