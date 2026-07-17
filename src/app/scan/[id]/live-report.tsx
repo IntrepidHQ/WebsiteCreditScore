@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import type { CSSProperties, ReactNode } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
@@ -27,6 +27,7 @@ import {
   Sparkles,
 } from "lucide-react";
 import { DIMENSION_COLORS, gradeColor, gradeLabel, type DimensionKey, type WCSReport, type Grade } from "@/lib/schema";
+import { normalizeReportScores } from "@/lib/scoring";
 import { buildStrategyCallCalendlyUrl, buildStrategyPresentationUrl } from "@/lib/strategy-call";
 
 const scanReportCalendlyUrl = (domain: string) =>
@@ -824,7 +825,11 @@ function DimensionReasoningModal({
   );
 }
 
-export function ScanResultSummary({ report }: { report: WCSReport }) {
+export function ScanResultSummary({ report: rawReport }: { report: WCSReport }) {
+  // Display grades + overall derived from the scores, so historical reports
+  // (scored before server-side normalization) never show a score/grade that
+  // disagree — e.g. a 62 always reads C, never C+ on one visit and B- on another.
+  const report = useMemo(() => normalizeReportScores(rawReport), [rawReport]);
   const [selectedDimension, setSelectedDimension] = useState<ReportDimension | null>(null);
   const closeReasoning = () => setSelectedDimension(null);
 
