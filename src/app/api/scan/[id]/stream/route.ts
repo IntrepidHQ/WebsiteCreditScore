@@ -12,6 +12,7 @@ import type { MessageStreamEvent, Tool, ToolUnion } from "@anthropic-ai/sdk/reso
 import { autoHandoffToSP } from "@/lib/sp-webhook";
 import { crawlSite, crawlToPromptBlock } from "@/lib/site-crawl";
 import { attachRemediations } from "@/lib/attach-remediations";
+import { normalizeReportScores } from "@/lib/scoring";
 
 export const runtime = "nodejs";
 export const maxDuration = 300;
@@ -55,10 +56,28 @@ If the live homepage, pricing, privacy, terms, cookies, docs, or about pages are
 Do not give visual_design, ux_conversion, or content a 0 merely because third-party screenshots or reviews are unavailable. A 0 means the site is unreachable, broken, or empty. If the live site is accessible, score those dimensions from the visible structure, copy, navigation, forms, mobile cues, and content depth.
 For websitecreditscore.com specifically, include first-party pages, the public GitHub repository/README when found, and indexed blog/docs/cookies/privacy/terms pages as evidence. Low Google indexation should reduce social/longevity/reputation as appropriate, but it must not erase observable homepage UX, content depth, or technical/transparency work.
 
-SCORING (apply rigorously):
-Each of 10 dimensions gets a 0–100 score and a letter grade (A+ A A- B+ B B- C+ C C- D+ D D- F).
-The OVERALL grade is a weighted blend. Be willing to give Fs for shady operators;
-give A+s for objectively excellent sites. Never hedge to the middle.
+SCORING (apply rigorously and REPRODUCIBLY):
+Each of 10 dimensions gets a 0–100 score. Anchor every score to these fixed bands
+so the same evidence always yields the same score — do NOT let it drift between runs:
+  90–100: exceptional — best-in-class, essentially no concerns
+  75–89:  strong — solid with only minor gaps
+  60–74:  adequate — functional but with meaningful gaps
+  40–59:  weak — significant deficiencies a buyer would notice
+  20–39:  poor — major red flags or near-absent signals
+  0–19:   critical — broken, fraudulent, or nonexistent
+Reproducibility rules:
+  - Score each dimension on DURABLE evidence (the live site, registrations, policies,
+    real profiles) — never on how many results a given search happened to return.
+    Search-result volume is volatile; the site and its records are not.
+  - Round to the nearest 5. Do not distinguish a 63 from a 64.
+  - A dimension you cannot verify either way sits at 50 (unproven), not 20 — absence
+    of a search hit is not evidence of a problem.
+You do NOT assign letter grades or the overall score — the platform derives the
+letter grade from each score and computes the overall as the fixed weighted average
+of the 10 dimensions. Just fill in a numeric grade field per dimension (any valid
+letter is fine; it will be recomputed) and put your best integer in overall.score.
+Be willing to score shady operators very low and excellent sites very high. Never
+hedge everything to the middle.
 
 DIMENSIONS (include all 10, in this exact order, with these exact keys):
   legitimacy | reputation | visual_design | ux_conversion | transparency | technical | content | social_presence | longevity | financial_signals
@@ -179,6 +198,8 @@ async function runAgent(
   const anthropicStream = client.messages.stream({
     model: "claude-haiku-4-5",
     max_tokens: 32000,
+    // Deterministic judgment: identical inputs → identical scores across re-scans.
+    temperature: 0,
     system: [
       {
         type: "text",
@@ -269,6 +290,11 @@ async function runAgent(
       "Claude did not call submit_credit_report — try increasing max_tokens or reducing search count"
     );
   }
+
+  // Make grades + overall the deterministic function of the dimension scores
+  // (same scores → same grade/overall on every re-scan) BEFORE anything reads
+  // them, so remediation thresholds and the SP handoff see canonical values.
+  finalReport = normalizeReportScores(finalReport);
 
   // Attach the productized remediation (self-serve steps + Brainztem add-on)
   // to each weak dimension so it flows to the report UI and the SP pitch.

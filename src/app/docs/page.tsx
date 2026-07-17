@@ -115,7 +115,7 @@ const faqItems = [
   },
   {
     q: "How is the overall score calculated?",
-    a: "Each of the 10 dimensions is scored 0–100 and then multiplied by its weight. The weighted sum produces the overall score (also 0–100). The letter grade (A+ to F) maps to score tiers: A+ ≥ 95, A ≥ 90, B+ ≥ 85, and so on.",
+    a: "Each of the 10 dimensions is scored 0–100 and multiplied by its weight; the weighted average is the overall score (0–100). The letter grade is then derived from that score by fixed thresholds — A+ ≥ 95, A ≥ 90, A− ≥ 85, B+ ≥ 80, B ≥ 75, B− ≥ 70, C+ ≥ 65, C ≥ 60, C− ≥ 55, D+ ≥ 50, D ≥ 45, D− ≥ 40, F below 40 — so the same score always yields the same grade.",
   },
   {
     q: "Can I run a scan on any website?",
@@ -276,10 +276,10 @@ export default function DocsPage() {
           </div>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
             {[
-              { grade: "A+ / A", range: "90–100", label: "Exceptional", color: "#3dd598", desc: "Strong trust signals across almost every dimension. Very low risk." },
-              { grade: "A− / B+", range: "75–89", label: "Strong", color: "#60a5fa", desc: "Solid credibility with minor gaps. Converts well but some signals missing." },
-              { grade: "B / C", range: "55–74", label: "Average", color: "#f7b21b", desc: "Adequate presence but gaps in transparency, reputation, or technical health." },
-              { grade: "D / F", range: "Below 55", label: "At Risk", color: "#f87171", desc: "Red flags outweigh green signals. High caution warranted before engaging." },
+              { grade: "A− to A+", range: "85–100", label: "Exceptional", color: "#3dd598", desc: "Strong trust signals across almost every dimension. Very low risk." },
+              { grade: "B− to B+", range: "70–84", label: "Strong", color: "#60a5fa", desc: "Solid credibility with minor gaps. Converts well but some signals missing." },
+              { grade: "C− to C+", range: "55–69", label: "Average", color: "#f7b21b", desc: "Adequate presence but gaps in transparency, reputation, or technical health." },
+              { grade: "D & F", range: "Below 55", label: "At Risk", color: "#f87171", desc: "Red flags outweigh green signals. High caution warranted before engaging." },
             ].map((tier) => (
               <div
                 key={tier.grade}

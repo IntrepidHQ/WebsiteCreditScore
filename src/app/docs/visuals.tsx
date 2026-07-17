@@ -187,10 +187,10 @@ export function WeightChart({
 /* ── 3. Grade scale ───────────────────────────────────────────────── */
 
 const GRADE_SEGMENTS = [
-  { grades: "F / D", from: 0, to: 55, color: "#f87171" },
-  { grades: "B / C", from: 55, to: 75, color: "#f7b21b" },
-  { grades: "A− / B+", from: 75, to: 90, color: "#60a5fa" },
-  { grades: "A+ / A", from: 90, to: 100, color: "#3dd598" },
+  { grades: "F – D+", from: 0, to: 55, color: "#f87171" },
+  { grades: "C− / C / C+", from: 55, to: 70, color: "#f7b21b" },
+  { grades: "B− / B / B+", from: 70, to: 85, color: "#60a5fa" },
+  { grades: "A− / A / A+", from: 85, to: 100, color: "#3dd598" },
 ];
 
 export function GradeScaleVisual() {
@@ -219,7 +219,7 @@ export function GradeScaleVisual() {
         ))}
       </div>
       <div className="relative mt-1.5 h-4 font-mono text-[10px]" style={{ color: "var(--theme-muted)" }}>
-        {[0, 55, 75, 90, 100].map((t) => (
+        {[0, 55, 70, 85, 100].map((t) => (
           <span
             key={t}
             className="absolute"
