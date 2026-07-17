@@ -3,6 +3,7 @@ import { randomUUID } from "crypto";
 import { createClient } from "@/lib/supabase/server";
 import type { WCSReport } from "@/lib/schema";
 import { buildScanResultSummary } from "@/lib/scan-result-summary";
+import { gradeFromScore } from "@/lib/scoring";
 
 export type ScanStatus = "pending" | "streaming" | "done" | "error";
 
@@ -192,11 +193,14 @@ export async function getRecentScans(limit: number | null = 6): Promise<Array<{
       const strongest = summary.strongestCategories[0];
       const weakest = summary.weakestCategories[0];
 
+      // Derive grade from the score so cards are canonical even for reports
+      // saved before server-side score normalization.
+      const score = row.result.overall.score;
       return {
         id: row.id,
         domain: row.domain,
-        grade: row.result.overall.grade,
-        score: row.result.overall.score,
+        grade: gradeFromScore(score),
+        score,
         headline: row.result.overall.headline,
         one_liner: row.result.overall.one_liner,
         strongest_label: strongest?.label ?? "Strong signal",
