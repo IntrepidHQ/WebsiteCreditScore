@@ -13,6 +13,7 @@ import {
 } from "@/lib/db/wallets";
 import { tierLabel, type Tier, type TierMode } from "@/lib/pricing";
 import { writeWalletCookie } from "@/lib/wallet-cookie";
+import { verifyAndCreditWalletFromSession } from "@/lib/verify-scan-payment";
 
 export const dynamic = "force-dynamic";
 
@@ -30,6 +31,13 @@ export default async function CheckoutSuccessPage({ searchParams }: PageProps) {
 
   if (!walletId) {
     redirect("/");
+  }
+
+  // Self-heal: credit the wallet straight from the paid Stripe session so a
+  // slow or misconfigured webhook never leaves a paying customer without their
+  // credits. Idempotent alongside the webhook.
+  if (sessionId) {
+    await verifyAndCreditWalletFromSession(sessionId, walletId);
   }
 
   let wallet: Awaited<ReturnType<typeof getWallet>> = null;

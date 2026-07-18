@@ -66,7 +66,7 @@ export async function POST(req: NextRequest) {
 
     const successUrl = isBundle
       ? `${appUrl}/checkout/success?wallet=${wallet.id}&session_id={CHECKOUT_SESSION_ID}`
-      : `${appUrl}/scan/${scanId}?source=stripe&wallet=${wallet.id}`;
+      : `${appUrl}/scan/${scanId}?source=stripe&wallet=${wallet.id}&session_id={CHECKOUT_SESSION_ID}`;
 
     const session = await stripe.checkout.sessions.create({
       mode: "payment",
