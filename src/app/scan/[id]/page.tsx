@@ -5,16 +5,27 @@ import type { WCSReport } from "@/lib/schema";
 import { NavBar } from "@/components/NavBar";
 import { SiteFooter } from "@/components/SiteFooter";
 import { ScrollToTop } from "@/components/ScrollToTop";
+import { verifyAndUpsertPaidScanFromSession } from "@/lib/verify-scan-payment";
 
 interface Props {
   params: Promise<{ id: string }>;
+  searchParams: Promise<{ session_id?: string; source?: string }>;
 }
 
 export const dynamic = "force-dynamic";
 
-export default async function ScanPage({ params }: Props) {
+export default async function ScanPage({ params, searchParams }: Props) {
   const { id } = await params;
-  const scan = await getScan(id);
+  const { session_id } = await searchParams;
+  let scan = await getScan(id);
+
+  // Self-heal: on the Stripe return the row may not exist yet (webhook slow or
+  // misconfigured). If Stripe confirms this session paid for this scan, create
+  // it right here so the user never gets stuck waiting on the webhook.
+  if ((!scan || !scan.paid) && session_id) {
+    const ok = await verifyAndUpsertPaidScanFromSession(session_id, id);
+    if (ok) scan = await getScan(id);
+  }
 
   const shell = (inner: ReactNode) => (
     <main className="flex min-h-screen flex-col" style={{ backgroundColor: "var(--theme-background)" }}>
