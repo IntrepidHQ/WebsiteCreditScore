@@ -6,6 +6,178 @@ import type { BlogPost } from "./types";
  */
 export const LAUNCH_POSTS: BlogPost[] = [
   {
+    slug: "what-is-a-bad-website-costing-you",
+    title: "What Is a Bad Website Actually Costing You?",
+    excerpt: "Lost trust doesn't show up on any invoice, which is why it goes unfixed for years. Here's how to put a real number on it — and which credibility failures cost the most.",
+    date: "July 19, 2026",
+    dimension: "Revenue Impact",
+    dimensionColor: "#fbbf24",
+    readTime: "7 min read",
+    author: "Hans Turner",
+    related: ["why-your-website-looks-untrustworthy", "red-flags-customers-notice-in-5-seconds", "how-to-improve-website-trust-score"],
+    faq: [
+      {
+        question: "How much revenue can a low-credibility website cost a business?",
+        answer: "It depends on traffic and deal size, but the arithmetic is unforgiving. A business getting 1,000 relevant visitors a month with a $2,000 average sale loses roughly $40,000 a year for every one-percentage-point drop in conversion caused by hesitation. Credibility problems rarely cost one point — missing trust signals, a slow or insecure page, and a thin reputation record compound.",
+      },
+      {
+        question: "Why doesn't lost trust show up in analytics?",
+        answer: "Because it looks like ordinary bounce. Someone who leaves because the site felt unsafe and someone who leaves because they were browsing produce the identical event. Analytics records the exit, not the reason, so credibility damage is invisible in exactly the dashboards businesses check most.",
+      },
+      {
+        question: "Which credibility problems cost the most money?",
+        answer: "The disqualifying ones — a browser security warning, no verifiable identity or contact details, and a visibly damaged or absent reputation record. These end the visit outright rather than reducing enthusiasm, so they cost full conversions rather than shaving margins.",
+      },
+      {
+        question: "How do I know if my website is losing me sales?",
+        answer: "Compare your conversion rate against sources of traffic that already trust you. If referrals and repeat customers convert far better than cold search or ad traffic, the gap is largely trust — warm visitors arrive with borrowed credibility that cold visitors have to find on the page itself.",
+      },
+    ],
+    body: `Every business owner has a number for what their website *cost*. Almost none have a number for what it's costing.
+
+That asymmetry is the entire problem. Build cost is an invoice — concrete, remembered, occasionally resented. Trust cost is an absence: the people who arrived, hesitated, and left without ever becoming a line in your CRM. Nothing about your Monday reporting will ever surface them.
+
+## Why the loss is invisible
+
+Your analytics cannot distinguish between two visitors who both leave after eleven seconds. One was never going to buy. The other wanted to buy, couldn't find a phone number or a real business address, decided the risk wasn't worth it, and went to a competitor.
+
+Both are recorded identically: a session, a bounce, an exit. The reason never enters the data. So the most expensive problem on most websites is also the only one that generates no report, no alert, and no complaint — because people who don't trust you don't email to tell you why.
+
+## Putting a number on it
+
+The arithmetic is simple enough to do on a napkin, and doing it once tends to change priorities.
+
+Take your monthly relevant visitors, your conversion rate, and your average sale value. Now ask what a single percentage point of conversion is worth:
+
+- **1,000 visitors/month, $2,000 average sale.** One point of conversion is 10 sales a month — **$240,000 a year**.
+- **300 visitors/month, $8,000 average project.** One point is 3 projects a month — **$288,000 a year**.
+- **5,000 visitors/month, $120 average order.** One point is 50 orders a month — **$72,000 a year**.
+
+Now the honest part: credibility problems don't cost one point. A site with a security warning, no verifiable identity, and a thin reputation record isn't converting slightly worse — it's being disqualified by a share of visitors before your offer is ever considered.
+
+> The expensive question isn't "does our website look good?" It's "how many people decided against us without telling us?"
+
+## The failures that cost the most
+
+Not all credibility problems are priced equally. From what we see across scans, they sort into three tiers:
+
+**Disqualifying — costs you the whole conversion.**
+- A browser security warning, or no HTTPS at all.
+- No verifiable business identity: no real address, no named people, no registration trail.
+- A visibly damaged reputation record, or none at all in a category where buyers expect one.
+
+These don't reduce enthusiasm. They end the visit. Nothing further on the page gets evaluated.
+
+**Corrosive — costs you the close.**
+- No phone number, only a contact form.
+- Missing or boilerplate policy pages on a site that takes payments.
+- Inconsistent details between your site, your Google profile, and directories.
+
+Visitors continue, but with elevated suspicion. They comparison-shop harder, ask for more reassurance, and are easier for a competitor to take.
+
+**Compounding — costs you the future.**
+- Thin or clearly outdated content.
+- A domain history that doesn't match the story you're telling.
+- No expertise signals in a field where expertise is the product.
+
+These leak slowly, mostly through search and AI recommendation systems that weigh exactly these signals.
+
+## A quick self-diagnostic
+
+You can approximate your trust gap without any tooling:
+
+Compare conversion from **referrals and repeat customers** against conversion from **cold search or paid traffic**. Warm visitors arrive with credibility already borrowed from whoever sent them; cold visitors have to find it on the page. A large gap between those two numbers is a trust gap wearing a disguise, and it's the gap that scales — because growth means buying more cold traffic, and cold traffic is precisely what your credibility problem is filtering out.
+
+That's the part that stings for growing businesses: every marketing dollar you spend gets taxed by the same unfixed problem, forever, invisibly.
+
+## What to do about it
+
+Fix in cost order, not in ease order. The disqualifying tier first — security, identity, reputation — because those are full conversions rather than shaved margins. Then the corrosive tier. The compounding tier is real but slower, and it rewards patience.
+
+If you'd rather see the whole picture graded rather than guess at it, that's what a [WebsiteCreditScore scan](/) does: ten weighted dimensions of your public record, each with the evidence cited, so you're fixing measured problems rather than suspected ones.
+
+Your website's build cost is a number you already know. The other number is bigger, and it's still running.`,
+  },
+  {
+    slug: "how-often-should-you-audit-your-website",
+    title: "How Often Should You Audit Your Website's Credibility?",
+    excerpt: "Trust signals decay quietly — certificates lapse, staff pages go stale, reviews drift. Here's a realistic audit cadence by business type, and the events that should trigger an off-schedule check.",
+    date: "July 18, 2026",
+    dimension: "Maintenance",
+    dimensionColor: "#60a5fa",
+    readTime: "6 min read",
+    author: "Hans Turner",
+    related: ["the-90-second-website-audit", "website-credibility-checklist", "how-to-improve-website-trust-score"],
+    faq: [
+      {
+        question: "How often should you audit your website's credibility?",
+        answer: "Quarterly for most businesses, monthly if you take payments online or operate in a regulated or high-fraud category, and twice a year at minimum for small sites that rarely change. The cadence matters less than consistency — trust signals decay gradually, so an audit that never happens twice is barely an audit.",
+      },
+      {
+        question: "What events should trigger an unscheduled website audit?",
+        answer: "A rebrand or site redesign, a domain or host migration, a change of payment processor, leadership or staff turnover shown on the site, a burst of negative reviews, and any noticeable drop in conversion or search traffic. Each of these breaks trust signals in ways that routine checks may not catch for months.",
+      },
+      {
+        question: "Why do trust signals decay if I don't change anything?",
+        answer: "Because much of your credibility lives outside your control. Certificates expire, staff listed on your site leave, reviews accumulate elsewhere, competitors improve, directory listings drift out of sync, and the standards buyers and search engines apply keep rising. A site that is untouched for two years is measurably less credible than it was, without a single edit.",
+      },
+      {
+        question: "Is a yearly website audit enough?",
+        answer: "Only for a static site in a low-risk category. Annual checks mean a lapsed certificate or a bad review cluster can sit unaddressed for months, and the cost of that window is usually far higher than the effort of a quarterly pass.",
+      },
+    ],
+    body: `Most businesses audit their website exactly twice: once before launch, and once during the redesign four years later when someone finally says it looks dated.
+
+In between, the site is assumed to be static. It isn't. Your website's credibility declines on its own, without anyone touching a file — and the decline is invisible from the inside, because you're not experiencing your site the way a stranger does.
+
+## Why untouched sites get less credible
+
+The intuition that "nothing changed, so nothing broke" fails because most trust signals aren't stored on your server.
+
+- **Certificates and integrations expire.** SSL renewals fail silently. Embedded widgets get deprecated. Payment badges point at dead endpoints.
+- **Your team page becomes fiction.** People leave. A visitor who looks up three named staff and finds all three working elsewhere has learned something you didn't intend to tell them.
+- **Your reputation record moves without you.** Reviews accumulate on platforms you don't check. One cluster of unanswered complaints reshapes what a search for your name returns.
+- **Listings drift apart.** An address updated in one directory and not five others produces exactly the inconsistency that credibility checks penalise.
+- **The bar rises.** What counted as a professional site in 2022 reads as neglected now. Your competitors improved; standing still is moving backwards relative to the comparison set.
+
+None of that generates a notification. All of it is visible to the people deciding whether to trust you.
+
+> Your website doesn't decay because it changed. It decays because everything around it did.
+
+## A realistic cadence
+
+Match frequency to exposure — how much you'd lose from a trust failure and how fast your context moves:
+
+**Monthly** — e-commerce and anyone taking payments online; regulated fields (health, legal, financial); high-fraud categories where buyers are actively suspicious; any site running significant paid traffic. If you're buying cold visitors, you're paying for every credibility problem twice.
+
+**Quarterly** — the right default for most service businesses, agencies, B2B firms, and established local operators. Frequent enough to catch decay before it costs a quarter's deals; light enough to actually happen.
+
+**Twice yearly** — genuinely static informational sites, low deal volume, low risk. This is the floor, not a target.
+
+**Never is not on the list.** The businesses that get hurt aren't the ones auditing quarterly instead of monthly. They're the ones who last looked in 2023.
+
+## Events that should trigger an audit immediately
+
+Cadence handles decay. Events cause breakage, and they don't wait for your calendar:
+
+- **A redesign or rebrand.** Redesigns routinely drop trust signals — policy pages, credentials, contact details — because they weren't in the visual brief.
+- **A domain or hosting migration.** The single most reliable way to break certificates, redirects, and technical health at once.
+- **A payment processor change.** Checkout trust signals and policy pages usually need to change with it.
+- **Leadership or staff turnover.** Anyone named publicly should be someone who still works there.
+- **A cluster of negative reviews.** The window where a measured response still shapes the record is short.
+- **An unexplained conversion or traffic drop.** Before assuming it's the algorithm or the market, check whether something on the trust layer broke.
+
+## Making it survive contact with a busy quarter
+
+The reason audit cadences fail is that they're designed as projects. A four-hour audit gets postponed indefinitely; a fifteen-minute one gets done.
+
+Keep the routine pass narrow and repeatable — certificates and security state, load behaviour, contact and identity details, policy pages, a search for your own business name, a look at recent reviews. Our [90-second audit walkthrough](/blog/the-90-second-website-audit) covers the fast sequence, and the [full checklist](/blog/website-credibility-checklist) covers the deeper annual pass.
+
+The other half of making it stick is comparability. An audit is only useful if you can tell whether things got better or worse, which requires measuring the same things the same way each time — hard to do by hand, and the reason a graded [WebsiteCreditScore scan](/) is worth running on a schedule: same ten weighted dimensions, same method, so the trend line is real rather than remembered.
+
+Put the next one in the calendar before you close this tab. That single act is most of the difference between businesses that catch trust problems in weeks and businesses that catch them in years.`,
+  },
+  {
     slug: "the-90-second-website-audit",
     title: "The 90-Second Website Audit: What You Can Actually Measure Fast",
     excerpt: "Most 'quick audit' advice is a full audit in denial. Here's what genuinely fits in 90 seconds, the exact sequence, and the honest list of what fast checks can never tell you.",
