@@ -34,6 +34,18 @@ export function SiteFooter() {
               websitecreditscore@gmail.com
             </a>
           </p>
+          <p className="mt-1 text-xs" style={{ color: "color-mix(in srgb, var(--theme-muted) 55%, transparent)" }}>
+            Powered by{" "}
+            <a
+              href="https://brainztem.com"
+              target="_blank"
+              rel="noopener"
+              className="hover:opacity-80 font-medium"
+              style={{ color: "var(--theme-accent)" }}
+            >
+              Brainztem
+            </a>
+          </p>
         </div>
         <div
           className="flex flex-wrap items-center justify-center gap-4 text-xs"
