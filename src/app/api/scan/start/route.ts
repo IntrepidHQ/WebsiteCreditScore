@@ -22,7 +22,7 @@ function cleanDomain(raw: unknown): string | null {
 }
 
 export async function POST(req: NextRequest) {
-  let body: { domain?: unknown; tier?: unknown; mode?: unknown };
+  let body: { domain?: unknown; tier?: unknown; mode?: unknown; compCode?: unknown };
   try {
     body = await req.json();
   } catch {
@@ -61,6 +61,24 @@ export async function POST(req: NextRequest) {
     } catch (err) {
       console.error("[scan/start] wallet check failed:", err);
       // Don't block the user — fall through to the free-scan check.
+    }
+  }
+
+  // 1b. Owner comp code — unlimited scans for the operator, without punching a
+  // hole in the paywall. Requires WCS_COMP_CODE to be set server-side and matched
+  // exactly; if the env var is unset the branch can never trigger. Comped rows
+  // carry a `comp_scan_` session id so they stay auditable and are trivially
+  // separable from revenue in the scans table. Deliberately checked BEFORE the
+  // free-scan gate so it doesn't burn the visitor's one free scan.
+  const compCode = typeof body.compCode === "string" ? body.compCode.trim() : "";
+  const expectedComp = process.env.WCS_COMP_CODE;
+  if (compCode && expectedComp && compCode === expectedComp) {
+    try {
+      const { id } = await createFreeBypassScan(domain, { ipHash, userAgent, kind: "comp" });
+      return NextResponse.json({ scanId: id, source: "comp" });
+    } catch (err) {
+      console.error("[scan/start] comp scan failed:", err);
+      return NextResponse.json({ error: "Failed to start scan" }, { status: 500 });
     }
   }
 

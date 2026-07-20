@@ -40,11 +40,15 @@ export async function getScan(id: string): Promise<Scan | null> {
  */
 export async function createFreeBypassScan(
   domain: string,
-  opts?: { ipHash?: string | null; userAgent?: string | null; kind?: "free" | "wallet" }
+  opts?: { ipHash?: string | null; userAgent?: string | null; kind?: "free" | "wallet" | "comp" }
 ): Promise<{ id: string }> {
   const supabase = await createClient();
   const id = randomUUID();
-  const prefix = opts?.kind === "wallet" ? "wallet_scan_" : "free_scan_";
+  // Synthetic session ids mark non-Stripe rows so they stay auditable and
+  // distinguishable in the scans table: wallet credit, the one free scan, or
+  // an owner comp (see WCS_COMP_CODE in /api/scan/start).
+  const prefix =
+    opts?.kind === "wallet" ? "wallet_scan_" : opts?.kind === "comp" ? "comp_scan_" : "free_scan_";
   const { error } = await supabase.from("scans").insert({
     id,
     domain,
