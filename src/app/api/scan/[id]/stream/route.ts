@@ -265,13 +265,9 @@ async function runAgent(
               finalReport = parsed.data;
               send(controller, { type: "result_count", count: finalReport.sources.length });
             } else {
-              // Log validation errors for debugging; surface the raw report anyway
-              console.error("[stream] Zod validation errors:", JSON.stringify(parsed.error.issues.slice(0, 5)));
-              // Try to use the raw report if it has the minimum shape
-              if (raw?.overall?.grade && Array.isArray(raw?.dimensions)) {
-                finalReport = raw as WCSReport;
-                send(controller, { type: "result_count", count: raw.sources?.length ?? 0 });
-              }
+              // Never persist a partial report. A malformed tool call can make
+              // a result page look complete while silently violating the rubric.
+              console.error("[stream] Report validation errors:", JSON.stringify(parsed.error.issues.slice(0, 5)));
             }
           } catch {
             // Incomplete JSON — will surface as error below
@@ -287,7 +283,7 @@ async function runAgent(
   // ── Finalise ────────────────────────────────────────────────────────────
   if (!finalReport) {
     throw new Error(
-      "Claude did not call submit_credit_report — try increasing max_tokens or reducing search count"
+      "The research agent did not return a complete, verifiable report. Please run the scan again."
     );
   }
 

@@ -94,7 +94,7 @@ const DimensionSchema = z.object({
   grade: z.enum(GRADES),
   weight: z.number(),
   verdict: z.string(),
-  evidence: z.array(EvidenceItemSchema),
+  evidence: z.array(EvidenceItemSchema).min(1),
   // Optional: agent supplies suggested_fixes; the server attaches remediation.
   suggested_fixes: z.array(SuggestedFixSchema).optional(),
   remediation: DimensionRemediationSchema.optional(),
@@ -127,7 +127,7 @@ const SourceSchema = z.object({
   domain: z.string().optional(),
 });
 
-export const WCSReportSchema = z.object({
+const WCSReportShape = z.object({
   domain: z.string(),
   company_name: z.string().optional(),
   scanned_at: z.string().datetime(),
@@ -144,6 +144,32 @@ export const WCSReportSchema = z.object({
   peers: z.array(PeerSchema).optional(),
   sources: z.array(SourceSchema).min(12),
   summary: z.string(),
+});
+
+/**
+ * An agent can satisfy an array-length constraint with duplicate dimensions.
+ * Require the complete canonical key set before a report can reach a customer.
+ */
+export const WCSReportSchema = WCSReportShape.superRefine((report, ctx) => {
+  const seen = new Set(report.dimensions.map((dimension) => dimension.key));
+  const missing = DIMENSION_KEYS.filter((key) => !seen.has(key));
+
+  if (seen.size !== DIMENSION_KEYS.length || missing.length > 0) {
+    ctx.addIssue({
+      code: z.ZodIssueCode.custom,
+      path: ["dimensions"],
+      message: `Dimensions must contain each canonical key exactly once. Missing: ${missing.join(", ") || "none"}.`,
+    });
+  }
+
+  const uniqueSourceUrls = new Set(report.sources.map((source) => source.url));
+  if (uniqueSourceUrls.size < 12) {
+    ctx.addIssue({
+      code: z.ZodIssueCode.custom,
+      path: ["sources"],
+      message: "Sources must contain 12 distinct URLs.",
+    });
+  }
 });
 
 export type WCSReport = z.infer<typeof WCSReportSchema>;
@@ -188,6 +214,7 @@ export const WCS_REPORT_JSON_SCHEMA = {
           verdict: { type: "string" },
           evidence: {
             type: "array",
+            minItems: 1,
             items: {
               type: "object",
               required: ["claim", "url"],

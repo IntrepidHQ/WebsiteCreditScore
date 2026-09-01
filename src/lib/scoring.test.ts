@@ -2,11 +2,12 @@ import { describe, expect, it } from "vitest";
 import {
   gradeFromScore,
   computeOverallScore,
+  normalizeDimensionScore,
   normalizeReportScores,
   GRADE_THRESHOLDS,
   GRADE_COUNT_OK,
 } from "@/lib/scoring";
-import { GRADES, DIMENSION_KEYS, DIMENSION_WEIGHTS, type WCSReport } from "@/lib/schema";
+import { DIMENSION_LABELS, GRADES, DIMENSION_KEYS, DIMENSION_WEIGHTS, type WCSReport } from "@/lib/schema";
 
 describe("gradeFromScore", () => {
   it("covers every grade exactly once and stays in sync with GRADES", () => {
@@ -57,6 +58,15 @@ describe("computeOverallScore", () => {
   });
 });
 
+describe("normalizeDimensionScore", () => {
+  it("clamps scores to the published five-point scoring bands", () => {
+    expect(normalizeDimensionScore(62)).toBe(60);
+    expect(normalizeDimensionScore(63)).toBe(65);
+    expect(normalizeDimensionScore(-10)).toBe(0);
+    expect(normalizeDimensionScore(101)).toBe(100);
+  });
+});
+
 describe("normalizeReportScores", () => {
   const report = {
     domain: "example.com",
@@ -79,7 +89,7 @@ describe("normalizeReportScores", () => {
 
   it("recomputes overall and every grade from the scores, ignoring the model's guesses", () => {
     const n = normalizeReportScores(report);
-    expect(n.overall.score).toBe(62); // weighted avg of all-62
+    expect(n.overall.score).toBe(60); // all 62s snap to the published 60 band
     expect(n.overall.grade).toBe("C");
     expect(n.dimensions.every((d) => d.grade === "C")).toBe(true);
   });
@@ -89,5 +99,23 @@ describe("normalizeReportScores", () => {
     const twice = normalizeReportScores(once);
     expect(twice.overall).toEqual(once.overall);
     expect(twice.dimensions.map((d) => d.grade)).toEqual(once.dimensions.map((d) => d.grade));
+  });
+
+  it("restores the canonical dimension order, labels, and weights", () => {
+    const reversed = {
+      ...report,
+      dimensions: [...report.dimensions].reverse().map((dimension) => ({
+        ...dimension,
+        label: "Model-written label",
+        weight: 99,
+      })),
+    };
+
+    const normalized = normalizeReportScores(reversed);
+    expect(normalized.dimensions.map((dimension) => dimension.key)).toEqual(DIMENSION_KEYS);
+    for (const dimension of normalized.dimensions) {
+      expect(dimension.label).toBe(DIMENSION_LABELS[dimension.key]);
+      expect(dimension.weight).toBe(DIMENSION_WEIGHTS[dimension.key]);
+    }
   });
 });

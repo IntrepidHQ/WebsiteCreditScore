@@ -1,4 +1,12 @@
-import { GRADES, DIMENSION_WEIGHTS, type Grade, type DimensionKey, type WCSReport } from "@/lib/schema";
+import {
+  DIMENSION_KEYS,
+  DIMENSION_LABELS,
+  GRADES,
+  DIMENSION_WEIGHTS,
+  type Grade,
+  type DimensionKey,
+  type WCSReport,
+} from "@/lib/schema";
 
 /**
  * Deterministic scoring — the single source of truth mapping a 0–100 score to a
@@ -39,6 +47,13 @@ export function gradeFromScore(score: number): Grade {
   return "F";
 }
 
+/** Scores are intentionally coarse: research evidence supports 5-point bands,
+ * not artificial precision such as 62 versus 63. */
+export function normalizeDimensionScore(score: number): number {
+  const clamped = Math.max(0, Math.min(100, score));
+  return Math.round(clamped / 5) * 5;
+}
+
 /** Coarse score band used to anchor the agent's per-dimension scoring. */
 export const SCORE_BANDS: { min: number; label: string; meaning: string }[] = [
   { min: 90, label: "90–100", meaning: "exceptional — best-in-class, essentially no concerns" },
@@ -72,15 +87,27 @@ export function computeOverallScore(
 }
 
 /**
- * Normalize a report so grades and the overall are the deterministic function
- * of the dimension scores. Overrides whatever letters/overall the agent wrote.
- * The agent's headline/one_liner narrative is preserved as-is.
+ * Normalize a validated report into the public WCS rubric. The agent may supply
+ * research and narrative, but cannot change the dimension order, labels,
+ * weights, grades, or overall score.
  */
 export function normalizeReportScores(report: WCSReport): WCSReport {
-  const dimensions = report.dimensions.map((dim) => ({
-    ...dim,
-    grade: gradeFromScore(dim.score),
-  }));
+  const dimensionsByKey = new Map(report.dimensions.map((dimension) => [dimension.key, dimension]));
+  const dimensions = DIMENSION_KEYS.map((key) => {
+    const dimension = dimensionsByKey.get(key);
+    if (!dimension) {
+      // WCSReportSchema guarantees this before production calls this function.
+      throw new Error(`Cannot normalize report without ${key} dimension`);
+    }
+
+    return {
+      ...dimension,
+      label: DIMENSION_LABELS[key],
+      weight: DIMENSION_WEIGHTS[key],
+      score: normalizeDimensionScore(dimension.score),
+      grade: gradeFromScore(normalizeDimensionScore(dimension.score)),
+    };
+  });
   const overallScore = computeOverallScore(dimensions);
   return {
     ...report,
