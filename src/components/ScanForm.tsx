@@ -1,6 +1,7 @@
 "use client";
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
+import { KeyRound } from "lucide-react";
 
 type Tier = "quick" | "standard" | "deep";
 export type TierMode = "standard" | "max";
@@ -79,6 +80,8 @@ export function ScanForm({
   const [mode, setMode] = useState<TierMode>(initialMode);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+  const [accessCode, setAccessCode] = useState("");
+  const [showAccessCode, setShowAccessCode] = useState(false);
   const [walletBalances, setWalletBalances] = useState<Record<string, number> | null>(null);
 
   useEffect(() => {
@@ -109,7 +112,12 @@ export function ScanForm({
       const res = await fetch("/api/scan/start", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ domain, tier, mode }),
+        body: JSON.stringify({
+          domain,
+          tier,
+          mode,
+          ...(accessCode.trim() ? { compCode: accessCode.trim() } : {}),
+        }),
       });
       if (res.status === 402) {
         // Free scan already used — send them to Stripe checkout.
@@ -248,6 +256,38 @@ export function ScanForm({
           </div>
 
           {error && <p className="text-xs" style={{ color: "#f87171" }}>{error}</p>}
+
+          <div className="pt-1">
+            <button
+              type="button"
+              onClick={() => setShowAccessCode((visible) => !visible)}
+              className="inline-flex items-center gap-1.5 text-xs transition-colors"
+              style={{ color: "var(--theme-muted)" }}
+              aria-expanded={showAccessCode}
+              aria-controls="operator-access-code"
+            >
+              <KeyRound className="h-3.5 w-3.5" aria-hidden />
+              Operator access
+            </button>
+            {showAccessCode && (
+              <div id="operator-access-code" className="mt-2 flex items-center gap-2">
+                <input
+                  type="password"
+                  value={accessCode}
+                  onChange={(e) => setAccessCode(e.target.value)}
+                  placeholder="Access code"
+                  autoComplete="off"
+                  className="min-w-0 flex-1 rounded-lg bg-transparent px-3 py-2 text-sm outline-none"
+                  style={{ border: "1px solid var(--theme-border)", color: "var(--theme-foreground)" }}
+                  disabled={loading}
+                  aria-label="Operator access code"
+                />
+                <span className="text-[11px]" style={{ color: "var(--theme-muted)" }}>
+                  Testing only
+                </span>
+              </div>
+            )}
+          </div>
         </div>
 
         <div
