@@ -9,7 +9,6 @@ import { ResearchSourcesMarquee } from "@/components/ResearchSourcesMarquee";
 import { ScrollToTop } from "@/components/ScrollToTop";
 import { RESEARCH_SOURCES_PER_SCAN } from "@/lib/research-sources";
 import { getBlogIconForSlug } from "@/lib/blog/icons";
-import { buildStrategyCallCalendlyUrl } from "@/lib/strategy-call";
 import {
   Building2, Star, Palette, MousePointer2,
   Eye, Zap, FileText, Share2, Clock, TrendingUp,
@@ -549,29 +548,6 @@ export default async function LandingPage({
               no dashboard setup, no sales gate. One form at the top, one form at the bottom.
             </p>
 
-            <div className="flex flex-col gap-2 sm:flex-row sm:flex-wrap sm:items-center">
-              <Link
-                href="/scan/demo"
-                className="inline-flex w-fit items-center justify-center rounded-xl px-5 py-3 text-xs font-bold transition-opacity hover:opacity-90"
-                style={{ border: "1px solid var(--theme-border)", color: "var(--theme-foreground)" }}
-              >
-                View sample report
-              </Link>
-              <a
-                href={buildStrategyCallCalendlyUrl({ medium: "hero", content: "landing_hero" })}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="inline-flex w-fit items-center justify-center rounded-xl px-5 py-3 text-xs font-bold transition-opacity hover:opacity-90"
-                style={{ backgroundColor: "var(--theme-accent)", color: "var(--theme-accent-foreground)" }}
-              >
-                Strategy Call
-              </a>
-              <p className="max-w-md text-xs leading-relaxed" style={{ color: "var(--theme-muted)" }}>
-                The main flow is intentionally direct: scan first, then decide what to improve. Already scanned or
-                prefer to talk first? A Strategy Call books your session and triggers your{" "}
-                <strong style={{ color: "var(--theme-foreground)" }}>Strategy Presentation</strong> from the audit.
-              </p>
-            </div>
           </div>
 
           <div className="flex justify-center lg:justify-end">
