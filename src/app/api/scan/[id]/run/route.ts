@@ -24,14 +24,18 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
   if (!claimed) return NextResponse.json({ status: scan.status, running: scan.status === "streaming" }, { status: 202 });
 
   const workerUrl = new URL(`/api/scan/${id}/stream`, req.url);
+  console.info(`[scan/run] queued worker dispatch for ${id} -> ${workerUrl.origin}`);
   after(async () => {
     try {
+      console.info(`[scan/run] dispatching worker for ${id}`);
       const response = await fetch(workerUrl, { headers: { "x-wcs-scan-worker": "1" }, cache: "no-store" });
+      console.info(`[scan/run] worker response for ${id}: ${response.status}`);
       if (!response.body) return;
       const reader = response.body.getReader();
       while (!(await reader.read()).done) {
         // Consume the worker's SSE stream so the scan continues after the POST responds.
       }
+      console.info(`[scan/run] worker completed for ${id}`);
     } catch (error) {
       console.error(`[scan/run] worker dispatch failed for ${id}:`, error);
     }
