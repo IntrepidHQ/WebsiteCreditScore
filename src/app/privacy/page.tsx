@@ -73,7 +73,7 @@ export default function PrivacyPage() {
             title: "3. How we use your data",
             content: (
               <ul className="space-y-1.5 text-sm leading-relaxed list-disc list-inside" style={{ color: "var(--theme-muted)" }}>
-                <li>To deliver the scan report you paid for.</li>
+                <li>To publish free scan reports in the public WebsiteCreditScore index and privately deliver paid scan reports.</li>
                 <li>To display the recent scans feed on the homepage (domain, grade, headline — no personal info).</li>
                 <li>To detect and prevent fraudulent or abusive use of the service.</li>
                 <li>To improve our scoring methodology using anonymized, aggregated data.</li>

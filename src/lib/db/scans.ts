@@ -26,6 +26,8 @@ export interface Scan {
   last_error?: string | null;
   progress?: Record<string, unknown>;
   completed_at?: string | null;
+  access_required?: boolean;
+  wallet_id?: string | null;
 }
 
 export async function getScan(id: string): Promise<Scan | null> {
@@ -40,15 +42,20 @@ export async function getScan(id: string): Promise<Scan | null> {
 }
 
 /**
- * Create a paid scan row without Stripe checkout — used for the one free
+ * Create a runnable scan row without Stripe checkout — used for the one free
  * first scan (`kind: "free"`, the default) and for wallet-credit scans
  * (`kind: "wallet"`). The synthetic stripe_session_id prefix distinguishes
  * them so the first-scan-free gate only counts genuinely free scans.
  */
 export async function createFreeBypassScan(
   domain: string,
-  opts?: { ipHash?: string | null; userAgent?: string | null; kind?: "free" | "wallet" | "comp" }
-): Promise<{ id: string }> {
+  opts?: {
+    ipHash?: string | null;
+    userAgent?: string | null;
+    kind?: "free" | "wallet" | "comp";
+    walletId?: string | null;
+  }
+): Promise<{ id: string; accessToken: string | null }> {
   const supabase = await createClient();
   const id = randomUUID();
   // Synthetic session ids mark non-Stripe rows so they stay auditable and
@@ -56,7 +63,8 @@ export async function createFreeBypassScan(
   // an owner comp (see WCS_COMP_CODE in /api/scan/start).
   const prefix =
     opts?.kind === "wallet" ? "wallet_scan_" : opts?.kind === "comp" ? "comp_scan_" : "free_scan_";
-  const { error } = await supabase.from("scans").insert({
+  const requiresAccess = opts?.kind === "wallet";
+  const row = {
     id,
     domain,
     status: "pending" as ScanStatus,
@@ -64,9 +72,24 @@ export async function createFreeBypassScan(
     stripe_session_id: `${prefix}${id.replace(/-/g, "").slice(0, 12)}`,
     ip_hash: opts?.ipHash ?? null,
     user_agent: opts?.userAgent ?? null,
-  });
+    wallet_id: opts?.walletId ?? null,
+    // Free and operator-funded scans contribute to the public corpus. A scan
+    // paid for with a wallet credit remains private to its owner.
+    access_required: requiresAccess,
+  };
+  let { error } = await supabase.from("scans").insert(row);
+  // Rewards are an additive migration. Keep the core scan path operational
+  // during a staggered deploy where the app reaches production first.
+  if (error?.code === "PGRST204" || error?.code === "42703") {
+    const { wallet_id: _walletId, ...legacyRow } = row;
+    void _walletId;
+    ({ error } = await supabase.from("scans").insert(legacyRow));
+  }
   if (error) throw new Error(`Failed to create scan: ${error.message}`);
-  return { id };
+  if (!requiresAccess) return { id, accessToken: null };
+  const { createScanOwnerToken } = await import("@/lib/scan-access");
+  const accessToken = await createScanOwnerToken(id);
+  return { id, accessToken };
 }
 
 export async function createScan(opts: {
@@ -85,6 +108,7 @@ export async function createScan(opts: {
       stripe_session_id: opts.stripeSessionId,
       ip_hash: opts.ipHash,
       user_agent: opts.userAgent,
+      access_required: true,
     })
     .select()
     .single();
@@ -116,6 +140,7 @@ export async function upsertPaidScan(opts: {
         status: "pending" as ScanStatus,
         paid: true,
         stripe_session_id: opts.stripeSessionId,
+        access_required: true,
       },
       { onConflict: "id" }
     );
@@ -131,12 +156,15 @@ export async function updateScanStatus(id: string, status: ScanStatus): Promise<
   if (error) throw new Error(`Failed to update scan status: ${error.message}`);
 }
 
-/** Explicit operator curation only. Payment never grants publication consent. */
+/** Editorial promotion flag. It never changes whether the report itself is public. */
 export async function setScanPublicExample(id: string, isPublicExample: boolean): Promise<void> {
   const supabase = await createClient();
   const { error } = await supabase
     .from("scans")
-    .update({ is_public_example: isPublicExample })
+    .update({
+      is_public_example: isPublicExample,
+      public_example_approved_at: isPublicExample ? new Date().toISOString() : null,
+    })
     .eq("id", id);
   if (error) throw new Error(`Failed to update public-example status: ${error.message}`);
 }
@@ -147,6 +175,14 @@ export async function claimScanRun(id: string): Promise<boolean> {
   const { data, error } = await supabase.rpc("claim_scan_run", { p_scan_id: id });
   if (error) throw new Error(`Failed to claim scan: ${error.message}`);
   return data === true;
+}
+
+/** Move abandoned leased scans back to an explicitly retryable state. */
+export async function recoverStaleScanRuns(limit = 20): Promise<string[]> {
+  const supabase = await createClient();
+  const { data, error } = await supabase.rpc("recover_stale_scan_runs", { p_limit: limit });
+  if (error) throw new Error(`Failed to recover stale scans: ${error.message}`);
+  return ((data ?? []) as Array<{ id: string }>).map((row) => row.id);
 }
 
 export async function updateScanProgress(id: string, progress: Record<string, unknown>): Promise<void> {
@@ -178,6 +214,14 @@ export async function saveScanResult(
     })
     .eq("id", id);
   if (error) throw new Error(`Failed to save scan result: ${error.message}`);
+  try {
+    const { awardCompletedPublicScan } = await import("@/lib/db/rewards");
+    await awardCompletedPublicScan(id);
+  } catch (rewardError) {
+    // Rewards are additive. A missing migration or temporary ledger failure
+    // must never make an otherwise valid report fail delivery.
+    console.error("[scan rewards] could not award points:", rewardError);
+  }
 }
 
 export async function saveScanError(id: string, message: string): Promise<void> {
@@ -194,11 +238,7 @@ export async function saveScanError(id: string, message: string): Promise<void> 
     .eq("id", id);
 }
 
-/**
- * Public discovery is opt-in. Until the database curation migration is applied,
- * only domains deliberately listed in WCS_PUBLIC_SCAN_DOMAINS can appear on the
- * marketing site. Customer payment is never publication consent.
- */
+/** Latest completed reports from the public, free-funded corpus. */
 export async function getRecentScans(limit: number | null = 6): Promise<Array<{
   id: string;
   domain: string;
@@ -222,8 +262,7 @@ export async function getRecentScans(limit: number | null = 6): Promise<Array<{
     .from("scans")
     .select("id, domain, result, created_at")
     .eq("status", "done")
-    .eq("paid", true)
-    .eq("is_public_example", true)
+    .eq("access_required", false)
     .order("created_at", { ascending: false });
 
   if (!data) return [];

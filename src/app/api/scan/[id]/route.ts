@@ -1,12 +1,14 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getScan } from "@/lib/db/scans";
+import { scanAccessCookieName, scanRequiresAccess, verifyScanAccess } from "@/lib/scan-access";
 
 // GET /api/scan/{id}
-// Public, read-only view of a scan's status + report. This lets sister
+// Read-only view of a scan's status + report. Free reports are public; paid
+// reports require their owner cookie or a revocable share token. This lets sister
 // products (StrategyPresentation) resolve a scan over HTTP without sharing
 // WCS's database — WCS answers from whichever Supabase project it is
 // configured for, so the caller always sees the real, current data.
-// Only the report payload is exposed (already public on /scan/{id}); no
+// Only the report payload is exposed; no
 // wallet, IP, or session data.
 export const runtime = "nodejs";
 
@@ -20,7 +22,7 @@ export function OPTIONS() {
   return new NextResponse(null, { status: 204, headers: CORS });
 }
 
-export async function GET(_req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
+export async function GET(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
   if (!/^[0-9a-f-]{36}$/i.test(id)) {
     return NextResponse.json({ error: "bad id" }, { status: 400, headers: CORS });
@@ -28,6 +30,12 @@ export async function GET(_req: NextRequest, { params }: { params: Promise<{ id:
   const scan = await getScan(id);
   if (!scan) {
     return NextResponse.json({ error: "not found" }, { status: 404, headers: CORS });
+  }
+  if (scanRequiresAccess(scan)) {
+    const token = req.cookies.get(scanAccessCookieName(id))?.value;
+    if (!(await verifyScanAccess(id, token))) {
+      return NextResponse.json({ error: "This scan requires its owner or a valid share link." }, { status: 403, headers: CORS });
+    }
   }
   return NextResponse.json(
     {

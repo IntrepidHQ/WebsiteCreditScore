@@ -77,6 +77,7 @@ function renderInlineMarkdown(text: string): ReactNode[] {
 }
 
 function evidenceLabel(confidence?: "verified" | "reported" | "unverified", sourceType?: string) {
+  if (sourceType === "review") return "Review sample · limited representation";
   if (confidence === "verified") return sourceType === "first_party" ? "First-party evidence" : "Verified source";
   if (confidence === "reported") return "Third-party report";
   return "Source not independently verified";
@@ -87,7 +88,8 @@ function evidenceVerificationDetail(item: WCSReport["dimensions"][number]["evide
   const checked = item.checked_at
     ? `Checked ${new Intl.DateTimeFormat("en", { month: "short", day: "numeric" }).format(new Date(item.checked_at))}.`
     : null;
-  if (item.excerpt) return `${checked ? `${checked} ` : ""}${item.excerpt}`;
+  const detail = [item.scope, item.excerpt].filter(Boolean).join(" ");
+  if (detail) return `${checked ? `${checked} ` : ""}${detail}`;
   return checked;
 }
 
@@ -1313,6 +1315,44 @@ function DimensionBreakdown({ report }: { report: WCSReport }) {
   );
 }
 
+function ShareReportButton({ scanId }: { scanId?: string }) {
+  const [label, setLabel] = useState("Copy shareable link");
+
+  async function share() {
+    try {
+      let url = window.location.href;
+      if (scanId) {
+        const response = await fetch(`/api/scan/${scanId}/share`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ label: "report link" }),
+        });
+        const result = await response.json().catch(() => ({}));
+        if (!response.ok || typeof result.shareUrl !== "string") throw new Error("Share link unavailable");
+        url = result.shareUrl;
+      }
+      await navigator.clipboard.writeText(url);
+      setLabel("Share link copied");
+      window.setTimeout(() => setLabel("Copy shareable link"), 2400);
+    } catch {
+      setLabel("Could not create link");
+      window.setTimeout(() => setLabel("Copy shareable link"), 2400);
+    }
+  }
+
+  return (
+    <button
+      type="button"
+      onClick={() => void share()}
+      className="inline-flex items-center gap-2 text-xs transition-colors hover:opacity-90"
+      style={{ color: "var(--theme-muted)" }}
+    >
+      <Share2 className="h-3.5 w-3.5" aria-hidden />
+      {label}
+    </button>
+  );
+}
+
 // ── Main report ───────────────────────────────────────────────────────────
 export function ReportContent({ report, scanId }: { report: WCSReport; scanId?: string }) {
   return (
@@ -1390,7 +1430,12 @@ export function ReportContent({ report, scanId }: { report: WCSReport; scanId?: 
               style={{ color: "var(--theme-muted)" }}
             >
               <ExternalLink className="mt-0.5 h-3 w-3 flex-shrink-0 transition-colors group-hover:text-[#4ade80]" />
-              <span className="truncate group-hover:text-[var(--theme-foreground)]">{source.title}</span>
+              <span className="min-w-0">
+                <span className="block truncate group-hover:text-[var(--theme-foreground)]">{source.title}</span>
+                <span className="mt-0.5 block text-[10px] uppercase tracking-[0.08em]" style={{ color: "var(--theme-muted)" }}>
+                  {evidenceLabel(source.confidence, source.source_type)}
+                </span>
+              </span>
             </a>
           ))}
         </div>
@@ -1400,16 +1445,7 @@ export function ReportContent({ report, scanId }: { report: WCSReport; scanId?: 
 
       {/* Share */}
       <div className="pb-8 text-center">
-        <button
-          type="button"
-          onClick={() => {
-            void navigator.clipboard.writeText(window.location.href);
-          }}
-          className="text-xs transition-colors hover:opacity-90"
-          style={{ color: "var(--theme-muted)" }}
-        >
-          Copy shareable link
-        </button>
+        <ShareReportButton scanId={scanId} />
       </div>
     </div>
   );

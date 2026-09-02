@@ -6,17 +6,20 @@ import { NavBar } from "@/components/NavBar";
 import { SiteFooter } from "@/components/SiteFooter";
 import { ScrollToTop } from "@/components/ScrollToTop";
 import { verifyAndUpsertPaidScanFromSession } from "@/lib/verify-scan-payment";
+import { cookies } from "next/headers";
+import { redirect } from "next/navigation";
+import { createScanOwnerToken, scanAccessCookieName, scanRequiresAccess, verifyScanAccess } from "@/lib/scan-access";
 
 interface Props {
   params: Promise<{ id: string }>;
-  searchParams: Promise<{ session_id?: string; source?: string }>;
+  searchParams: Promise<{ session_id?: string; source?: string; access_token?: string }>;
 }
 
 export const dynamic = "force-dynamic";
 
 export default async function ScanPage({ params, searchParams }: Props) {
   const { id } = await params;
-  const { session_id } = await searchParams;
+  const { session_id, access_token } = await searchParams;
   let scan = await getScan(id);
 
   // Self-heal: on the Stripe return the row may not exist yet (webhook slow or
@@ -25,6 +28,38 @@ export default async function ScanPage({ params, searchParams }: Props) {
   if ((!scan || !scan.paid) && session_id) {
     const ok = await verifyAndUpsertPaidScanFromSession(session_id, id);
     if (ok) scan = await getScan(id);
+  }
+
+  // Exchange bearer links for an HttpOnly cookie, then remove the token from
+  // the address bar and browser history.
+  if (scan && access_token) {
+    redirect(`/api/scan/${id}/access?token=${encodeURIComponent(access_token)}`);
+  }
+
+  if (scan && scanRequiresAccess(scan)) {
+    const jar = await cookies();
+    const ownerToken = jar.get(scanAccessCookieName(id))?.value;
+    const hasAccess = await verifyScanAccess(id, ownerToken);
+    if (!hasAccess && session_id && scan.paid) {
+      const token = await createScanOwnerToken(id);
+      redirect(`/api/scan/${id}/access?token=${encodeURIComponent(token)}`);
+    }
+    if (!hasAccess) {
+      return (
+        <main className="flex min-h-screen flex-col" style={{ backgroundColor: "var(--theme-background)" }}>
+          <NavBar />
+          <div className="flex flex-1 items-center justify-center p-6">
+            <div className="max-w-md space-y-3 text-center">
+              <h1 className="font-semibold" style={{ color: "var(--theme-foreground)" }}>Private scan</h1>
+              <p className="text-sm" style={{ color: "var(--theme-muted)" }}>
+                This report is private. Open the owner link or a valid share link to continue.
+              </p>
+            </div>
+          </div>
+          <SiteFooter />
+        </main>
+      );
+    }
   }
 
   const shell = (inner: ReactNode) => (

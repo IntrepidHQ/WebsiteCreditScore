@@ -8,6 +8,16 @@ export const SOURCE_TYPES = ["first_party", "registry", "review", "news", "socia
 export type SourceType = (typeof SOURCE_TYPES)[number];
 export const EVIDENCE_CONFIDENCE = ["verified", "reported", "unverified"] as const;
 export type EvidenceConfidence = (typeof EVIDENCE_CONFIDENCE)[number];
+export const SOURCE_ROLES = ["primary", "authority", "independent", "reported_experience", "unknown"] as const;
+export type SourceRole = (typeof SOURCE_ROLES)[number];
+export const REPRESENTATIVENESS = ["representative", "limited", "unknown"] as const;
+export type Representativeness = (typeof REPRESENTATIVENESS)[number];
+
+// Stored with completed reports so calibration results remain comparable after
+// the rubric, scanner, or model changes.
+export const REPORT_SCHEMA_VERSION = "1.2" as const;
+export const RUBRIC_VERSION = "2026-09b" as const;
+export const SCANNER_VERSION = "2.1" as const;
 
 export const DIMENSION_KEYS = [
   "legitimacy",
@@ -69,6 +79,9 @@ const EvidenceItemSchema = z.object({
   title: z.string().optional(),
   source_type: z.enum(SOURCE_TYPES).optional(),
   confidence: z.enum(EVIDENCE_CONFIDENCE).optional(),
+  source_role: z.enum(SOURCE_ROLES).optional(),
+  representativeness: z.enum(REPRESENTATIVENESS).optional(),
+  scope: z.string().optional(),
   observed_at: z.string().datetime().optional(),
   checked_at: z.string().datetime().optional(),
   reachable: z.boolean().optional(),
@@ -139,6 +152,9 @@ const SourceSchema = z.object({
   domain: z.string().optional(),
   source_type: z.enum(SOURCE_TYPES).optional(),
   confidence: z.enum(EVIDENCE_CONFIDENCE).optional(),
+  source_role: z.enum(SOURCE_ROLES).optional(),
+  representativeness: z.enum(REPRESENTATIVENESS).optional(),
+  scope: z.string().optional(),
   observed_at: z.string().datetime().optional(),
   checked_at: z.string().datetime().optional(),
   reachable: z.boolean().optional(),
@@ -150,6 +166,12 @@ const WCSReportShape = z.object({
   domain: z.string(),
   company_name: z.string().optional(),
   scanned_at: z.string().datetime(),
+  report_meta: z.object({
+    schema_version: z.string(),
+    rubric_version: z.string(),
+    scanner_version: z.string(),
+    model: z.string().optional(),
+  }).optional(),
   overall: z.object({
     score: z.number().int().min(0).max(100),
     grade: z.enum(GRADES),
@@ -207,6 +229,15 @@ export const WCS_REPORT_JSON_SCHEMA = {
     domain: { type: "string" },
     company_name: { type: "string" },
     scanned_at: { type: "string", format: "date-time" },
+    report_meta: {
+      type: "object",
+      properties: {
+        schema_version: { type: "string" },
+        rubric_version: { type: "string" },
+        scanner_version: { type: "string" },
+        model: { type: "string" },
+      },
+    },
     overall: {
       type: "object",
       required: ["score", "grade", "headline", "one_liner"],
@@ -243,6 +274,9 @@ export const WCS_REPORT_JSON_SCHEMA = {
                 title: { type: "string" },
                 source_type: { type: "string", enum: SOURCE_TYPES },
                 confidence: { type: "string", enum: EVIDENCE_CONFIDENCE },
+                source_role: { type: "string", enum: SOURCE_ROLES },
+                representativeness: { type: "string", enum: REPRESENTATIVENESS },
+                scope: { type: "string" },
                 observed_at: { type: "string", format: "date-time" },
                 checked_at: { type: "string", format: "date-time" },
                 reachable: { type: "boolean" },
@@ -327,6 +361,9 @@ export const WCS_REPORT_JSON_SCHEMA = {
           domain: { type: "string" },
           source_type: { type: "string", enum: SOURCE_TYPES },
           confidence: { type: "string", enum: EVIDENCE_CONFIDENCE },
+          source_role: { type: "string", enum: SOURCE_ROLES },
+          representativeness: { type: "string", enum: REPRESENTATIVENESS },
+          scope: { type: "string" },
           observed_at: { type: "string", format: "date-time" },
           checked_at: { type: "string", format: "date-time" },
           reachable: { type: "boolean" },

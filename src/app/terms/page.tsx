@@ -39,7 +39,7 @@ export default function TermsPage() {
             title: "2. No account required",
             content: (
               <p className="text-sm leading-relaxed" style={{ color: "var(--theme-muted)" }}>
-                The Service is available without registration. You purchase scans on a pay-per-scan basis. Bundle credits are tied to your order and accessed via your purchase confirmation.
+                The Service is available without registration. Each visitor may run one free public Aerial scan. Paid scans and bundle credits are tied to your order and accessed through a private owner link.
               </p>
             ),
           },
@@ -84,7 +84,7 @@ export default function TermsPage() {
             title: "6. Intellectual property",
             content: (
               <p className="text-sm leading-relaxed" style={{ color: "var(--theme-muted)" }}>
-                You retain no claim over the Service, scoring engine, rubric, or AI-generated methodology. Reports we produce for you may be used for your own business purposes, including sharing with clients or colleagues. The shareable report URL is public — anyone with the link can view the report.
+                You retain no claim over the Service, scoring engine, rubric, or AI-generated methodology. Free reports are published in the public WebsiteCreditScore index because they analyze public evidence. Paid reports are private and may be shared only through owner-created, revocable links.
               </p>
             ),
           },

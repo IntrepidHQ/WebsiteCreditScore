@@ -499,9 +499,9 @@ function isValidTier(t: unknown): t is Tier {
 export default async function LandingPage({
   searchParams,
 }: {
-  searchParams: Promise<{ tier?: string; mode?: string }>;
+  searchParams: Promise<{ tier?: string; mode?: string; gift?: string }>;
 }) {
-  const { tier: rawTier, mode: rawMode } = await searchParams;
+  const { tier: rawTier, mode: rawMode, gift } = await searchParams;
   const defaultTier: Tier = isValidTier(rawTier) ? rawTier : "quick";
   const tierMode: TierMode = rawMode === "max" ? "max" : "standard";
   const recentScans = await getRecentScans(null).catch(() => []);
@@ -577,7 +577,7 @@ export default async function LandingPage({
           <div className="flex justify-center lg:justify-end">
             <div className="w-full max-w-xl space-y-4">
               <WalletBadge />
-              <ScanForm showTierSelect defaultTier={defaultTier} tierMode={tierMode} />
+              <ScanForm showTierSelect defaultTier={defaultTier} tierMode={tierMode} giftCode={gift?.slice(0, 80)} />
             </div>
           </div>
         </div>
@@ -760,7 +760,7 @@ export default async function LandingPage({
               {
                 step: "01",
                 title: "Paste any domain",
-                body: "Any public domain — a competitor, a vendor, your own site. No account needed, and your first scan is free.",
+                body: "Any public domain — a competitor, a vendor, your own site. Your first Aerial scan is free and joins the public score index.",
                 icon: ArrowRight,
               },
               {
@@ -830,7 +830,7 @@ export default async function LandingPage({
         </div>
       </section>
 
-      {/* Public examples are curated explicitly; paid customer reports are never promoted automatically. */}
+      {/* Free scans form the public index. Paid reports are private by design. */}
       <section
         className="px-6 py-20"
         style={{ borderTop: "1px solid var(--theme-border)", backgroundColor: "var(--theme-background-alt)" }}
@@ -839,7 +839,7 @@ export default async function LandingPage({
           <div className="mb-10 grid gap-6 lg:grid-cols-[minmax(0,1fr)_minmax(20rem,0.45fr)] lg:items-end">
             <div>
               <p className="text-xs uppercase tracking-widest mb-4" style={{ color: "var(--theme-accent)" }}>
-                Curated scan examples
+                Recent public scans
               </p>
               <h2
                 className="font-display mb-3"
@@ -848,8 +848,8 @@ export default async function LandingPage({
                 The payoff should look like evidence, not a receipt.
               </h2>
               <p className="text-sm max-w-2xl" style={{ color: "var(--theme-muted)" }}>
-                Only reports selected for public display appear here. Each card shows the verdict, proof density,
-                strongest signal, and biggest gap before you open the full report.
+                Free scans contribute to the public WebsiteCreditScore index. Paid scans are private and never appear here.
+                Each card shows the verdict, proof density, strongest signal, and biggest gap.
               </p>
             </div>
             <div className="grid grid-cols-3 gap-3">
@@ -879,7 +879,7 @@ export default async function LandingPage({
               style={{ border: "1px dashed var(--theme-border)", backgroundColor: "var(--theme-panel)" }}
             >
               <p className="text-sm" style={{ color: "var(--theme-muted)" }}>
-                Public examples are selected deliberately. Your scan remains private unless it is explicitly approved for display.
+                No public scans are available yet. Run the first free scan to begin the public score index.
               </p>
             </div>
           ) : (
@@ -1031,7 +1031,7 @@ export default async function LandingPage({
             Before you buy, partner, or hire — know what the AI finds. First scan free, no account required.
           </p>
           <div className="max-w-lg mx-auto">
-            <ScanForm showTierSelect defaultTier={defaultTier} tierMode={tierMode} />
+            <ScanForm showTierSelect defaultTier={defaultTier} tierMode={tierMode} giftCode={gift?.slice(0, 80)} />
           </div>
           <div className="flex flex-wrap justify-center gap-6 text-xs" style={{ color: "color-mix(in srgb, var(--theme-muted) 60%, transparent)" }}>
             <span>First scan free</span>

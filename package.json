@@ -8,7 +8,9 @@
     "start": "next start",
     "lint": "eslint .",
     "test": "vitest run",
-    "test-scan": "node --env-file=.env.local scripts/test-scan.mjs"
+    "test-scan": "node --env-file=.env.local scripts/test-scan.mjs",
+    "eval:calibration": "TSX_TSCONFIG_PATH=scripts/tsconfig.test.json npx tsx scripts/evaluate-calibration.mts",
+    "scan:calibration": "TSX_TSCONFIG_PATH=scripts/tsconfig.test.json npx tsx --env-file=.env.local scripts/run-calibration.mts"
   },
   "dependencies": {
     "@ai-sdk/anthropic": "^1.2.12",

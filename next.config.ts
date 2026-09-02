@@ -13,6 +13,7 @@ const cspHeader = {
     "object-src 'none'",
     "base-uri 'self'",
     "form-action 'self'",
+    "frame-ancestors 'self' https://hansturner.com https://www.hansturner.com",
   ].join("; "),
 };
 

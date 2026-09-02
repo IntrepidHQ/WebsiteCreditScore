@@ -68,11 +68,13 @@ export function ScanForm({
   defaultTier = "quick",
   showTierSelect = true,
   tierMode: initialMode = "standard",
+  giftCode,
 }: {
   large?: boolean;
   defaultTier?: Tier;
   showTierSelect?: boolean;
   tierMode?: TierMode;
+  giftCode?: string;
 }) {
   const router = useRouter();
   const [url, setUrl] = useState("");
@@ -83,6 +85,10 @@ export function ScanForm({
   const [accessCode, setAccessCode] = useState("");
   const [showAccessCode, setShowAccessCode] = useState(false);
   const [walletBalances, setWalletBalances] = useState<Record<string, number> | null>(null);
+  const [freeScanState, setFreeScanState] = useState<"loading" | "available" | "used">("loading");
+  const [rewardPoints, setRewardPoints] = useState(0);
+  const [rewardsAvailable, setRewardsAvailable] = useState(false);
+  const [rewardMessage, setRewardMessage] = useState("");
 
   useEffect(() => {
     let cancelled = false;
@@ -94,6 +100,23 @@ export function ScanForm({
       .catch(() => {
         if (!cancelled) setWalletBalances(null);
       });
+    fetch("/api/scan/eligibility", { cache: "no-store" })
+      .then((r) => r.json())
+      .then((data) => {
+        if (!cancelled) setFreeScanState(data?.freeScanAvailable ? "available" : "used");
+      })
+      .catch(() => {
+        if (!cancelled) setFreeScanState("used");
+      });
+    fetch("/api/rewards", { cache: "no-store" })
+      .then((r) => r.json())
+      .then((data) => {
+        if (!cancelled) {
+          setRewardsAvailable(data?.available === true);
+          setRewardPoints(Number(data?.points ?? 0));
+        }
+      })
+      .catch(() => undefined);
     return () => { cancelled = true; };
   }, []);
 
@@ -101,9 +124,10 @@ export function ScanForm({
   const creditKey = `${tier}_${mode}`;
   const creditCount = walletBalances?.[creditKey] ?? 0;
   const hasCredit = creditCount > 0;
+  const isFreeTier = tier === "quick" && mode === "standard";
+  const freeScanAvailable = freeScanState === "available" && isFreeTier;
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
+  const startScan = async (intent: "free" | "credit" | "operator") => {
     if (!url.trim()) return;
     setError("");
     setLoading(true);
@@ -116,24 +140,11 @@ export function ScanForm({
           domain,
           tier,
           mode,
+          intent,
+          ...(giftCode ? { giftCode } : {}),
           ...(accessCode.trim() ? { compCode: accessCode.trim() } : {}),
         }),
       });
-      if (res.status === 402) {
-        // Free scan already used — send them to Stripe checkout.
-        const checkout = await fetch("/api/checkout", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ domain, tier, mode }),
-        });
-        if (!checkout.ok) {
-          const data = await checkout.json().catch(() => ({}));
-          throw new Error(data.error ?? "Checkout failed — please try again");
-        }
-        const { checkoutUrl } = await checkout.json();
-        window.location.href = checkoutUrl;
-        return;
-      }
       if (!res.ok) {
         const data = await res.json().catch(() => ({}));
         throw new Error(data.error ?? "Something went wrong");
@@ -146,10 +157,76 @@ export function ScanForm({
     }
   };
 
-  const buttonLabel = hasCredit ? "Use credit →" : "Scan →";
-  const hintLine = hasCredit
-    ? `${creditCount} ${copy.tabLabel} ${creditCount === 1 ? "credit" : "credits"} available`
-    : "First scan free · No account required";
+  const startPrivateCheckout = async () => {
+    if (!url.trim()) return;
+    setError("");
+    setLoading(true);
+    try {
+      const checkout = await fetch("/api/checkout", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ domain: normalizeUrl(url), tier, mode }),
+      });
+      if (!checkout.ok) {
+        const data = await checkout.json().catch(() => ({}));
+        throw new Error(data.error ?? "Checkout failed — please try again");
+      }
+      const { checkoutUrl } = await checkout.json();
+      window.location.href = checkoutUrl;
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Checkout failed");
+      setLoading(false);
+    }
+  };
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (accessCode.trim()) void startScan("operator");
+    else if (freeScanAvailable) void startScan("free");
+  };
+
+  const createGift = async () => {
+    setRewardMessage("");
+    try {
+      const res = await fetch("/api/rewards", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ action: "gift" }),
+      });
+      const data = await res.json();
+      if (!res.ok || !data.giftUrl) throw new Error(data.error ?? "Could not create gift link");
+      await navigator.clipboard.writeText(data.giftUrl);
+      setRewardMessage("Gift link copied · earn 25 points when their public scan completes");
+    } catch (err) {
+      setRewardMessage(err instanceof Error ? err.message : "Could not create gift link");
+    }
+  };
+
+  const redeemPoints = async () => {
+    setRewardMessage("");
+    try {
+      const res = await fetch("/api/rewards", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ action: "redeem" }),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error ?? "Could not redeem points");
+      setRewardPoints(Number(data.points ?? 0));
+      setWalletBalances(data.balances ?? walletBalances);
+      setRewardMessage("Private Aerial scan credit added");
+    } catch (err) {
+      setRewardMessage(err instanceof Error ? err.message : "Could not redeem points");
+    }
+  };
+
+  const freeButtonLabel = freeScanState === "loading"
+    ? "Checking free scan…"
+    : !isFreeTier
+      ? "Free scan is Aerial only"
+      : freeScanState === "used"
+        ? "Free scan used"
+        : "Run free public scan";
 
   return (
     <form onSubmit={handleSubmit} className="w-full">
@@ -201,7 +278,7 @@ export function ScanForm({
               className="font-display leading-none"
               style={{ color: "var(--theme-accent)", fontSize: "clamp(1.8rem, 3.5vw, 2.4rem)" }}
             >
-              {`$${copy.price}`}
+              {isFreeTier && freeScanState === "available" ? "FREE" : `$${copy.price}`}
             </span>
           </div>
 
@@ -217,15 +294,31 @@ export function ScanForm({
               >
                 ★ {creditCount} {creditCount === 1 ? "credit" : "credits"}
               </span>
-            ) : (
+            ) : freeScanState === "loading" ? (
+              <span
+                className="inline-flex items-center gap-1.5 rounded-full px-2.5 py-1"
+                style={{ backgroundColor: "rgba(148,163,184,0.1)", color: "var(--theme-muted)", border: "1px solid var(--theme-border)" }}
+              >
+                Checking free scan
+              </span>
+            ) : freeScanState === "available" ? (
               <span
                 className="inline-flex items-center gap-1.5 rounded-full px-2.5 py-1"
                 style={{ backgroundColor: "rgba(74,222,128,0.12)", color: "#86efac", border: "1px solid rgba(74,222,128,0.3)" }}
               >
-                ★ First scan free
+                First scan free
+              </span>
+            ) : (
+              <span
+                className="inline-flex items-center gap-1.5 rounded-full px-2.5 py-1"
+                style={{ backgroundColor: "rgba(148,163,184,0.1)", color: "var(--theme-muted)", border: "1px solid var(--theme-border)" }}
+              >
+                Free scan claimed
               </span>
             )}
-            <span style={{ color: "var(--theme-accent)" }}>{hintLine}</span>
+            <span style={{ color: "var(--theme-muted)" }}>
+              Free reports are public · Paid reports are private
+            </span>
           </div>
 
           <div
@@ -245,15 +338,57 @@ export function ScanForm({
               disabled={loading}
               aria-label="Domain to scan"
             />
+          </div>
+
+          <div className="grid gap-2 sm:grid-cols-2">
             <button
-              type="submit"
-              disabled={loading || !url.trim()}
-              className="font-semibold transition-all whitespace-nowrap disabled:opacity-40 disabled:cursor-not-allowed shrink-0 px-5 sm:px-6 text-sm sm:text-base"
+              type="button"
+              onClick={() => void startScan(accessCode.trim() ? "operator" : "free")}
+              disabled={loading || !url.trim() || (!accessCode.trim() && !freeScanAvailable)}
+              className="min-h-12 rounded-xl px-4 text-sm font-semibold transition-opacity disabled:cursor-not-allowed disabled:opacity-40"
               style={{ backgroundColor: "var(--theme-accent)", color: "var(--theme-accent-foreground)" }}
             >
-              {loading ? "…" : buttonLabel}
+              {loading ? "Starting…" : accessCode.trim() ? "Run operator scan" : freeButtonLabel}
+            </button>
+            <button
+              type="button"
+              onClick={() => hasCredit ? void startScan("credit") : void startPrivateCheckout()}
+              disabled={loading || !url.trim()}
+              className="min-h-12 rounded-xl border px-4 text-sm font-semibold transition-opacity disabled:cursor-not-allowed disabled:opacity-40"
+              style={{ borderColor: "var(--theme-border)", backgroundColor: "var(--theme-panel)", color: "var(--theme-foreground)" }}
+            >
+              {hasCredit ? "Use private credit" : `Private scan · $${copy.price}`}
             </button>
           </div>
+
+          <p className="text-xs leading-relaxed" style={{ color: "var(--theme-muted)" }}>
+            Free scans join the public WebsiteCreditScore index. Buy a private scan to keep the report limited to your owner link and revocable share links.
+          </p>
+
+          {rewardsAvailable && (
+            <div className="flex flex-wrap items-center gap-2 rounded-xl border p-3" style={{ borderColor: "var(--theme-border)", backgroundColor: "color-mix(in srgb, var(--theme-panel) 68%, transparent)" }}>
+              <span className="text-xs font-semibold" style={{ color: "var(--theme-foreground)" }}>
+                {rewardPoints} points
+              </span>
+              <span className="text-xs" style={{ color: "var(--theme-muted)" }}>
+                10 per completed public scan · 100 = 1 private Aerial scan
+              </span>
+              <div className="ml-auto flex flex-wrap gap-2">
+                <button type="button" onClick={() => void createGift()} className="rounded-lg border px-2.5 py-1.5 text-xs font-semibold" style={{ borderColor: "var(--theme-border)", color: "var(--theme-foreground)" }}>
+                  Gift a scan
+                </button>
+                <button type="button" onClick={() => void redeemPoints()} disabled={rewardPoints < 100} className="rounded-lg border px-2.5 py-1.5 text-xs font-semibold disabled:cursor-not-allowed disabled:opacity-35" style={{ borderColor: "var(--theme-border)", color: "var(--theme-accent)" }}>
+                  Redeem
+                </button>
+              </div>
+              {giftCode && (
+                <p className="w-full text-xs" style={{ color: "#86efac" }}>
+                  Gift scan active · completing this public scan rewards the sender 25 points.
+                </p>
+              )}
+              {rewardMessage && <p className="w-full text-xs" style={{ color: "var(--theme-accent)" }}>{rewardMessage}</p>}
+            </div>
+          )}
 
           {error && <p className="text-xs" style={{ color: "#f87171" }}>{error}</p>}
 

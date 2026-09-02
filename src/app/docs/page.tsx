@@ -178,7 +178,7 @@ export default function DocsPage() {
           <div className="grid grid-cols-1 sm:grid-cols-4 gap-4">
             {[
               { step: "01", title: "Enter domain", body: "You type any domain (e.g. acmeplumbing.com). No account needed." },
-              { step: "02", title: "Start the scan", body: "Your first scan is free. After that, scans start at $1 — Stripe processes payments securely and we never store card details." },
+              { step: "02", title: "Choose visibility", body: "Your first Aerial scan is free and public. Paid scans start at $1 and stay private; Stripe processes payment and we never store card details." },
               { step: "03", title: "AI researches", body: "Claude AI runs 8–10 live searches: reviews, filings, Reddit, press, technical checks, and more." },
               { step: "04", title: "Get your report", body: "10 graded dimensions, red/green flags, cited sources, and an overall A–F letter grade." },
             ].map(({ step, title, body }) => (

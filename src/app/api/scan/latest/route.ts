@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 
 // GET /api/scan/latest?domain=example.com
-// Newest completed scan for a domain (public, read-only) so sister products
+// Newest completed PUBLIC scan for a domain so sister products
 // can resolve "do you already have a scan for X?" over HTTP against WCS's own
 // database — no shared-DB coupling.
 export const runtime = "nodejs";
@@ -38,6 +38,7 @@ export async function GET(req: NextRequest) {
       .select("id, domain, status, created_at")
       .eq("domain", domain)
       .eq("status", "done")
+      .eq("access_required", false)
       .order("created_at", { ascending: false })
       .limit(1);
     if (error || !data?.length) {

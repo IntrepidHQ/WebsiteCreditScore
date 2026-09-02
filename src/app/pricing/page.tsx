@@ -116,7 +116,7 @@ const faq = [
   },
   {
     q: "Is there a free tier?",
-    a: "Your first scan is free — no account required. After that, every scan uses real AI compute and live web searches, so scans start at $1 to cover the cost of a quality result.",
+    a: "Your first Aerial scan is free and joins the public WebsiteCreditScore index — no account required. Paid scans start at $1 and stay private to your owner link and the share links you create.",
   },
   {
     q: "Do you offer agency or enterprise pricing?",
