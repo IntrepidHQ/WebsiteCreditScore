@@ -82,6 +82,15 @@ function evidenceLabel(confidence?: "verified" | "reported" | "unverified", sour
   return "Source not independently verified";
 }
 
+function evidenceVerificationDetail(item: WCSReport["dimensions"][number]["evidence"][number]) {
+  if (item.reachable === false) return "This source was unavailable when checked.";
+  const checked = item.checked_at
+    ? `Checked ${new Intl.DateTimeFormat("en", { month: "short", day: "numeric" }).format(new Date(item.checked_at))}.`
+    : null;
+  if (item.excerpt) return `${checked ? `${checked} ` : ""}${item.excerpt}`;
+  return checked;
+}
+
 function isHighRiskClaim(flag: RedFlag) {
   return /\b(scam|fraud|criminal|crime|abuse|assault|misconduct|lawsuit|illegal|deception)\b/i.test(
     `${flag.title} ${flag.detail}`,
@@ -820,6 +829,11 @@ function DimensionReasoningModal({
                     <span className="mt-1 block text-[10px] uppercase tracking-[0.1em]" style={{ color: "var(--theme-muted)" }}>
                       {evidenceLabel(item.confidence, item.source_type)}
                     </span>
+                    {evidenceVerificationDetail(item) && (
+                      <span className="mt-1 block leading-relaxed" style={{ color: "color-mix(in srgb, var(--theme-muted) 88%, transparent)", ...readableWrapStyle }}>
+                        {evidenceVerificationDetail(item)}
+                      </span>
+                    )}
                   </span>
                 </a>
               ))}
