@@ -120,6 +120,9 @@ alter table wallet_credits       enable row level security;
 alter table wallet_transactions  enable row level security;
 
 -- All writes go through the service role from API routes; deny anon by default.
+drop policy if exists "service-role wallets all" on wallets;
+drop policy if exists "service-role wallet_credits all" on wallet_credits;
+drop policy if exists "service-role wallet_transactions all" on wallet_transactions;
 create policy "service-role wallets all"             on wallets             for all to service_role using (true) with check (true);
 create policy "service-role wallet_credits all"      on wallet_credits      for all to service_role using (true) with check (true);
 create policy "service-role wallet_transactions all" on wallet_transactions for all to service_role using (true) with check (true);
