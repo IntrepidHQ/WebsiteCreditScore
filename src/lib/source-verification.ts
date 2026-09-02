@@ -26,6 +26,11 @@ function htmlExcerpt(body: string) {
   return text ? text.slice(0, EXCERPT_CHARS) : undefined;
 }
 
+function isChallengePage(body: string, title: string | undefined) {
+  const sample = `${title ?? ""} ${body}`.toLowerCase();
+  return /verifying (your )?connection|checking your browser|just a moment|captcha|request originates from an undeclared automated tool|access denied|temporarily blocked/.test(sample);
+}
+
 async function verifySource(source: WCSReport["sources"][number]) {
   const checkedAt = new Date().toISOString();
   const abort = new AbortController();
@@ -45,12 +50,16 @@ async function verifySource(source: WCSReport["sources"][number]) {
     const body = contentType.includes("text") || contentType.includes("html")
       ? (await response.text()).slice(0, MAX_BODY_CHARS)
       : "";
-    const reachable = response.ok;
+    const title = htmlTitle(body) ?? source.title;
+    // Bot protection often responds 200 with a challenge document. It proves
+    // neither the cited page nor the report's claim, so surface it as an
+    // unverified source instead of granting a misleading verification badge.
+    const reachable = response.ok && !isChallengePage(body, title);
     return {
       ...source,
       checked_at: checkedAt,
       reachable,
-      page_title: htmlTitle(body) ?? source.title,
+      page_title: title,
       excerpt: htmlExcerpt(body),
       confidence: !reachable ? "unverified" as const : source.confidence,
     };

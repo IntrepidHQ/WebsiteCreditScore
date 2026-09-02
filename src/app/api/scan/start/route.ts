@@ -12,6 +12,7 @@ import {
 } from "@/lib/free-scan";
 import { scanAccessCookieName } from "@/lib/scan-access";
 import { claimScanGift } from "@/lib/db/rewards";
+import { sponsorRedeemedCookieName, verifySponsorCompletion } from "@/lib/sponsor-unlock";
 
 function withScanAccess(res: NextResponse, scanId: string, token: string): NextResponse {
   res.cookies.set(scanAccessCookieName(scanId), token, {
@@ -41,7 +42,7 @@ function cleanDomain(raw: unknown): string | null {
 }
 
 export async function POST(req: NextRequest) {
-  let body: { domain?: unknown; tier?: unknown; mode?: unknown; compCode?: unknown; intent?: unknown; giftCode?: unknown };
+  let body: { domain?: unknown; tier?: unknown; mode?: unknown; compCode?: unknown; intent?: unknown; giftCode?: unknown; sponsorToken?: unknown };
   try {
     body = await req.json();
   } catch {
@@ -58,7 +59,7 @@ export async function POST(req: NextRequest) {
   const walletId = readWalletIdFromRequest(req);
   const ipHash = ipHashFromRequest(req);
   const userAgent = req.headers.get("user-agent");
-  const intent = body.intent === "credit" || body.intent === "operator" ? body.intent : "free";
+  const intent = body.intent === "credit" || body.intent === "operator" || body.intent === "sponsor" ? body.intent : "free";
 
   // A private credit is consumed only when the visitor explicitly chooses it.
   // This prevents a stored credit from silently replacing their one free scan.
@@ -120,6 +121,28 @@ export async function POST(req: NextRequest) {
       { error: "The free public scan is available for Aerial Scan only", checkoutRequired: true },
       { status: 402 },
     );
+  }
+
+  // Sponsor scans are deliberately public. The short-lived completion token is
+  // tied to this domain and the HttpOnly completion cookie makes it one-use in
+  // the current browser session.
+  if (intent === "sponsor") {
+    const sponsorToken = typeof body.sponsorToken === "string" ? body.sponsorToken : "";
+    const redeemedId = req.cookies.get(sponsorRedeemedCookieName)?.value;
+    if (!verifySponsorCompletion(sponsorToken, domain, redeemedId)) {
+      return NextResponse.json({ error: "Complete the Brainztem sponsor preview to unlock this scan" }, { status: 403 });
+    }
+    try {
+      const wallet = await getOrCreateWallet(walletId);
+      const { id, accessToken } = await createFreeBypassScan(domain, { ipHash, userAgent, kind: "sponsor", walletId: wallet.id });
+      const res = NextResponse.json({ scanId: id, source: "brainztem-sponsor", visibility: "public" });
+      res.cookies.delete(sponsorRedeemedCookieName);
+      setWalletCookie(res, wallet.id);
+      return maybeWithScanAccess(res, id, accessToken);
+    } catch (err) {
+      console.error("[scan/start] sponsor scan failed:", err);
+      return NextResponse.json({ error: "Failed to start sponsor scan" }, { status: 500 });
+    }
   }
 
   // 2. One free scan per visitor: cookie + salted IP hash must both be clean.

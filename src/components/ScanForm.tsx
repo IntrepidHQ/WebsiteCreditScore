@@ -2,6 +2,7 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { KeyRound } from "lucide-react";
+import { BrainztemSponsor } from "@/components/BrainztemSponsor";
 
 type Tier = "quick" | "standard" | "deep";
 export type TierMode = "standard" | "max";
@@ -89,6 +90,7 @@ export function ScanForm({
   const [rewardPoints, setRewardPoints] = useState(0);
   const [rewardsAvailable, setRewardsAvailable] = useState(false);
   const [rewardMessage, setRewardMessage] = useState("");
+  const [sponsorDismissed, setSponsorDismissed] = useState(false);
 
   useEffect(() => {
     let cancelled = false;
@@ -127,7 +129,7 @@ export function ScanForm({
   const isFreeTier = tier === "quick" && mode === "standard";
   const freeScanAvailable = freeScanState === "available" && isFreeTier;
 
-  const startScan = async (intent: "free" | "credit" | "operator") => {
+  const startScan = async (intent: "free" | "credit" | "operator" | "sponsor", sponsorToken?: string) => {
     if (!url.trim()) return;
     setError("");
     setLoading(true);
@@ -142,6 +144,7 @@ export function ScanForm({
           mode,
           intent,
           ...(giftCode ? { giftCode } : {}),
+          ...(sponsorToken ? { sponsorToken } : {}),
           ...(accessCode.trim() ? { compCode: accessCode.trim() } : {}),
         }),
       });
@@ -331,7 +334,10 @@ export function ScanForm({
             <input
               type="text"
               value={url}
-              onChange={(e) => setUrl(e.target.value)}
+              onChange={(e) => {
+                setUrl(e.target.value);
+                setSponsorDismissed(false);
+              }}
               placeholder="domain.com"
               className="flex-1 min-w-0 bg-transparent outline-none py-3 sm:py-4 text-base sm:text-lg"
               style={{ color: "var(--theme-foreground)" }}
@@ -364,6 +370,23 @@ export function ScanForm({
           <p className="text-xs leading-relaxed" style={{ color: "var(--theme-muted)" }}>
             Free scans join the public WebsiteCreditScore index. Buy a private scan to keep the report limited to your owner link and revocable share links.
           </p>
+
+          {freeScanState === "used" && isFreeTier && url.trim() && !loading && !sponsorDismissed ? (
+            <BrainztemSponsor
+              domain={normalizeUrl(url)}
+              onUnlocked={(token) => void startScan("sponsor", token)}
+              onClose={() => setSponsorDismissed(true)}
+            />
+          ) : freeScanState === "used" && isFreeTier && url.trim() && !loading ? (
+            <button
+              type="button"
+              onClick={() => setSponsorDismissed(false)}
+              className="text-left text-xs font-semibold"
+              style={{ color: "var(--theme-accent)" }}
+            >
+              Watch the Brainztem preview for a free public scan
+            </button>
+          ) : null}
 
           {rewardsAvailable && (
             <div className="flex flex-wrap items-center gap-2 rounded-xl border p-3" style={{ borderColor: "var(--theme-border)", backgroundColor: "color-mix(in srgb, var(--theme-panel) 68%, transparent)" }}>

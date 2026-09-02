@@ -52,7 +52,7 @@ export async function createFreeBypassScan(
   opts?: {
     ipHash?: string | null;
     userAgent?: string | null;
-    kind?: "free" | "wallet" | "comp";
+    kind?: "free" | "wallet" | "comp" | "sponsor";
     walletId?: string | null;
   }
 ): Promise<{ id: string; accessToken: string | null }> {
@@ -62,7 +62,7 @@ export async function createFreeBypassScan(
   // distinguishable in the scans table: wallet credit, the one free scan, or
   // an owner comp (see WCS_COMP_CODE in /api/scan/start).
   const prefix =
-    opts?.kind === "wallet" ? "wallet_scan_" : opts?.kind === "comp" ? "comp_scan_" : "free_scan_";
+    opts?.kind === "wallet" ? "wallet_scan_" : opts?.kind === "comp" ? "comp_scan_" : opts?.kind === "sponsor" ? "sponsor_scan_" : "free_scan_";
   const requiresAccess = opts?.kind === "wallet";
   const row = {
     id,

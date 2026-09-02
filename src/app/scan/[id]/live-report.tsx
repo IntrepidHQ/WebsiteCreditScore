@@ -29,6 +29,7 @@ import {
 import { DIMENSION_COLORS, gradeColor, gradeLabel, type DimensionKey, type WCSReport, type Grade } from "@/lib/schema";
 import { normalizeReportScores } from "@/lib/scoring";
 import { buildStrategyCallCalendlyUrl, buildStrategyPresentationUrl } from "@/lib/strategy-call";
+import { BrainztemSponsor } from "@/components/BrainztemSponsor";
 
 const scanReportCalendlyUrl = (domain: string) =>
   buildStrategyCallCalendlyUrl({ medium: "scan_report", content: domain });
@@ -1457,6 +1458,7 @@ export function LiveReport({ scanId, domain, initialResult }: Props) {
   const [searches, setSearches] = useState<string[]>(["Preparing scan job"]);
   const [sourceCount, setSourceCount] = useState(0);
   const [error, setError] = useState<string | null>(null);
+  const [showSponsor, setShowSponsor] = useState(true);
 
   useEffect(() => {
     if (initialResult) return;
@@ -1548,6 +1550,7 @@ export function LiveReport({ scanId, domain, initialResult }: Props) {
             />
           </div>
           <ReportSkeleton searches={searches} />
+          {showSponsor ? <BrainztemSponsor compact domain={domain} onClose={() => setShowSponsor(false)} /> : null}
         </div>
       ) : (
         <ReportContent report={report} scanId={scanId} />
