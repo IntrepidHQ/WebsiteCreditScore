@@ -131,6 +131,16 @@ export async function updateScanStatus(id: string, status: ScanStatus): Promise<
   if (error) throw new Error(`Failed to update scan status: ${error.message}`);
 }
 
+/** Explicit operator curation only. Payment never grants publication consent. */
+export async function setScanPublicExample(id: string, isPublicExample: boolean): Promise<void> {
+  const supabase = await createClient();
+  const { error } = await supabase
+    .from("scans")
+    .update({ is_public_example: isPublicExample })
+    .eq("id", id);
+  if (error) throw new Error(`Failed to update public-example status: ${error.message}`);
+}
+
 /** Atomically lease a paid scan to one worker. Expired workers are reclaimable. */
 export async function claimScanRun(id: string): Promise<boolean> {
   const supabase = await createClient();
