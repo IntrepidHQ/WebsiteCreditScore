@@ -3,6 +3,7 @@ import {
   getScan,
   saveScanResult,
   saveScanError,
+  updateScanProgress,
 } from "@/lib/db/scans";
 import { WCSReportSchema, WCS_REPORT_JSON_SCHEMA, type WCSReport } from "@/lib/schema";
 import fixture from "@/lib/fixtures/wcs-mock.json";
@@ -192,6 +193,7 @@ async function runAgent(
   // anchors on so footer-linked legal/pricing pages are never missed (search
   // indexes lag new sites). Best-effort; never blocks the scan.
   send(controller, { type: "search", query: `Reading ${domain} homepage + footer directly` });
+  await updateScanProgress(scanId, { phase: "reading first-party site", searches: 0 });
   const crawl = await crawlSite(domain);
   const crawlBlock = crawlToPromptBlock(crawl);
 
@@ -253,6 +255,11 @@ async function runAgent(
             if (input.query) {
               searchCount++;
               send(controller, { type: "search", query: input.query });
+              void updateScanProgress(scanId, {
+                phase: "researching public sources",
+                searches: searchCount,
+                last_query: input.query,
+              });
             }
           } catch {
             // JSON not yet complete — skip
@@ -286,6 +293,14 @@ async function runAgent(
       "The research agent did not return a complete, verifiable report. Please run the scan again."
     );
   }
+
+  // The scanner, not the model, owns report identity and observation time.
+  // This prevents a date-only model value from implying false freshness.
+  finalReport = {
+    ...finalReport,
+    domain,
+    scanned_at: new Date().toISOString(),
+  };
 
   // Make grades + overall the deterministic function of the dimension scores
   // (same scores → same grade/overall on every re-scan) BEFORE anything reads
