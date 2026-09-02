@@ -1,7 +1,6 @@
 import { NextRequest } from "next/server";
 import {
   getScan,
-  updateScanStatus,
   saveScanResult,
   saveScanError,
 } from "@/lib/db/scans";
@@ -336,7 +335,7 @@ async function runAgent(
 
 // ── Route handler ─────────────────────────────────────────────────────────
 export async function GET(
-  _req: NextRequest,
+  req: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
   const { id } = await params;
@@ -369,8 +368,15 @@ export async function GET(
           return;
         }
 
-        // ── Run the agent ──────────────────────────────────────────
-        await updateScanStatus(id, "streaming");
+        // Browser requests observe only. A POST /run dispatches an internal
+        // worker request, which owns a persisted seven-minute lease.
+        const workerRequest = req.headers.get("x-wcs-scan-worker") === "1";
+        if (!workerRequest) {
+          send(controller, { type: "waiting" });
+          return;
+        }
+
+        // ── Run the leased agent ───────────────────────────────────
         await runAgent(controller, id, scan.domain);
       } catch (err) {
         const msg = err instanceof Error ? err.message : "Scan failed";

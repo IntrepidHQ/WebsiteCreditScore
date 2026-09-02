@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import type { CSSProperties, ReactNode } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
@@ -107,14 +107,6 @@ interface Props {
   domain: string;
   initialStatus: string;
   initialResult: WCSReport | null;
-}
-
-interface StreamEvent {
-  type: "search" | "result_count" | "done" | "error" | "cached";
-  query?: string;
-  count?: number;
-  report?: WCSReport;
-  error?: string;
 }
 
 // ── Skeleton ──────────────────────────────────────────────────────────────
@@ -1409,49 +1401,53 @@ export function ReportContent({ report, scanId }: { report: WCSReport; scanId?: 
   );
 }
 
-// ── Live report (client, handles streaming) ───────────────────────────────
+// ── Live report (client, starts a durable worker and polls persisted state) ─
 export function LiveReport({ scanId, domain, initialResult }: Props) {
   const [report, setReport] = useState<WCSReport | null>(initialResult);
-  const [searches, setSearches] = useState<string[]>([]);
+  const [searches, setSearches] = useState<string[]>(["Preparing scan job"]);
   const [sourceCount, setSourceCount] = useState(0);
   const [error, setError] = useState<string | null>(null);
-  const eventSourceRef = useRef<EventSource | null>(null);
 
   useEffect(() => {
-    if (report) return; // already have result
+    if (initialResult) return;
+    let cancelled = false;
 
-    const es = new EventSource(`/api/scan/${scanId}/stream`);
-    eventSourceRef.current = es;
-
-    es.addEventListener("message", (e) => {
+    const observe = async () => {
       try {
-        const event: StreamEvent = JSON.parse(e.data);
-
-        if (event.type === "search" && event.query) {
-          setSearches((prev) => [...prev, event.query!]);
-        } else if (event.type === "result_count" && event.count !== undefined) {
-          setSourceCount(event.count);
-        } else if (event.type === "done" || event.type === "cached") {
-          if (event.report) {
-            setReport(event.report);
-          }
-          es.close();
-        } else if (event.type === "error") {
-          setError(event.error ?? "Scan failed");
-          es.close();
+        const response = await fetch(`/api/scan/${scanId}`, { cache: "no-store" });
+        if (!response.ok) return;
+        const scan = await response.json() as {
+          status?: string;
+          result?: WCSReport | null;
+          error?: string | null;
+          progress?: { phase?: string; source_count?: number } | null;
+        };
+        if (cancelled) return;
+        if (scan.status === "done" && scan.result) {
+          setReport(scan.result);
+          return;
         }
+        if (scan.status === "error") {
+          setError(scan.error ?? "Scan failed");
+          return;
+        }
+        const phase = scan.progress?.phase;
+        if (phase) setSearches((previous) => previous.includes(phase) ? previous : [...previous, phase]);
+        if (scan.progress?.source_count) setSourceCount(scan.progress.source_count);
       } catch {
-        // ignore parse errors
+        // Polling recovers automatically on the next interval.
       }
-    });
-
-    es.onerror = () => {
-      setError("Connection lost. Please refresh.");
-      es.close();
     };
 
-    return () => es.close();
-  }, [scanId, report]);
+    void fetch(`/api/scan/${scanId}/run`, { method: "POST" })
+      .then(() => observe())
+      .catch(() => setError("Could not start the scan. Please retry."));
+    const interval = window.setInterval(() => void observe(), 2500);
+    return () => {
+      cancelled = true;
+      window.clearInterval(interval);
+    };
+  }, [initialResult, scanId]);
 
   return (
     <div className="w-full max-w-7xl mx-auto px-4 py-8 sm:px-6 lg:px-8">

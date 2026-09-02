@@ -34,6 +34,8 @@ export async function GET(_req: NextRequest, { params }: { params: Promise<{ id:
       id: scan.id,
       domain: scan.domain,
       status: scan.status,
+      progress: scan.progress ?? null,
+      error: scan.status === "error" ? scan.last_error ?? (scan.result as { error?: string } | null)?.error ?? "Scan failed" : null,
       result: scan.status === "done" ? scan.result : null,
       completedAt: (scan as { completed_at?: string | null }).completed_at ?? scan.created_at ?? null,
     },

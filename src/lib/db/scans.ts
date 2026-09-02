@@ -19,6 +19,13 @@ export interface Scan {
   created_at: string;
   ip_hash: string | null;
   user_agent: string | null;
+  is_public_example?: boolean;
+  scan_attempts?: number;
+  run_started_at?: string | null;
+  run_lease_expires_at?: string | null;
+  last_error?: string | null;
+  progress?: Record<string, unknown>;
+  completed_at?: string | null;
 }
 
 export async function getScan(id: string): Promise<Scan | null> {
@@ -124,6 +131,23 @@ export async function updateScanStatus(id: string, status: ScanStatus): Promise<
   if (error) throw new Error(`Failed to update scan status: ${error.message}`);
 }
 
+/** Atomically lease a paid scan to one worker. Expired workers are reclaimable. */
+export async function claimScanRun(id: string): Promise<boolean> {
+  const supabase = await createClient();
+  const { data, error } = await supabase.rpc("claim_scan_run", { p_scan_id: id });
+  if (error) throw new Error(`Failed to claim scan: ${error.message}`);
+  return data === true;
+}
+
+export async function updateScanProgress(id: string, progress: Record<string, unknown>): Promise<void> {
+  const supabase = await createClient();
+  const { error } = await supabase
+    .from("scans")
+    .update({ progress: { ...progress, updated_at: new Date().toISOString() } })
+    .eq("id", id);
+  if (error) throw new Error(`Failed to update scan progress: ${error.message}`);
+}
+
 export async function saveScanResult(
   id: string,
   result: WCSReport,
@@ -137,6 +161,10 @@ export async function saveScanResult(
       result,
       source_count: opts.sourceCount,
       cost_cents: opts.costCents,
+      completed_at: new Date().toISOString(),
+      run_lease_expires_at: null,
+      last_error: null,
+      progress: { phase: "complete", updated_at: new Date().toISOString() },
     })
     .eq("id", id);
   if (error) throw new Error(`Failed to save scan result: ${error.message}`);
@@ -146,7 +174,13 @@ export async function saveScanError(id: string, message: string): Promise<void> 
   const supabase = await createClient();
   await supabase
     .from("scans")
-    .update({ status: "error", result: { error: message } as unknown as WCSReport })
+    .update({
+      status: "error",
+      result: { error: message } as unknown as WCSReport,
+      last_error: message,
+      run_lease_expires_at: null,
+      progress: { phase: "error", message, updated_at: new Date().toISOString() },
+    })
     .eq("id", id);
 }
 
@@ -171,12 +205,6 @@ export async function getRecentScans(limit: number | null = 6): Promise<Array<{
   sources: number;
   created_at: string;
 }>> {
-  const publicDomains = (process.env.WCS_PUBLIC_SCAN_DOMAINS ?? "")
-    .split(",")
-    .map((domain) => domain.trim().toLowerCase())
-    .filter(Boolean);
-  if (publicDomains.length === 0) return [];
-
   const supabase = await createClient();
   // Pull newest-first, unbounded, so we can dedupe by domain before limiting —
   // a re-scanned domain shows only its latest report, never a stale duplicate.
@@ -185,7 +213,7 @@ export async function getRecentScans(limit: number | null = 6): Promise<Array<{
     .select("id, domain, result, created_at")
     .eq("status", "done")
     .eq("paid", true)
-    .in("domain", publicDomains)
+    .eq("is_public_example", true)
     .order("created_at", { ascending: false });
 
   if (!data) return [];
