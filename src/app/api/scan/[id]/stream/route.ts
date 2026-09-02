@@ -13,6 +13,7 @@ import { autoHandoffToSP } from "@/lib/sp-webhook";
 import { crawlSite, crawlToPromptBlock } from "@/lib/site-crawl";
 import { attachRemediations } from "@/lib/attach-remediations";
 import { normalizeReportScores } from "@/lib/scoring";
+import { attachReportProvenance } from "@/lib/report-provenance";
 
 export const runtime = "nodejs";
 export const maxDuration = 300;
@@ -291,6 +292,7 @@ async function runAgent(
   // (same scores → same grade/overall on every re-scan) BEFORE anything reads
   // them, so remediation thresholds and the SP handoff see canonical values.
   finalReport = normalizeReportScores(finalReport);
+  finalReport = attachReportProvenance(finalReport);
 
   // Attach the productized remediation (self-serve steps + Brainztem add-on)
   // to each weak dimension so it flows to the report UI and the SP pitch.

@@ -4,6 +4,11 @@ import { z } from "zod";
 export const GRADES = ["A+", "A", "A-", "B+", "B", "B-", "C+", "C", "C-", "D+", "D", "D-", "F"] as const;
 export type Grade = (typeof GRADES)[number];
 
+export const SOURCE_TYPES = ["first_party", "registry", "review", "news", "social", "technical", "other"] as const;
+export type SourceType = (typeof SOURCE_TYPES)[number];
+export const EVIDENCE_CONFIDENCE = ["verified", "reported", "unverified"] as const;
+export type EvidenceConfidence = (typeof EVIDENCE_CONFIDENCE)[number];
+
 export const DIMENSION_KEYS = [
   "legitimacy",
   "reputation",
@@ -62,6 +67,9 @@ const EvidenceItemSchema = z.object({
   claim: z.string(),
   url: z.string().url(),
   title: z.string().optional(),
+  source_type: z.enum(SOURCE_TYPES).optional(),
+  confidence: z.enum(EVIDENCE_CONFIDENCE).optional(),
+  observed_at: z.string().datetime().optional(),
 });
 
 // Agent-written, site-specific fixes for a dimension.
@@ -125,6 +133,9 @@ const SourceSchema = z.object({
   url: z.string().url(),
   title: z.string(),
   domain: z.string().optional(),
+  source_type: z.enum(SOURCE_TYPES).optional(),
+  confidence: z.enum(EVIDENCE_CONFIDENCE).optional(),
+  observed_at: z.string().datetime().optional(),
 });
 
 const WCSReportShape = z.object({
@@ -222,6 +233,9 @@ export const WCS_REPORT_JSON_SCHEMA = {
                 claim: { type: "string" },
                 url: { type: "string", format: "uri" },
                 title: { type: "string" },
+                source_type: { type: "string", enum: SOURCE_TYPES },
+                confidence: { type: "string", enum: EVIDENCE_CONFIDENCE },
+                observed_at: { type: "string", format: "date-time" },
               },
             },
           },
@@ -299,6 +313,9 @@ export const WCS_REPORT_JSON_SCHEMA = {
           url: { type: "string", format: "uri" },
           title: { type: "string" },
           domain: { type: "string" },
+          source_type: { type: "string", enum: SOURCE_TYPES },
+          confidence: { type: "string", enum: EVIDENCE_CONFIDENCE },
+          observed_at: { type: "string", format: "date-time" },
         },
       },
     },

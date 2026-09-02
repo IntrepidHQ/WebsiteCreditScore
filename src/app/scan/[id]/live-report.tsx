@@ -76,6 +76,18 @@ function renderInlineMarkdown(text: string): ReactNode[] {
   });
 }
 
+function evidenceLabel(confidence?: "verified" | "reported" | "unverified", sourceType?: string) {
+  if (confidence === "verified") return sourceType === "first_party" ? "First-party evidence" : "Verified source";
+  if (confidence === "reported") return "Third-party report";
+  return "Source not independently verified";
+}
+
+function isHighRiskClaim(flag: RedFlag) {
+  return /\b(scam|fraud|criminal|crime|abuse|assault|misconduct|lawsuit|illegal|deception)\b/i.test(
+    `${flag.title} ${flag.detail}`,
+  );
+}
+
 function SummaryParagraph({ text }: { text: string }) {
   const leadingLabel = text.match(/^\*\*(.+?)\*\*:\s*([\s\S]*)$/);
   if (leadingLabel) {
@@ -234,7 +246,12 @@ function DimensionCard({ dim }: { dim: WCSReport["dimensions"][number] }) {
                       style={{ color: "var(--theme-muted)" }}
                     >
                       <ExternalLink className="mt-0.5 h-3 w-3 flex-shrink-0 transition-colors group-hover:text-[#4ade80]" />
-                      <span className="group-hover:text-[var(--theme-foreground)]">{renderInlineMarkdown(ev.claim)}</span>
+                      <span>
+                        <span className="group-hover:text-[var(--theme-foreground)]">{renderInlineMarkdown(ev.claim)}</span>
+                        <span className="mt-1 block text-[10px] uppercase tracking-[0.1em]" style={{ color: "var(--theme-muted)" }}>
+                          {evidenceLabel(ev.confidence, ev.source_type)}
+                        </span>
+                      </span>
                     </a>
                   ))}
                 </div>
@@ -806,7 +823,12 @@ function DimensionReasoningModal({
                   style={{ color: "var(--theme-muted)" }}
                 >
                   <ExternalLink className="mt-0.5 h-3.5 w-3.5 shrink-0 transition-colors group-hover:text-[var(--theme-accent)]" aria-hidden />
-                  <span className="leading-relaxed group-hover:text-[var(--theme-foreground)]">{renderInlineMarkdown(item.claim)}</span>
+                  <span>
+                    <span className="leading-relaxed group-hover:text-[var(--theme-foreground)]">{renderInlineMarkdown(item.claim)}</span>
+                    <span className="mt-1 block text-[10px] uppercase tracking-[0.1em]" style={{ color: "var(--theme-muted)" }}>
+                      {evidenceLabel(item.confidence, item.source_type)}
+                    </span>
+                  </span>
                 </a>
               ))}
             </div>
@@ -1138,6 +1160,11 @@ function RedFlagsPanel({ flags }: { flags: RedFlag[] }) {
         <AlertTriangle className="h-4 w-4" aria-hidden />
         Red Flags ({flags.length})
       </h2>
+      {flags.some(isHighRiskClaim) ? (
+        <p className="-mt-1 mb-4 text-xs leading-relaxed" style={{ color: "var(--theme-muted)" }}>
+          High-risk claims are attributed third-party reports, not findings of fact. Open the cited source and verify independently.
+        </p>
+      ) : null}
       <div className="space-y-3">
         {flags.map((flag, i) => {
           const content = (
@@ -1151,6 +1178,11 @@ function RedFlagsPanel({ flags }: { flags: RedFlag[] }) {
               <p className="mt-2 text-sm leading-relaxed" style={{ color: "var(--theme-muted)", ...readableWrapStyle }}>
                 {renderInlineMarkdown(flag.detail)}
               </p>
+              {isHighRiskClaim(flag) ? (
+                <span className="mt-3 inline-flex w-fit rounded-full border border-amber-400/25 bg-amber-400/10 px-2 py-1 text-[10px] font-bold uppercase tracking-[0.08em] text-amber-200">
+                  Third-party claim — verify source
+                </span>
+              ) : null}
               {flag.url ? (
                 <span className="mt-3 inline-flex items-center gap-1.5 text-xs font-semibold" style={{ color: "var(--theme-accent)" }}>
                   Source <ExternalLink className="h-3 w-3" aria-hidden />
@@ -1438,6 +1470,14 @@ export function LiveReport({ scanId, domain, initialResult }: Props) {
           <p className="text-sm" style={{ color: "var(--theme-muted)" }}>
             {error}
           </p>
+          <button
+            type="button"
+            onClick={() => window.location.reload()}
+            className="mt-2 text-sm font-semibold hover:opacity-80"
+            style={{ color: "var(--theme-accent)" }}
+          >
+            Retry this scan
+          </button>
         </div>
       ) : !report ? (
         <div className="space-y-4">

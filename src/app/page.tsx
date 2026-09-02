@@ -830,7 +830,7 @@ export default async function LandingPage({
         </div>
       </section>
 
-      {/* Recent scans — fed from completed paid reports; duplicate domains reuse cached results within 7 days */}
+      {/* Public examples are curated explicitly; paid customer reports are never promoted automatically. */}
       <section
         className="px-6 py-20"
         style={{ borderTop: "1px solid var(--theme-border)", backgroundColor: "var(--theme-background-alt)" }}
@@ -839,7 +839,7 @@ export default async function LandingPage({
           <div className="mb-10 grid gap-6 lg:grid-cols-[minmax(0,1fr)_minmax(20rem,0.45fr)] lg:items-end">
             <div>
               <p className="text-xs uppercase tracking-widest mb-4" style={{ color: "var(--theme-accent)" }}>
-                Recent scan results
+                Curated scan examples
               </p>
               <h2
                 className="font-display mb-3"
@@ -848,8 +848,8 @@ export default async function LandingPage({
                 The payoff should look like evidence, not a receipt.
               </h2>
               <p className="text-sm max-w-2xl" style={{ color: "var(--theme-muted)" }}>
-                Live reports from paid scans. Each card shows the verdict, proof density, strongest signal,
-                and biggest gap before you open the full report.
+                Only reports selected for public display appear here. Each card shows the verdict, proof density,
+                strongest signal, and biggest gap before you open the full report.
               </p>
             </div>
             <div className="grid grid-cols-3 gap-3">
@@ -879,7 +879,7 @@ export default async function LandingPage({
               style={{ border: "1px dashed var(--theme-border)", backgroundColor: "var(--theme-panel)" }}
             >
               <p className="text-sm" style={{ color: "var(--theme-muted)" }}>
-                No public scans yet. Run one above — completed reports appear here automatically.
+                Public examples are selected deliberately. Your scan remains private unless it is explicitly approved for display.
               </p>
             </div>
           ) : (

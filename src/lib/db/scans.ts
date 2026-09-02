@@ -150,7 +150,11 @@ export async function saveScanError(id: string, message: string): Promise<void> 
     .eq("id", id);
 }
 
-/** Fetch completed public scans for the homepage and scans archive. */
+/**
+ * Public discovery is opt-in. Until the database curation migration is applied,
+ * only domains deliberately listed in WCS_PUBLIC_SCAN_DOMAINS can appear on the
+ * marketing site. Customer payment is never publication consent.
+ */
 export async function getRecentScans(limit: number | null = 6): Promise<Array<{
   id: string;
   domain: string;
@@ -167,6 +171,12 @@ export async function getRecentScans(limit: number | null = 6): Promise<Array<{
   sources: number;
   created_at: string;
 }>> {
+  const publicDomains = (process.env.WCS_PUBLIC_SCAN_DOMAINS ?? "")
+    .split(",")
+    .map((domain) => domain.trim().toLowerCase())
+    .filter(Boolean);
+  if (publicDomains.length === 0) return [];
+
   const supabase = await createClient();
   // Pull newest-first, unbounded, so we can dedupe by domain before limiting —
   // a re-scanned domain shows only its latest report, never a stale duplicate.
@@ -175,7 +185,7 @@ export async function getRecentScans(limit: number | null = 6): Promise<Array<{
     .select("id, domain, result, created_at")
     .eq("status", "done")
     .eq("paid", true)
-    .not("domain", "ilike", "%websitecreditscore.com%")
+    .in("domain", publicDomains)
     .order("created_at", { ascending: false });
 
   if (!data) return [];
