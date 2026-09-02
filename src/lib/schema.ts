@@ -70,6 +70,10 @@ const EvidenceItemSchema = z.object({
   source_type: z.enum(SOURCE_TYPES).optional(),
   confidence: z.enum(EVIDENCE_CONFIDENCE).optional(),
   observed_at: z.string().datetime().optional(),
+  checked_at: z.string().datetime().optional(),
+  reachable: z.boolean().optional(),
+  page_title: z.string().optional(),
+  excerpt: z.string().optional(),
 });
 
 // Agent-written, site-specific fixes for a dimension.
@@ -136,6 +140,10 @@ const SourceSchema = z.object({
   source_type: z.enum(SOURCE_TYPES).optional(),
   confidence: z.enum(EVIDENCE_CONFIDENCE).optional(),
   observed_at: z.string().datetime().optional(),
+  checked_at: z.string().datetime().optional(),
+  reachable: z.boolean().optional(),
+  page_title: z.string().optional(),
+  excerpt: z.string().optional(),
 });
 
 const WCSReportShape = z.object({
@@ -236,6 +244,10 @@ export const WCS_REPORT_JSON_SCHEMA = {
                 source_type: { type: "string", enum: SOURCE_TYPES },
                 confidence: { type: "string", enum: EVIDENCE_CONFIDENCE },
                 observed_at: { type: "string", format: "date-time" },
+                checked_at: { type: "string", format: "date-time" },
+                reachable: { type: "boolean" },
+                page_title: { type: "string" },
+                excerpt: { type: "string" },
               },
             },
           },
@@ -316,6 +328,10 @@ export const WCS_REPORT_JSON_SCHEMA = {
           source_type: { type: "string", enum: SOURCE_TYPES },
           confidence: { type: "string", enum: EVIDENCE_CONFIDENCE },
           observed_at: { type: "string", format: "date-time" },
+          checked_at: { type: "string", format: "date-time" },
+          reachable: { type: "boolean" },
+          page_title: { type: "string" },
+          excerpt: { type: "string" },
         },
       },
     },
